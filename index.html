@@ -26,16 +26,8 @@ header{display:flex;align-items:center;justify-content:space-between;gap:10px;pa
 .brand .name small{display:block;font-weight:600;letter-spacing:.3em;font-size:10px;color:var(--mut);margin-top:3px}
 .demo{font-size:10px;font-weight:700;color:var(--amber);border:1px solid rgba(245,184,61,.4);border-radius:20px;padding:4px 8px;white-space:nowrap}
 
-/* Veículos */
-.chips{display:flex;gap:8px;overflow-x:auto;padding:10px 16px;background:var(--bg);z-index:5;scrollbar-width:none}
-.chips::-webkit-scrollbar{display:none}
-.chip{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:22px;background:var(--card);border:1px solid var(--line);white-space:nowrap;font-size:14px}
-.chip .dot{width:8px;height:8px;border-radius:50%;background:var(--mut)}
-.chip .dot.on{background:var(--green);box-shadow:0 0 6px var(--green)}
-.chip.sel{border-color:var(--cyan);background:rgba(56,225,230,.08)}
-
 /* Mapa */
-main{position:relative;flex:1;min-height:0}
+main{position:relative;flex:1;min-height:0;overflow:hidden}
 #map{position:absolute;inset:0;background:#1a1d22}
 .leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(.85) contrast(.92) saturate(.55)}
 .leaflet-container{font-family:inherit}
@@ -44,42 +36,71 @@ main{position:relative;flex:1;min-height:0}
 .car{width:44px;height:44px;transition:transform .25s linear}
 .car.off{filter:grayscale(1) brightness(.8)}
 .carlabel{position:absolute;top:46px;left:50%;transform:translateX(-50%);background:rgba(15,17,21,.85);border:1px solid var(--line);border-radius:6px;padding:2px 6px;font-size:11px;white-space:nowrap;color:var(--txt)}
-.fab{position:absolute;right:14px;z-index:400;width:44px;height:44px;border-radius:50%;background:var(--card);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(0,0,0,.4)}
-.fab.active{border-color:var(--cyan)}
-#recenter{top:14px}
 
-/* Cartão do veículo */
-.sheet{position:absolute;left:0;right:0;bottom:0;z-index:450;margin:0 auto;max-width:520px;background:var(--card);border:1px solid var(--line);border-bottom:0;border-radius:18px 18px 0 0;padding:8px 16px 14px;box-shadow:0 -8px 24px rgba(0,0,0,.45)}
-.handle{display:block;width:40px;height:5px;border-radius:3px;background:var(--line);margin:2px auto 10px}
+/* Botão Seguir */
+.follow{position:absolute;top:14px;right:14px;z-index:400;height:40px;padding:0 14px 0 12px;border-radius:20px;background:var(--card);border:1px solid var(--line);display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;box-shadow:0 4px 14px rgba(0,0,0,.4)}
+.follow svg{stroke:currentColor}
+.follow.active{border-color:var(--cyan);background:rgba(56,225,230,.12);color:var(--cyan)}
+
+/* Aviso sem veículo */
+.vazio{display:none;position:absolute;left:16px;right:16px;bottom:24px;z-index:450;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;text-align:center;font-weight:600}
+.vazio small{display:block;font-weight:400;color:var(--mut);margin-top:4px}
+
+/* Cartão do veículo (arrastável) */
+.sheet{position:absolute;left:0;right:0;bottom:0;z-index:450;margin:0 auto;max-width:520px;background:var(--card);border:1px solid var(--line);border-bottom:0;border-radius:18px 18px 0 0;padding:0 16px 14px;box-shadow:0 -8px 24px rgba(0,0,0,.45);transition:transform .22s ease;will-change:transform}
+.sheet.drag{transition:none}
+.dragzone{touch-action:none;cursor:grab;user-select:none;-webkit-user-select:none}
+.handlewrap{padding:10px 0 12px}
+.handle{display:block;width:44px;height:5px;border-radius:3px;background:var(--line);margin:0 auto}
 .row{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .vname{font-size:18px;font-weight:700}
 .plate{font-size:12px;color:var(--mut);letter-spacing:.08em;margin-top:2px}
 .status{font-size:12px;font-weight:700;padding:5px 10px;border-radius:20px;white-space:nowrap}
+.status.sm{font-size:11px;padding:4px 8px}
 .st-move{background:rgba(51,209,122,.14);color:var(--green)}
 .st-stop{background:rgba(56,225,230,.12);color:var(--cyan)}
 .st-off{background:rgba(154,163,178,.14);color:var(--mut)}
 .st-block{background:rgba(227,38,47,.16);color:var(--red2)}
-.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:14px 0 12px}
+.banner{display:none;margin-top:12px;padding:9px 12px;border-radius:10px;background:rgba(227,38,47,.12);border:1px solid rgba(227,38,47,.35);color:var(--red2);font-size:13px;font-weight:600}
+.banner.show{display:block}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 0 12px}
 .stat{background:var(--card2);border-radius:12px;padding:10px 6px;text-align:center}
 .stat b{display:block;font-size:16px;margin-top:4px}
 .stat span{font-size:11px;color:var(--mut)}
-.bars{display:inline-flex;gap:2px;align-items:flex-end;height:16px;margin-top:4px}
-.bars i{width:4px;background:var(--line);border-radius:1px}
-.bars i.f{background:var(--cyan)}
 .addr{font-size:13px;color:var(--mut);display:flex;justify-content:space-between;gap:8px;margin-bottom:12px}
 .addr strong{color:var(--txt);font-weight:600}
-.sheet.min .grid,.sheet.min .addr{display:none}
 .actions{display:grid;grid-template-columns:1fr 1fr 52px;gap:8px}
 .btn{height:48px;border-radius:12px;font-weight:700;font-size:15px;display:flex;align-items:center;justify-content:center;gap:8px}
 .btn-red{background:var(--red);color:#fff}
 .btn-red:active{background:#c51f27}
 .btn-out{border:1px solid var(--line);background:var(--card2)}
 .btn[disabled]{opacity:.45;cursor:default}
-.banner{display:none;margin-bottom:10px;padding:9px 12px;border-radius:10px;background:rgba(227,38,47,.12);border:1px solid rgba(227,38,47,.35);color:var(--red2);font-size:13px;font-weight:600}
-.banner.show{display:block}
+
+/* Aba Veículos */
+.vview{position:absolute;inset:0;z-index:600;background:var(--bg);display:none;flex-direction:column}
+.vview.show{display:flex}
+.vtop{padding:16px 16px 8px}
+.vtitle{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.vtitle h2{font-size:20px}
+.linkbtn{color:var(--cyan);font-size:14px;font-weight:600;padding:8px 0}
+.vcount{font-size:13px;color:var(--mut);margin-top:2px}
+.search{width:100%;height:44px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--txt);padding:0 14px;font:inherit;font-size:15px;margin-top:12px;outline:none}
+.search:focus{border-color:var(--cyan)}
+.vlist{flex:1;overflow-y:auto;padding:4px 16px 16px}
+.vrow{display:flex;align-items:center;gap:6px;border-bottom:1px solid var(--line)}
+.chk{position:relative;display:flex;align-items:center;justify-content:center;width:48px;height:58px;cursor:pointer;flex:none}
+.chk input{position:absolute;opacity:0;width:0;height:0}
+.box{width:22px;height:22px;border-radius:6px;border:2px solid var(--mut);display:flex;align-items:center;justify-content:center}
+.chk input:checked + .box{background:var(--cyan);border-color:var(--cyan)}
+.chk input:checked + .box::after{content:"";width:6px;height:11px;border:solid #0f1115;border-width:0 2.5px 2.5px 0;transform:rotate(45deg) translate(-1px,-1px)}
+.chk input:focus-visible + .box{outline:2px solid var(--cyan);outline-offset:2px}
+.vinfo{flex:1;min-width:0;text-align:left;padding:10px 0}
+.vn{font-size:16px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vp{font-size:12px;color:var(--mut);letter-spacing:.08em;margin-top:2px}
+.vempty{padding:24px 0;text-align:center;color:var(--mut);font-size:14px}
 
 /* Navegação */
-nav{display:grid;grid-template-columns:repeat(4,1fr);background:var(--bg);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom);z-index:5}
+nav{display:grid;grid-template-columns:repeat(5,1fr);background:var(--bg);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom);z-index:5}
 nav button{padding:9px 0 8px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;color:var(--mut)}
 nav button.on{color:var(--txt)}
 nav button.on svg{stroke:var(--red2)}
@@ -88,12 +109,12 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
 /* Janelas */
 .modal{position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.6);display:none;align-items:flex-end;justify-content:center}
 .modal.show{display:flex}
-.box{width:100%;max-width:520px;background:var(--card);border:1px solid var(--line);border-radius:18px 18px 0 0;padding:20px 16px calc(16px + env(safe-area-inset-bottom))}
-.box h3{font-size:18px;margin-bottom:8px}
-.box p{font-size:14px;color:var(--mut);line-height:1.45;margin-bottom:12px}
+.box2{width:100%;max-width:520px;background:var(--card);border:1px solid var(--line);border-radius:18px 18px 0 0;padding:20px 16px calc(16px + env(safe-area-inset-bottom))}
+.box2 h3{font-size:18px;margin-bottom:8px}
+.box2 p{font-size:14px;color:var(--mut);line-height:1.45;margin-bottom:12px}
 .warn{background:rgba(245,184,61,.1);border:1px solid rgba(245,184,61,.35);color:var(--amber);border-radius:10px;padding:10px 12px;font-size:13px;font-weight:600;margin-bottom:12px;display:none}
 .warn.show{display:block}
-.box .actions2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
+.box2 .actions2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
 .opts{display:flex;gap:8px;margin-bottom:12px}
 .opt{flex:1;height:40px;border-radius:10px;border:1px solid var(--line);background:var(--card2);font-size:14px}
 .opt.sel{border-color:var(--cyan);color:var(--cyan)}
@@ -117,29 +138,32 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
   <span class="demo">DEMONSTRAÇÃO</span>
 </header>
 
-<div class="chips" id="chips"></div>
-
-<main>
+<main id="main">
   <div id="map"></div>
-  <button class="fab active" id="recenter" title="Seguir veículo">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#38e1e6" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2" fill="#38e1e6"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+
+  <button class="follow" id="follow" aria-pressed="false">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2" fill="currentColor"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+    <span id="followTxt">Seguir</span>
   </button>
 
+  <div class="vazio" id="vazio">Nenhum veículo selecionado<small>Abra a aba Veículos para escolher.</small></div>
+
   <section class="sheet" id="sheet">
-    <button class="handle" id="handle" aria-label="Expandir ou recolher"></button>
-    <div class="banner" id="banner">Veículo bloqueado</div>
-    <div class="row">
-      <div>
-        <div class="vname" id="vName"></div>
-        <div class="plate" id="vPlate"></div>
+    <div class="dragzone" id="dragzone">
+      <div class="handlewrap"><span class="handle"></span></div>
+      <div class="row">
+        <div>
+          <div class="vname" id="vName"></div>
+          <div class="plate" id="vPlate"></div>
+        </div>
+        <span class="status" id="vStatus"></span>
       </div>
-      <span class="status" id="vStatus"></span>
     </div>
+    <div class="banner" id="banner">Veículo bloqueado</div>
     <div class="grid">
       <div class="stat"><span>Velocidade</span><b id="sSpeed"></b></div>
       <div class="stat"><span>Ignição</span><b id="sIgn"></b></div>
       <div class="stat"><span>Bateria</span><b id="sBat"></b></div>
-      <div class="stat"><span>Sinal</span><div class="bars" id="sSig"></div></div>
     </div>
     <div class="addr"><strong id="vAddr">Centro, Duque de Caxias - RJ</strong><span id="vAgo"></span></div>
     <div class="actions">
@@ -150,10 +174,23 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
       </button>
     </div>
   </section>
+
+  <section class="vview" id="vview">
+    <div class="vtop">
+      <div class="vtitle">
+        <h2>Veículos</h2>
+        <button class="linkbtn" id="vAll">Selecionar todos</button>
+      </div>
+      <div class="vcount" id="vCount"></div>
+      <input class="search" id="vSearch" type="search" placeholder="Buscar veículo ou placa" autocomplete="off">
+    </div>
+    <div class="vlist" id="vList"></div>
+  </section>
 </main>
 
 <nav>
   <button class="on" data-tab="Mapa"><svg viewBox="0 0 24 24"><path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg>Mapa</button>
+  <button data-tab="Veículos"><svg viewBox="0 0 24 24"><path d="M4 16v-4l2-5h12l2 5v4"/><path d="M4 12h16"/><circle cx="7.5" cy="16.5" r="1.5"/><circle cx="16.5" cy="16.5" r="1.5"/></svg>Veículos</button>
   <button data-tab="Histórico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Histórico</button>
   <button data-tab="Cercas"><svg viewBox="0 0 24 24"><path d="M12 3l8 4v6c0 4-3.5 7-8 8-4.5-1-8-4-8-8V7l8-4z"/></svg>Cercas</button>
   <button data-tab="Alertas"><svg viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 1112 0v5l2 2H4l2-2z"/><path d="M10 21h4"/></svg>Alertas</button>
@@ -161,7 +198,7 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
 
 <!-- Confirmar comando -->
 <div class="modal" id="mCmd">
-  <div class="box">
+  <div class="box2">
     <h3 id="cmdTitle"></h3>
     <p id="cmdText"></p>
     <div class="warn" id="cmdWarn"></div>
@@ -174,7 +211,7 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
 
 <!-- Compartilhar -->
 <div class="modal" id="mShare">
-  <div class="box">
+  <div class="box2">
     <h3>Compartilhar localização</h3>
     <p>Quem receber o link vê só a posição deste veículo, sem acesso à sua conta.</p>
     <div class="opts" id="shareOpts">
@@ -204,11 +241,24 @@ const INTERVALO = 6000; // tempo simulado entre posições do aparelho (ms)
 
 const veiculos = [
   {id:1,nome:'Meu carro',placa:'ABC1D23',rota:ROTA,idx:0,pos:ROTA[0].slice(),de:null,para:null,t0:0,
-   rumo:0,vel:0,ign:true,bloq:false,bat:100,sinal:4,ultimo:Date.now(),parado:0},
+   rumo:0,vel:0,ign:true,bloq:false,bat:100,ultimo:Date.now(),parado:0,visivel:true},
   {id:2,nome:'Carro do técnico',placa:'XYZ9E87',rota:null,pos:[-22.7905,-43.3015],de:null,para:null,
-   rumo:40,vel:0,ign:false,bloq:false,bat:96,sinal:3,ultimo:Date.now()-180000,parado:0}
+   rumo:40,vel:0,ign:false,bloq:false,bat:96,ultimo:Date.now()-180000,parado:0,visivel:true},
+  {id:3,nome:'Van de entregas',placa:'KLM4F56',rota:null,pos:[-22.7810,-43.3140],de:null,para:null,
+   rumo:120,vel:0,ign:false,bloq:true,bat:88,ultimo:Date.now()-5400000,parado:0,visivel:true},
+  {id:4,nome:'Moto 01',placa:'QRS7H89',rota:null,pos:[-22.7940,-43.3070],de:null,para:null,
+   rumo:300,vel:0,ign:true,bloq:false,bat:74,ultimo:Date.now()-45000,parado:0,visivel:true},
+  {id:5,nome:'Caminhonete',placa:'TUV2J34',rota:null,pos:[-22.7770,-43.3030],de:null,para:null,
+   rumo:200,vel:0,ign:false,bloq:false,bat:92,ultimo:Date.now()-900000,parado:0,visivel:true}
 ];
-let selId = 1, seguir = true;
+
+let selId = 1, seguir = false, cmdAndamento = false, acaoCmd = null;
+let recolhido = false, arrastando = false;
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const ativo = () => veiculos.find(v=>v.id===selId && v.visivel) || null;
+const visiveis = () => veiculos.filter(v=>v.visivel);
 
 /* ===== MAPA ===== */
 const map = L.map('map',{zoomControl:false,attributionControl:false}).setView(ROTA[0],16);
@@ -222,20 +272,49 @@ const carSvg = '<svg viewBox="0 0 44 44" width="44" height="44"><circle cx="22" 
 veiculos.forEach(v=>{
   v.marker = L.marker(v.pos,{icon:L.divIcon({
     className:'',iconSize:[44,44],iconAnchor:[22,22],
-    html:'<div class="car">'+carSvg+'</div><div class="carlabel">'+v.nome+'</div>'
+    html:'<div class="car">'+carSvg+'</div><div class="carlabel">'+esc(v.nome)+'</div>'
   })}).addTo(map);
-  v.marker.on('click',()=>selecionar(v.id));
+  v.marker.on('click',()=>{
+    selId = v.id; recolhido = false; atualizar();
+  });
 });
 
-map.on('dragstart',()=>{seguir=false;document.getElementById('recenter').classList.remove('active')});
-document.getElementById('recenter').onclick=()=>{
-  seguir=true;document.getElementById('recenter').classList.add('active');
-  map.panTo(sel().pos,{animate:true});
+/* ===== SEGUIR VEÍCULO ===== */
+function setSeguir(on){
+  seguir = on;
+  $('follow').classList.toggle('active',on);
+  $('follow').setAttribute('aria-pressed',on?'true':'false');
+  $('followTxt').textContent = on ? 'Seguindo' : 'Seguir';
+  if(on) map.dragging.disable(); else map.dragging.enable(); // seguindo = mapa travado no veículo
+}
+$('follow').onclick = ()=>{
+  if(!seguir && !ativo()){ toast('Nenhum veículo selecionado'); return }
+  setSeguir(!seguir);
 };
 
+/* Quanto do mapa está coberto pelo cartão (para o veículo não ficar escondido atrás dele) */
+function cobertura(){
+  const s = $('sheet');
+  if(s.style.display==='none') return 0;
+  const m = $('main').getBoundingClientRect(), r = s.getBoundingClientRect();
+  return Math.max(0, m.bottom - r.top);
+}
+function centralizar(pos){
+  const z = map.getZoom(), c = cobertura();
+  const p = map.project(L.latLng(pos),z).add([0,c/2]);
+  const cur = map.project(map.getCenter(),z);
+  if(Math.abs(cur.x-p.x)>0.5 || Math.abs(cur.y-p.y)>0.5){
+    map.setView(map.unproject(p,z),z,{animate:false});
+  }
+}
+function ajustarTodos(vs){
+  const c = cobertura();
+  map.fitBounds(L.latLngBounds(vs.map(v=>v.pos)),{
+    paddingTopLeft:[40,70],paddingBottomRight:[40,c+30],maxZoom:17,animate:false
+  });
+}
+
 /* ===== UTILITÁRIOS ===== */
-const $ = id=>document.getElementById(id);
-const sel = ()=>veiculos.find(v=>v.id===selId);
 function rumo(a,b){
   const r=Math.PI/180,y=Math.sin((b[1]-a[1])*r)*Math.cos(b[0]*r),
   x=Math.cos(a[0]*r)*Math.sin(b[0]*r)-Math.sin(a[0]*r)*Math.cos(b[0]*r)*Math.cos((b[1]-a[1])*r);
@@ -244,6 +323,12 @@ function rumo(a,b){
 let tt;
 function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),2600)}
 function tempo(ms){const s=Math.round(ms/1000);if(s<60)return 'há '+s+' s';const m=Math.round(s/60);if(m<60)return 'há '+m+' min';return 'há '+Math.round(m/60)+' h'}
+function status(v){
+  if(v.bloq) return ['Bloqueado','st-block'];
+  if(!v.ign) return ['Desligado','st-off'];
+  if(v.vel>0) return ['Em movimento','st-move'];
+  return ['Parado','st-stop'];
+}
 
 /* ===== SIMULAÇÃO: o aparelho manda uma posição a cada intervalo ===== */
 function novaPosicao(v){
@@ -272,64 +357,144 @@ function animar(now){
       if(f>=1) v.de=null;
     }
     const el=v.marker.getElement();
-    if(el){const c=el.querySelector('.car');c.style.transform='rotate('+v.rumo+'deg)';c.classList.toggle('off',!v.ign)}
+    if(el){const c=el.querySelector('.car');if(c){c.style.transform='rotate('+v.rumo+'deg)';c.classList.toggle('off',!v.ign)}}
   });
-  if(seguir) map.panTo(sel().pos,{animate:false});
+  const a=ativo();
+  if(seguir && a) centralizar(a.pos);
   requestAnimationFrame(animar);
 }
 requestAnimationFrame(animar);
 
+/* ===== CARTÃO ARRASTÁVEL ===== */
+const sheet = $('sheet'), zone = $('dragzone');
+let y0=0, off0=0, moveu=false, naAlca=false;
+function maxOff(){
+  const peek = zone.getBoundingClientRect().bottom - sheet.getBoundingClientRect().top + 12;
+  return Math.max(0, sheet.offsetHeight - peek);
+}
+function offAtual(){ return recolhido ? maxOff() : 0 }
+function aplicarSheet(){
+  if(arrastando) return;
+  sheet.style.transform = 'translateY('+offAtual()+'px)';
+}
+zone.addEventListener('pointerdown',e=>{
+  arrastando=true; moveu=false; y0=e.clientY; off0=offAtual();
+  naAlca = !!e.target.closest('.handlewrap');
+  sheet.classList.add('drag');
+  try{zone.setPointerCapture(e.pointerId)}catch(_){}
+});
+zone.addEventListener('pointermove',e=>{
+  if(!arrastando) return;
+  const dy=e.clientY-y0;
+  if(Math.abs(dy)>4) moveu=true;
+  const o=Math.max(0,Math.min(maxOff(),off0+dy));
+  sheet.style.transform='translateY('+o+'px)';
+});
+function soltar(e){
+  if(!arrastando) return;
+  const dy=e.clientY-y0;
+  arrastando=false; sheet.classList.remove('drag');
+  if(!moveu){ if(naAlca) recolhido=!recolhido }
+  else if(dy>40) recolhido=true;
+  else if(dy<-40) recolhido=false;
+  aplicarSheet();
+}
+zone.addEventListener('pointerup',soltar);
+zone.addEventListener('pointercancel',soltar);
+
 /* ===== TELA ===== */
-function status(v){
-  if(v.bloq) return ['Bloqueado','st-block'];
-  if(!v.ign) return ['Desligado','st-off'];
-  if(v.vel>0) return ['Em movimento','st-move'];
-  return ['Parado','st-stop'];
-}
-function desenharChips(){
-  $('chips').innerHTML = veiculos.map(v=>
-    '<button class="chip'+(v.id===selId?' sel':'')+'" data-id="'+v.id+'"><span class="dot'+(v.ign?' on':'')+'"></span>'+v.nome+'</button>'
-  ).join('');
-  $('chips').querySelectorAll('.chip').forEach(b=>b.onclick=()=>selecionar(+b.dataset.id));
-}
 function atualizar(){
-  const v=sel(), [txt,cls]=status(v);
-  $('vName').textContent=v.nome;
-  $('vPlate').textContent=v.placa;
-  $('vStatus').textContent=txt; $('vStatus').className='status '+cls;
-  $('sSpeed').textContent=v.vel+' km/h';
-  $('sIgn').textContent=v.ign?'Ligada':'Desligada';
-  $('sBat').textContent=v.bat+'%';
-  $('sSig').innerHTML=[1,2,3,4].map(i=>'<i class="'+(i<=v.sinal?'f':'')+'" style="height:'+(i*4)+'px"></i>').join('');
-  $('vAgo').textContent=tempo(Date.now()-v.ultimo);
-  $('banner').classList.toggle('show',v.bloq);
-  $('btnBlock').disabled=v.bloq||cmdAndamento;
-  $('btnUnblock').disabled=!v.bloq||cmdAndamento;
-  desenharChipsDots();
-}
-function desenharChipsDots(){
-  document.querySelectorAll('.chip').forEach(c=>{
-    const v=veiculos.find(x=>x.id===+c.dataset.id);
-    c.querySelector('.dot').classList.toggle('on',v.ign);
+  const v=ativo();
+  sheet.style.display = v ? 'block' : 'none';
+  $('vazio').style.display = v ? 'none' : 'block';
+  if(v){
+    const [txt,cls]=status(v);
+    $('vName').textContent=v.nome;
+    $('vPlate').textContent=v.placa;
+    $('vStatus').textContent=txt; $('vStatus').className='status '+cls;
+    $('sSpeed').textContent=v.vel+' km/h';
+    $('sIgn').textContent=v.ign?'Ligada':'Desligada';
+    $('sBat').textContent=v.bat+'%';
+    $('vAgo').textContent=tempo(Date.now()-v.ultimo);
+    $('banner').classList.toggle('show',v.bloq);
+    $('btnBlock').disabled=v.bloq||cmdAndamento;
+    $('btnUnblock').disabled=!v.bloq||cmdAndamento;
+    aplicarSheet();
+  }
+  document.querySelectorAll('.vrow').forEach(r=>{
+    const x=veiculos.find(q=>q.id===+r.dataset.id); if(!x) return;
+    const [t,c]=status(x), s=r.querySelector('.status');
+    if(s.textContent!==t){s.textContent=t;s.className='status sm '+c}
   });
-}
-function selecionar(id){
-  selId=id; seguir=true; $('recenter').classList.add('active');
-  desenharChips(); atualizar(); map.panTo(sel().pos,{animate:true});
 }
 setInterval(atualizar,500);
 
-$('handle').onclick=()=>$('sheet').classList.toggle('min');
+/* ===== ABA VEÍCULOS ===== */
+function desenharLista(){
+  const q=$('vSearch').value.trim().toLowerCase();
+  const lista=veiculos.filter(v=>!q||v.nome.toLowerCase().includes(q)||v.placa.toLowerCase().includes(q));
+  $('vList').innerHTML = lista.map(v=>{
+    const [t,c]=status(v);
+    return '<div class="vrow" data-id="'+v.id+'">'+
+      '<label class="chk"><input type="checkbox"'+(v.visivel?' checked':'')+' aria-label="Mostrar '+esc(v.nome)+' no mapa"><span class="box"></span></label>'+
+      '<button class="vinfo"><div class="vn">'+esc(v.nome)+'</div><div class="vp">'+esc(v.placa)+'</div></button>'+
+      '<span class="status sm '+c+'">'+t+'</span></div>';
+  }).join('') || '<div class="vempty">Nenhum veículo encontrado.</div>';
+}
+function atualizarContagem(){
+  const n=visiveis().length;
+  $('vCount').textContent=n+' de '+veiculos.length+' no mapa';
+  $('vAll').textContent = n===veiculos.length ? 'Desmarcar todos' : 'Selecionar todos';
+}
+function sincronizarChecks(){
+  document.querySelectorAll('#vList .vrow').forEach(r=>{
+    const v=veiculos.find(x=>x.id===+r.dataset.id);
+    r.querySelector('input').checked=v.visivel;
+  });
+}
+function aplicarVisibilidade(){
+  veiculos.forEach(v=>{
+    if(v.visivel){ if(!map.hasLayer(v.marker)) v.marker.addTo(map) }
+    else if(map.hasLayer(v.marker)) map.removeLayer(v.marker);
+  });
+  const vs=visiveis();
+  if(vs.length && !ativo()) selId=vs[0].id;
+}
+function mudouSelecao(){
+  aplicarVisibilidade();
+  const vs=visiveis();
+  if(vs.length===1){ selId=vs[0].id; setSeguir(true) }
+  else if(vs.length>1){ setSeguir(false); atualizar(); ajustarTodos(vs) }
+  else setSeguir(false);
+  atualizarContagem(); atualizar();
+}
+$('vList').addEventListener('change',e=>{
+  const r=e.target.closest('.vrow'); if(!r) return;
+  veiculos.find(x=>x.id===+r.dataset.id).visivel=e.target.checked;
+  mudouSelecao();
+});
+$('vList').addEventListener('click',e=>{
+  const b=e.target.closest('.vinfo'); if(!b) return;
+  const v=veiculos.find(x=>x.id===+b.parentNode.dataset.id);
+  v.visivel=true; aplicarVisibilidade(); selId=v.id; recolhido=false;
+  sincronizarChecks(); atualizarContagem();
+  irPara('Mapa'); setSeguir(true); atualizar();
+});
+$('vAll').onclick=()=>{
+  const todos = visiveis().length===veiculos.length;
+  veiculos.forEach(v=>v.visivel=!todos);
+  sincronizarChecks(); mudouSelecao();
+};
+$('vSearch').addEventListener('input',desenharLista);
 
 /* ===== BLOQUEIO / DESBLOQUEIO ===== */
-let acaoCmd=null, cmdAndamento=false;
 function abrir(id){$(id).classList.add('show')}
 function fechar(){document.querySelectorAll('.modal').forEach(m=>m.classList.remove('show'))}
 document.querySelectorAll('[data-close]').forEach(b=>b.onclick=fechar);
 document.querySelectorAll('.modal').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)fechar()}));
 
 $('btnBlock').onclick=()=>{
-  const v=sel(); acaoCmd='bloquear';
+  const v=ativo(); if(!v) return; acaoCmd='bloquear';
   $('cmdTitle').textContent='Bloquear '+v.nome+'?';
   $('cmdText').textContent='O motor será cortado. O veículo só volta a funcionar depois do desbloqueio.';
   const w=$('cmdWarn');
@@ -338,14 +503,15 @@ $('btnBlock').onclick=()=>{
   $('cmdOk').textContent='Bloquear'; abrir('mCmd');
 };
 $('btnUnblock').onclick=()=>{
-  const v=sel(); acaoCmd='desbloquear';
+  const v=ativo(); if(!v) return; acaoCmd='desbloquear';
   $('cmdTitle').textContent='Desbloquear '+v.nome+'?';
   $('cmdText').textContent='O veículo poderá ser ligado normalmente.';
   $('cmdWarn').classList.remove('show');
   $('cmdOk').textContent='Desbloquear'; abrir('mCmd');
 };
 $('cmdOk').onclick=()=>{
-  const v=sel(), acao=acaoCmd, btn=acao==='bloquear'?$('btnBlock'):$('btnUnblock');
+  const v=ativo(); if(!v) return;
+  const acao=acaoCmd, btn=acao==='bloquear'?$('btnBlock'):$('btnUnblock');
   fechar(); cmdAndamento=true;
   btn.innerHTML='<span class="spin"></span>Enviando...';
   toast('Comando enviado. Aguardando o aparelho...');
@@ -379,12 +545,18 @@ $('shareCopy').onclick=()=>{
 };
 
 /* ===== ABAS ===== */
+function irPara(tab){
+  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.tab===tab));
+  $('vview').classList.toggle('show',tab==='Veículos');
+}
 document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
-  if(b.dataset.tab==='Mapa') return;
-  toast(b.dataset.tab+': em construção');
+  const t=b.dataset.tab;
+  if(t==='Mapa'||t==='Veículos') irPara(t);
+  else toast(t+': em construção');
 });
 
-desenharChips(); atualizar();
+setSeguir(true);
+desenharLista(); atualizarContagem(); atualizar();
 </script>
 </body>
 </html>
