@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f1115">
+<title>Rastreando GPS</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+:root{
+  --bg:#0f1115;--card:#171a20;--card2:#1f232b;--line:#2a2f39;
+  --txt:#f2f4f7;--mut:#9aa3b2;--red:#e3262f;--red2:#ff4a52;
+  --cyan:#38e1e6;--green:#33d17a;--amber:#f5b83d;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:var(--bg);color:var(--txt);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+body{display:flex;flex-direction:column;overflow:hidden}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+
+/* Topo */
+header{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:calc(10px + env(safe-area-inset-top)) 16px 10px;background:var(--bg);border-bottom:1px solid var(--line);z-index:5}
+.brand{display:flex;align-items:center;gap:10px}
+.brand img{width:34px;height:34px;border-radius:50%;object-fit:cover}
+.brand .pin{width:34px;height:34px;border-radius:50%;border:2px solid var(--red);display:none;align-items:center;justify-content:center;box-shadow:0 0 10px rgba(227,38,47,.45)}
+.brand .name{font-weight:800;letter-spacing:.06em;font-size:15px;line-height:1}
+.brand .name small{display:block;font-weight:600;letter-spacing:.3em;font-size:10px;color:var(--mut);margin-top:3px}
+.demo{font-size:10px;font-weight:700;color:var(--amber);border:1px solid rgba(245,184,61,.4);border-radius:20px;padding:4px 8px;white-space:nowrap}
+
+/* Veículos */
+.chips{display:flex;gap:8px;overflow-x:auto;padding:10px 16px;background:var(--bg);z-index:5;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:22px;background:var(--card);border:1px solid var(--line);white-space:nowrap;font-size:14px}
+.chip .dot{width:8px;height:8px;border-radius:50%;background:var(--mut)}
+.chip .dot.on{background:var(--green);box-shadow:0 0 6px var(--green)}
+.chip.sel{border-color:var(--cyan);background:rgba(56,225,230,.08)}
+
+/* Mapa */
+main{position:relative;flex:1;min-height:0}
+#map{position:absolute;inset:0;background:#1a1d22}
+.leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(.85) contrast(.92) saturate(.55)}
+.leaflet-container{font-family:inherit}
+.leaflet-control-attribution{background:rgba(15,17,21,.7)!important;color:var(--mut)!important;font-size:9px}
+.leaflet-control-attribution a{color:var(--mut)!important}
+.car{width:44px;height:44px;transition:transform .25s linear}
+.car.off{filter:grayscale(1) brightness(.8)}
+.carlabel{position:absolute;top:46px;left:50%;transform:translateX(-50%);background:rgba(15,17,21,.85);border:1px solid var(--line);border-radius:6px;padding:2px 6px;font-size:11px;white-space:nowrap;color:var(--txt)}
+.fab{position:absolute;right:14px;z-index:400;width:44px;height:44px;border-radius:50%;background:var(--card);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(0,0,0,.4)}
+.fab.active{border-color:var(--cyan)}
+#recenter{top:14px}
+
+/* Cartão do veículo */
+.sheet{position:absolute;left:0;right:0;bottom:0;z-index:450;margin:0 auto;max-width:520px;background:var(--card);border:1px solid var(--line);border-bottom:0;border-radius:18px 18px 0 0;padding:8px 16px 14px;box-shadow:0 -8px 24px rgba(0,0,0,.45)}
+.handle{display:block;width:40px;height:5px;border-radius:3px;background:var(--line);margin:2px auto 10px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.vname{font-size:18px;font-weight:700}
+.plate{font-size:12px;color:var(--mut);letter-spacing:.08em;margin-top:2px}
+.status{font-size:12px;font-weight:700;padding:5px 10px;border-radius:20px;white-space:nowrap}
+.st-move{background:rgba(51,209,122,.14);color:var(--green)}
+.st-stop{background:rgba(56,225,230,.12);color:var(--cyan)}
+.st-off{background:rgba(154,163,178,.14);color:var(--mut)}
+.st-block{background:rgba(227,38,47,.16);color:var(--red2)}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:14px 0 12px}
+.stat{background:var(--card2);border-radius:12px;padding:10px 6px;text-align:center}
+.stat b{display:block;font-size:16px;margin-top:4px}
+.stat span{font-size:11px;color:var(--mut)}
+.bars{display:inline-flex;gap:2px;align-items:flex-end;height:16px;margin-top:4px}
+.bars i{width:4px;background:var(--line);border-radius:1px}
+.bars i.f{background:var(--cyan)}
+.addr{font-size:13px;color:var(--mut);display:flex;justify-content:space-between;gap:8px;margin-bottom:12px}
+.addr strong{color:var(--txt);font-weight:600}
+.sheet.min .grid,.sheet.min .addr{display:none}
+.actions{display:grid;grid-template-columns:1fr 1fr 52px;gap:8px}
+.btn{height:48px;border-radius:12px;font-weight:700;font-size:15px;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-red{background:var(--red);color:#fff}
+.btn-red:active{background:#c51f27}
+.btn-out{border:1px solid var(--line);background:var(--card2)}
+.btn[disabled]{opacity:.45;cursor:default}
+.banner{display:none;margin-bottom:10px;padding:9px 12px;border-radius:10px;background:rgba(227,38,47,.12);border:1px solid rgba(227,38,47,.35);color:var(--red2);font-size:13px;font-weight:600}
+.banner.show{display:block}
+
+/* Navegação */
+nav{display:grid;grid-template-columns:repeat(4,1fr);background:var(--bg);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom);z-index:5}
+nav button{padding:9px 0 8px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;color:var(--mut)}
+nav button.on{color:var(--txt)}
+nav button.on svg{stroke:var(--red2)}
+nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+/* Janelas */
+.modal{position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.6);display:none;align-items:flex-end;justify-content:center}
+.modal.show{display:flex}
+.box{width:100%;max-width:520px;background:var(--card);border:1px solid var(--line);border-radius:18px 18px 0 0;padding:20px 16px calc(16px + env(safe-area-inset-bottom))}
+.box h3{font-size:18px;margin-bottom:8px}
+.box p{font-size:14px;color:var(--mut);line-height:1.45;margin-bottom:12px}
+.warn{background:rgba(245,184,61,.1);border:1px solid rgba(245,184,61,.35);color:var(--amber);border-radius:10px;padding:10px 12px;font-size:13px;font-weight:600;margin-bottom:12px;display:none}
+.warn.show{display:block}
+.box .actions2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
+.opts{display:flex;gap:8px;margin-bottom:12px}
+.opt{flex:1;height:40px;border-radius:10px;border:1px solid var(--line);background:var(--card2);font-size:14px}
+.opt.sel{border-color:var(--cyan);color:var(--cyan)}
+.link{background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:12px;font-size:13px;word-break:break-all;margin-bottom:12px;color:var(--txt)}
+.toast{position:fixed;left:50%;bottom:calc(90px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(20px);opacity:0;z-index:1100;background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:11px 16px;font-size:14px;max-width:calc(100% - 32px);text-align:center;transition:.25s;pointer-events:none}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.spin{width:16px;height:16px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:sp .8s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <img src="logo.png" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+    <div class="pin">
+      <svg width="16" height="20" viewBox="0 0 16 20"><path d="M8 0C3.6 0 0 3.5 0 7.9 0 13.5 8 20 8 20s8-6.5 8-12.1C16 3.5 12.4 0 8 0z" fill="#e3262f"/><circle cx="8" cy="8" r="3" fill="#0f1115"/></svg>
+    </div>
+    <div class="name">RASTREANDO<small>GPS</small></div>
+  </div>
+  <span class="demo">DEMONSTRAÇÃO</span>
+</header>
+
+<div class="chips" id="chips"></div>
+
+<main>
+  <div id="map"></div>
+  <button class="fab active" id="recenter" title="Seguir veículo">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#38e1e6" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2" fill="#38e1e6"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+  </button>
+
+  <section class="sheet" id="sheet">
+    <button class="handle" id="handle" aria-label="Expandir ou recolher"></button>
+    <div class="banner" id="banner">Veículo bloqueado</div>
+    <div class="row">
+      <div>
+        <div class="vname" id="vName"></div>
+        <div class="plate" id="vPlate"></div>
+      </div>
+      <span class="status" id="vStatus"></span>
+    </div>
+    <div class="grid">
+      <div class="stat"><span>Velocidade</span><b id="sSpeed"></b></div>
+      <div class="stat"><span>Ignição</span><b id="sIgn"></b></div>
+      <div class="stat"><span>Bateria</span><b id="sBat"></b></div>
+      <div class="stat"><span>Sinal</span><div class="bars" id="sSig"></div></div>
+    </div>
+    <div class="addr"><strong id="vAddr">Centro, Duque de Caxias - RJ</strong><span id="vAgo"></span></div>
+    <div class="actions">
+      <button class="btn btn-red" id="btnBlock">Bloquear</button>
+      <button class="btn btn-out" id="btnUnblock">Desbloquear</button>
+      <button class="btn btn-out" id="btnShare" aria-label="Compartilhar">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>
+      </button>
+    </div>
+  </section>
+</main>
+
+<nav>
+  <button class="on" data-tab="Mapa"><svg viewBox="0 0 24 24"><path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg>Mapa</button>
+  <button data-tab="Histórico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Histórico</button>
+  <button data-tab="Cercas"><svg viewBox="0 0 24 24"><path d="M12 3l8 4v6c0 4-3.5 7-8 8-4.5-1-8-4-8-8V7l8-4z"/></svg>Cercas</button>
+  <button data-tab="Alertas"><svg viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 1112 0v5l2 2H4l2-2z"/><path d="M10 21h4"/></svg>Alertas</button>
+</nav>
+
+<!-- Confirmar comando -->
+<div class="modal" id="mCmd">
+  <div class="box">
+    <h3 id="cmdTitle"></h3>
+    <p id="cmdText"></p>
+    <div class="warn" id="cmdWarn"></div>
+    <div class="actions2">
+      <button class="btn btn-out" data-close>Cancelar</button>
+      <button class="btn btn-red" id="cmdOk">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Compartilhar -->
+<div class="modal" id="mShare">
+  <div class="box">
+    <h3>Compartilhar localização</h3>
+    <p>Quem receber o link vê só a posição deste veículo, sem acesso à sua conta.</p>
+    <div class="opts" id="shareOpts">
+      <button class="opt sel" data-h="1">1 hora</button>
+      <button class="opt" data-h="24">24 horas</button>
+      <button class="opt" data-h="168">7 dias</button>
+    </div>
+    <div class="link" id="shareLink"></div>
+    <div class="actions2">
+      <button class="btn btn-out" data-close>Fechar</button>
+      <button class="btn btn-red" id="shareCopy">Copiar link</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+/* ===== DADOS FICTÍCIOS (demonstração) ===== */
+const ROTA = [
+  [-22.7856,-43.3110],[-22.7862,-43.3098],[-22.7869,-43.3085],[-22.7876,-43.3072],
+  [-22.7870,-43.3058],[-22.7861,-43.3046],[-22.7850,-43.3052],[-22.7842,-43.3066],
+  [-22.7836,-43.3080],[-22.7843,-43.3094],[-22.7850,-43.3105],[-22.7856,-43.3110]
+];
+const INTERVALO = 6000; // tempo simulado entre posições do aparelho (ms)
+
+const veiculos = [
+  {id:1,nome:'Meu carro',placa:'ABC1D23',rota:ROTA,idx:0,pos:ROTA[0].slice(),de:null,para:null,t0:0,
+   rumo:0,vel:0,ign:true,bloq:false,bat:100,sinal:4,ultimo:Date.now(),parado:0},
+  {id:2,nome:'Carro do técnico',placa:'XYZ9E87',rota:null,pos:[-22.7905,-43.3015],de:null,para:null,
+   rumo:40,vel:0,ign:false,bloq:false,bat:96,sinal:3,ultimo:Date.now()-180000,parado:0}
+];
+let selId = 1, seguir = true;
+
+/* ===== MAPA ===== */
+const map = L.map('map',{zoomControl:false,attributionControl:false}).setView(ROTA[0],16);
+L.control.attribution({position:'topleft',prefix:false}).addTo(map);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+  maxZoom:19,attribution:'© OpenStreetMap'
+}).addTo(map);
+
+const carSvg = '<svg viewBox="0 0 44 44" width="44" height="44"><circle cx="22" cy="22" r="18" fill="rgba(56,225,230,.14)" stroke="#38e1e6" stroke-width="1.5"/><path d="M22 8 L31 32 L22 27 L13 32 Z" fill="#e3262f" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></svg>';
+
+veiculos.forEach(v=>{
+  v.marker = L.marker(v.pos,{icon:L.divIcon({
+    className:'',iconSize:[44,44],iconAnchor:[22,22],
+    html:'<div class="car">'+carSvg+'</div><div class="carlabel">'+v.nome+'</div>'
+  })}).addTo(map);
+  v.marker.on('click',()=>selecionar(v.id));
+});
+
+map.on('dragstart',()=>{seguir=false;document.getElementById('recenter').classList.remove('active')});
+document.getElementById('recenter').onclick=()=>{
+  seguir=true;document.getElementById('recenter').classList.add('active');
+  map.panTo(sel().pos,{animate:true});
+};
+
+/* ===== UTILITÁRIOS ===== */
+const $ = id=>document.getElementById(id);
+const sel = ()=>veiculos.find(v=>v.id===selId);
+function rumo(a,b){
+  const r=Math.PI/180,y=Math.sin((b[1]-a[1])*r)*Math.cos(b[0]*r),
+  x=Math.cos(a[0]*r)*Math.sin(b[0]*r)-Math.sin(a[0]*r)*Math.cos(b[0]*r)*Math.cos((b[1]-a[1])*r);
+  return (Math.atan2(y,x)/r+360)%360;
+}
+let tt;
+function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),2600)}
+function tempo(ms){const s=Math.round(ms/1000);if(s<60)return 'há '+s+' s';const m=Math.round(s/60);if(m<60)return 'há '+m+' min';return 'há '+Math.round(m/60)+' h'}
+
+/* ===== SIMULAÇÃO: o aparelho manda uma posição a cada intervalo ===== */
+function novaPosicao(v){
+  if(!v.rota) return;
+  v.ultimo = Date.now();
+  if(v.bloq){v.vel=0;v.de=null;return}
+  if(v.parado>Date.now()){v.vel=0;v.ign=false;v.de=null;return}
+  if(!v.ign){v.ign=true}
+  const prox = (v.idx+1)%v.rota.length;
+  if(prox===0){ // fim da volta: estaciona um pouco
+    v.parado = Date.now()+20000; v.vel=0; v.ign=false; v.idx=0; v.de=null; return;
+  }
+  v.de = v.pos.slice(); v.para = v.rota[prox]; v.t0 = performance.now();
+  v.rumo = rumo(v.de,v.para); v.vel = Math.round(22+Math.random()*20); v.idx = prox;
+}
+setInterval(()=>veiculos.forEach(novaPosicao),INTERVALO);
+novaPosicao(veiculos[0]);
+
+/* ===== ANIMAÇÃO SUAVE (feita no app, sem pedir dados ao aparelho) ===== */
+function animar(now){
+  veiculos.forEach(v=>{
+    if(v.de && v.para){
+      const f=Math.min(1,(now-v.t0)/INTERVALO);
+      v.pos=[v.de[0]+(v.para[0]-v.de[0])*f, v.de[1]+(v.para[1]-v.de[1])*f];
+      v.marker.setLatLng(v.pos);
+      if(f>=1) v.de=null;
+    }
+    const el=v.marker.getElement();
+    if(el){const c=el.querySelector('.car');c.style.transform='rotate('+v.rumo+'deg)';c.classList.toggle('off',!v.ign)}
+  });
+  if(seguir) map.panTo(sel().pos,{animate:false});
+  requestAnimationFrame(animar);
+}
+requestAnimationFrame(animar);
+
+/* ===== TELA ===== */
+function status(v){
+  if(v.bloq) return ['Bloqueado','st-block'];
+  if(!v.ign) return ['Desligado','st-off'];
+  if(v.vel>0) return ['Em movimento','st-move'];
+  return ['Parado','st-stop'];
+}
+function desenharChips(){
+  $('chips').innerHTML = veiculos.map(v=>
+    '<button class="chip'+(v.id===selId?' sel':'')+'" data-id="'+v.id+'"><span class="dot'+(v.ign?' on':'')+'"></span>'+v.nome+'</button>'
+  ).join('');
+  $('chips').querySelectorAll('.chip').forEach(b=>b.onclick=()=>selecionar(+b.dataset.id));
+}
+function atualizar(){
+  const v=sel(), [txt,cls]=status(v);
+  $('vName').textContent=v.nome;
+  $('vPlate').textContent=v.placa;
+  $('vStatus').textContent=txt; $('vStatus').className='status '+cls;
+  $('sSpeed').textContent=v.vel+' km/h';
+  $('sIgn').textContent=v.ign?'Ligada':'Desligada';
+  $('sBat').textContent=v.bat+'%';
+  $('sSig').innerHTML=[1,2,3,4].map(i=>'<i class="'+(i<=v.sinal?'f':'')+'" style="height:'+(i*4)+'px"></i>').join('');
+  $('vAgo').textContent=tempo(Date.now()-v.ultimo);
+  $('banner').classList.toggle('show',v.bloq);
+  $('btnBlock').disabled=v.bloq||cmdAndamento;
+  $('btnUnblock').disabled=!v.bloq||cmdAndamento;
+  desenharChipsDots();
+}
+function desenharChipsDots(){
+  document.querySelectorAll('.chip').forEach(c=>{
+    const v=veiculos.find(x=>x.id===+c.dataset.id);
+    c.querySelector('.dot').classList.toggle('on',v.ign);
+  });
+}
+function selecionar(id){
+  selId=id; seguir=true; $('recenter').classList.add('active');
+  desenharChips(); atualizar(); map.panTo(sel().pos,{animate:true});
+}
+setInterval(atualizar,500);
+
+$('handle').onclick=()=>$('sheet').classList.toggle('min');
+
+/* ===== BLOQUEIO / DESBLOQUEIO ===== */
+let acaoCmd=null, cmdAndamento=false;
+function abrir(id){$(id).classList.add('show')}
+function fechar(){document.querySelectorAll('.modal').forEach(m=>m.classList.remove('show'))}
+document.querySelectorAll('[data-close]').forEach(b=>b.onclick=fechar);
+document.querySelectorAll('.modal').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)fechar()}));
+
+$('btnBlock').onclick=()=>{
+  const v=sel(); acaoCmd='bloquear';
+  $('cmdTitle').textContent='Bloquear '+v.nome+'?';
+  $('cmdText').textContent='O motor será cortado. O veículo só volta a funcionar depois do desbloqueio.';
+  const w=$('cmdWarn');
+  if(v.vel>0){w.textContent='Atenção: o veículo está em movimento ('+v.vel+' km/h). Bloquear com o veículo andando pode causar acidente.';w.classList.add('show')}
+  else w.classList.remove('show');
+  $('cmdOk').textContent='Bloquear'; abrir('mCmd');
+};
+$('btnUnblock').onclick=()=>{
+  const v=sel(); acaoCmd='desbloquear';
+  $('cmdTitle').textContent='Desbloquear '+v.nome+'?';
+  $('cmdText').textContent='O veículo poderá ser ligado normalmente.';
+  $('cmdWarn').classList.remove('show');
+  $('cmdOk').textContent='Desbloquear'; abrir('mCmd');
+};
+$('cmdOk').onclick=()=>{
+  const v=sel(), acao=acaoCmd, btn=acao==='bloquear'?$('btnBlock'):$('btnUnblock');
+  fechar(); cmdAndamento=true;
+  btn.innerHTML='<span class="spin"></span>Enviando...';
+  toast('Comando enviado. Aguardando o aparelho...');
+  setTimeout(()=>{ // simula a resposta do aparelho
+    v.bloq = acao==='bloquear';
+    if(v.bloq){v.vel=0;v.de=null}
+    cmdAndamento=false;
+    $('btnBlock').textContent='Bloquear'; $('btnUnblock').textContent='Desbloquear';
+    toast(v.bloq?'Bloqueio confirmado pelo aparelho':'Desbloqueio confirmado pelo aparelho');
+    atualizar();
+  },2500);
+  atualizar();
+};
+
+/* ===== COMPARTILHAR ===== */
+let horas=1;
+function gerarLink(){
+  const cod=Math.random().toString(36).slice(2,10);
+  $('shareLink').textContent='https://rastreandogpsbr.com.br/v/'+cod+'  (válido por '+(horas===1?'1 hora':horas===24?'24 horas':'7 dias')+')';
+}
+$('btnShare').onclick=()=>{gerarLink();abrir('mShare')};
+$('shareOpts').querySelectorAll('.opt').forEach(o=>o.onclick=()=>{
+  $('shareOpts').querySelectorAll('.opt').forEach(x=>x.classList.remove('sel'));
+  o.classList.add('sel'); horas=+o.dataset.h; gerarLink();
+});
+$('shareCopy').onclick=()=>{
+  const txt=$('shareLink').textContent.split('  ')[0];
+  try{
+    navigator.clipboard.writeText(txt).then(()=>toast('Link copiado (demonstração)')).catch(()=>toast('Não foi possível copiar'));
+  }catch(e){toast('Não foi possível copiar')}
+};
+
+/* ===== ABAS ===== */
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
+  if(b.dataset.tab==='Mapa') return;
+  toast(b.dataset.tab+': em construção');
+});
+
+desenharChips(); atualizar();
+</script>
+</body>
+</html>
