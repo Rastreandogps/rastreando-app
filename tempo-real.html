@@ -43,6 +43,8 @@ try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'){document.do
 .lbox input{width:100%;height:48px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--txt);padding:0 14px;font:inherit;font-size:16px;outline:none}
 .lbox input:focus{border-color:var(--cyan)}
 .lerr{min-height:18px;font-size:13px;color:var(--red2);font-weight:600;text-align:center}
+.stwrap{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.upd{font-size:11px;color:var(--mut);white-space:nowrap}
 .hdir{display:flex;align-items:center;gap:8px}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;background:var(--bg);color:var(--txt);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
@@ -198,7 +200,7 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
           <div class="vname" id="vName"></div>
           <div class="plate" id="vPlate"></div>
         </div>
-        <span class="status" id="vStatus"></span>
+        <div class="stwrap"><span class="status" id="vStatus"></span><div class="upd" id="vUpd"></div></div>
       </div>
     </div>
     <div class="banner" id="banner">Veículo bloqueado</div>
@@ -207,7 +209,7 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
       <div class="stat"><span>Ignição</span><b id="sIgn"></b></div>
       <div class="stat"><span>Bateria</span><b id="sBat"></b></div>
     </div>
-    <div class="addr"><strong id="vAddr"></strong><span id="vAgo"></span></div>
+    <div class="addr" id="addrRow"><strong id="vAddr"></strong><span id="vAgo"></span></div>
     <div class="actions">
       <button class="btn btn-red" id="btnBlock">Bloquear</button>
       <button class="btn btn-out" id="btnUnblock">Desbloquear</button>
@@ -380,6 +382,13 @@ function tempo(ms){
   const h=Math.round(m/60); if(h<48)return 'há '+h+' h';
   return 'há '+Math.round(h/24)+' dias';
 }
+function horaAtual(ms){
+  if(!ms) return '';
+  const d=new Date(ms), h=new Date();
+  const hm=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+  if(d.toDateString()===h.toDateString()) return hm;
+  return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+' '+hm;
+}
 function status(v){
   if(!v.pos) return ['Sem posição','st-off'];
   if(v.bloq) return ['Bloqueado','st-block'];
@@ -416,12 +425,13 @@ function mesclar(ds,ps){
     let v = veiculos.find(x=>x.id===d.id);
     if(!v){
       v = {id:d.id,visivel:true,marker:null,pos:null,de:null,para:null,t0:0,rumo:0,vel:0,
-           ign:null,bat:null,bloq:false,online:false,fix:null,addr:null,posId:null,result:null,placa:'',nome:''};
+           ign:null,bat:null,bloq:false,online:false,fix:null,ultimo:null,addr:null,posId:null,result:null,placa:'',nome:''};
       veiculos.push(v);
     }
     v.nome = d.name || ('Aparelho '+d.id);
     v.placa = (d.attributes&&d.attributes.placa) || d.model || '';
     v.online = d.status==='online';
+    v.ultimo = d.lastUpdate ? new Date(d.lastUpdate).getTime() : null;
     const p = pm[d.id];
     if(p){
       const a = p.attributes||{};
@@ -539,8 +549,12 @@ function atualizar(){
     $('sSpeed').textContent=v.vel+' km/h';
     $('sIgn').textContent=v.ign===null?'—':(v.ign?'Ligada':'Desligada');
     $('sBat').textContent=v.bat===null?'—':v.bat+'%';
-    $('vAddr').textContent = v.addr || (v.pos[0].toFixed(5)+', '+v.pos[1].toFixed(5));
-    $('vAgo').textContent = v.fix ? 'GPS '+tempo(Date.now()-v.fix) : '';
+    const ult = v.ultimo || v.fix;
+    $('vUpd').textContent = ult ? 'Atualizado '+horaAtual(ult) : '';
+    $('vAddr').textContent = v.addr || '';
+    const gpsVelho = v.fix && Date.now()-v.fix>600000;
+    $('vAgo').textContent = gpsVelho ? 'Sem sinal de GPS '+tempo(Date.now()-v.fix) : '';
+    $('addrRow').style.display = (v.addr || gpsVelho) ? 'flex' : 'none';
     $('banner').classList.toggle('show',v.bloq);
     $('btnBlock').disabled=cmdAndamento;
     $('btnUnblock').disabled=cmdAndamento;
