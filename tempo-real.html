@@ -732,7 +732,7 @@ function ajustarTodos(vs){
 
 /* ===== UTILITÁRIOS ===== */
 let tt;
-function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),3200)}
+function toast(msg,ms){const t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),ms||3200)}
 function tempo(ms){
   const s=Math.max(0,Math.round(ms/1000));
   if(s<60)return 'há '+s+' s';
@@ -1937,11 +1937,14 @@ $('cpSalvar').onclick=async()=>{
   erro('');
   const c=desenho.centro, raio=desenho.raio;
   const jaDentro=ids.filter(id=>{ const v=veiculos.find(x=>String(x.id)===id); return v && v.pos && distM(v.pos,[c.lat,c.lng])<=raio });
+  /* de que lado da cerca cada veículo está AGORA (última posição conhecida): d = dentro, f = fora, ? = sem posição */
+  const lados=ids.map(id=>{ const v=veiculos.find(x=>String(x.id)===id); return id+':'+(v&&v.pos?(distM(v.pos,[c.lat,c.lng])<=raio?'d':'f'):'?') });
+  const quandoSel=$('cpQuando').value;
   const btn=$('cpSalvar'); btn.disabled=true; btn.textContent='Criando...';
   let criada=null;
   try{
     const corpo={name:nome,description:'',area:'CIRCLE ('+c.lat.toFixed(6)+' '+c.lng.toFixed(6)+', '+raio+')',
-      attributes:{acao:bloq?'bloquear':'notificar',quando:$('cpQuando').value,veiculos:ids.join(','),criada:new Date().toISOString(),jaDentro:jaDentro.join(',')}};
+      attributes:{acao:bloq?'bloquear':'notificar',quando:$('cpQuando').value,veiculos:ids.join(','),criada:new Date().toISOString(),jaDentro:jaDentro.join(','),lados:lados.join(',')}};
     const r=await api('/api/geofences',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(corpo)});
     if(!r.ok) throw new Error('O servidor não aceitou criar a cerca (erro '+r.status+').');
     criada=await r.json();
@@ -1950,7 +1953,12 @@ $('cpSalvar').onclick=async()=>{
       if(!p.ok) throw new Error('Não consegui ligar a cerca ao veículo '+nomeVeic(id)+' (erro '+p.status+').');
     }
     cancelarDesenho(); await carregarCercas(); irPara('Cercas');
-    toast(jaDentro.length?'Cerca criada. Atenção: '+jaDentro.map(nomeVeic).join(', ')+' já está dentro dela.':'Cerca criada.');
+    const fora=ids.filter(id=>!jaDentro.includes(id));
+    let aviso='Cerca criada.';
+    if(bloq && quandoSel==='sair' && fora.length) aviso='Cerca criada. Atenção: '+fora.map(nomeVeic).join(', ')+' NÃO está dentro dela agora. O bloqueio só passa a valer depois que ele for visto dentro.';
+    else if(bloq && quandoSel==='entrar' && jaDentro.length) aviso='Cerca criada. Atenção: '+jaDentro.map(nomeVeic).join(', ')+' já está dentro. Só bloqueia depois de sair e entrar de novo.';
+    else if(jaDentro.length) aviso='Cerca criada. Atenção: '+jaDentro.map(nomeVeic).join(', ')+' já está dentro dela.';
+    toast(aviso,aviso.length>40?7000:3200);
   }catch(e){
     if(e.sessao) return;
     if(criada && criada.id){ try{ await api('/api/geofences/'+criada.id,{method:'DELETE'}) }catch(x){} }
