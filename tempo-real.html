@@ -608,6 +608,8 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
     <button class="mini" id="cGerar" type="button" style="margin-bottom:10px">Gerar senha</button>
     <label class="flbl" for="cCpf">CPF (opcional)</label>
     <input class="fld" id="cCpf" inputmode="numeric" autocomplete="off">
+    <label class="flbl" for="cWpp">WhatsApp do cliente (opcional) — com DDD, ex: (21) 99999-8888</label>
+    <input class="fld" id="cWpp" type="tel" inputmode="tel" autocomplete="off" placeholder="(21) 99999-8888">
     <div id="cAparWrap"><label class="flbl" id="cAparLbl">Aparelhos deste cliente (opcional)</label>
     <div class="apsel" id="cAparelhos"></div></div>
     <label class="fchk"><input type="checkbox" id="cLeitura" checked> Cliente não pode editar nem apagar o aparelho</label>
@@ -1601,6 +1603,22 @@ const fmtHora = ms => { try{ return new Date(ms).toLocaleString('pt-BR',{timeZon
 const brl = n => 'R$ '+Number(n||0).toFixed(2).replace('.',',');
 const dmy = iso => { const m=/^(\d{4})-(\d{2})-(\d{2})/.exec(String(iso||'')); return m ? m[3]+'/'+m[2]+'/'+m[1] : '' };
 const diasDe = (a,b) => Math.round((Date.parse(b+'T00:00:00Z')-Date.parse(a+'T00:00:00Z'))/86400000);
+/* WhatsApp: guardamos só números com 55 na frente (ex: 5521999998888) no campo "telefone" do usuário no Traccar */
+function normWpp(t){
+  let d=String(t==null?'':t).replace(/\D/g,'');
+  if(!d) return '';
+  if(d.length>=12 && d.startsWith('55')) d=d.slice(2);
+  if(d.length<10 || d.length>11) return null;
+  if(d.length===11 && d[2]!=='9') return null;
+  return '55'+d;
+}
+function fmtWpp(t){
+  const d=String(t==null?'':t).replace(/\D/g,''); if(!d) return '';
+  const n=d.startsWith('55')&&d.length>=12?d.slice(2):d;
+  if(n.length===11) return '('+n.slice(0,2)+') '+n.slice(2,7)+'-'+n.slice(7);
+  if(n.length===10) return '('+n.slice(0,2)+') '+n.slice(2,6)+'-'+n.slice(6);
+  return String(t);
+}
 function fmtCpf(c){
   const d=soDigitos(c);
   if(d.length===11) return d.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/,'$1.$2.$3-$4');
@@ -1924,6 +1942,7 @@ function desenharClientes(){
       '<div class="cinfo"><div class="t">'+esc(u.name)+'</div>'+
       '<div class="s">'+esc(loginDe(u))+'</div>'+
       '<div class="s">CPF: '+(cpf?'<b>'+esc(fmtCpf(cpf))+'</b>':'não cadastrado')+'</div>'+
+      '<div class="s">WhatsApp: '+(u.phone&&normWpp(u.phone)?'<b>'+esc(fmtWpp(u.phone))+'</b>':'<span class="bd-mal">não cadastrado</span>')+'</div>'+
       '<div class="s">Acesso: '+(u.disabled?'<b class="bd-mal">DESATIVADO</b>':'<b class="bd-ok">Ativo</b>')+'</div>'+
       '<div class="s">Financeiro: <b class="'+fin.c+'">'+esc(fin.t)+'</b></div>'+
       '<div class="s" style="margin-top:6px"><span class="qtd">'+ap.length+(ap.length===1?' veículo':' veículos')+'</span></div></div>'+
@@ -2205,7 +2224,7 @@ function senhaAleatoria(){
 let editUserId=null;
 function abrirCliente(){
   editUserId=null;
-  ['cNome','cEmail','cSenha','cCpf'].forEach(i=>$(i).value='');
+  ['cNome','cEmail','cSenha','cCpf','cWpp'].forEach(i=>$(i).value='');
   $('cTitulo').textContent='Novo cliente'; $('cSalvar').textContent='Criar cliente'; $('cSenhaLbl').textContent='Senha';
   $('cAparWrap').style.display=''; $('cAparLbl').textContent='Aparelhos deste cliente (opcional)';
   $('cLeitura').checked=true; $('cErro').textContent=''; $('cSalvar').disabled=false;
@@ -2218,6 +2237,7 @@ function abrirEdicaoCliente(id){
   $('cNome').value=u.name||''; $('cEmail').value=loginDe(u); $('cSenha').value='';
   const cpf=(cpfsMapa[id]&&cpfsMapa[id].cpf)||(u.attributes&&u.attributes.cpf)||'';
   $('cCpf').value=fmtCpf(cpf);
+  $('cWpp').value=fmtWpp(u.phone||'');
   $('cTitulo').textContent='Editar cliente'; $('cSalvar').textContent='Salvar'; $('cSenhaLbl').textContent='Nova senha (deixe vazio para não mudar)';
   /* aparelhos: marcado = vinculado. Desmarque para tirar, marque para vincular. */
   editAparAntes=aparelhosDe(u).map(v=>v.id);
@@ -2266,6 +2286,8 @@ $('cSalvar').onclick=async ()=>{
   if(!nome) return erro('Informe o nome do cliente.');
   const lg=camposLogin($('cEmail').value); if(lg.erro) return erro(lg.erro);
   if(usuarios.some(x=>x.id!==editando && (casaUsuario(x,lg.login)||casaUsuario(x,lg.email)))) return erro('Já existe um cliente com esse login.');
+  const wpp=normWpp($('cWpp').value);
+  if(wpp===null) return erro('WhatsApp inválido. Digite o DDD e o número, ex: (21) 99999-8888.');
   if(editando ? (senha && senha.length<6) : senha.length<6) return erro('A senha precisa ter pelo menos 6 caracteres.');
   if(editando ? (cpf && cpf.length!==11 && cpf.length!==14) : (cpf && cpf.length!==11)) return erro(editando?'O CPF precisa ter 11 números (ou CNPJ com 14).':'O CPF precisa ter 11 números.');
   erro(''); $('cSalvar').disabled=true;
@@ -2273,7 +2295,7 @@ $('cSalvar').onclick=async ()=>{
     if(editando){
       const u=usuarios.find(x=>x.id===editando); if(!u) throw new Error('Cliente não encontrado. Atualize a lista.');
       const antigo=loginDe(u), antigoEmail=String(u.email||'');
-      const corpo=Object.assign({},u,{name:nome,email:lg.email,login:lg.loginTraccar,deviceReadonly:$('cLeitura').checked});
+      const corpo=Object.assign({},u,{name:nome,email:lg.email,login:lg.loginTraccar,deviceReadonly:$('cLeitura').checked,phone:wpp});
       if(senha) corpo.password=senha; else delete corpo.password;
       const r=await api('/api/users/'+editando,{method:'PUT',headers:JSONH,body:JSON.stringify(corpo)});
       if(!r.ok) throw new Error(await msgErro(r,'Não foi possível salvar o cliente'));
@@ -2312,7 +2334,7 @@ $('cSalvar').onclick=async ()=>{
       if(senha) mostrarAcesso('Acesso atualizado',lg.login,senha);
       $('cSalvar').disabled=false; return;
     }
-    const corpo={name:nome,email:lg.email,password:senha,administrator:false,deviceReadonly:$('cLeitura').checked,limitCommands:true,attributes:cpf?{cpf:cpf}:{}};
+    const corpo={name:nome,email:lg.email,password:senha,administrator:false,deviceReadonly:$('cLeitura').checked,limitCommands:true,phone:wpp,attributes:cpf?{cpf:cpf}:{}};
     if(lg.loginTraccar) corpo.login=lg.loginTraccar;
     const r=await api('/api/users',{method:'POST',headers:JSONH,body:JSON.stringify(corpo)});
     if(!r.ok) throw new Error(await msgErro(r,'Não foi possível criar o cliente'));
