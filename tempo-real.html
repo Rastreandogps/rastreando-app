@@ -1269,7 +1269,10 @@ function abrirConfirmacao(acao){
     return;
   }
   if(acao==='desbloquear' && desbPendente[v.id]){
-    toast('O rastreador encontra-se sem sinal de satélite. As tentativas serão feitas automaticamente. Aguarde cinco minutos e verifique se o veículo desbloqueou.',7000);
+    const dp=desbPendente[v.id], quando=dp&&dp.criadoMs?('às '+horaAtual(dp.criadoMs)+' ('+tempo(Date.now()-dp.criadoMs)+')'):'há pouco';
+    const txt='Seu pedido de desbloqueio foi feito '+quando+'. O rastreador ainda não confirmou, mas o sistema continua tentando sozinho, pela internet e por SMS, e o desbloqueio sai assim que o aparelho voltar a se comunicar. Não precisa apertar de novo.';
+    if(ehAdmin) pedirConfirmacao('Desbloqueio já em andamento',txt+'\n\nComo administrador, você pode cancelar este pedido para fazer um novo.','Cancelar o pedido',async()=>{ desbCancelar(v.id); toast('Pedido de desbloqueio cancelado.') },{fechar:'Fechar'});
+    else pedirConfirmacao('Desbloqueio já em andamento',txt,'Entendi',async()=>{},{fechar:'Fechar'});
     return;
   }
   acaoCmd=acao;
@@ -1851,6 +1854,7 @@ async function comandoSalvo(bloquear){
 function pedirConfirmacao(titulo,texto,rotulo,acao,op){
   $('confTitulo').textContent=titulo; $('confTitulo').style.color=(op&&op.perigo)?'var(--red2)':''; $('confTexto').textContent=texto; $('confErro').textContent='';
   $('confOk').textContent=rotulo; $('confOk').disabled=false;
+  const bc=document.querySelector('#mConf [data-close]'); if(bc) bc.textContent=(op&&op.fechar)||'Cancelar';
   $('confOk').onclick=async ()=>{
     $('confOk').disabled=true; $('confErro').textContent='';
     try{ await acao(); fechar() }
