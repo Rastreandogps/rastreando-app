@@ -770,13 +770,14 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
       <option value="200">200 m</option>
       <option value="500">500 m</option>
     </select>
-    <button class="ancopt" id="anAvisar"><b>Só avisar</b><small>Você recebe a notificação se o veículo sair daqui.</small></button>
-    <button class="ancopt bl" id="anBloquear"><b>Avisar e bloquear</b><small>Se o veículo sair daqui, o bloqueio é enviado automaticamente.</small></button>
+    <label class="fchk"><input type="checkbox" id="anBloq"> Bloquear o veículo se ele sair da cerca</label>
+    <p id="anAviso" style="display:none;font-size:12.5px;color:var(--red2);margin:2px 0 8px">Sem marcar, você só recebe a notificação. Marcando, o bloqueio é enviado automaticamente, mesmo com o veículo em movimento (o rastreador só corta abaixo de 20 km/h).</p>
     <div class="ferr" id="anErro"></div>
     <div class="actions2">
-      <button class="btn btn-out" id="anRemover" style="display:none">Remover âncora</button>
       <button class="btn btn-out" data-close>Cancelar</button>
+      <button class="btn btn-red" id="anCriar">Criar âncora</button>
     </div>
+    <button class="linkbtn" id="anRemover" style="display:none;margin-top:10px;width:100%;color:var(--red2)">Remover âncora deste veículo</button>
   </div>
 </div>
 
@@ -2652,23 +2653,26 @@ function marcarBotaoAncora(){
 async function abrirAncora(){
   const v=ativo(); if(!v){ toast('Escolha um veículo com posição no mapa.'); return }
   $('anErro').textContent=''; $('anTitulo').textContent='Cerca rápida · '+v.nome;
-  await carregarCercas().catch(()=>{});
+  $('anRaio').value='100'; $('anBloq').checked=false; $('anAviso').style.display='none';
+  $('anTexto').textContent='Cria uma cerca em volta de onde o veículo está agora. Se ele sair dela, você é avisado.';
+  $('anCriar').textContent='Criar âncora'; $('anCriar').disabled=false; $('anRemover').style.display='none';
+  abrir('mAncora');
+  try{ await carregarCercas() }catch(e){ return }
   const ex=ancoraDe(v);
   if(ex){
-    const a=ex.g.attributes||{};
-    $('anTexto').textContent='Este veículo já tem uma âncora de '+fmtRaio(ex.c.raio)+' ('+(a.acao==='bloquear'?'avisa e bloqueia':'só avisa')+'). Escolha de novo para trocar, ou remova.';
-    $('anRaio').value=String([50,100,200,500].includes(Math.round(ex.c.raio))?Math.round(ex.c.raio):100);
-  } else {
-    $('anTexto').textContent='Cria uma cerca em volta de onde o veículo está agora. Se ele sair dela, você é avisado.';
+    const a=ex.g.attributes||{}, r=Math.round(ex.c.raio);
+    $('anTexto').textContent='Este veículo já tem uma âncora de '+fmtRaio(ex.c.raio)+' ('+(a.acao==='bloquear'?'avisa e bloqueia':'só avisa')+'). Escolha de novo para trocar.';
+    if([50,100,200,500].includes(r)) $('anRaio').value=String(r);
+    $('anBloq').checked=a.acao==='bloquear'; $('anAviso').style.display=$('anBloq').checked?'':'none';
+    $('anCriar').textContent='Trocar âncora'; $('anRemover').style.display='';
   }
-  $('anRemover').style.display=ex?'':'none';
-  abrir('mAncora');
 }
-async function criarAncora(bloq,relancar){
-  const v=ativo(); if(!v) return;
-  const raio=+$('anRaio').value||100, ex=ancoraDe(v);
-  if(!ehAdmin && !ex && cercas.length>=CERCA_MAX_CLIENTE){ const m='Limite de '+CERCA_MAX_CLIENTE+' cercas. Exclua uma para criar outra.'; $('anErro').textContent=m; if(relancar) throw new Error(m); return }
-  $('anAvisar').disabled=true; $('anBloquear').disabled=true; $('anErro').textContent='';
+$('anBloq').onchange=()=>{ $('anAviso').style.display=$('anBloq').checked?'':'none' };
+async function criarAncora(){
+  const v=ativo(); if(!v){ $('anErro').textContent='Escolha um veículo com posição no mapa.'; return }
+  const raio=+$('anRaio').value||100, bloq=CERCA_BLOQUEIO && $('anBloq').checked, ex=ancoraDe(v);
+  if(!ehAdmin && !ex && cercas.length>=CERCA_MAX_CLIENTE){ $('anErro').textContent='Limite de '+CERCA_MAX_CLIENTE+' cercas. Exclua uma para criar outra.'; return }
+  $('anCriar').disabled=true; $('anErro').textContent='';
   let criada=null;
   try{
     const corpo={name:ANC_PREFIXO+v.nome,description:'',area:'CIRCLE ('+v.pos[0].toFixed(6)+' '+v.pos[1].toFixed(6)+', '+raio+')',
@@ -2680,24 +2684,18 @@ async function criarAncora(bloq,relancar){
     if(!p.ok) throw new Error('Não consegui ligar a cerca ao veículo (erro '+p.status+').');
     if(ex){ try{ await api('/api/geofences/'+ex.g.id,{method:'DELETE'}) }catch(e){ if(e.sessao) throw e } } /* troca: só apaga a antiga depois da nova criada */
     fechar(); await carregarCercas(); marcarBotaoAncora();
-    toast('Âncora criada: '+(bloq?'avisa e bloqueia':'avisa')+' se '+v.nome+' sair de '+fmtRaio(raio)+' deste ponto.',6000);
+    toast('Âncora criada: '+(bloq?'avisa e bloqueia':'só avisa')+' se '+v.nome+' sair de '+fmtRaio(raio)+' deste ponto.',6000);
   }catch(e){
     if(e.sessao) return;
     if(criada && criada.id){ try{ await api('/api/geofences/'+criada.id,{method:'DELETE'}) }catch(x){} }
     $('anErro').textContent=e.message||'Não consegui criar a âncora.';
-    $('anAvisar').disabled=false; $('anBloquear').disabled=false;
-    if(relancar) throw e;
   }
-  $('anAvisar').disabled=false; $('anBloquear').disabled=false;
+  $('anCriar').disabled=false;
 }
-$('btnAncora').onclick=abrirAncora;
-$('anAvisar').onclick=()=>criarAncora(false);
-$('anBloquear').onclick=()=>{
-  const v=ativo(); if(!v) return;
-  const raio=+$('anRaio').value||100;
-  fechar();
-  pedirConfirmacao('Bloquear se sair da cerca?','Se '+v.nome+' sair da cerca, o bloqueio será enviado automaticamente, mesmo com o veículo em movimento (o rastreador só corta abaixo de 20 km/h). Confirma?','Sim, avisar e bloquear',async()=>{ $('anRaio').value=String(raio); await criarAncora(true,true) });
-};
+/* o cartão do veículo se arrasta: o botão não pode deixar o arrasto "engolir" o clique (no computador) */
+$('btnAncora').addEventListener('pointerdown',e=>e.stopPropagation());
+$('btnAncora').onclick=e=>{ e.stopPropagation(); abrirAncora().catch(err=>{ if(!(err&&err.sessao)) toast('Não consegui abrir a cerca rápida.') }) };
+$('anCriar').onclick=criarAncora;
 $('anRemover').onclick=async()=>{
   const v=ativo(); const ex=v&&ancoraDe(v); if(!ex) return;
   $('anRemover').disabled=true;
