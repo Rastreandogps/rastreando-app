@@ -2435,6 +2435,25 @@ function abrirDesenho(edit){
   document.body.classList.add('desenhando'); $('cpanel').classList.add('show');
   ajustarDesenho(true);
 }
+/* ao CRIAR cerca: um veículo por vez; o círculo vai para a posição do veículo marcado na lista */
+function moverCercaParaVeiculo(v){
+  if(!desenho || !v) return;
+  if(!v.pos){ toast('Esse veículo ainda não tem posição no mapa. Toque no mapa para escolher o lugar da cerca.',5000); return }
+  const ll=L.latLng(v.pos[0],v.pos[1]);
+  desenho.centro=ll; desenho.marker.setLatLng(ll); desenho.circulo.setLatLng(ll);
+  ajustarDesenho();
+}
+$('cpVeic').addEventListener('change',e=>{
+  if(!desenho || desenho.edit) return;
+  const cb=e.target; if(!cb || cb.type!=='checkbox' || !cb.checked) return;
+  const marcados=[...$('cpVeic').querySelectorAll('input:checked')];
+  if(marcados.length>1){
+    cb.checked=false;
+    toast('Para criar a cerca, escolha um veículo de cada vez. Depois, em Editar, você adiciona outros veículos.',6000);
+    return;
+  }
+  moverCercaParaVeiculo(veiculos.find(x=>String(x.id)===String(cb.value)));
+});
 function ajustarDesenho(pan){
   if(!desenho) return;
   map.invalidateSize();
