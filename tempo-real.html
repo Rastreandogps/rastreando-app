@@ -610,13 +610,18 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
   </div>
 </div>
 
-<!-- Dica de instalação no iPhone (só aparece no Safari, antes de instalar) -->
+<!-- Guia de instalação no iPhone (só aparece no Safari, antes de instalar) -->
 <div id="dicaIosApp" style="display:none;position:fixed;left:12px;right:12px;bottom:calc(14px + env(safe-area-inset-bottom));z-index:3000;background:var(--card);border:2px solid var(--red);border-radius:14px;padding:12px 14px 10px;box-shadow:0 8px 28px rgba(0,0,0,.5);text-align:center">
   <button id="dicaIosFechar" aria-label="Fechar dica" style="position:absolute;top:4px;right:8px;font-size:22px;line-height:1;color:var(--mut);padding:4px 8px">×</button>
-  <div style="font-size:14px;line-height:1.4;padding:0 14px"><b>Instale o app no iPhone:</b> toque em <b>Compartilhar</b> (quadrado com seta) e depois em <b>Adicionar à Tela de Início</b>.</div>
-  <div class="setaIos" style="font-size:26px;color:var(--red);line-height:1;margin-top:4px">⬇</div>
+  <div id="dicaIosPasso" style="font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);font-weight:700">Passo 1 de 5</div>
+  <div id="dicaIosTxt" style="font-size:14px;line-height:1.4;padding:2px 14px 0"></div>
+  <div id="dicaIosSeta" class="setaIos" style="font-size:26px;color:var(--red);line-height:1;margin-top:4px;position:relative"></div>
+  <div style="display:flex;gap:8px;justify-content:center;margin-top:6px">
+    <button id="dicaIosVolta" style="padding:6px 14px;border-radius:10px;border:1px solid var(--line);color:var(--mut);font-size:13px">‹ Voltar</button>
+    <button id="dicaIosProx" style="padding:6px 18px;border-radius:10px;background:var(--red);color:#fff;font-size:13px;font-weight:700">Próximo ›</button>
+  </div>
 </div>
-<style>@keyframes pulaIos{0%,100%{transform:translateY(0)}50%{transform:translateY(7px)}}.setaIos{animation:pulaIos 1.1s ease-in-out infinite}@media (prefers-reduced-motion:reduce){.setaIos{animation:none}}</style>
+<style>@keyframes pulaIos{0%,100%{transform:translateY(0)}50%{transform:translateY(7px)}}@keyframes pulaIosUp{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}.setaIos{animation:pulaIos 1.1s ease-in-out infinite}.setaIos.up{animation-name:pulaIosUp}@media (prefers-reduced-motion:reduce){.setaIos{animation:none}}</style>
 
 <div class="toast" id="toast"></div>
 
@@ -2130,9 +2135,32 @@ $('btnSair').onclick=()=>sair('');
         var seguro=/Safari\//.test(ua) || /CriOS|FxiOS|EdgiOS/.test(ua);
         var b=document.getElementById('dicaIosApp');
         if(b && !visto && seguro){
-          b.style.display='block';
-          document.getElementById('dicaIosFechar').onclick=function(){ b.style.display='none'; try{ localStorage.setItem('rg_dica_ios','1') }catch(e){} };
-          setTimeout(function(){ b.style.display='none' },25000);
+          var P=[
+            {t:'Toque nos <b>três pontinhos ⋯</b> aqui embaixo, no canto direito da barra do Safari.',top:false,seta:'⬇',d:'right',x:'9%'},
+            {t:'No menu que abriu, toque em <b>Compartilhar</b> (o primeiro da lista).',top:true,seta:'⬇',d:'right',x:'50%'},
+            {t:'Na janela que abriu, toque em <b>Ver Mais</b> (seta para baixo, na última fileira).',top:true,seta:'⬇',d:'right',x:'50%'},
+            {t:'Na lista, toque em <b>Adicionar à Tela de Início</b>.',top:true,seta:'⬇',d:'right',x:'50%'},
+            {t:'Toque em <b>Adicionar</b>, no canto de cima. Pronto: o ícone aparece na tela do iPhone.',top:true,seta:'⬆',d:'up',x:'50%'}
+          ], n=0;
+          var tx=document.getElementById('dicaIosTxt'), ps=document.getElementById('dicaIosPasso'), st=document.getElementById('dicaIosSeta'),
+              bv=document.getElementById('dicaIosVolta'), bp=document.getElementById('dicaIosProx');
+          function mostra(){
+            var o=P[n];
+            ps.textContent='Passo '+(n+1)+' de '+P.length;
+            tx.innerHTML=o.t;
+            st.textContent=o.seta; st.className='setaIos'+(o.d==='up'?' up':'');
+            st.style.left=''; st.style.textAlign='center';
+            if(n===0){ st.style.textAlign='right'; st.style.paddingRight='calc(14% - 28px)' } else { st.style.paddingRight='0' }
+            if(o.top){ b.style.top='calc(10px + env(safe-area-inset-top))'; b.style.bottom='auto' } else { b.style.bottom='calc(14px + env(safe-area-inset-bottom))'; b.style.top='auto' }
+            bv.style.visibility=n===0?'hidden':'visible';
+            bp.textContent=n===P.length-1?'Fechar':'Próximo ›';
+          }
+          function fecha(){ b.style.display='none'; try{ localStorage.setItem('rg_dica_ios','1') }catch(e){} }
+          bp.onclick=function(){ if(n>=P.length-1){ fecha() } else { n++; mostra() } };
+          bv.onclick=function(){ if(n>0){ n--; mostra() } };
+          document.getElementById('dicaIosFechar').onclick=fecha;
+          mostra(); b.style.display='block';
+          setTimeout(function(){ b.style.display='none' },180000);
         } else if(l && !seguro){ l.style.display='block' }
       } else if(l){ l.style.display='block' }
     }
