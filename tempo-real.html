@@ -52,6 +52,13 @@ try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'){document.do
 .fres{border-radius:12px;padding:12px 14px;font-size:14px;font-weight:600;margin-top:12px;line-height:1.4}
 .fres.mal{background:rgba(227,38,47,.12);border:1px solid rgba(227,38,47,.35);color:var(--red2)}
 .fres.bem{background:rgba(51,209,122,.12);border:1px solid rgba(51,209,122,.35);color:var(--green)}
+.fres.aviso{background:rgba(255,176,32,.12);border:1px solid rgba(255,176,32,.45);color:#e6a100}
+.fres.trava{background:rgba(227,38,47,.16);border:2px solid var(--red2);color:var(--red2);font-size:15px}
+#avisoPag{position:fixed;left:12px;right:12px;bottom:calc(78px + env(safe-area-inset-bottom));z-index:900;display:none;border-radius:12px;padding:11px 14px;font-size:13.5px;font-weight:600;line-height:1.35;cursor:pointer;box-shadow:0 4px 18px rgba(0,0,0,.35)}
+#avisoPag.show{display:block}
+#avisoPag.a{background:#3a2c08;border:1px solid #ffb020;color:#ffd27a}
+#avisoPag.c{background:#2d2a08;border:1px solid #e6c200;color:#ffe680}
+nav button.trav{opacity:.35}
 .fres.info{background:var(--card);border:1px solid var(--line);color:var(--txt);font-weight:500}
 .fsec{font-size:13px;font-weight:700;color:var(--mut);margin:18px 0 4px;letter-spacing:.04em}
 .fcard{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-top:8px}
@@ -495,6 +502,7 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
   </div>
 </div>
 
+<div id="avisoPag"></div>
 <div class="toast" id="toast"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
@@ -938,15 +946,18 @@ $('btnShare').onclick=()=>toast('Compartilhar: em construção');
 
 /* ===== ABAS ===== */
 function irPara(tab){
+  if(bloqueioNivel==='bloqueado' && !ehAdmin && tab!=='Faturas') tab='Faturas';
   document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.tab===tab));
   $('vview').classList.toggle('show',tab==='Veículos');
   $('aview').classList.toggle('show',tab==='Admin');
   $('fview').classList.toggle('show',tab==='Faturas');
+  const bar=$('avisoPag'); if(bar && bar.textContent) bar.classList.toggle('show',tab!=='Faturas');
   if(tab==='Admin') abrirAdmin();
   if(tab==='Faturas') abrirFaturas(false);
 }
 document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
   const t=b.dataset.tab;
+  if(bloqueioNivel==='bloqueado' && !ehAdmin && t!=='Faturas'){ toast('Acesso bloqueado. Regularize suas faturas para voltar a usar.'); irPara('Faturas'); return }
   if(t==='Mapa'||t==='Veículos'||(t==='Admin'&&ehAdmin)||(t==='Faturas'&&!ehAdmin)) irPara(t);
   else toast(t+': em construção');
 });
@@ -977,13 +988,36 @@ function fmtCpf(c){
 }
 
 /* ===== ABA FATURAS (cliente) ===== */
-let faturasDados=null, faturasCarregando=false;
+let faturasDados=null, faturasCarregando=false, bloqueioNivel='ok', bloqueioDados=null;
+/* Bloqueio por atraso (a partir de 5 dias na mensalidade). O servidor decide; o app só mostra.
+   Se o servidor de faturas não responder, NÃO bloqueia (melhor deixar usar do que travar cliente em dia por falha nossa). */
+function aplicarBloqueio(b){
+  bloqueioDados=b||null; bloqueioNivel=(b&&b.nivel)||'ok';
+  const trav = bloqueioNivel==='bloqueado' && !ehAdmin;
+  document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('trav', trav && x.dataset.tab!=='Faturas'));
+  const bar=$('avisoPag');
+  if(bloqueioNivel==='aviso'){
+    const n=b.diasRestantes;
+    bar.className='show a'; bar.textContent='Fatura vencida. Faltam '+n+(n===1?' dia':' dias')+' para o bloqueio. Toque para pagar.';
+  } else if(bloqueioNivel==='confianca'){
+    bar.className='show c'; bar.textContent='Acesso liberado até '+dmy(b.ate)+'. Pague a fatura para não ser bloqueado. Toque para pagar.';
+  } else { bar.className=''; bar.textContent='' }
+  if($('fview').classList.contains('show')) bar.classList.remove('show');
+  if(trav) irPara('Faturas');
+}
+$('avisoPag').onclick=()=>irPara('Faturas');
+async function verificarBloqueio(){
+  if(ehAdmin || !lsGet('rg_token')) return;
+  try{ const r=await fn('faturas'); faturasDados=r; aplicarBloqueio(r.bloqueio) }catch(e){}
+}
+setInterval(()=>{ if(bloqueioNivel==='bloqueado' && !ehAdmin && $('fview').classList.contains('show') && !document.hidden) abrirFaturas(true) },120000);
 async function abrirFaturas(forcar){
   if(faturasCarregando) return;
   faturasCarregando=true;
   if(!faturasDados || forcar) $('fList').innerHTML='<div class="vempty">Carregando faturas...</div>';
   try{
     faturasDados = await fn('faturas',{forcar:!!forcar});
+    aplicarBloqueio(faturasDados.bloqueio);
     desenharFaturas();
   }catch(e){
     $('fResumo').innerHTML='';
@@ -996,10 +1030,19 @@ function desenharFaturas(){
   if(!d){ R.innerHTML=''; L.innerHTML=''; return }
   if(d.semCpf){ R.innerHTML=''; L.innerHTML='<div class="vempty">Seu CPF ainda não está vinculado ao seu acesso.<br>Fale com a Rastreando GPS.</div>'; return }
   if(d.semCadastro){ R.innerHTML=''; L.innerHTML='<div class="vempty">Não encontramos cobranças para o seu CPF.<br>Fale com a Rastreando GPS.</div>'; return }
-  const rs=d.resumo;
-  R.innerHTML = rs.qtdVencidas>0
+  const rs=d.resumo, bq=d.bloqueio||{nivel:'ok'};
+  let topo='';
+  if(bq.nivel==='bloqueado'){
+    topo='<div class="fres trava">ACESSO BLOQUEADO<br><span style="font-weight:500">Sua mensalidade está vencida há '+bq.atraso+(bq.atraso===1?' dia':' dias')+'. Pague para liberar o mapa e os comandos.</span>'+
+      (bq.podeConfianca?'<div style="margin-top:10px"><button class="btn btn-out mini" id="fJaPaguei">Já paguei</button><div style="font-weight:500;font-size:12.5px;margin-top:6px">Se você já pagou, libera 5 dias de acesso (só uma vez) até o pagamento ser confirmado.</div></div>':'')+'</div>';
+  } else if(bq.nivel==='confianca'){
+    topo='<div class="fres aviso">Acesso liberado até '+dmy(bq.ate)+'.<br><span style="font-weight:500">Pague a fatura em aberto para não ser bloqueado de novo.</span></div>';
+  } else if(bq.nivel==='aviso'){
+    topo='<div class="fres aviso">Faltam '+bq.diasRestantes+(bq.diasRestantes===1?' dia':' dias')+' para o bloqueio.<br><span style="font-weight:500">Pague a fatura vencida para evitar a suspensão do acesso.</span></div>';
+  }
+  R.innerHTML = topo + (rs.qtdVencidas>0
     ? '<div class="fres mal">Você tem '+rs.qtdVencidas+(rs.qtdVencidas===1?' fatura vencida':' faturas vencidas')+': '+brl(rs.totalVencido)+'<br><span style="font-weight:500">Maior atraso: '+rs.maiorAtraso+(rs.maiorAtraso===1?' dia':' dias')+'. Pague para evitar o bloqueio do veículo.</span></div>'
-    : (d.abertas.length ? '<div class="fres bem">Nenhuma fatura vencida. Obrigado!</div>' : '<div class="fres bem">Tudo em dia. Nenhuma fatura em aberto.</div>');
+    : (d.abertas.length ? '<div class="fres bem">Nenhuma fatura vencida. Obrigado!</div>' : '<div class="fres bem">Tudo em dia. Nenhuma fatura em aberto.</div>'));
   let h='';
   if(d.abertas.length){
     h+='<div class="fsec">EM ABERTO</div>';
@@ -1021,6 +1064,15 @@ function desenharFaturas(){
   L.innerHTML=h;
 }
 $('fAtualizar').onclick=()=>abrirFaturas(true);
+$('fResumo').addEventListener('click',async e=>{
+  const b=e.target.closest('#fJaPaguei'); if(!b) return;
+  b.disabled=true; const t0=b.textContent; b.textContent='Liberando...';
+  try{
+    const r=await fn('confianca');
+    toast(r.ate?'Acesso liberado até '+dmy(r.ate)+'.':'Acesso liberado.');
+    await abrirFaturas(true);
+  }catch(err){ toast(err.message); b.disabled=false; b.textContent=t0 }
+});
 $('fList').addEventListener('click',async e=>{
   const b=e.target.closest('[data-a="pix"]'); if(!b) return;
   b.disabled=true; const t0=b.textContent; b.textContent='Gerando PIX...';
@@ -1377,7 +1429,7 @@ function mostrarLogin(msg){
 function sair(msg){
   lsDel('rg_token'); lsDel('rg_email'); try{sessionStorage.removeItem('rg_basic')}catch(e){}
   ehAdmin=false; usuarios=[]; $('aview').classList.remove('show');
-  document.querySelector('nav button[data-tab="Admin"]').style.display='none'; document.querySelector('nav button[data-tab="Faturas"]').style.display='none'; cpfsMapa={}; irPara('Mapa');
+  document.querySelector('nav button[data-tab="Admin"]').style.display='none'; document.querySelector('nav button[data-tab="Faturas"]').style.display='none'; cpfsMapa={}; faturasDados=null; aplicarBloqueio(null); irPara('Mapa');
   auth=null;
   veiculos.forEach(v=>{ if(v.marker&&map.hasLayer(v.marker)) map.removeLayer(v.marker) });
   veiculos=[]; selId=null; primeiraCarga=true; assinaturaLista='';
@@ -1417,6 +1469,7 @@ $('lform').addEventListener('submit',async e=>{
     $('login').classList.remove('show');
     indicador('CONECTANDO...',false);
     await descobrirAdmin();
+    verificarBloqueio();
     await buscarSeguro();
   }catch(err){
     $('lErr').textContent = (err instanceof TypeError)
@@ -1435,6 +1488,7 @@ $('btnSair').onclick=()=>sair('');
   if(auth){
     $('login').classList.remove('show');
     await descobrirAdmin();
+    verificarBloqueio();
     await buscarSeguro();
   } else mostrarLogin('');
 })();
