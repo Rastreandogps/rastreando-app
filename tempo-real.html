@@ -964,7 +964,7 @@ document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
 
 /* ===== SERVIDOR DE FATURAS (Firebase) ===== */
 /* Endereço da função publicada no Firebase. Se o endereço que aparecer na publicação for diferente, troque aqui. */
-const FN_URL = 'https://southamerica-east1-rastreando-assinaturas.cloudfunctions.net/rastreamentoApi';
+const FN_URL = 'https://rastreamentoapi-7a524tmnrq-rj.a.run.app';
 async function fn(acao,extra){
   const tok=lsGet('rg_token');
   if(!tok) throw new Error('Para usar esta função, saia do app e entre de novo.');
