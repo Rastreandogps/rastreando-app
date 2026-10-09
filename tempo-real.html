@@ -506,6 +506,7 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
     <input type="range" id="cpRaio" min="0" max="100" step="1" value="30">
     <label class="flbl" for="cpQuando">Avisar quando o veículo</label>
     <select class="fld" id="cpQuando">
+      <option value="">Escolha: entrar, sair ou os dois</option>
       <option value="entrar">Entrar na cerca</option>
       <option value="sair">Sair da cerca</option>
       <option value="ambos">Entrar ou sair</option>
@@ -2446,7 +2447,7 @@ function abrirDesenho(edit){
   desenho={centro:c0,raio:edit?edit.c.raio:raioDe(30),marker:null,circulo:null,edit:edit||null};
   $('cpTitulo').textContent=edit?'Editar cerca':'Nova cerca';
   $('cpNome').value=edit?(edit.g.name||''):''; $('cpRaio').value=edit?valorDoRaio(edit.c.raio):30; $('cpRaioTxt').textContent=fmtRaio(desenho.raio);
-  $('cpQuando').value=edit?(a.quando||'ambos'):'entrar'; $('cpErro').textContent='';
+  $('cpQuando').value=edit?(a.quando||'ambos'):''; $('cpErro').textContent='';
   $('cpBusca').value=''; $('cpRes').classList.remove('show'); $('cpRes').innerHTML='';
   const eraBloq=!!(edit && a.acao==='bloquear');
   $('cpBloq').checked=eraBloq; bloqConfirmado=eraBloq; $('cpBloqRow').style.display=CERCA_BLOQUEIO?'':'none';
@@ -2535,6 +2536,7 @@ $('cpSalvar').onclick=async()=>{
   const bloq=CERCA_BLOQUEIO && $('cpBloq').checked;
   if(!nome) return erro('Dê um nome para a cerca.');
   if(!ids.length) return erro('Escolha pelo menos um veículo.');
+  if(!$('cpQuando').value) return erro('Escolha quando avisar: ao entrar, ao sair ou nos dois casos.');
   if(bloq && !bloqConfirmado){ abrir('mCercaBloq'); return }
   erro('');
   const c=desenho.centro, raio=desenho.raio;
