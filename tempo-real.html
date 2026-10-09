@@ -342,8 +342,9 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>
       </button>
     </div>
-    <div class="actions dois" id="admSmsRow" style="display:none;grid-template-columns:1fr">
+    <div class="actions dois" id="admSmsRow" style="display:none">
       <button class="btn btn-out" id="btnBlockSms" style="color:var(--red2,#e3262f);border-color:var(--red2,#e3262f)">Bloquear por SMS</button>
+      <button class="btn btn-out" id="btnUnblockSms">Desbloquear por SMS</button>
     </div>
     <div class="actions dois">
       <button class="btn btn-out" id="btnNav">
@@ -1242,16 +1243,23 @@ $('btnBlockSms').onclick=()=>{
     if(!(await smsBloquear(v))) throw new Error('O SMS não foi enviado. Veja o aviso na tela.');
   });
 };
-/* administrador: bloqueio por SMS (RELAY,1#) pelo servidor; o número do chip não passa pelo app */
-async function smsBloquear(v){
+$('btnUnblockSms').onclick=()=>{
+  const v=ativo(); if(!v || !ehAdmin) return;
+  pedirConfirmacao('Desbloquear por SMS','Enviar agora o SMS de desbloqueio (RELAY,0#) para o chip de '+v.nome+'? O SMS fica guardado na operadora e chega quando o rastreador tiver sinal de celular.','Enviar SMS',async()=>{
+    if(!(await smsBloquear(v,false))) throw new Error('O SMS não foi enviado. Veja o aviso na tela.');
+  });
+};
+/* administrador: bloqueio / desbloqueio por SMS (RELAY,1# / RELAY,0#) pelo servidor; o número do chip não passa pelo app */
+async function smsBloquear(v,bloquear){
+  bloquear = bloquear!==false;
   try{
     const r=await fetch(DESB_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',
-      body:JSON.stringify({acao:'smsBloquear',token:lsGet('rg_token'),deviceId:v.id})});
+      body:JSON.stringify({acao:bloquear?'smsBloquear':'smsDesbloquear',token:lsGet('rg_token'),deviceId:v.id})});
     let j={}; try{ j=await r.json() }catch(e){}
     if(!r.ok) throw new Error(j.erro||('Erro '+r.status));
-    toast('Bloqueio enviado por SMS para o chip de '+v.nome+'. Confira no mapa em alguns minutos.',7000);
+    toast((bloquear?'Bloqueio':'Desbloqueio')+' enviado por SMS para o chip de '+v.nome+'. Confira no mapa em alguns minutos.',7000);
     return true;
-  }catch(e){ toast('Não consegui enviar o SMS de bloqueio: '+(e.message||'erro'),7000); return false }
+  }catch(e){ toast('Não consegui enviar o SMS de '+(bloquear?'bloqueio':'desbloqueio')+': '+(e.message||'erro'),7000); return false }
 }
 
 /* ===== NAVEGAR / VER A RUA / COMPARTILHAR ===== */
