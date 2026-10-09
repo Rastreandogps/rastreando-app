@@ -1451,7 +1451,7 @@ function desenharAdmin(){
   $('aNovo').classList.toggle('verde',abaAdmin==='equip'); $('aNovo').classList.toggle('azul',abaAdmin!=='equip');
   $('aSearch').style.display = abaAdmin==='equip' ? '' : 'none';
   $('aFinAtualizar').style.display = abaAdmin==='cli' ? '' : 'none';
-  $('aProteger').style.display = abaAdmin==='cli' ? '' : 'none';
+  $('aProteger').style.display = 'none'; /* botão aposentado: cliente novo já nasce com os comandos liberados */
   if(abaAdmin==='equip') desenharEquip(); else desenharClientes();
 }
 function desenharEquip(){
