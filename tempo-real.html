@@ -51,6 +51,8 @@ try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'){document.do
 .atab{height:40px;border-radius:10px;border:1px solid var(--line);background:var(--card);font-weight:600;font-size:14px}
 .atab.on{border-color:var(--cyan);color:var(--cyan)}
 .anovo{width:100%;margin-top:10px}
+.btn.anovo.verde{background:#16a34a;color:#fff}
+.btn.anovo.azul{background:#2563eb;color:#fff}
 .arow{padding:12px 0;border-bottom:1px solid var(--line)}
 .arow .t{font-size:16px;font-weight:600}
 .arow .s{font-size:12px;color:var(--mut);margin-top:2px;word-break:break-all}
@@ -901,6 +903,7 @@ function desenharAdmin(){
   $('aTabEquip').classList.toggle('on',abaAdmin==='equip');
   $('aTabCli').classList.toggle('on',abaAdmin==='cli');
   $('aNovo').textContent = abaAdmin==='equip' ? '+ Novo equipamento' : '+ Novo cliente';
+  $('aNovo').classList.toggle('verde',abaAdmin==='equip'); $('aNovo').classList.toggle('azul',abaAdmin!=='equip');
   $('aSearch').style.display = abaAdmin==='equip' ? '' : 'none';
   if(abaAdmin==='equip') desenharEquip(); else desenharClientes();
 }
