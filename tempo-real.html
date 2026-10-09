@@ -342,6 +342,9 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>
       </button>
     </div>
+    <div class="actions dois" id="admSmsRow" style="display:none;grid-template-columns:1fr">
+      <button class="btn btn-out" id="btnBlockSms" style="color:var(--red2,#e3262f);border-color:var(--red2,#e3262f)">Bloquear por SMS</button>
+    </div>
     <div class="actions dois">
       <button class="btn btn-out" id="btnNav">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l18-8-8 18-2-8z"/></svg>
@@ -1007,6 +1010,7 @@ function atualizar(){
     $('addrRow').style.display = (endereco || gpsVelho) ? 'flex' : 'none';
     $('banner').classList.toggle('show',v.bloq);
     $('btnBlock').disabled=cmdAndamento;
+    $('admSmsRow').style.display=ehAdmin?'grid':'none';
     $('btnUnblock').disabled=cmdAndamento;
     aplicarSheet();
   }
@@ -1086,7 +1090,7 @@ document.querySelectorAll('[data-close]').forEach(b=>b.onclick=fechar);
 
 function abrirConfirmacao(acao){
   const v=ativo(); if(!v) return;
-  if(!v.online && acao==='bloquear' && !ehAdmin){
+  if(!v.online && acao==='bloquear'){
     toast('Aparelho sem conexão com o servidor. Por segurança, o bloqueio não foi enviado.');
     return;
   }
@@ -1098,8 +1102,7 @@ function abrirConfirmacao(acao){
   const bloquear = acao==='bloquear';
   $('cmdTitle').textContent=(bloquear?'Bloquear ':'Desbloquear ')+v.nome+'?';
   $('cmdText').textContent = bloquear
-    ? (v.online ? 'O motor será cortado. O veículo só volta a funcionar depois do desbloqueio.'+(ehAdmin?' Se o rastreador não responder em 10 segundos, o bloqueio vai também por SMS.':'')
-       : 'O rastreador está sem conexão de internet. O bloqueio será enviado por SMS (RELAY,1#) para o chip do veículo.')
+    ? 'O motor será cortado. O veículo só volta a funcionar depois do desbloqueio.'
     : (v.online ? 'O veículo poderá ser ligado normalmente.'
        : 'O rastreador está sem sinal agora. O desbloqueio fica guardado e o sistema continua tentando sozinho (pela internet e por SMS) até o rastreador obedecer.');
   const w=$('cmdWarn'), avisos=[];
@@ -1129,10 +1132,6 @@ $('cmdOk').onclick=async ()=>{
     else throw new Error('Este acesso ainda não está liberado para bloquear/desbloquear. Fale com a Rastreando GPS.');
     if(bloquear) desbCancelar(v.id); // a última ordem vence: para o desbloqueio automático deste veículo
     const online=v.online;
-    if(bloquear && ehAdmin && !online){ // administrador, rastreador sem internet: só por SMS (não deixa comando guardado na fila do servidor)
-      await smsBloquear(v);
-      throw {silencioso:true};
-    }
     let r=null;
     try{
       r=await api('/api/commands/send',{
@@ -1155,14 +1154,14 @@ $('cmdOk').onclick=async ()=>{
     let respondeu=false, smsFoi=false;
     for(let i=0;i<20 && !respondeu;i++){
       await sleep(2000);
-      if(bloquear && ehAdmin && !smsFoi && i===5 && !(v.posId!==posAntes && v.result)){ smsFoi=true; smsBloquear(v) } // 10 s sem resposta: SMS
       buscando=false; await buscarSeguro();
       if(v.posId!==posAntes && v.result){
         respondeu=true;
         if(/success/i.test(v.result)){
           v.bloq=bloquear; lsSet('rg_bloq_'+v.id,bloquear?'1':'0');
           toast(bloquear?'Bloqueio confirmado pelo aparelho':'Desbloqueio confirmado pelo aparelho');
-        } else toast('O aparelho respondeu: '+v.result);
+        } else if(bloquear) toast('O equipamento rastreador está sem sinal. Pode ser que não seja possível bloquear no momento.',7000);
+        else toast('O aparelho respondeu: '+v.result);
       }
     }
     if(!respondeu) toast(smsFoi ? 'O rastreador não respondeu pela internet. O bloqueio também foi enviado por SMS: confira no mapa em alguns minutos.' : !bloquear && desbPendente[v.id]
@@ -1235,6 +1234,14 @@ setInterval(desbVerificar,20000);
 setInterval(desbMostrar,1000);
 setTimeout(desbVerificar,3000);
 
+/* administrador: botão "Bloquear por SMS" (manual, dispara na hora) */
+$('btnBlockSms').onclick=()=>{
+  const v=ativo(); if(!v || !ehAdmin) return;
+  pedirConfirmacao('Bloquear por SMS','Enviar agora o SMS de bloqueio (RELAY,1#) para o chip de '+v.nome+'? O SMS fica guardado na operadora e chega quando o rastreador tiver sinal de celular.','Enviar SMS',async()=>{
+    desbCancelar(v.id); // a última ordem vence
+    if(!(await smsBloquear(v))) throw new Error('O SMS não foi enviado. Veja o aviso na tela.');
+  });
+};
 /* administrador: bloqueio por SMS (RELAY,1#) pelo servidor; o número do chip não passa pelo app */
 async function smsBloquear(v){
   try{
