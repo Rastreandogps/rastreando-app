@@ -54,7 +54,7 @@ try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'){document.do
 .fres.bem{background:rgba(51,209,122,.12);border:1px solid rgba(51,209,122,.35);color:var(--green)}
 .fres.aviso{background:rgba(255,176,32,.12);border:1px solid rgba(255,176,32,.45);color:#e6a100}
 .fres.trava{background:rgba(227,38,47,.16);border:2px solid var(--red2);color:var(--red2);font-size:15px}
-#avisoPag{position:fixed;left:12px;right:12px;bottom:calc(78px + env(safe-area-inset-bottom));z-index:900;display:none;border-radius:12px;padding:11px 14px;font-size:13.5px;font-weight:600;line-height:1.35;cursor:pointer;box-shadow:0 4px 18px rgba(0,0,0,.35)}
+#avisoPag{flex:none;display:none;padding:7px 14px;font-size:12.5px;font-weight:600;line-height:1.3;cursor:pointer;text-align:center}
 #avisoPag.show{display:block}
 #avisoPag.a{background:#3a2c08;border:1px solid #ffb020;color:#ffd27a}
 #avisoPag.c{background:#2d2a08;border:1px solid #e6c200;color:#ffe680}
@@ -252,6 +252,7 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
     </button>
   </div>
 </header>
+<div id="avisoPag"></div>
 
 <main id="main">
   <div id="map"></div>
@@ -378,9 +379,9 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
     <div class="lbrand">
       <img src="logo.jpeg" alt="" onerror="this.style.display='none'">
       <b>RASTREANDO GPS</b>
-      <span>Entre com seu e-mail e senha</span>
+      <span>Entre com seu e-mail ou usuário e senha</span>
     </div>
-    <input type="email" id="lEmail" placeholder="E-mail" autocomplete="username" required>
+    <input type="text" id="lEmail" placeholder="E-mail ou usuário" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" required>
     <input type="password" id="lSenha" placeholder="Senha" autocomplete="current-password" required>
     <div class="lerr" id="lErr"></div>
     <button class="btn btn-red" id="lBtn" type="submit">Entrar</button>
@@ -397,8 +398,8 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
     <input class="fld" id="eImei" inputmode="numeric" autocomplete="off">
     <label class="flbl" for="eFone">Número do chip (com DDD)</label>
     <input class="fld" id="eFone" inputmode="tel" placeholder="(21) 99999-9999" autocomplete="off">
-    <label class="flbl" for="eEmail">E-mail do cliente (o cliente precisa já existir)</label>
-    <input class="fld" id="eEmail" type="email" autocomplete="off">
+    <label class="flbl" for="eEmail">Login do cliente (e-mail ou usuário; o cliente precisa já existir)</label>
+    <input class="fld" id="eEmail" type="text" autocomplete="off" autocapitalize="none">
     <div class="ferr" id="eErro"></div>
     <div class="actions2">
       <button class="btn btn-out" data-close>Cancelar</button>
@@ -410,18 +411,18 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
 <!-- Cliente novo -->
 <div class="modal" id="mCliente">
   <div class="box2">
-    <h3>Novo cliente</h3>
+    <h3 id="cTitulo">Novo cliente</h3>
     <label class="flbl" for="cNome">Nome</label>
     <input class="fld" id="cNome" autocomplete="off">
-    <label class="flbl" for="cEmail">E-mail (é o login do cliente)</label>
-    <input class="fld" id="cEmail" type="email" autocomplete="off">
-    <label class="flbl" for="cSenha">Senha</label>
+    <label class="flbl" for="cEmail">Login do cliente (e-mail ou um nome de usuário, ex: joao.silva)</label>
+    <input class="fld" id="cEmail" type="text" autocomplete="off" autocapitalize="none" spellcheck="false">
+    <label class="flbl" for="cSenha" id="cSenhaLbl">Senha</label>
     <input class="fld" id="cSenha" autocomplete="off">
     <button class="mini" id="cGerar" type="button" style="margin-bottom:10px">Gerar senha</button>
     <label class="flbl" for="cCpf">CPF (opcional)</label>
     <input class="fld" id="cCpf" inputmode="numeric" autocomplete="off">
-    <label class="flbl">Aparelhos deste cliente (opcional)</label>
-    <div class="apsel" id="cAparelhos"></div>
+    <div id="cAparWrap"><label class="flbl">Aparelhos deste cliente (opcional)</label>
+    <div class="apsel" id="cAparelhos"></div></div>
     <label class="fchk"><input type="checkbox" id="cLeitura" checked> Cliente não pode editar nem apagar o aparelho</label>
     <div class="ferr" id="cErro"></div>
     <div class="actions2">
@@ -461,7 +462,7 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
 <!-- Acesso criado -->
 <div class="modal" id="mAcesso">
   <div class="box2">
-    <h3>Cliente criado</h3>
+    <h3 id="acessoTitulo">Cliente criado</h3>
     <p>Envie estes dados ao cliente. A senha só aparece agora.</p>
     <div class="acesso" id="acessoTxt"></div>
     <div class="actions2">
@@ -502,7 +503,6 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
   </div>
 </div>
 
-<div id="avisoPag"></div>
 <div class="toast" id="toast"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
@@ -951,7 +951,7 @@ function irPara(tab){
   $('vview').classList.toggle('show',tab==='Veículos');
   $('aview').classList.toggle('show',tab==='Admin');
   $('fview').classList.toggle('show',tab==='Faturas');
-  const bar=$('avisoPag'); if(bar && bar.textContent) bar.classList.toggle('show',tab!=='Faturas');
+  const bar=$('avisoPag'); if(bar && bar.textContent){ bar.classList.toggle('show',tab!=='Faturas'); try{ setTimeout(()=>map.invalidateSize(),50) }catch(e){} }
   if(tab==='Admin') abrirAdmin();
   if(tab==='Faturas') abrirFaturas(false);
 }
@@ -1003,6 +1003,7 @@ function aplicarBloqueio(b){
     bar.className='show c'; bar.textContent='Acesso liberado até '+dmy(b.ate)+'. Pague a fatura para não ser bloqueado. Toque para pagar.';
   } else { bar.className=''; bar.textContent='' }
   if($('fview').classList.contains('show')) bar.classList.remove('show');
+  try{ setTimeout(()=>map.invalidateSize(),50) }catch(e){}
   if(trav) irPara('Faturas');
 }
 $('avisoPag').onclick=()=>irPara('Faturas');
@@ -1051,7 +1052,7 @@ function desenharFaturas(){
       const bad = f.vencida ? '<span class="fbad v">Vencida há '+f.diasAtraso+(f.diasAtraso===1?' dia':' dias')+'</span>'
         : '<span class="fbad a">'+(dif<=0?'Vence hoje':'Vence em '+dif+(dif===1?' dia':' dias'))+'</span>';
       const orig = f.vencida && f.atualizado>f.valor ? '<div class="fo">Valor original '+brl(f.valor)+' + multa e juros</div>' : '';
-      const pix = f.forma!=='CREDIT_CARD' ? '<button class="btn btn-red mini" style="color:#fff;border:0" data-a="pix" data-id="'+esc(f.id)+'">Pagar com PIX</button>' : '';
+      const pix = f.forma!=='CREDIT_CARD' ? '<button class="btn mini" style="background:'+(f.vencida?'var(--red)':'#16a34a')+';color:#fff;border:0" data-a="pix" data-id="'+esc(f.id)+'">Pagar com PIX</button>' : '';
       const ver = f.link ? '<a class="mini" href="'+esc(f.link)+'" target="_blank" rel="noopener">Ver fatura</a>' : '';
       return '<div class="fcard"><div class="ft"><div><div class="fv">'+brl(f.atualizado)+'</div><div class="fd">Vencimento '+dmy(f.vencimento)+'</div>'+orig+
         (f.descricao?'<div class="fo">'+esc(f.descricao)+'</div>':'')+'</div>'+bad+'</div><div class="bts">'+pix+ver+'</div></div>';
@@ -1117,12 +1118,16 @@ async function carregarUsuarios(){
   catch(e){ if(e.sessao) throw e }
 }
 /* Só é administrador quem o Traccar diz que é: a lista de usuários traz o campo "administrator". */
+/* o cliente entra com e-mail OU com um "usuário" (campo login do Traccar) */
+const loginDe = u => String((u&&(u.login||u.email))||'');
+const casaUsuario = (u,t) => { t=String(t||'').trim().toLowerCase(); return !!t && (String(u.login||'').toLowerCase()===t || String(u.email||'').toLowerCase()===t) };
+const EMAIL_FALSO = '@acesso.rastreando.local'; /* o Traccar guarda e-mail de todo usuário; quem entra por usuário recebe um e-mail interno */
 async function descobrirAdmin(){
   ehAdmin=false;
   try{
     await carregarUsuarios();
     const em=(lsGet('rg_email')||'').toLowerCase();
-    ehAdmin = !!usuarios.find(u=>u.administrator && String(u.email||'').toLowerCase()===em);
+    ehAdmin = !!usuarios.find(u=>u.administrator && casaUsuario(u,em));
   }catch(e){}
   document.querySelector('nav button[data-tab="Admin"]').style.display = ehAdmin ? '' : 'none';
   document.querySelector('nav button[data-tab="Faturas"]').style.display = ehAdmin ? 'none' : '';
@@ -1162,8 +1167,7 @@ let vinculos={}, abertos={};
 function aparelhosDe(u){
   /* vínculo real do Traccar (quando já carregado); senão, pelo e-mail gravado no equipamento */
   if(vinculos[u.id]) return vinculos[u.id].map(id=>veiculos.find(v=>v.id===id)).filter(Boolean);
-  const em=String(u.email||'').toLowerCase();
-  return veiculos.filter(v=>String(v.contato||'').toLowerCase()===em);
+  return veiculos.filter(v=>casaUsuario(u,v.contato));
 }
 async function carregarVinculos(){
   const cl=usuarios.filter(u=>!u.administrator), fila=cl.slice();
@@ -1184,7 +1188,7 @@ function desenharClientes(){
     const ap=aparelhosDe(u), cpf=(cpfsMapa[u.id] && cpfsMapa[u.id].cpf) || (u.attributes && u.attributes.cpf);
     return '<details class="cli" data-u="'+u.id+'"'+(abertos[u.id]?' open':'')+'><summary>'+
       '<div class="cinfo"><div class="t">'+esc(u.name)+'</div>'+
-      '<div class="s">'+esc(u.email)+'</div>'+
+      '<div class="s">'+esc(loginDe(u))+'</div>'+
       '<div class="s">CPF: '+(cpf?'<b>'+esc(fmtCpf(cpf))+'</b>':'não cadastrado')+'</div></div>'+
       '<span class="qtd">'+ap.length+(ap.length===1?' veículo':' veículos')+'</span><span class="seta">›</span></summary>'+
       '<div class="gav">'+(ap.map(v=>
@@ -1194,7 +1198,7 @@ function desenharClientes(){
         '<div class="bts">'+(v.fone?'<button class="mini" data-a="copiar">Copiar número</button><a class="mini" data-a="sms" href="'+esc(linkSms(v.fone))+'">Enviar SMS</a>':'')+
         '<button class="mini" data-a="editar">Editar</button><button class="mini" data-a="desv" data-u="'+u.id+'" style="color:#d93025;border-color:#d93025">Desvincular</button></div></div>'
       ).join('') || '<div class="s" style="padding:8px 0">Nenhum veículo vinculado.</div>')+
-      '<div class="bts" style="margin-top:8px"><button class="mini" data-a="vinc" data-u="'+u.id+'">+ Vincular aparelho</button><button class="mini" data-a="cpf" data-u="'+u.id+'">'+(cpf?'Alterar CPF':'Cadastrar CPF')+'</button></div></div></details>';
+      '<div class="bts" style="margin-top:8px"><button class="mini" data-a="vinc" data-u="'+u.id+'">+ Vincular aparelho</button><button class="mini" data-a="edcli" data-u="'+u.id+'">Editar cliente</button><button class="mini" data-a="cpf" data-u="'+u.id+'">'+(cpf?'Alterar CPF':'Cadastrar CPF')+'</button></div></div></details>';
   }).join('') || '<div class="vempty">Nenhum cliente ainda.</div>';
 }
 $('aList').addEventListener('toggle',e=>{ const d=e.target; if(d.dataset && d.dataset.u) abertos[d.dataset.u]=d.open },true);
@@ -1222,6 +1226,7 @@ $('aList').addEventListener('click',e=>{
     $('vincErro').textContent=''; $('vincSalvar').disabled=false;
     abrir('mVinc'); return;
   }
+  if(b.dataset.a==='edcli'){ abrirEdicaoCliente(+b.dataset.u); return }
   if(b.dataset.a==='cpf'){
     cpfUserId=+b.dataset.u;
     const u=usuarios.find(x=>x.id===cpfUserId);
@@ -1278,7 +1283,7 @@ $('desvSalvar').onclick=async ()=>{
     if(!r.ok) throw new Error(await msgErro(r,'Não consegui desvincular'));
     /* se o e-mail do cliente estava gravado no aparelho, limpa para o app não mostrar o cliente antigo */
     let avisoContato=false;
-    if(String(v.contato||'').toLowerCase()===String(u.email||'').toLowerCase()){
+    if(casaUsuario(u,v.contato)){
       try{
         const c=await api('/api/devices/'+v.id,{method:'PUT',headers:JSONH,body:JSON.stringify(Object.assign({},v.raw,{contact:''}))});
         if(!c.ok) avisoContato=true;
@@ -1347,12 +1352,11 @@ $('eSalvar').onclick=async ()=>{
   if(!nome) return erro('Informe o nome do veículo ou equipamento.');
   if(!editandoId && imei.length!==15) return erro('O IMEI precisa ter 15 números.');
   if(fone && fone.length<10) return erro('O número do chip precisa ter DDD e o número.');
-  if(email && !/^\S+@\S+\.\S+$/.test(email)) return erro('E-mail inválido.');
   erro(''); $('eSalvar').disabled=true;
   try{
     await carregarUsuarios();
-    const cli = email ? usuarios.find(u=>String(u.email||'').toLowerCase()===email) : null;
-    if(email && !cli){ erro('Não existe cliente com esse e-mail. Crie o cliente primeiro, na aba Clientes.'); $('eSalvar').disabled=false; return }
+    const cli = email ? usuarios.find(u=>casaUsuario(u,email)) : null;
+    if(email && !cli){ erro('Não existe cliente com esse login. Crie o cliente primeiro, na aba Clientes.'); $('eSalvar').disabled=false; return }
     let r;
     if(editandoId){
       const v=veiculos.find(x=>x.id===editandoId);
@@ -1377,23 +1381,88 @@ function senhaAleatoria(){
   const a=new Uint32Array(10); (window.crypto||window.msCrypto).getRandomValues(a);
   a.forEach(n=>s+=c[n%c.length]); return s;
 }
+let editUserId=null;
 function abrirCliente(){
+  editUserId=null;
   ['cNome','cEmail','cSenha','cCpf'].forEach(i=>$(i).value='');
+  $('cTitulo').textContent='Novo cliente'; $('cSalvar').textContent='Criar cliente'; $('cSenhaLbl').textContent='Senha';
+  $('cAparWrap').style.display='';
   $('cLeitura').checked=true; $('cErro').textContent=''; $('cSalvar').disabled=false;
   $('cAparelhos').innerHTML=htmlAparelhos();
   abrir('mCliente');
 }
+function abrirEdicaoCliente(id){
+  const u=usuarios.find(x=>x.id===id); if(!u) return;
+  editUserId=id;
+  $('cNome').value=u.name||''; $('cEmail').value=loginDe(u); $('cSenha').value='';
+  const cpf=(cpfsMapa[id]&&cpfsMapa[id].cpf)||(u.attributes&&u.attributes.cpf)||'';
+  $('cCpf').value=fmtCpf(cpf);
+  $('cTitulo').textContent='Editar cliente'; $('cSalvar').textContent='Salvar'; $('cSenhaLbl').textContent='Nova senha (deixe vazio para não mudar)';
+  $('cAparWrap').style.display='none';
+  $('cLeitura').checked=!!u.deviceReadonly; $('cErro').textContent=''; $('cSalvar').disabled=false;
+  abrir('mCliente');
+}
 $('cGerar').onclick=()=>{ $('cSenha').value=senhaAleatoria() };
+/* login digitado -> campos do Traccar. Com "@" vira o e-mail; sem "@" vira usuário (login) + e-mail interno. */
+function camposLogin(txt){
+  const l=String(txt||'').trim().toLowerCase();
+  if(l.indexOf('@')>=0){
+    if(!/^\S+@\S+\.\S+$/.test(l)) return {erro:'E-mail inválido. Confira, ou use um nome de usuário sem @.'};
+    return {login:l, email:l, loginTraccar:null};
+  }
+  if(!/^[a-z0-9._-]{3,}$/.test(l)) return {erro:'Usuário: pelo menos 3 caracteres, só letras minúsculas, números, ponto, traço ou _ (sem espaço).'};
+  return {login:l, email:l+EMAIL_FALSO, loginTraccar:l};
+}
+function mostrarAcesso(titulo,login,senha){
+  const link=location.origin+location.pathname;
+  const msg='Olá! Seu acesso ao Rastreando GPS:\n'+link+'\nLogin: '+login+'\nSenha: '+senha;
+  $('acessoTitulo').textContent=titulo;
+  $('acessoTxt').textContent=msg;
+  $('acessoWpp').href='https://wa.me/?text='+encodeURIComponent(msg);
+  $('acessoCopiar').onclick=()=>copiar(msg).then(()=>toast('Mensagem copiada')).catch(()=>toast('Não foi possível copiar'));
+  abrir('mAcesso');
+}
 $('cSalvar').onclick=async ()=>{
   const erro=m=>{ $('cErro').textContent=m };
-  const nome=$('cNome').value.trim(), email=$('cEmail').value.trim().toLowerCase(), senha=$('cSenha').value, cpf=soDigitos($('cCpf').value);
+  const editando=editUserId;
+  const nome=$('cNome').value.trim(), senha=$('cSenha').value, cpf=soDigitos($('cCpf').value);
   if(!nome) return erro('Informe o nome do cliente.');
-  if(!/^\S+@\S+\.\S+$/.test(email)) return erro('Informe um e-mail válido.');
-  if(senha.length<6) return erro('A senha precisa ter pelo menos 6 caracteres.');
-  if(cpf && cpf.length!==11) return erro('O CPF precisa ter 11 números.');
+  const lg=camposLogin($('cEmail').value); if(lg.erro) return erro(lg.erro);
+  if(usuarios.some(x=>x.id!==editando && (casaUsuario(x,lg.login)||casaUsuario(x,lg.email)))) return erro('Já existe um cliente com esse login.');
+  if(editando ? (senha && senha.length<6) : senha.length<6) return erro('A senha precisa ter pelo menos 6 caracteres.');
+  if(editando ? (cpf && cpf.length!==11 && cpf.length!==14) : (cpf && cpf.length!==11)) return erro(editando?'O CPF precisa ter 11 números (ou CNPJ com 14).':'O CPF precisa ter 11 números.');
   erro(''); $('cSalvar').disabled=true;
   try{
-    const corpo={name:nome,email:email,password:senha,administrator:false,deviceReadonly:$('cLeitura').checked,attributes:cpf?{cpf:cpf}:{}};
+    if(editando){
+      const u=usuarios.find(x=>x.id===editando); if(!u) throw new Error('Cliente não encontrado. Atualize a lista.');
+      const antigo=loginDe(u), antigoEmail=String(u.email||'');
+      const corpo=Object.assign({},u,{name:nome,email:lg.email,login:lg.loginTraccar,deviceReadonly:$('cLeitura').checked});
+      if(senha) corpo.password=senha; else delete corpo.password;
+      const r=await api('/api/users/'+editando,{method:'PUT',headers:JSONH,body:JSON.stringify(corpo)});
+      if(!r.ok) throw new Error(await msgErro(r,'Não foi possível salvar o cliente'));
+      const avisos=[];
+      // aparelhos que guardavam o login antigo passam a guardar o novo (a lista do app usa esse campo)
+      if(lg.login!==antigo.toLowerCase()){
+        for(const v of aparelhosDe(u)){
+          if(casaUsuario({login:antigo,email:antigoEmail},v.contato)){
+            try{ const c=await api('/api/devices/'+v.id,{method:'PUT',headers:JSONH,body:JSON.stringify(Object.assign({},v.raw,{contact:lg.login}))}); if(!c.ok) avisos.push(v.nome) }
+            catch(e){ if(e.sessao) throw e; avisos.push(v.nome) }
+          }
+        }
+      }
+      const cpfAtual=soDigitos((cpfsMapa[editando]&&cpfsMapa[editando].cpf)||(u.attributes&&u.attributes.cpf)||'');
+      if(cpf!==cpfAtual){
+        try{ await fn('vincular',{userId:editando,cpf:cpf}); await carregarCpfs() }
+        catch(e){ avisos.push('CPF ('+e.message+')') }
+      }
+      await carregarUsuarios(); fechar();
+      buscando=false; await buscarSeguro(); vinculos={}; desenharAdmin(); carregarVinculos();
+      toast(avisos.length?'Salvo, mas falhou: '+avisos.join(', '):'Cliente atualizado.');
+      if(senha) mostrarAcesso('Acesso atualizado',lg.login,senha);
+      $('cSalvar').disabled=false; return;
+    }
+    const corpo={name:nome,email:lg.email,password:senha,administrator:false,deviceReadonly:$('cLeitura').checked,attributes:cpf?{cpf:cpf}:{}};
+    if(lg.loginTraccar) corpo.login=lg.loginTraccar;
     const r=await api('/api/users',{method:'POST',headers:JSONH,body:JSON.stringify(corpo)});
     if(!r.ok) throw new Error(await msgErro(r,'Não foi possível criar o cliente'));
     let novo=null; try{ novo=await r.json() }catch(e){}
@@ -1401,7 +1470,7 @@ $('cSalvar').onclick=async ()=>{
     await carregarUsuarios();
     fechar();
     if(idsAp.length && novo && novo.id){
-      const falhas=await ligarAparelhos({id:novo.id,email:email},idsAp);
+      const falhas=await ligarAparelhos({id:novo.id,email:lg.login},idsAp);
       if(falhas.length) toast('Cliente criado, mas não consegui vincular: '+falhas.join(', ')+'. Use o botão Vincular aparelho.');
       await atualizarAposVinculo();
     }
@@ -1409,12 +1478,7 @@ $('cSalvar').onclick=async ()=>{
       try{ await fn('vincular',{userId:novo.id,cpf:cpf}); await carregarCpfs() }
       catch(e){ toast('Cliente criado, mas o CPF não foi vinculado: '+e.message+' (use o botão CPF do cliente)') }
     }
-    const link=location.origin+location.pathname;
-    const msg='Olá! Seu acesso ao Rastreando GPS:\n'+link+'\nE-mail: '+email+'\nSenha: '+senha;
-    $('acessoTxt').textContent=msg;
-    $('acessoWpp').href='https://wa.me/?text='+encodeURIComponent(msg);
-    $('acessoCopiar').onclick=()=>copiar(msg).then(()=>toast('Mensagem copiada')).catch(()=>toast('Não foi possível copiar'));
-    abrir('mAcesso'); desenharAdmin();
+    mostrarAcesso('Cliente criado',lg.login,senha); desenharAdmin();
   }catch(e){
     if(!e.sessao) erro(e.message && e.message!=='Failed to fetch' ? e.message : 'Não consegui falar com o servidor.');
   }
@@ -1440,7 +1504,7 @@ function sair(msg){
 async function entrar(email,senha){
   const basic='Basic '+btoa(unescape(encodeURIComponent(email+':'+senha)));
   const r=await fetch(API+'/api/devices',{headers:{Authorization:basic,Accept:'application/json'},credentials:'omit'});
-  if(r.status===401||r.status===403) throw new Error('E-mail ou senha incorretos.');
+  if(r.status===401||r.status===403) throw new Error('Login ou senha incorretos.');
   if(!r.ok) throw new Error('O servidor respondeu com erro '+r.status+'.');
   // tenta trocar a senha por um token de 30 dias, para não guardar a senha no aparelho
   let token=null;
