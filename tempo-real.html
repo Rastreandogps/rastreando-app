@@ -301,6 +301,25 @@ nav button{position:relative}
 .cres .vazio{padding:9px 12px;font-size:13px;color:var(--mut)}
 .cpin{width:26px;height:26px;border-radius:50%;background:var(--red);border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.5)}
 body.desenhando .follow,body.desenhando .sheet,body.desenhando .vazio{display:none!important}
+.alcard{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin:0 0 10px}
+.alcard .tt{font-weight:650;font-size:14.5px}
+.alcard .tx{font-size:13px;color:var(--mut);margin-top:4px;line-height:1.4}
+.alcard .bts{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.alcard .bts .mini{height:34px}
+.alcfg summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;font-weight:650;font-size:14.5px}
+.alcfg summary::-webkit-details-marker{display:none}
+.alcfg summary small{flex:1;text-align:right;font-weight:500;color:var(--mut);font-size:12.5px}
+.alcfg .seta{transition:transform .2s;color:var(--mut)}
+.alcfg[open] .seta{transform:rotate(90deg)}
+.alhint{font-size:12.5px;color:var(--mut);margin:8px 0 6px}
+.igrow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 0;border-top:1px solid var(--line);font-size:14px}
+.sw{position:relative;width:44px;height:26px;flex:none}
+.sw input{opacity:0;width:0;height:0}
+.sw span{position:absolute;inset:0;border-radius:999px;background:var(--line);transition:background .2s}
+.sw span::after{content:'';position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.sw input:checked+span{background:var(--green)}
+.sw input:checked+span::after{transform:translateX(18px)}
+.alrow .dot.i{background:#60a5fa}.alrow .dot.b{background:var(--red)}
 .alrow{padding:12px 0;border-bottom:1px solid var(--line);display:flex;gap:10px;align-items:flex-start}
 .alrow .dot{width:10px;height:10px;border-radius:50%;margin-top:6px;flex:none}
 .alrow .dot.e{background:var(--green)}.alrow .dot.s{background:var(--amber)}
@@ -461,9 +480,16 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
   <section class="alview" id="alview">
     <div class="vtop">
       <div class="vtitle"><h2>Alertas</h2><button class="linkbtn" id="alAtualizar">Atualizar</button></div>
-      <div class="vcount">Entradas e saídas de cercas nos últimos 7 dias</div>
+      <div class="vcount">Ignição e cercas dos últimos 7 dias</div>
     </div>
-    <div class="vlist" id="alList"></div>
+    <div class="vlist" id="alList">
+      <div class="alcard" id="alPush"></div>
+      <details class="alcard alcfg" id="alIgnBox"><summary><span>Alertas de ignição</span><small id="alIgnResumo"></small><span class="seta">›</span></summary>
+        <p class="alhint">Escolha os veículos que avisam quando a ignição liga ou desliga. Os alertas de cerca já vêm ligados em toda cerca criada.</p>
+        <div id="alIgn"></div>
+      </details>
+      <div id="alItens"></div>
+    </div>
   </section>
   <section class="cpanel" id="cpanel">
     <div class="chead"><b id="cpTitulo">Nova cerca</b><button class="linkbtn" id="cpCancel">Cancelar</button></div>
@@ -1058,7 +1084,7 @@ async function buscarSeguro(){
   try{
     await buscar();
     indicador('TEMPO REAL',true);
-    if(!cercasIniciado){ cercasIniciado=true; carregarCercas().then(()=>carregarAlertas(false)) }
+    if(!cercasIniciado){ cercasIniciado=true; carregarCercas().then(()=>carregarAlertas(false)); if(location.hash==='#alertas') setTimeout(()=>irPara('Alertas'),300) }
   }catch(e){
     if(e.sessao){ sair('Sessão expirada. Entre novamente.') }
     else indicador('SEM CONEXÃO',false);
@@ -1543,7 +1569,7 @@ function irPara(tab){
   if(tab==='Admin') abrirAdmin();
   if(tab==='Faturas') abrirFaturas(false);
   if(tab==='Cercas'){ desenharCercasLista(); carregarCercas() }
-  if(tab==='Alertas'){ desenharAlertas(); carregarAlertas(true) }
+  if(tab==='Alertas'){ desenharAlertas(); carregarAlertas(true); desenharPush(); carregarCfgAlertas() }
 }
 document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
   const t=b.dataset.tab;
@@ -2342,7 +2368,6 @@ async function carregarCercas(){
         .bindTooltip(x.g.name||'Cerca').addTo(camadaCercas);
     });
     desenharCercasLista();
-    if(cercas.length && !alertaTimer) alertaTimer=setInterval(()=>{ if(document.visibilityState==='visible' && auth) carregarAlertas(false) },30000);
   }catch(e){ if(e.sessao) throw e; $('cCount').textContent='Não consegui carregar as cercas agora.' }
 }
 function desenharCercasLista(){
@@ -2510,7 +2535,7 @@ $('cpSalvar').onclick=async()=>{
   let criada=null;
   try{
     const corpo={name:nome,description:'',area:'CIRCLE ('+c.lat.toFixed(6)+' '+c.lng.toFixed(6)+', '+raio+')',
-      attributes:{acao:bloq?'bloquear':'notificar',quando:$('cpQuando').value,veiculos:ids.join(','),criada:new Date().toISOString(),jaDentro:jaDentro.join(','),lados:lados.join(',')}};
+      attributes:{acao:bloq?'bloquear':'notificar',quando:$('cpQuando').value,veiculos:ids.join(','),criada:new Date().toISOString(),jaDentro:jaDentro.join(','),lados:lados.join(','),dono:(lsGet('rg_email')||'').toLowerCase()}};
     const r=await api('/api/geofences',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(corpo)});
     if(!r.ok) throw new Error('O servidor não aceitou criar a cerca (erro '+r.status+').');
     criada=await r.json();
@@ -2533,62 +2558,113 @@ $('cpSalvar').onclick=async()=>{
   }
 };
 
-/* ----- alertas ----- */
+/* ----- alertas (ignição e cercas) — vêm do servidor (rastreamento-alertas.js) ----- */
 const chaveVisto=()=>'rg_alvisto_'+(lsGet('rg_email')||'');
-function quandoOk(ev,x){
-  /* a cerca só avisa o que foi escolhido (entrar / sair / ambos); o Traccar gera os dois tipos */
-  if(!x) return true;
-  const a=x.g.attributes||{}, q=a.quando||'ambos';
-  if(q==='entrar' && ev.type!=='geofenceEnter') return false;
-  if(q==='sair' && ev.type!=='geofenceExit') return false;
-  /* carro que já estava dentro quando a cerca foi criada: o Traccar gera uma "entrada" falsa logo depois */
-  const desde=a.editada||a.criada;
-  if(ev.type==='geofenceEnter' && desde && String(a.jaDentro||'').split(',').includes(String(ev.deviceId))){
-    const dt=new Date(ev.eventTime).getTime()-new Date(desde).getTime();
-    if(dt<15*60*1000) return false;
-  }
-  return true;
+async function fnAl(acao,extra){
+  const tok=lsGet('rg_token'); if(!tok) throw new Error('Entre de novo no app para usar os alertas.');
+  const r=await fetch(DESB_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',body:JSON.stringify(Object.assign({acao:acao,token:tok},extra||{}))});
+  let j={}; try{ j=await r.json() }catch(e){}
+  if(!r.ok) throw new Error(j.erro||('Erro '+r.status));
+  return j;
 }
+let alCfg={ign:{}};
 async function carregarAlertas(aberta){
-  if(!auth || !veiculos.length) return;
+  if(!auth || !lsGet('rg_token')) return;
   try{
-    const agora=new Date(), de=new Date(agora.getTime()-7*86400000);
-    const q=veiculos.map(v=>'deviceId='+v.id).join('&')+'&type=geofenceEnter&type=geofenceExit&from='+encodeURIComponent(de.toISOString())+'&to='+encodeURIComponent(agora.toISOString());
-    const r=await api('/api/reports/events?'+q);
-    if(!r.ok) throw new Error(r.status);
-    const lista=await r.json();
-    alertas=lista.filter(ev=>quandoOk(ev,cercas.find(c=>c.g.id===ev.geofenceId)))
-      .sort((a,b)=>new Date(b.eventTime)-new Date(a.eventTime)).slice(0,100);
+    const j=await fnAl('alertasLista');
+    alertas=j.lista||[];
     const novosIds=new Set(alertas.map(e=>e.id));
     if(alertasIds){
       const novos=alertas.filter(e=>!alertasIds.has(e.id));
-      if(novos.length && !$('alview').classList.contains('show')) toast('Alerta de cerca: '+textoAlerta(novos[0]));
+      if(novos.length && !$('alview').classList.contains('show')) toast('Alerta: '+novos[0].titulo,5000);
     }
     alertasIds=novosIds;
     desenharAlertas();
-  }catch(e){ if(e.sessao) throw e }
-}
-function textoAlerta(ev){
-  const x=cercas.find(c=>c.g.id===ev.geofenceId), nome=x?(x.g.name||'cerca'):'uma cerca';
-  return nomeVeic(ev.deviceId)+(ev.type==='geofenceEnter'?' entrou em ':' saiu de ')+nome;
+  }catch(e){}
 }
 function desenharAlertas(){
   const visto=lsGet(chaveVisto());
   if(visto===null && alertasIds){ lsSet(chaveVisto(),new Date().toISOString()) }
   const v2=lsGet(chaveVisto()), limite=v2?new Date(v2).getTime():Date.now();
   const abertaAgora=$('alview').classList.contains('show');
-  const novos=alertas.filter(e=>new Date(e.eventTime).getTime()>limite).length;
-  $('alList').innerHTML=alertas.map(e=>{
-    const eNovo=new Date(e.eventTime).getTime()>limite;
-    return '<div class="alrow'+(eNovo&&!abertaAgora?' novo':'')+'"><span class="dot '+(e.type==='geofenceEnter'?'e':'s')+'"></span><div><div class="tx">'+esc(textoAlerta(e))+'</div>'+
-      '<div class="hr">'+esc(new Date(e.eventTime).toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}))+'</div></div></div>';
-  }).join('') || '<div class="vempty">Nenhum alerta nos últimos 7 dias.</div>';
+  const novos=alertas.filter(e=>e.em>limite).length;
+  const cor=t=>t==='ignicao_on'||t==='ignicao_off'?'i':(t==='cerca_bloqueio'?'b':(t==='cerca_saiu'?'s':'e'));
+  $('alItens').innerHTML=alertas.map(e=>
+    '<div class="alrow'+(e.em>limite&&!abertaAgora?' novo':'')+'"><span class="dot '+cor(e.tipo)+'"></span><div><div class="tx">'+esc(e.titulo)+'</div>'+
+    '<div class="hr">'+esc(new Date(e.em).toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}))+(e.texto?' · '+esc(e.texto):'')+'</div></div></div>'
+  ).join('') || '<div class="vempty">Nenhum alerta nos últimos 7 dias.</div>';
   const b=$('alBadge');
   if(abertaAgora){ lsSet(chaveVisto(),new Date().toISOString()); b.classList.remove('show') }
   else if(novos>0){ b.textContent=novos>9?'9+':novos; b.classList.add('show') }
   else b.classList.remove('show');
 }
-$('alAtualizar').onclick=()=>carregarAlertas(true);
+$('alAtualizar').onclick=()=>{ carregarAlertas(true); carregarCfgAlertas() };
+/* checagem periódica (1 por minuto, só com o app aberto na tela) */
+setInterval(()=>{ if(document.visibilityState==='visible' && auth) carregarAlertas(false) },60000);
+
+/* ----- notificações no celular ----- */
+const ehIos=/iPhone|iPad|iPod/.test(navigator.userAgent);
+const instalado=()=>(window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone===true;
+const pushSuportado=()=>('serviceWorker' in navigator)&&('PushManager' in window)&&('Notification' in window);
+function b64uParaBytes(b){ const p='='.repeat((4-b.length%4)%4), s=atob((b+p).replace(/-/g,'+').replace(/_/g,'/')); return Uint8Array.from(s,c=>c.charCodeAt(0)) }
+async function inscricaoAtual(){
+  if(!pushSuportado()) return null;
+  try{ const reg=await navigator.serviceWorker.getRegistration(); return reg ? await reg.pushManager.getSubscription() : null }catch(e){ return null }
+}
+async function desenharPush(){
+  const box=$('alPush');
+  if(ehIos && !instalado()){
+    box.innerHTML='<div class="tt">Notificações no celular</div><div class="tx">No iPhone, os alertas só chegam com o app instalado na tela de início (e iOS 16.4 ou mais novo).</div><div class="bts"><a class="mini" href="instalar.html">Como instalar</a></div>'; return;
+  }
+  if(!pushSuportado()){ box.innerHTML='<div class="tt">Notificações no celular</div><div class="tx">Este navegador não aceita notificações. No Android use o Chrome; no iPhone, instale o app na tela de início.</div>'; return }
+  const sub=await inscricaoAtual(), perm=Notification.permission;
+  if(perm==='denied'){ box.innerHTML='<div class="tt">Notificações bloqueadas</div><div class="tx">Você bloqueou as notificações deste app. Para liberar, abra as configurações do celular (ou do navegador), procure Notificações e permita para o Rastreando GPS.</div>'; return }
+  if(sub && perm==='granted'){
+    box.innerHTML='<div class="tt">🔔 Notificações ativadas neste celular</div><div class="tx">Os alertas chegam mesmo com o app fechado.</div><div class="bts"><button class="mini" id="alTeste">Enviar teste</button><button class="mini" id="alDesativar">Desativar</button></div>';
+    $('alTeste').onclick=async()=>{ try{ const r=await fnAl('alertasTeste'); toast(r.enviados?'Teste enviado. Deve chegar em alguns segundos.':'Não consegui enviar. Desative e ative de novo.',5000) }catch(e){ toast(e.message) } };
+    $('alDesativar').onclick=async()=>{ try{ const s2=await inscricaoAtual(); if(s2){ try{ await fnAl('alertasCancelar',{endpoint:s2.endpoint}) }catch(e){} await s2.unsubscribe() } toast('Notificações desativadas neste celular.') }catch(e){} desenharPush() };
+    return;
+  }
+  box.innerHTML='<div class="tt">Receba os alertas no celular</div><div class="tx">Ative para saber na hora quando a ignição ligar ou o veículo entrar ou sair de uma cerca, mesmo com o app fechado.</div><div class="bts"><button class="mini verde" id="alAtivar">Ativar notificações</button></div>';
+  $('alAtivar').onclick=ativarPush;
+}
+async function ativarPush(){
+  const b=$('alAtivar'); if(b){ b.disabled=true; b.textContent='Ativando...' }
+  try{
+    const perm=await Notification.requestPermission();
+    if(perm!=='granted'){ toast('Sem permissão, os alertas não chegam no celular.',5000); desenharPush(); return }
+    let reg=await navigator.serviceWorker.getRegistration();
+    if(!reg) reg=await navigator.serviceWorker.register('sw.js');
+    await navigator.serviceWorker.ready;
+    const k=await fnAl('alertasChave');
+    let sub=await reg.pushManager.getSubscription();
+    if(!sub) sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64uParaBytes(k.publica)});
+    await fnAl('alertasInscrever',{sub:sub.toJSON(),ua:navigator.userAgent});
+    toast('Notificações ativadas! Deve chegar uma mensagem de confirmação.',6000);
+  }catch(e){ toast('Não consegui ativar: '+(e.message||'erro'),6000) }
+  desenharPush();
+}
+
+/* ----- alertas de ignição por veículo ----- */
+async function carregarCfgAlertas(){
+  try{ const j=await fnAl('alertasEstado'); alCfg=j.cfg||{ign:{}} }catch(e){}
+  desenharIgn();
+}
+function desenharIgn(){
+  const ign=alCfg.ign||{}, lista=veiculos.slice().sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
+  const n=lista.filter(v=>ign[String(v.id)]).length;
+  $('alIgnResumo').textContent=n?(n+(n===1?' veículo':' veículos')):'nenhum';
+  $('alIgn').innerHTML=lista.map(v=>'<div class="igrow"><span>'+esc(v.nome)+'</span><label class="sw"><input type="checkbox" data-ign="'+v.id+'"'+(ign[String(v.id)]?' checked':'')+'><span></span></label></div>').join('') || '<div class="alhint">Nenhum veículo.</div>';
+}
+$('alIgn').addEventListener('change',async e=>{
+  const i=e.target.closest('input[data-ign]'); if(!i) return;
+  i.disabled=true;
+  try{ const j=await fnAl('alertasIgnicao',{deviceId:+i.dataset.ign,ligado:i.checked}); alCfg=j.cfg||alCfg; toast(i.checked?'Alerta de ignição ligado.':'Alerta de ignição desligado.') }
+  catch(err){ i.checked=!i.checked; toast(err.message) }
+  i.disabled=false; desenharIgn();
+});
+/* tocar na notificação abre a aba Alertas */
+if('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('message',e=>{ if(e.data&&e.data.abrir==='alertas') irPara('Alertas') });
 
 /* ===== ENTRAR / SAIR ===== */
 function mostrarLogin(msg){
