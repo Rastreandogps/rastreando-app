@@ -56,6 +56,22 @@ try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'){document.do
 .arow .s{font-size:12px;color:var(--mut);margin-top:2px;word-break:break-all}
 .arow .s b{color:var(--txt);font-size:14px;letter-spacing:.02em}
 .arow .bts{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+details.cli{border-bottom:1px solid var(--line)}
+details.cli summary{list-style:none;cursor:pointer;padding:12px 0;display:flex;align-items:center;gap:10px}
+details.cli summary::-webkit-details-marker{display:none}
+details.cli .cinfo{flex:1;min-width:0}
+details.cli .cinfo .t{font-size:16px;font-weight:600}
+details.cli .cinfo .s{font-size:12px;color:var(--mut);margin-top:2px;word-break:break-all}
+details.cli .qtd{font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px;border:1px solid var(--line);background:var(--card2);white-space:nowrap}
+details.cli .seta{transition:transform .2s;color:var(--mut)}
+details.cli[open] .seta{transform:rotate(90deg)}
+details.cli .gav{padding:0 0 12px 12px;border-left:2px solid var(--line);margin-left:4px}
+.drow{padding:8px 0;border-top:1px solid var(--line)}
+.drow:first-child{border-top:0}
+.drow .t{font-size:15px;font-weight:600}
+.drow .s{font-size:12px;color:var(--mut);margin-top:2px;word-break:break-all}
+.drow .s b{color:var(--txt);font-size:14px}
+.drow .bts{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
 .mini{height:36px;padding:0 14px;border-radius:10px;border:1px solid var(--line);background:var(--card2);font-size:13px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;color:var(--txt);text-decoration:none}
 .fld{width:100%;height:46px;border-radius:12px;border:1px solid var(--line);background:var(--card2);color:var(--txt);padding:0 12px;font:inherit;font-size:16px;outline:none;margin-bottom:10px}
 .fld:focus{border-color:var(--cyan)}
@@ -879,6 +895,7 @@ async function descobrirAdmin(){
 async function abrirAdmin(){
   await carregarUsuarios();
   desenharAdmin();
+  carregarVinculos();
 }
 function desenharAdmin(){
   $('aTabEquip').classList.toggle('on',abaAdmin==='equip');
@@ -900,13 +917,46 @@ function desenharEquip(){
       '<button class="mini" data-a="editar">Editar</button></div></div>'
   ).join('') || '<div class="vempty">Nenhum equipamento encontrado.</div>';
 }
+let vinculos={}, abertos={};
+function fmtCpf(c){ const d=soDigitos(c||''); return d.length===11 ? d.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/,'$1.$2.$3-$4') : (c||'') }
+function aparelhosDe(u){
+  /* vínculo real do Traccar (quando já carregado); senão, pelo e-mail gravado no equipamento */
+  if(vinculos[u.id]) return vinculos[u.id].map(id=>veiculos.find(v=>v.id===id)).filter(Boolean);
+  const em=String(u.email||'').toLowerCase();
+  return veiculos.filter(v=>String(v.contato||'').toLowerCase()===em);
+}
+async function carregarVinculos(){
+  const cl=usuarios.filter(u=>!u.administrator), fila=cl.slice();
+  async function worker(){
+    while(fila.length){
+      const u=fila.shift();
+      try{ const r=await api('/api/devices?userId='+u.id); if(r.ok){ vinculos[u.id]=(await r.json()).map(d=>d.id) } }
+      catch(e){ if(e.sessao) return }
+    }
+  }
+  await Promise.all([worker(),worker(),worker(),worker()]);
+  if(abaAdmin==='cli' && $('aview').classList.contains('show')) desenharClientes();
+}
 function desenharClientes(){
   const cl=usuarios.filter(u=>!u.administrator);
   $('aCount').textContent=cl.length+' clientes';
-  $('aList').innerHTML = cl.map(u=>
-    '<div class="arow"><div class="t">'+esc(u.name)+'</div><div class="s">'+esc(u.email)+'</div></div>'
-  ).join('') || '<div class="vempty">Nenhum cliente ainda.</div>';
+  $('aList').innerHTML = cl.map(u=>{
+    const ap=aparelhosDe(u), cpf=u.attributes && u.attributes.cpf;
+    return '<details class="cli" data-u="'+u.id+'"'+(abertos[u.id]?' open':'')+'><summary>'+
+      '<div class="cinfo"><div class="t">'+esc(u.name)+'</div>'+
+      '<div class="s">'+esc(u.email)+'</div>'+
+      '<div class="s">CPF: '+(cpf?'<b>'+esc(fmtCpf(cpf))+'</b>':'não cadastrado')+'</div></div>'+
+      '<span class="qtd">'+ap.length+(ap.length===1?' veículo':' veículos')+'</span><span class="seta">›</span></summary>'+
+      '<div class="gav">'+(ap.map(v=>
+        '<div class="drow" data-id="'+v.id+'"><div class="t">'+esc(v.nome)+'</div>'+
+        '<div class="s">IMEI '+esc(v.imei)+'</div>'+
+        '<div class="s">Chip: '+(v.fone?'<b>'+esc(fmtFone(v.fone))+'</b>':'não cadastrado')+'</div>'+
+        '<div class="bts">'+(v.fone?'<button class="mini" data-a="copiar">Copiar número</button><a class="mini" data-a="sms" href="'+esc(linkSms(v.fone))+'">Enviar SMS</a>':'')+
+        '<button class="mini" data-a="editar">Editar</button></div></div>'
+      ).join('') || '<div class="s" style="padding:8px 0">Nenhum veículo vinculado.</div>')+'</div></details>';
+  }).join('') || '<div class="vempty">Nenhum cliente ainda.</div>';
 }
+$('aList').addEventListener('toggle',e=>{ const d=e.target; if(d.dataset && d.dataset.u) abertos[d.dataset.u]=d.open },true);
 $('aTabEquip').onclick=()=>{abaAdmin='equip';desenharAdmin()};
 $('aTabCli').onclick=()=>{abaAdmin='cli';desenharAdmin()};
 $('aSearch').addEventListener('input',desenharEquip);
@@ -923,7 +973,7 @@ function copiar(txt){
 }
 $('aList').addEventListener('click',e=>{
   const b=e.target.closest('[data-a]'); if(!b) return;
-  const id=+b.closest('.arow').dataset.id, v=veiculos.find(x=>x.id===id); if(!v) return;
+  const id=+b.closest('[data-id]').dataset.id, v=veiculos.find(x=>x.id===id); if(!v) return;
   if(b.dataset.a==='copiar') copiar(soDigitos(v.fone)).then(()=>toast('Número copiado')).catch(()=>toast('Não foi possível copiar'));
   else if(b.dataset.a==='editar') abrirEquip(id);
   /* "sms" é um link normal: abre o aplicativo de mensagens do celular */
@@ -971,7 +1021,7 @@ $('eSalvar').onclick=async ()=>{
     const d=await r.json();
     if(cli) await vincular(cli.id,d.id);
     fechar(); toast(editandoId?'Equipamento atualizado':'Equipamento cadastrado');
-    buscando=false; await buscarSeguro(); desenharAdmin();
+    buscando=false; await buscarSeguro(); vinculos={}; desenharAdmin(); carregarVinculos();
   }catch(e){
     if(!e.sessao) erro(e.message && e.message!=='Failed to fetch' ? e.message : 'Não consegui falar com o servidor.');
   }
