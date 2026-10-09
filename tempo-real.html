@@ -214,6 +214,13 @@ main{position:relative;flex:1;min-height:0;overflow:hidden}
 #btnUnblock::before{--ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='4.5' y='10.5' width='15' height='10' rx='2.5'/%3E%3Cpath d='M8 10.5V7.5a4 4 0 017.6-1.7'/%3E%3C/svg%3E");display:block!important}
 #btnShare{background:var(--card2);border:1px solid var(--line);color:var(--txt);padding:0}
 #admSmsRow{display:none;margin-top:8px;gap:8px}
+#btnResetSms{background:rgba(245,184,61,.12);color:var(--amber);border:1px solid rgba(245,184,61,.32)}
+#admSmsRow.tres .btn{font-size:11.5px;gap:5px;padding:0 6px}
+#admSmsRow.tres .btn::before{width:13px;height:13px}
+#smsCusto{font-size:11.5px;color:var(--mut);margin-top:6px;text-align:center}
+#btnRenome{margin-left:6px;width:28px;height:28px;border-radius:8px;border:1px solid var(--line);background:var(--card2);color:var(--mut);display:none;align-items:center;justify-content:center;vertical-align:middle}
+#btnRenome svg{width:14px;height:14px}
+.vname{display:flex;align-items:center}
 #admSmsRow .btn{white-space:nowrap;height:34px;border-radius:999px;font-size:12.5px;font-weight:650}
 #admSmsRow .btn::before{--ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 5h16v11H9l-5 4z'/%3E%3Cpath d='M8 9.5h8M8 12.5h5'/%3E%3C/svg%3E");display:block;width:15px;height:15px}
 #btnBlockSms{background:rgba(227,38,47,.10);color:var(--red2);border:1px solid rgba(227,38,47,.30)}
@@ -344,7 +351,7 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
       <div class="handlewrap"><span class="handle"></span></div>
       <div class="row">
         <div>
-          <div class="vname" id="vName"></div>
+          <div class="vname"><span id="vName"></span><button id="btnRenome" aria-label="Editar nome do veículo" title="Editar nome"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></button></div>
           <div class="plate" id="vPlate"></div>
         </div>
         <div class="stwrap"><span class="status" id="vStatus"></span><div class="upd" id="vUpd"></div></div>
@@ -370,7 +377,9 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
     <div class="actions dois" id="admSmsRow" style="display:none">
       <button class="btn" id="btnBlockSms">Bloquear SMS</button>
       <button class="btn" id="btnUnblockSms">Desbloquear SMS</button>
+      <button class="btn" id="btnResetSms">Reset</button>
     </div>
+    <div id="smsCusto" style="display:none"></div>
     <div class="actions dois">
       <button class="btn btn-out" id="btnNav">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l18-8-8 18-2-8z"/></svg>
@@ -577,6 +586,51 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
     <div class="actions2">
       <button class="btn btn-out" data-close>Cancelar</button>
       <button class="btn btn-red" id="desvSalvar">Desvincular</button>
+    </div>
+  </div>
+</div>
+
+<!-- Reset (SMS) -->
+<div class="modal" id="mReset">
+  <div class="box2">
+    <h3>Enviar reset</h3>
+    <p id="rsTexto" style="white-space:pre-line"></p>
+    <label class="fchk" id="rsPlatRow"><input type="checkbox" id="rsPlat" checked> <span id="rsPlatTxt">Enviar pela plataforma</span></label>
+    <div class="ferr" id="rsErro"></div>
+    <div class="actions2">
+      <button class="btn btn-out" data-close>Cancelar</button>
+      <button class="btn btn-red" id="rsOk">Enviar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Permissões do cliente (administrador) -->
+<div class="modal" id="mPerm">
+  <div class="box2">
+    <h3 id="pmTitulo">Permissões do app</h3>
+    <p style="font-size:13px;color:var(--mut);margin:0 0 10px">Escolha o que aparece no app deste cliente.</p>
+    <label class="fchk"><input type="checkbox" id="pmSms"> Bloquear e desbloquear por SMS (pela plataforma, R$ 0,10 cada)</label>
+    <label class="fchk"><input type="checkbox" id="pmReset"> Botão de reset (RESET#), pela plataforma (R$ 0,10) ou pelo celular dele (grátis)</label>
+    <label class="fchk"><input type="checkbox" id="pmNome"> Editar o nome do veículo</label>
+    <div id="pmCob" style="background:var(--card2);border-radius:12px;padding:10px 12px;font-size:13.5px;margin:4px 0 10px"></div>
+    <div class="ferr" id="pmErro"></div>
+    <div class="actions2">
+      <button class="btn btn-out" id="pmZerar">Zerar SMS (já faturei)</button>
+      <button class="btn btn-red" id="pmSalvar">Salvar</button>
+    </div>
+    <button class="linkbtn" data-close style="margin-top:10px;width:100%">Fechar</button>
+  </div>
+</div>
+
+<!-- Renomear veículo -->
+<div class="modal" id="mRenome">
+  <div class="box2">
+    <h3>Nome do veículo</h3>
+    <input class="fld" id="rnNome" maxlength="40" autocomplete="off">
+    <div class="ferr" id="rnErro"></div>
+    <div class="actions2">
+      <button class="btn btn-out" data-close>Cancelar</button>
+      <button class="btn btn-red" id="rnOk">Salvar</button>
     </div>
   </div>
 </div>
@@ -1071,7 +1125,7 @@ function atualizar(){
     $('addrRow').style.display = (endereco || gpsVelho) ? 'flex' : 'none';
     $('banner').classList.toggle('show',v.bloq);
     $('btnBlock').disabled=cmdAndamento;
-    $('admSmsRow').style.display=ehAdmin?'grid':'none';
+    mostrarBotoesSms();
     $('btnUnblock').disabled=cmdAndamento;
     aplicarSheet();
   }
@@ -1297,15 +1351,15 @@ setTimeout(desbVerificar,3000);
 
 /* administrador: botão "Bloquear por SMS" (manual, dispara na hora) */
 $('btnBlockSms').onclick=()=>{
-  const v=ativo(); if(!v || !ehAdmin) return;
-  pedirConfirmacao('Bloquear por SMS','Enviar agora o SMS de bloqueio (RELAY,1#) para o chip de '+v.nome+'? O SMS fica guardado na operadora e chega quando o rastreador tiver sinal de celular.','Enviar SMS',async()=>{
+  const v=ativo(); if(!v || !(ehAdmin||permCli.smsBloqueio)) return;
+  pedirConfirmacao('Bloquear por SMS','Enviar agora o SMS de bloqueio para '+v.nome+'? O SMS fica guardado na operadora e chega quando o rastreador tiver sinal de celular.'+textoCusto(),'Enviar SMS',async()=>{
     desbCancelar(v.id); // a última ordem vence
     if(!(await smsBloquear(v))) throw new Error('O SMS não foi enviado. Veja o aviso na tela.');
   });
 };
 $('btnUnblockSms').onclick=()=>{
-  const v=ativo(); if(!v || !ehAdmin) return;
-  pedirConfirmacao('Desbloquear por SMS','Enviar agora o SMS de desbloqueio (RELAY,0#) para o chip de '+v.nome+'? O SMS fica guardado na operadora e chega quando o rastreador tiver sinal de celular.','Enviar SMS',async()=>{
+  const v=ativo(); if(!v || !(ehAdmin||permCli.smsBloqueio)) return;
+  pedirConfirmacao('Desbloquear por SMS','Enviar agora o SMS de desbloqueio para '+v.nome+'? O SMS fica guardado na operadora e chega quando o rastreador tiver sinal de celular.'+textoCusto(),'Enviar SMS',async()=>{
     if(!(await smsBloquear(v,false))) throw new Error('O SMS não foi enviado. Veja o aviso na tela.');
   });
 };
@@ -1317,10 +1371,126 @@ async function smsBloquear(v,bloquear){
       body:JSON.stringify({acao:bloquear?'smsBloquear':'smsDesbloquear',token:lsGet('rg_token'),deviceId:v.id})});
     let j={}; try{ j=await r.json() }catch(e){}
     if(!r.ok) throw new Error(j.erro||('Erro '+r.status));
-    toast((bloquear?'Bloqueio':'Desbloqueio')+' enviado por SMS para o chip de '+v.nome+'. Confira no mapa em alguns minutos.',7000);
+    toast((bloquear?'Bloqueio':'Desbloqueio')+' enviado por SMS para '+v.nome+'. Confira no mapa em alguns minutos.',7000);
+    if(!ehAdmin) carregarPermissoes();
     return true;
   }catch(e){ toast('Não consegui enviar o SMS de '+(bloquear?'bloqueio':'desbloqueio')+': '+(e.message||'erro'),7000); return false }
 }
+
+/* ===== PERMISSÕES DO CLIENTE (o administrador escolhe) ===== */
+let permCli={smsBloqueio:false,reset:false,editarNome:false}, cobrCli=null;
+const brl2 = n => 'R$ '+Number(n||0).toFixed(2).replace('.',',');
+async function carregarPermissoes(){
+  if(ehAdmin){ permCli={smsBloqueio:true,reset:true,editarNome:true}; cobrCli=null; mostrarBotoesSms(); return }
+  if(!lsGet('rg_token')) return;
+  try{
+    const r=await fetch(DESB_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',body:JSON.stringify({acao:'minhas',token:lsGet('rg_token')})});
+    if(!r.ok) return;
+    const j=await r.json(); permCli=Object.assign({smsBloqueio:false,reset:false,editarNome:false},j.perm||{}); cobrCli=j.cobranca||null;
+    mostrarBotoesSms();
+  }catch(e){}
+}
+function textoCusto(){
+  if(ehAdmin || !cobrCli) return '';
+  return '\n\nCusto: '+brl2(cobrCli.preco)+' por SMS, cobrado na sua próxima fatura. Até agora: '+cobrCli.pendentes+' SMS = '+brl2(cobrCli.valor)+'.';
+}
+function mostrarBotoesSms(){
+  const sms=ehAdmin||permCli.smsBloqueio, rs=ehAdmin||permCli.reset;
+  const row=$('admSmsRow'); if(!row) return;
+  $('btnBlockSms').style.display=sms?'':'none'; $('btnUnblockSms').style.display=sms?'':'none'; $('btnResetSms').style.display=rs?'':'none';
+  const n=(sms?2:0)+(rs?1:0);
+  row.style.display=n?'grid':'none'; row.style.gridTemplateColumns='repeat('+Math.max(n,1)+',1fr)';
+  row.classList.toggle('tres',n===3);
+  if(n===3) row.style.gridTemplateColumns='1.15fr 1.35fr .75fr';
+  const c=$('smsCusto');
+  if(!ehAdmin && cobrCli && (sms||rs)){ c.textContent='SMS pela plataforma: '+cobrCli.pendentes+' ('+brl2(cobrCli.valor)+' na próxima fatura)'; c.style.display='' } else c.style.display='none';
+  $('btnRenome').style.display=(ehAdmin||permCli.editarNome)?'inline-flex':'none';
+}
+/* Reset: pela plataforma (cobrado) ou pelo celular do cliente (grátis) */
+function linkSmsTexto(f,txt){
+  const base=linkSms(f); if(!base) return '';
+  return base+(/iPhone|iPad|iPod/.test(navigator.userAgent)?'&':'?')+'body='+encodeURIComponent(txt);
+}
+$('btnResetSms').onclick=()=>{
+  const v=ativo(); if(!v || !(ehAdmin||permCli.reset)) return;
+  $('rsTexto').textContent='Enviar o comando de reset (RESET#) para '+v.nome+'? O rastreador reinicia e volta a se conectar em alguns minutos.';
+  const podeCel=!ehAdmin && !!v.fone;
+  $('rsPlatRow').style.display=podeCel?'':'none';
+  $('rsPlat').checked=true;
+  $('rsPlatTxt').textContent='Enviar pela plataforma ('+brl2(cobrCli?cobrCli.preco:0.1)+', cobrado na próxima fatura). Desmarque para enviar pelo seu celular, sem custo.';
+  $('rsErro').textContent=''; $('rsOk').disabled=false; atualizarBotaoReset();
+  abrir('mReset');
+};
+function atualizarBotaoReset(){ $('rsOk').textContent=($('rsPlatRow').style.display!=='none' && !$('rsPlat').checked)?'Enviar pelo meu celular':'Enviar pela plataforma' }
+$('rsPlat').addEventListener('change',atualizarBotaoReset);
+$('rsOk').onclick=async()=>{
+  const v=ativo(); if(!v) return;
+  if($('rsPlatRow').style.display!=='none' && !$('rsPlat').checked){
+    const l=linkSmsTexto(v.fone,'RESET#'); fechar(); if(l) location.href=l; return;
+  }
+  $('rsOk').disabled=true; $('rsErro').textContent='';
+  try{
+    const r=await fetch(DESB_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',
+      body:JSON.stringify({acao:'smsConfig',tipo:'reset',token:lsGet('rg_token'),deviceId:v.id})});
+    let j={}; try{ j=await r.json() }catch(e){}
+    if(!r.ok) throw new Error(j.erro||('Erro '+r.status));
+    fechar(); toast('Reset enviado para '+v.nome+'.',5000);
+    if(!ehAdmin) carregarPermissoes();
+  }catch(e){ $('rsErro').textContent=e.message||'Não consegui enviar.'; $('rsOk').disabled=false }
+};
+/* Renomear veículo */
+$('btnRenome').addEventListener('pointerdown',e=>e.stopPropagation());
+$('btnRenome').onclick=e=>{
+  e.stopPropagation();
+  const v=ativo(); if(!v) return;
+  $('rnNome').value=v.nome; $('rnErro').textContent=''; $('rnOk').disabled=false; abrir('mRenome');
+};
+$('rnOk').onclick=async()=>{
+  const v=ativo(); if(!v) return;
+  const nome=$('rnNome').value.trim();
+  if(!nome) { $('rnErro').textContent='Digite o nome.'; return }
+  $('rnOk').disabled=true;
+  try{
+    const r=await fetch(DESB_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',
+      body:JSON.stringify({acao:'renomear',nome:nome,token:lsGet('rg_token'),deviceId:v.id})});
+    let j={}; try{ j=await r.json() }catch(e){}
+    if(!r.ok) throw new Error(j.erro||('Erro '+r.status));
+    v.nome=j.nome||nome; fechar(); toast('Nome salvo.'); atualizar(); buscando=false; buscarSeguro();
+  }catch(e){ $('rnErro').textContent=e.message||'Não consegui salvar.'; $('rnOk').disabled=false }
+};
+/* Administrador: permissões de um cliente */
+let permUserId=null;
+async function chamarPerm(acao,extra){
+  const r=await fetch(DESB_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',
+    body:JSON.stringify(Object.assign({acao:acao,token:lsGet('rg_token'),userId:permUserId},extra||{}))});
+  let j={}; try{ j=await r.json() }catch(e){}
+  if(!r.ok) throw new Error(j.erro||('Erro '+r.status));
+  return j;
+}
+function mostrarPerm(j){
+  const p=j.perm||{}, c=j.cobranca||{pendentes:0,valor:0};
+  $('pmSms').checked=!!p.smsBloqueio; $('pmReset').checked=!!p.reset; $('pmNome').checked=!!p.editarNome;
+  $('pmCob').innerHTML='SMS pela plataforma a cobrar: <b>'+c.pendentes+'</b> = <b>'+brl2(c.valor)+'</b>'+
+    (c.faturadoEm?'<br><span style="color:var(--mut);font-size:12px">Último zerado em '+fmtHora(c.faturadoEm)+' · total já faturado: '+(c.totalFaturado||0)+' SMS</span>':'');
+  $('pmZerar').disabled=!c.pendentes;
+}
+async function abrirPermissoes(userId){
+  const u=usuarios.find(x=>x.id===userId); if(!u) return;
+  permUserId=userId; $('pmTitulo').textContent='Permissões do app: '+(u.name||loginDe(u));
+  $('pmErro').textContent=''; $('pmCob').textContent='Carregando...'; abrir('mPerm');
+  try{ mostrarPerm(await chamarPerm('permLer')) }catch(e){ $('pmErro').textContent=e.message }
+}
+$('pmSalvar').onclick=async()=>{
+  $('pmSalvar').disabled=true; $('pmErro').textContent='';
+  try{ mostrarPerm(await chamarPerm('permSalvar',{perm:{smsBloqueio:$('pmSms').checked,reset:$('pmReset').checked,editarNome:$('pmNome').checked}})); toast('Permissões salvas.') }
+  catch(e){ $('pmErro').textContent=e.message }
+  $('pmSalvar').disabled=false;
+};
+$('pmZerar').onclick=async()=>{
+  if(!confirm('Zerar o contador de SMS deste cliente? Faça isso depois de gerar a fatura dos SMS.')) return;
+  $('pmErro').textContent='';
+  try{ mostrarPerm(await chamarPerm('cobrancaZerar')); toast('Contador zerado.') }catch(e){ $('pmErro').textContent=e.message }
+};
 
 /* ===== NAVEGAR / VER A RUA / COMPARTILHAR ===== */
 $('btnNav').onclick=()=>{
@@ -1650,7 +1820,7 @@ function desenharEquip(){
     '<div class="s">IMEI '+esc(v.imei)+(v.contato?' · cliente: '+esc(v.contato):'')+'</div>'+
     '<div class="s">Chip: '+(v.fone?'<b>'+esc(fmtFone(v.fone))+'</b>':'não cadastrado')+'</div>'+
     '<div class="bts">'+
-      (v.fone?'<button class="mini" data-a="copiar">Copiar número</button><a class="mini" data-a="sms" href="'+esc(linkSms(v.fone))+'">Enviar SMS</a><button class="mini" data-a="cfgip">IP e Porta</button><button class="mini" data-a="cfgapn">APN</button>':'')+
+      (v.fone?'<button class="mini" data-a="copiar">Copiar número</button><a class="mini" data-a="sms" href="'+esc(linkSms(v.fone))+'">Enviar SMS</a><button class="mini" data-a="cfgip">IP e Porta</button><button class="mini" data-a="cfgapn">APN</button><button class="mini" data-a="cfgreset">Reset</button>':'')+
       '<button class="mini" data-a="editar">Editar</button></div></div>'
   ).join('') || '<div class="vempty">Nenhum equipamento encontrado.</div>';
 }
@@ -1691,6 +1861,7 @@ function desenharClientes(){
         '<button class="mini" data-a="cpf" data-u="'+u.id+'">'+(cpf?'Alterar CPF':'Cadastrar CPF')+'</button>'+
         (u.disabled?'<button class="mini verde" data-a="bloq" data-u="'+u.id+'">Reativar acesso</button>':'<button class="mini verm" data-a="bloq" data-u="'+u.id+'">Bloquear acesso</button>')+
         '<button class="mini" data-a="espec" data-u="'+u.id+'">'+(fm&&fm.especial?'Tirar de cliente especial':'Marcar como cliente especial')+'</button>'+
+        '<button class="mini" data-a="perm" data-u="'+u.id+'">Permissões do app</button>'+
         (fm&&(fm.confiancaUsada||fm.nivel==='confianca')?'<button class="mini" data-a="zerar" data-u="'+u.id+'">Zerar desbloqueio de confiança</button>':'')+
       '</div></div>'+
       '<div class="gsec"><span>APARELHOS DO CLIENTE ('+ap.length+')</span><button class="mini" data-a="vinc" data-u="'+u.id+'">+ Vincular aparelho</button></div>'+
@@ -1698,7 +1869,7 @@ function desenharClientes(){
         '<div class="drow" data-id="'+v.id+'"><div class="t">'+esc(v.nome)+'</div>'+
         '<div class="s">IMEI '+esc(v.imei)+'</div>'+
         '<div class="s">Chip: '+(v.fone?'<b>'+esc(fmtFone(v.fone))+'</b>':'não cadastrado')+'</div>'+
-        '<div class="bts">'+(v.fone?'<button class="mini" data-a="copiar">Copiar número</button><a class="mini" data-a="sms" href="'+esc(linkSms(v.fone))+'">Enviar SMS</a><button class="mini" data-a="cfgip">IP e Porta</button><button class="mini" data-a="cfgapn">APN</button>':'')+
+        '<div class="bts">'+(v.fone?'<button class="mini" data-a="copiar">Copiar número</button><a class="mini" data-a="sms" href="'+esc(linkSms(v.fone))+'">Enviar SMS</a><button class="mini" data-a="cfgip">IP e Porta</button><button class="mini" data-a="cfgapn">APN</button><button class="mini" data-a="cfgreset">Reset</button>':'')+
         '<button class="mini" data-a="editar">Editar aparelho</button><button class="mini verm" data-a="desv" data-u="'+u.id+'">Desvincular</button></div></div>'
       ).join('') || '<div class="s" style="padding:4px 0 8px">Nenhum aparelho vinculado.</div>')+
       '</div></details>';
@@ -1744,6 +1915,7 @@ $('aList').addEventListener('click',e=>{
       });
     return;
   }
+  if(b.dataset.a==='perm'){ abrirPermissoes(+b.dataset.u); return }
   if(b.dataset.a==='espec'||b.dataset.a==='zerar'){
     const u=usuarios.find(x=>x.id===+b.dataset.u); if(!u) return;
     const fm=finMapa&&finMapa[u.id];
@@ -1777,14 +1949,14 @@ $('aList').addEventListener('click',e=>{
   }
   if(b.dataset.a==='copiar') copiar(soDigitos(v.fone)).then(()=>toast('Número copiado')).catch(()=>toast('Não foi possível copiar'));
   else if(b.dataset.a==='editar') abrirEquip(id);
-  else if(b.dataset.a==='cfgip' || b.dataset.a==='cfgapn') smsConfig(v, b.dataset.a==='cfgip'?'ip':'apn');
+  else if(b.dataset.a==='cfgip' || b.dataset.a==='cfgapn' || b.dataset.a==='cfgreset') smsConfig(v, b.dataset.a.slice(3));
   /* "sms" é um link normal: abre o aplicativo de mensagens do celular */
 });
 
 /* SMS de configuração pelo SMS Market (o texto fica fixo no servidor) */
 function smsConfig(v,tipo){
-  const nome = tipo==='ip' ? 'IP e Porta' : 'APN';
-  const txt = tipo==='ip' ? 'SERVER,0,179.199.150.156,5023,0#' : 'APN,ss.vivo.com.br,vivo,vivo#';
+  const nome = {ip:'IP e Porta',apn:'APN',reset:'Reset'}[tipo];
+  const txt = {ip:'SERVER,0,179.199.150.156,5023,0#',apn:'APN,ss.vivo.com.br,vivo,vivo#',reset:'RESET#'}[tipo];
   pedirConfirmacao('Enviar '+nome, 'Enviar agora por SMS para o chip de '+v.nome+' ('+fmtFone(v.fone)+'):\n'+txt+(tipo==='ip'?'\n\nAtenção: ao receber, o rastreador passa a mandar posição para este servidor e deixa de aparecer na plataforma antiga.':''), 'Enviar SMS', async()=>{
     const r=await fetch(DESB_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',
       body:JSON.stringify({acao:'smsConfig',tipo:tipo,token:lsGet('rg_token'),deviceId:v.id})});
@@ -2346,6 +2518,7 @@ function mostrarLogin(msg){
 function sair(msg){
   lsDel('rg_token'); lsDel('rg_email'); try{sessionStorage.removeItem('rg_basic')}catch(e){}
   cercasReset();
+  permCli={smsBloqueio:false,reset:false,editarNome:false}; cobrCli=null;
   ehAdmin=false; usuarios=[]; $('aview').classList.remove('show');
   document.querySelector('nav button[data-tab="Admin"]').style.display='none'; document.querySelector('nav button[data-tab="Faturas"]').style.display='none'; cpfsMapa={}; faturasDados=null; aplicarBloqueio(null); euDesligar(); $('btnEu').style.display='none'; irPara('Mapa');
   auth=null;
@@ -2387,6 +2560,7 @@ $('lform').addEventListener('submit',async e=>{
     $('login').classList.remove('show');
     indicador('CONECTANDO...',false);
     await descobrirAdmin();
+    carregarPermissoes();
     verificarBloqueio();
     await buscarSeguro();
   }catch(err){
@@ -2406,6 +2580,7 @@ $('btnSair').onclick=()=>sair('');
   if(auth){
     $('login').classList.remove('show');
     await descobrirAdmin();
+    carregarPermissoes();
     verificarBloqueio();
     await buscarSeguro();
   } else mostrarLogin('');
