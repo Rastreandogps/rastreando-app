@@ -1818,7 +1818,7 @@ $('cSalvar').onclick=async ()=>{
 /* ===== CERCAS VIRTUAIS (círculo = ponto + raio) =====
    A cerca fica no Traccar (ele detecta entrada/saída). Guardamos nos atributos: acao, quando, veiculos, criada, jaDentro.
    Alertas: lidos direto do Traccar com o acesso do próprio usuário. */
-const CERCA_BLOQUEIO=false; /* troque para true só depois que o servidor de bloqueio automático estiver publicado */
+const CERCA_BLOQUEIO=true;  /* troque para true só depois que o servidor de bloqueio automático estiver publicado */
 const CERCA_MAX_CLIENTE=10;
 let cercas=[], cercasIniciado=false, desenho=null, bloqConfirmado=false;
 let alertas=[], alertasIds=null, alertaTimer=null;
