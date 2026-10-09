@@ -864,6 +864,34 @@ async function buscar(){
   const [rd,rp] = await Promise.all([api('/api/devices'),api('/api/positions')]);
   if(!rd.ok||!rp.ok) throw new Error('Servidor respondeu erro '+(rd.ok?rp.status:rd.status));
   mesclar(await rd.json(), await rp.json());
+  completarStatus(ativo()).catch(()=>{});
+}
+
+/* Ignição, bateria e voltagem não vêm em todo pacote. Se o veículo selecionado estiver sem algum desses valores
+   (ex.: primeiro acesso neste celular), o app lê as posições dos últimos 35 min e pega o último valor de cada um.
+   No máximo 1 consulta a cada 3 min por veículo. */
+async function completarStatus(v){
+  if(!v || (v.ign!==null && v.bat!==null && v.volt!==null)) return;
+  const agora=Date.now();
+  if(v.histEm && agora-v.histEm<180000) return;
+  v.histEm=agora;
+  try{
+    const de=new Date(agora-35*60000).toISOString(), ate=new Date(agora+60000).toISOString();
+    const r=await api('/api/positions?deviceId='+v.id+'&from='+encodeURIComponent(de)+'&to='+encodeURIComponent(ate));
+    if(!r.ok) return;
+    const lista=(await r.json()).map(p=>({p,t:new Date(p.serverTime||p.deviceTime||p.fixTime).getTime()})).filter(x=>!isNaN(x.t)).sort((a,b)=>a.t-b.t);
+    let mudou=false;
+    for(const {p,t} of lista){
+      const a=p.attributes||{};
+      if(typeof a.ignition==='boolean' && t>(v.igEm||0)){ v.ign=a.ignition; v.igEm=t; mudou=true }
+      if(a.batteryLevel!=null && !isNaN(a.batteryLevel) && t>(v.batEm||0)){ v.bat=Math.round(a.batteryLevel); v.batEm=t; mudou=true }
+      const vv=a.power!=null?a.power:a.adc1;
+      if(vv!=null && !isNaN(vv) && Number(vv)>0 && t>(v.voltEm||0)){ v.volt=Number(vv); v.voltEm=t; mudou=true }
+    }
+    if(v.ign!==null && !fresco(v.igEm,VALIDADE_ST)) v.ign=null;
+    if(v.bat!==null && !fresco(v.batEm,VALIDADE_ST)) v.bat=null;
+    if(mudou){ lsSet('rg_st_'+v.id,JSON.stringify({ign:v.ign,igEm:v.igEm,bat:v.bat,batEm:v.batEm,volt:v.volt,voltEm:v.voltEm})); atualizar() }
+  }catch(e){ if(e.sessao) throw e }
 }
 
 /* O rastreador manda pacotes diferentes (posição, status, resposta de comando) e nem todo pacote traz ignição/bateria/voltagem.
