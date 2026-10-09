@@ -1055,7 +1055,7 @@ function desenharFaturas(){
   let topo='';
   if(bq.nivel==='bloqueado'){
     topo='<div class="fres trava">ACESSO BLOQUEADO<br><span style="font-weight:500">Sua mensalidade está vencida há '+bq.atraso+(bq.atraso===1?' dia':' dias')+'. Pague para liberar o mapa e os comandos.</span>'+
-      (bq.podeConfianca?'<div style="margin-top:10px"><button class="btn btn-out mini" id="fJaPaguei">Já paguei</button><div style="font-weight:500;font-size:12.5px;margin-top:6px">Se você já pagou, libera 24 horas de acesso (só uma vez) até o pagamento ser confirmado.</div></div>':'')+'</div>';
+      (bq.podeConfianca?'<div style="margin-top:10px"><button class="btn btn-out mini" id="fJaPaguei">Já paguei</button><div style="font-weight:500;font-size:12.5px;margin-top:6px">Se você já pagou, libera 48 horas de acesso (só uma vez) até o pagamento ser confirmado.</div></div>':'')+'</div>';
   } else if(bq.nivel==='confianca'){
     topo='<div class="fres aviso">Acesso liberado até '+fmtHora(bq.ateMs)+'.<br><span style="font-weight:500">Pague a fatura em aberto para não ser bloqueado de novo.</span></div>';
   } else if(bq.nivel==='aviso'){
@@ -1312,7 +1312,7 @@ $('aList').addEventListener('click',e=>{
         marcar?'Marcar como especial':'Tirar',
         async ()=>{ await fn('ajustar',{userId:u.id,especial:marcar}); await carregarFin(true); toast(marcar?'Marcado como cliente especial.':'Voltou à regra normal.') });
     } else {
-      pedirConfirmacao('Zerar desbloqueio de confiança',u.name+' poderá usar o "Já paguei" (24 horas) de novo, se estiver bloqueado.','Zerar',
+      pedirConfirmacao('Zerar desbloqueio de confiança',u.name+' poderá usar o "Já paguei" (48 horas) de novo, se estiver bloqueado.','Zerar',
         async ()=>{ await fn('ajustar',{userId:u.id,zerarConfianca:true}); await carregarFin(true); toast('Desbloqueio de confiança zerado.') });
     }
     return;
