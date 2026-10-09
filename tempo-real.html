@@ -96,8 +96,11 @@ details.cli .qtd{font-size:12px;font-weight:700;padding:4px 10px;border-radius:9
 details.cli .seta{transition:transform .2s;color:var(--mut)}
 details.cli[open] .seta{transform:rotate(90deg)}
 details.cli .gav{padding:0 0 12px 12px;border-left:2px solid var(--line);margin-left:4px}
-.drow{padding:8px 0;border-top:1px solid var(--line)}
-.drow:first-child{border-top:0}
+.drow{padding:10px 12px;margin-bottom:8px;border:1px solid var(--line);border-radius:12px;background:var(--card)}
+.gsec{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:14px 0 6px;font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--mut)}
+.gsec .mini{height:32px;font-size:12.5px;letter-spacing:0}
+.cbox{padding:10px 12px;border:1px solid var(--line);border-left:3px solid var(--cyan);border-radius:12px;background:var(--card)}
+.cbox .bts{display:flex;gap:6px;flex-wrap:wrap}
 .drow .t{font-size:15px;font-weight:600}
 .drow .s{font-size:12px;color:var(--mut);margin-top:2px;word-break:break-all}
 .drow .s b{color:var(--txt);font-size:14px}
@@ -1239,17 +1242,24 @@ function desenharClientes(){
       '<div class="s">Acesso: '+(u.disabled?'<b class="bd-mal">DESATIVADO</b>':'<b class="bd-ok">Ativo</b>')+'</div>'+
       '<div class="s">Financeiro: <b class="'+fin.c+'">'+esc(fin.t)+'</b></div></div>'+
       '<span class="qtd">'+ap.length+(ap.length===1?' veículo':' veículos')+'</span><span class="seta">›</span></summary>'+
-      '<div class="gav">'+(ap.map(v=>
+      '<div class="gav">'+
+      '<div class="gsec"><span>DADOS DO CLIENTE</span></div>'+
+      '<div class="cbox"><div class="bts">'+
+        '<button class="mini" data-a="edcli" data-u="'+u.id+'">Editar cliente</button>'+
+        '<button class="mini" data-a="cpf" data-u="'+u.id+'">'+(cpf?'Alterar CPF':'Cadastrar CPF')+'</button>'+
+        (u.disabled?'<button class="mini verde" data-a="bloq" data-u="'+u.id+'">Reativar acesso</button>':'<button class="mini verm" data-a="bloq" data-u="'+u.id+'">Bloquear acesso</button>')+
+        '<button class="mini" data-a="espec" data-u="'+u.id+'">'+(fm&&fm.especial?'Tirar de cliente especial':'Marcar como cliente especial')+'</button>'+
+        (fm&&(fm.confiancaUsada||fm.nivel==='confianca')?'<button class="mini" data-a="zerar" data-u="'+u.id+'">Zerar desbloqueio de confiança</button>':'')+
+      '</div></div>'+
+      '<div class="gsec"><span>APARELHOS DO CLIENTE ('+ap.length+')</span><button class="mini" data-a="vinc" data-u="'+u.id+'">+ Vincular aparelho</button></div>'+
+      (ap.map(v=>
         '<div class="drow" data-id="'+v.id+'"><div class="t">'+esc(v.nome)+'</div>'+
         '<div class="s">IMEI '+esc(v.imei)+'</div>'+
         '<div class="s">Chip: '+(v.fone?'<b>'+esc(fmtFone(v.fone))+'</b>':'não cadastrado')+'</div>'+
         '<div class="bts">'+(v.fone?'<button class="mini" data-a="copiar">Copiar número</button><a class="mini" data-a="sms" href="'+esc(linkSms(v.fone))+'">Enviar SMS</a>':'')+
-        '<button class="mini" data-a="editar">Editar</button><button class="mini" data-a="desv" data-u="'+u.id+'" style="color:#d93025;border-color:#d93025">Desvincular</button></div></div>'
-      ).join('') || '<div class="s" style="padding:8px 0">Nenhum veículo vinculado.</div>')+
-      '<div class="bts" style="margin-top:8px"><button class="mini" data-a="vinc" data-u="'+u.id+'">+ Vincular aparelho</button><button class="mini" data-a="edcli" data-u="'+u.id+'">Editar cliente</button></div>'+
-      '<div class="bts" style="margin-top:8px">'+(u.disabled?'<button class="mini verde" data-a="bloq" data-u="'+u.id+'">Reativar acesso</button>':'<button class="mini verm" data-a="bloq" data-u="'+u.id+'">Bloquear acesso</button>')+
-      '<button class="mini" data-a="espec" data-u="'+u.id+'">'+(fm&&fm.especial?'Tirar de cliente especial':'Marcar como cliente especial')+'</button>'+
-      (fm&&(fm.confiancaUsada||fm.nivel==='confianca')?'<button class="mini" data-a="zerar" data-u="'+u.id+'">Zerar desbloqueio de confiança</button>':'')+'<button class="mini" data-a="cpf" data-u="'+u.id+'">'+(cpf?'Alterar CPF':'Cadastrar CPF')+'</button></div></div></details>';
+        '<button class="mini" data-a="editar">Editar aparelho</button><button class="mini verm" data-a="desv" data-u="'+u.id+'">Desvincular</button></div></div>'
+      ).join('') || '<div class="s" style="padding:4px 0 8px">Nenhum aparelho vinculado.</div>')+
+      '</div></details>';
   }).join('') || '<div class="vempty">Nenhum cliente ainda.</div>';
 }
 $('aList').addEventListener('toggle',e=>{ const d=e.target; if(d.dataset && d.dataset.u) abertos[d.dataset.u]=d.open },true);
