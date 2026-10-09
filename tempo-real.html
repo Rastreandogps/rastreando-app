@@ -107,6 +107,32 @@ details.cli .gav{padding:0 0 12px 12px;border-left:2px solid var(--line);margin-
 .cbox{padding:10px 12px;border:1px solid var(--line);border-left:3px solid var(--cyan);border-radius:12px;background:var(--card)}
 .cbox .bts{display:flex;gap:6px;flex-wrap:wrap}
 .drow .t{font-size:15px;font-weight:600}
+/* Admin: cartões modernos (09/10/2026) */
+#aList .vempty{padding:24px 0}
+details.eq,details.cli{background:var(--card);border:1px solid var(--line);border-radius:14px;margin:0 0 10px;box-shadow:0 2px 10px rgba(0,0,0,.08);overflow:hidden}
+details.eq summary,details.cli summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:10px;padding:12px 12px 12px 14px}
+details.eq summary::-webkit-details-marker,details.cli summary::-webkit-details-marker{display:none}
+details.eq .einfo{flex:1;min-width:0}
+details.eq .einfo .t{font-size:15px;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+details.eq .einfo .s{font-size:12.5px;color:var(--mut);margin-top:2px}
+details.eq .einfo .s b{color:var(--txt);font-weight:600;letter-spacing:.02em}
+details.eq .corpo{padding:0 14px 12px;border-top:1px solid var(--line)}
+details.eq .corpo .s{font-size:12px;color:var(--mut);margin-top:8px;word-break:break-all}
+details.eq .bts,details.cli .bts{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+details.eq .bts .mini,details.cli .bts .mini{height:32px;font-size:12.5px;padding:0 12px}
+.ico{flex:none;width:32px;height:32px;border-radius:10px;border:1px solid var(--line);background:var(--card2);color:var(--mut);display:inline-flex;align-items:center;justify-content:center}
+.ico svg{width:15px;height:15px}
+.ico.lix{color:var(--red2);border-color:rgba(227,38,47,.35);background:rgba(227,38,47,.08)}
+details.eq .seta,details.cli .seta{transition:transform .2s;color:var(--mut);font-size:18px}
+details.eq[open] .seta,details.cli[open] .seta{transform:rotate(90deg)}
+details.cli{border-bottom:1px solid var(--line)}
+details.cli .gav{padding:0 14px 12px;border-left:0;margin-left:0;border-top:1px solid var(--line)}
+details.cli .gav details.eq{box-shadow:none;background:var(--card2);margin-bottom:8px}
+details.cli .cinfo .t{display:flex;align-items:center;gap:8px}
+.cacoes{display:flex;gap:6px;align-self:flex-start}
+details.cli .cinfo .s{word-break:normal;overflow-wrap:anywhere}
+details.cli summary .seta{align-self:flex-start;margin-top:6px}
+
 .drow .s{font-size:12px;color:var(--mut);margin-top:2px;word-break:break-all}
 .drow .s b{color:var(--txt);font-size:14px}
 .drow .bts{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
@@ -1773,8 +1799,8 @@ async function comandoSalvo(bloquear){
     return c?c.id:null;
   }catch(e){ if(e.sessao) throw e; return null }
 }
-function pedirConfirmacao(titulo,texto,rotulo,acao){
-  $('confTitulo').textContent=titulo; $('confTexto').textContent=texto; $('confErro').textContent='';
+function pedirConfirmacao(titulo,texto,rotulo,acao,op){
+  $('confTitulo').textContent=titulo; $('confTitulo').style.color=(op&&op.perigo)?'var(--red2)':''; $('confTexto').textContent=texto; $('confErro').textContent='';
   $('confOk').textContent=rotulo; $('confOk').disabled=false;
   $('confOk').onclick=async ()=>{
     $('confOk').disabled=true; $('confErro').textContent='';
@@ -1806,23 +1832,36 @@ function desenharAdmin(){
   $('aTabCli').classList.toggle('on',abaAdmin==='cli');
   $('aNovo').textContent = abaAdmin==='equip' ? '+ Novo equipamento' : '+ Novo cliente';
   $('aNovo').classList.toggle('verde',abaAdmin==='equip'); $('aNovo').classList.toggle('azul',abaAdmin!=='equip');
-  $('aSearch').style.display = abaAdmin==='equip' ? '' : 'none';
+  $('aSearch').style.display = '';
+  const ph = abaAdmin==='equip' ? 'Buscar equipamento por nome, IMEI ou chip' : 'Buscar cliente por nome, login ou CPF';
+  if($('aSearch').placeholder!==ph){ buscaAdmin[abaAnt||'equip']=$('aSearch').value; $('aSearch').value=buscaAdmin[abaAdmin]||''; $('aSearch').placeholder=ph }
+  abaAnt=abaAdmin;
   $('aFinAtualizar').style.display = abaAdmin==='cli' ? '' : 'none';
   $('aProteger').style.display = 'none'; /* botão aposentado: cliente novo já nasce com os comandos liberados */
   if(abaAdmin==='equip') desenharEquip(); else desenharClientes();
 }
-function desenharEquip(){
-  const q=$('aSearch').value.trim().toLowerCase();
-  const lista=veiculos.filter(v=>!q||[v.nome,v.imei,v.fone,v.contato].join(' ').toLowerCase().includes(q));
-  $('aCount').textContent=veiculos.length+' equipamentos';
-  $('aList').innerHTML = lista.map(v=>
-    '<div class="arow" data-id="'+v.id+'"><div class="t">'+esc(v.nome)+'</div>'+
-    '<div class="s">IMEI '+esc(v.imei)+(v.contato?' · cliente: '+esc(v.contato):'')+'</div>'+
-    '<div class="s">Chip: '+(v.fone?'<b>'+esc(fmtFone(v.fone))+'</b>':'não cadastrado')+'</div>'+
+let buscaAdmin={equip:'',cli:''}, abaAnt=null;
+const ICO_PEN='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg>';
+const ICO_LIX='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>';
+const soNum = t => String(t||'').replace(/\D/g,'');
+/* cartão de equipamento: fechado mostra só nome e chip; aberto mostra os comandos. Lápis sempre visível. */
+function cartaoEquip(v,userId){
+  return '<details class="eq" data-id="'+v.id+'"><summary>'+
+    '<div class="einfo"><div class="t">'+esc(v.nome)+'</div>'+
+    '<div class="s">Chip: '+(v.fone?'<b>'+esc(fmtFone(v.fone))+'</b>':'não cadastrado')+'</div></div>'+
+    '<button class="ico" data-a="editar" aria-label="Editar equipamento" title="Editar">'+ICO_PEN+'</button><span class="seta">›</span></summary>'+
+    '<div class="corpo"><div class="s">IMEI '+esc(v.imei)+(v.contato?' · cliente: '+esc(String(v.contato).replace(EMAIL_FALSO,'')):' · sem cliente')+'</div>'+
     '<div class="bts">'+
-      (v.fone?'<button class="mini" data-a="copiar">Copiar número</button><a class="mini" data-a="sms" href="'+esc(linkSms(v.fone))+'">Enviar SMS</a><button class="mini" data-a="cfgip">IP e Porta</button><button class="mini" data-a="cfgapn">APN</button><button class="mini" data-a="cfgreset">Reset</button>':'')+
-      '<button class="mini" data-a="editar">Editar</button></div></div>'
-  ).join('') || '<div class="vempty">Nenhum equipamento encontrado.</div>';
+      (v.fone?'<button class="mini" data-a="copiar">Copiar número</button><a class="mini" data-a="sms" href="'+esc(linkSms(v.fone))+'">Enviar SMS</a><button class="mini" data-a="cfgip">IP e Porta</button><button class="mini" data-a="cfgapn">APN</button><button class="mini" data-a="cfgreset">Reset</button>':'<span class="s">Cadastre o número do chip (lápis) para enviar SMS.</span>')+
+      (userId?'<button class="mini verm" data-a="desv" data-u="'+userId+'">Desvincular</button>':'')+
+    '</div></div></details>';
+}
+function desenharEquip(){
+  const q=$('aSearch').value.trim().toLowerCase(), qn=soNum(q);
+  const lista=veiculos.filter(v=>!q||[v.nome,v.contato].join(' ').toLowerCase().includes(q)||(qn.length>=3&&(soNum(v.imei).includes(qn)||soNum(v.fone).includes(qn))))
+    .sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
+  $('aCount').textContent=(q?lista.length+' de ':'')+veiculos.length+' equipamentos';
+  $('aList').innerHTML = lista.map(v=>cartaoEquip(v,null)).join('') || '<div class="vempty">Nenhum equipamento encontrado.</div>';
 }
 let vinculos={}, abertos={};
 function aparelhosDe(u){
@@ -1843,8 +1882,12 @@ async function carregarVinculos(){
   if(abaAdmin==='cli' && $('aview').classList.contains('show')) desenharClientes();
 }
 function desenharClientes(){
-  const cl=usuarios.filter(u=>!u.administrator);
-  $('aCount').textContent=cl.length+' clientes';
+  const todos=usuarios.filter(u=>!u.administrator);
+  const q=$('aSearch').value.trim().toLowerCase(), qn=soNum(q);
+  const cpfDe=u=>soNum((cpfsMapa[u.id]&&cpfsMapa[u.id].cpf)||(u.attributes&&u.attributes.cpf)||'');
+  const cl=todos.filter(u=>!q||[u.name,loginDe(u)].join(' ').toLowerCase().includes(q)||(qn.length>=3&&cpfDe(u).includes(qn)))
+    .sort((a,b)=>String(a.name||'').localeCompare(String(b.name||''),'pt-BR'));
+  $('aCount').textContent=(q?cl.length+' de ':'')+todos.length+' clientes';
   $('aList').innerHTML = cl.map(u=>{
     const ap=aparelhosDe(u), cpf=(cpfsMapa[u.id] && cpfsMapa[u.id].cpf) || (u.attributes && u.attributes.cpf), fin=situacaoFin(u), fm=finMapa&&finMapa[u.id];
     return '<details class="cli" data-u="'+u.id+'"'+(abertos[u.id]?' open':'')+'><summary>'+
@@ -1852,33 +1895,27 @@ function desenharClientes(){
       '<div class="s">'+esc(loginDe(u))+'</div>'+
       '<div class="s">CPF: '+(cpf?'<b>'+esc(fmtCpf(cpf))+'</b>':'não cadastrado')+'</div>'+
       '<div class="s">Acesso: '+(u.disabled?'<b class="bd-mal">DESATIVADO</b>':'<b class="bd-ok">Ativo</b>')+'</div>'+
-      '<div class="s">Financeiro: <b class="'+fin.c+'">'+esc(fin.t)+'</b></div></div>'+
-      '<span class="qtd">'+ap.length+(ap.length===1?' veículo':' veículos')+'</span><span class="seta">›</span></summary>'+
+      '<div class="s">Financeiro: <b class="'+fin.c+'">'+esc(fin.t)+'</b></div>'+
+      '<div class="s" style="margin-top:6px"><span class="qtd">'+ap.length+(ap.length===1?' veículo':' veículos')+'</span></div></div>'+
+      '<span class="cacoes"><button class="ico" data-a="edcli" data-u="'+u.id+'" aria-label="Editar cliente" title="Editar cliente">'+ICO_PEN+'</button>'+
+      '<button class="ico lix" data-a="delcli" data-u="'+u.id+'" aria-label="Excluir cliente" title="Excluir cliente">'+ICO_LIX+'</button></span><span class="seta">›</span></summary>'+
       '<div class="gav">'+
       '<div class="gsec"><span>DADOS DO CLIENTE</span></div>'+
       '<div class="cbox"><div class="bts">'+
-        '<button class="mini" data-a="edcli" data-u="'+u.id+'">Editar cliente</button>'+
-        '<button class="mini" data-a="cpf" data-u="'+u.id+'">'+(cpf?'Alterar CPF':'Cadastrar CPF')+'</button>'+
         (u.disabled?'<button class="mini verde" data-a="bloq" data-u="'+u.id+'">Reativar acesso</button>':'<button class="mini verm" data-a="bloq" data-u="'+u.id+'">Bloquear acesso</button>')+
         '<button class="mini" data-a="espec" data-u="'+u.id+'">'+(fm&&fm.especial?'Tirar de cliente especial':'Marcar como cliente especial')+'</button>'+
         '<button class="mini" data-a="perm" data-u="'+u.id+'">Permissões do app</button>'+
         (fm&&(fm.confiancaUsada||fm.nivel==='confianca')?'<button class="mini" data-a="zerar" data-u="'+u.id+'">Zerar desbloqueio de confiança</button>':'')+
       '</div></div>'+
       '<div class="gsec"><span>APARELHOS DO CLIENTE ('+ap.length+')</span><button class="mini" data-a="vinc" data-u="'+u.id+'">+ Vincular aparelho</button></div>'+
-      (ap.map(v=>
-        '<div class="drow" data-id="'+v.id+'"><div class="t">'+esc(v.nome)+'</div>'+
-        '<div class="s">IMEI '+esc(v.imei)+'</div>'+
-        '<div class="s">Chip: '+(v.fone?'<b>'+esc(fmtFone(v.fone))+'</b>':'não cadastrado')+'</div>'+
-        '<div class="bts">'+(v.fone?'<button class="mini" data-a="copiar">Copiar número</button><a class="mini" data-a="sms" href="'+esc(linkSms(v.fone))+'">Enviar SMS</a><button class="mini" data-a="cfgip">IP e Porta</button><button class="mini" data-a="cfgapn">APN</button><button class="mini" data-a="cfgreset">Reset</button>':'')+
-        '<button class="mini" data-a="editar">Editar aparelho</button><button class="mini verm" data-a="desv" data-u="'+u.id+'">Desvincular</button></div></div>'
-      ).join('') || '<div class="s" style="padding:4px 0 8px">Nenhum aparelho vinculado.</div>')+
+      (ap.map(v=>cartaoEquip(v,u.id)).join('') || '<div style="padding:4px 0 8px;font-size:13px;color:var(--mut)">Nenhum aparelho vinculado.</div>')+
       '</div></details>';
   }).join('') || '<div class="vempty">Nenhum cliente ainda.</div>';
 }
 $('aList').addEventListener('toggle',e=>{ const d=e.target; if(d.dataset && d.dataset.u) abertos[d.dataset.u]=d.open },true);
 $('aTabEquip').onclick=()=>{abaAdmin='equip';desenharAdmin()};
 $('aTabCli').onclick=()=>{abaAdmin='cli';desenharAdmin(); if(finVelho()) carregarFin(true)};
-$('aSearch').addEventListener('input',desenharEquip);
+$('aSearch').addEventListener('input',()=>{ buscaAdmin[abaAdmin]=$('aSearch').value; if(abaAdmin==='equip') desenharEquip(); else desenharClientes() });
 $('aNovo').onclick=()=>{ if(abaAdmin==='equip') abrirEquip(null); else abrirCliente() };
 
 function copiar(txt){
@@ -1892,6 +1929,19 @@ function copiar(txt){
 }
 $('aList').addEventListener('click',e=>{
   const b=e.target.closest('[data-a]'); if(!b) return;
+  if(b.closest('summary')) e.preventDefault(); // lápis e lixeira não abrem/fecham o cartão
+  if(b.dataset.a==='delcli'){
+    const u=usuarios.find(x=>x.id===+b.dataset.u); if(!u) return;
+    pedirConfirmacao('Tem certeza que deseja excluir esse cliente?','Excluir "'+(u.name||loginDe(u))+'" ('+loginDe(u).replace(EMAIL_FALSO,'')+')? O cliente perde o acesso ao app para sempre. Os equipamentos continuam cadastrados e podem ser vinculados a outro cliente.','Excluir cliente',async()=>{
+      const r=await api('/api/users/'+u.id,{method:'DELETE'});
+      if(!r.ok && r.status!==204) throw new Error(await msgErro(r,'Não foi possível excluir o cliente'));
+      for(const v of veiculos.filter(x=>casaUsuario(u,x.contato))){
+        try{ await api('/api/devices/'+v.id,{method:'PUT',headers:JSONH,body:JSON.stringify(Object.assign({},v.raw,{contact:''}))}) }catch(e2){ if(e2.sessao) throw e2 }
+      }
+      await carregarUsuarios(); vinculos={}; buscando=false; await buscarSeguro(); desenharAdmin(); toast('Cliente excluído.');
+    },{perigo:true});
+    return;
+  }
   if(b.dataset.a==='vinc'){
     vincUserId=+b.dataset.u;
     const u=usuarios.find(x=>x.id===vincUserId); if(!u) return;
