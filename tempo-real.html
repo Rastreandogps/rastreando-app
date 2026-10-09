@@ -59,6 +59,8 @@ try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'){document.do
 #avisoPag.a{background:#3a2c08;border:1px solid #ffb020;color:#ffd27a}
 #avisoPag.c{background:#2d2a08;border:1px solid #e6c200;color:#ffe680}
 nav button.trav{opacity:.35}
+.bd-ok{color:var(--green)}.bd-mal{color:var(--red2)}.bd-am{color:var(--amber)}
+.mini.verde{background:#16a34a;color:#fff;border-color:#16a34a}.mini.verm{color:#d93025;border-color:#d93025}
 .fres.info{background:var(--card);border:1px solid var(--line);color:var(--txt);font-weight:500}
 .fsec{font-size:13px;font-weight:700;color:var(--mut);margin:18px 0 4px;letter-spacing:.04em}
 .fcard{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-top:8px}
@@ -320,6 +322,7 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
         <button class="atab" id="aTabCli">Clientes</button>
       </div>
       <button class="btn btn-red anovo" id="aNovo">+ Novo equipamento</button>
+      <button class="linkbtn" id="aFinAtualizar" style="display:none">Atualizar situação financeira</button>
       <input class="search" id="aSearch" type="search" placeholder="Buscar nome, IMEI, chip ou e-mail" autocomplete="off">
     </div>
     <div class="vlist" id="aList"></div>
@@ -455,6 +458,19 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
     <div class="actions2">
       <button class="btn btn-out" data-close>Cancelar</button>
       <button class="btn btn-red" id="desvSalvar">Desvincular</button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirmação genérica -->
+<div class="modal" id="mConf">
+  <div class="box2">
+    <h3 id="confTitulo"></h3>
+    <p id="confTexto"></p>
+    <div class="ferr" id="confErro"></div>
+    <div class="actions2">
+      <button class="btn btn-out" data-close>Cancelar</button>
+      <button class="btn btn-red" id="confOk">Confirmar</button>
     </div>
   </div>
 </div>
@@ -977,6 +993,7 @@ async function fn(acao,extra){
   if(!r.ok) throw new Error(j.erro||('Erro '+r.status));
   return j;
 }
+const fmtHora = ms => { try{ return new Date(ms).toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}).replace(',','') }catch(e){ return '' } };
 const brl = n => 'R$ '+Number(n||0).toFixed(2).replace('.',',');
 const dmy = iso => { const m=/^(\d{4})-(\d{2})-(\d{2})/.exec(String(iso||'')); return m ? m[3]+'/'+m[2]+'/'+m[1] : '' };
 const diasDe = (a,b) => Math.round((Date.parse(b+'T00:00:00Z')-Date.parse(a+'T00:00:00Z'))/86400000);
@@ -1000,7 +1017,7 @@ function aplicarBloqueio(b){
     const n=b.diasRestantes;
     bar.className='show a'; bar.textContent='Fatura vencida. Faltam '+n+(n===1?' dia':' dias')+' para o bloqueio. Toque para pagar.';
   } else if(bloqueioNivel==='confianca'){
-    bar.className='show c'; bar.textContent='Acesso liberado até '+dmy(b.ate)+'. Pague a fatura para não ser bloqueado. Toque para pagar.';
+    bar.className='show c'; bar.textContent='Acesso liberado até '+fmtHora(b.ateMs)+'. Pague a fatura para não ser bloqueado. Toque para pagar.';
   } else { bar.className=''; bar.textContent='' }
   if($('fview').classList.contains('show')) bar.classList.remove('show');
   try{ setTimeout(()=>map.invalidateSize(),50) }catch(e){}
@@ -1035,9 +1052,9 @@ function desenharFaturas(){
   let topo='';
   if(bq.nivel==='bloqueado'){
     topo='<div class="fres trava">ACESSO BLOQUEADO<br><span style="font-weight:500">Sua mensalidade está vencida há '+bq.atraso+(bq.atraso===1?' dia':' dias')+'. Pague para liberar o mapa e os comandos.</span>'+
-      (bq.podeConfianca?'<div style="margin-top:10px"><button class="btn btn-out mini" id="fJaPaguei">Já paguei</button><div style="font-weight:500;font-size:12.5px;margin-top:6px">Se você já pagou, libera 5 dias de acesso (só uma vez) até o pagamento ser confirmado.</div></div>':'')+'</div>';
+      (bq.podeConfianca?'<div style="margin-top:10px"><button class="btn btn-out mini" id="fJaPaguei">Já paguei</button><div style="font-weight:500;font-size:12.5px;margin-top:6px">Se você já pagou, libera 24 horas de acesso (só uma vez) até o pagamento ser confirmado.</div></div>':'')+'</div>';
   } else if(bq.nivel==='confianca'){
-    topo='<div class="fres aviso">Acesso liberado até '+dmy(bq.ate)+'.<br><span style="font-weight:500">Pague a fatura em aberto para não ser bloqueado de novo.</span></div>';
+    topo='<div class="fres aviso">Acesso liberado até '+fmtHora(bq.ateMs)+'.<br><span style="font-weight:500">Pague a fatura em aberto para não ser bloqueado de novo.</span></div>';
   } else if(bq.nivel==='aviso'){
     topo='<div class="fres aviso">Faltam '+bq.diasRestantes+(bq.diasRestantes===1?' dia':' dias')+' para o bloqueio.<br><span style="font-weight:500">Pague a fatura vencida para evitar a suspensão do acesso.</span></div>';
   }
@@ -1070,7 +1087,7 @@ $('fResumo').addEventListener('click',async e=>{
   b.disabled=true; const t0=b.textContent; b.textContent='Liberando...';
   try{
     const r=await fn('confianca');
-    toast(r.ate?'Acesso liberado até '+dmy(r.ate)+'.':'Acesso liberado.');
+    toast(r.ateMs?'Acesso liberado até '+fmtHora(r.ateMs)+'.':'Acesso liberado.');
     await abrirFaturas(true);
   }catch(err){ toast(err.message); b.disabled=false; b.textContent=t0 }
 });
@@ -1136,11 +1153,39 @@ async function carregarCpfs(){
   try{ const r=await fn('cpfs'); cpfsMapa=r.mapa||{}; if(abaAdmin==='cli' && $('aview').classList.contains('show')) desenharClientes() }
   catch(e){}
 }
+let finMapa=null; /* situação financeira de cada cliente (vem do servidor de faturas) */
+async function carregarFin(forcar){
+  try{ const r=await fn('situacao',{forcar:!!forcar}); finMapa=r.clientes||{}; if(abaAdmin==='cli' && $('aview').classList.contains('show')) desenharClientes(); return true }
+  catch(e){ if(forcar) toast('Não consegui atualizar o financeiro: '+e.message); return false }
+}
+$('aFinAtualizar').onclick=async ()=>{ const b=$('aFinAtualizar'); b.disabled=true; b.textContent='Atualizando...'; const ok=await carregarFin(true); if(ok) toast('Situação financeira atualizada.'); b.disabled=false; b.textContent='Atualizar situação financeira' };
+function pedirConfirmacao(titulo,texto,rotulo,acao){
+  $('confTitulo').textContent=titulo; $('confTexto').textContent=texto; $('confErro').textContent='';
+  $('confOk').textContent=rotulo; $('confOk').disabled=false;
+  $('confOk').onclick=async ()=>{
+    $('confOk').disabled=true; $('confErro').textContent='';
+    try{ await acao(); fechar() }
+    catch(e){ if(!e.sessao){ $('confErro').textContent=e.message||'Não consegui concluir.'; $('confOk').disabled=false } }
+  };
+  abrir('mConf');
+}
+function situacaoFin(u){
+  if(!finMapa) return {t:'carregando...',c:''};
+  const f=finMapa[u.id];
+  if(!f) return {t:'sem CPF vinculado',c:''};
+  const esp=f.especial?' · cliente especial':'';
+  if(f.nivel==='semCpf') return {t:'sem CPF vinculado'+esp,c:''};
+  if(f.nivel==='bloqueado') return {t:(f.especial?'DEVE '+f.atraso+(f.atraso===1?' dia':' dias')+' (liberado: especial)':'BLOQUEADO por falta de pagamento ('+f.atraso+(f.atraso===1?' dia':' dias')+' de atraso)'),c:f.especial?'bd-am':'bd-mal'};
+  if(f.nivel==='confianca') return {t:'liberado de confiança até '+fmtHora(f.ateMs)+esp,c:'bd-am'};
+  if(f.nivel==='aviso') return {t:'atrasado '+f.atraso+(f.atraso===1?' dia':' dias')+' (bloqueia em '+f.diasRestantes+(f.diasRestantes===1?' dia':' dias')+')'+esp,c:'bd-am'};
+  return {t:'em dia'+esp,c:'bd-ok'};
+}
 async function abrirAdmin(){
   await carregarUsuarios();
   desenharAdmin();
   carregarVinculos();
   carregarCpfs();
+  carregarFin(false);
 }
 function desenharAdmin(){
   $('aTabEquip').classList.toggle('on',abaAdmin==='equip');
@@ -1148,6 +1193,7 @@ function desenharAdmin(){
   $('aNovo').textContent = abaAdmin==='equip' ? '+ Novo equipamento' : '+ Novo cliente';
   $('aNovo').classList.toggle('verde',abaAdmin==='equip'); $('aNovo').classList.toggle('azul',abaAdmin!=='equip');
   $('aSearch').style.display = abaAdmin==='equip' ? '' : 'none';
+  $('aFinAtualizar').style.display = abaAdmin==='cli' ? '' : 'none';
   if(abaAdmin==='equip') desenharEquip(); else desenharClientes();
 }
 function desenharEquip(){
@@ -1185,11 +1231,13 @@ function desenharClientes(){
   const cl=usuarios.filter(u=>!u.administrator);
   $('aCount').textContent=cl.length+' clientes';
   $('aList').innerHTML = cl.map(u=>{
-    const ap=aparelhosDe(u), cpf=(cpfsMapa[u.id] && cpfsMapa[u.id].cpf) || (u.attributes && u.attributes.cpf);
+    const ap=aparelhosDe(u), cpf=(cpfsMapa[u.id] && cpfsMapa[u.id].cpf) || (u.attributes && u.attributes.cpf), fin=situacaoFin(u), fm=finMapa&&finMapa[u.id];
     return '<details class="cli" data-u="'+u.id+'"'+(abertos[u.id]?' open':'')+'><summary>'+
       '<div class="cinfo"><div class="t">'+esc(u.name)+'</div>'+
       '<div class="s">'+esc(loginDe(u))+'</div>'+
-      '<div class="s">CPF: '+(cpf?'<b>'+esc(fmtCpf(cpf))+'</b>':'não cadastrado')+'</div></div>'+
+      '<div class="s">CPF: '+(cpf?'<b>'+esc(fmtCpf(cpf))+'</b>':'não cadastrado')+'</div>'+
+      '<div class="s">Acesso: '+(u.disabled?'<b class="bd-mal">DESATIVADO</b>':'<b class="bd-ok">Ativo</b>')+'</div>'+
+      '<div class="s">Financeiro: <b class="'+fin.c+'">'+esc(fin.t)+'</b></div></div>'+
       '<span class="qtd">'+ap.length+(ap.length===1?' veículo':' veículos')+'</span><span class="seta">›</span></summary>'+
       '<div class="gav">'+(ap.map(v=>
         '<div class="drow" data-id="'+v.id+'"><div class="t">'+esc(v.nome)+'</div>'+
@@ -1198,7 +1246,10 @@ function desenharClientes(){
         '<div class="bts">'+(v.fone?'<button class="mini" data-a="copiar">Copiar número</button><a class="mini" data-a="sms" href="'+esc(linkSms(v.fone))+'">Enviar SMS</a>':'')+
         '<button class="mini" data-a="editar">Editar</button><button class="mini" data-a="desv" data-u="'+u.id+'" style="color:#d93025;border-color:#d93025">Desvincular</button></div></div>'
       ).join('') || '<div class="s" style="padding:8px 0">Nenhum veículo vinculado.</div>')+
-      '<div class="bts" style="margin-top:8px"><button class="mini" data-a="vinc" data-u="'+u.id+'">+ Vincular aparelho</button><button class="mini" data-a="edcli" data-u="'+u.id+'">Editar cliente</button><button class="mini" data-a="cpf" data-u="'+u.id+'">'+(cpf?'Alterar CPF':'Cadastrar CPF')+'</button></div></div></details>';
+      '<div class="bts" style="margin-top:8px"><button class="mini" data-a="vinc" data-u="'+u.id+'">+ Vincular aparelho</button><button class="mini" data-a="edcli" data-u="'+u.id+'">Editar cliente</button></div>'+
+      '<div class="bts" style="margin-top:8px">'+(u.disabled?'<button class="mini verde" data-a="bloq" data-u="'+u.id+'">Reativar acesso</button>':'<button class="mini verm" data-a="bloq" data-u="'+u.id+'">Bloquear acesso</button>')+
+      '<button class="mini" data-a="espec" data-u="'+u.id+'">'+(fm&&fm.especial?'Tirar de cliente especial':'Marcar como cliente especial')+'</button>'+
+      (fm&&(fm.confiancaUsada||fm.nivel==='confianca')?'<button class="mini" data-a="zerar" data-u="'+u.id+'">Zerar desbloqueio de confiança</button>':'')+'<button class="mini" data-a="cpf" data-u="'+u.id+'">'+(cpf?'Alterar CPF':'Cadastrar CPF')+'</button></div></div></details>';
   }).join('') || '<div class="vempty">Nenhum cliente ainda.</div>';
 }
 $('aList').addEventListener('toggle',e=>{ const d=e.target; if(d.dataset && d.dataset.u) abertos[d.dataset.u]=d.open },true);
@@ -1227,6 +1278,35 @@ $('aList').addEventListener('click',e=>{
     abrir('mVinc'); return;
   }
   if(b.dataset.a==='edcli'){ abrirEdicaoCliente(+b.dataset.u); return }
+  if(b.dataset.a==='bloq'){
+    const u=usuarios.find(x=>x.id===+b.dataset.u); if(!u) return;
+    const desativar=!u.disabled;
+    pedirConfirmacao(desativar?'Bloquear acesso':'Reativar acesso',
+      desativar?(u.name+' não vai conseguir mais entrar no app. Os rastreadores continuam funcionando normalmente. Você pode reativar quando quiser.'):(u.name+' volta a conseguir entrar no app.'),
+      desativar?'Bloquear':'Reativar',
+      async ()=>{
+        const corpo=Object.assign({},u,{disabled:desativar}); delete corpo.password;
+        const r=await api('/api/users/'+u.id,{method:'PUT',headers:JSONH,body:JSON.stringify(corpo)});
+        if(!r.ok) throw new Error(await msgErro(r,'Não foi possível alterar o acesso'));
+        await carregarUsuarios(); desenharAdmin(); toast(desativar?'Acesso bloqueado.':'Acesso reativado.');
+      });
+    return;
+  }
+  if(b.dataset.a==='espec'||b.dataset.a==='zerar'){
+    const u=usuarios.find(x=>x.id===+b.dataset.u); if(!u) return;
+    const fm=finMapa&&finMapa[u.id];
+    if(b.dataset.a==='espec'){
+      const marcar=!(fm&&fm.especial);
+      pedirConfirmacao(marcar?'Cliente especial':'Tirar de cliente especial',
+        marcar?(u.name+' nunca será bloqueado por falta de pagamento, mesmo com fatura vencida. A situação financeira continua aparecendo para você.'):(u.name+' volta a seguir a regra normal: bloqueio a partir de 5 dias de atraso.'),
+        marcar?'Marcar como especial':'Tirar',
+        async ()=>{ await fn('ajustar',{userId:u.id,especial:marcar}); await carregarFin(true); toast(marcar?'Marcado como cliente especial.':'Voltou à regra normal.') });
+    } else {
+      pedirConfirmacao('Zerar desbloqueio de confiança',u.name+' poderá usar o "Já paguei" (24 horas) de novo, se estiver bloqueado.','Zerar',
+        async ()=>{ await fn('ajustar',{userId:u.id,zerarConfianca:true}); await carregarFin(true); toast('Desbloqueio de confiança zerado.') });
+    }
+    return;
+  }
   if(b.dataset.a==='cpf'){
     cpfUserId=+b.dataset.u;
     const u=usuarios.find(x=>x.id===cpfUserId);
@@ -1504,7 +1584,7 @@ function sair(msg){
 async function entrar(email,senha){
   const basic='Basic '+btoa(unescape(encodeURIComponent(email+':'+senha)));
   const r=await fetch(API+'/api/devices',{headers:{Authorization:basic,Accept:'application/json'},credentials:'omit'});
-  if(r.status===401||r.status===403) throw new Error('Login ou senha incorretos.');
+  if(r.status===401||r.status===403) throw new Error('Login ou senha incorretos, ou acesso desativado. Se precisar, fale com a Rastreando GPS.');
   if(!r.ok) throw new Error('O servidor respondeu com erro '+r.status+'.');
   // tenta trocar a senha por um token de 30 dias, para não guardar a senha no aparelho
   let token=null;
