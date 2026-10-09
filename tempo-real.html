@@ -149,7 +149,13 @@ main{position:relative;flex:1;min-height:0;overflow:hidden}
 .leaflet-control-attribution{background:rgba(15,17,21,.7)!important;color:var(--mut)!important;font-size:9px}
 .leaflet-control-attribution a{color:var(--mut)!important}
 .car{width:44px;height:44px;transition:transform .25s linear}
-.car.off{filter:grayscale(1) brightness(.8)}
+/* cor da setinha (09/10/2026): verde = andando; amarela = parada (ignição ligada ou desligada); cinza = sem GPS há mais de 10 min */
+.car .anel{fill:rgba(245,184,61,.16);stroke:#f5b83d}
+.car .seta{fill:#f5b83d}
+.car.c-mov .anel{fill:rgba(34,197,94,.16);stroke:#22c55e}
+.car.c-mov .seta{fill:#22c55e}
+.car.c-sem .anel{fill:rgba(148,163,184,.16);stroke:#94a3b8}
+.car.c-sem .seta{fill:#94a3b8}
 .carlabel{position:absolute;top:46px;left:50%;transform:translateX(-50%);background:rgba(15,17,21,.85);border:1px solid var(--line);border-radius:6px;padding:2px 6px;font-size:11px;white-space:nowrap;color:var(--txt)}
 
 /* Botão Seguir */
@@ -689,7 +695,7 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
   maxZoom:19,attribution:'© OpenStreetMap'
 }).addTo(map);
 
-const carSvg = '<svg viewBox="0 0 44 44" width="44" height="44"><circle cx="22" cy="22" r="18" fill="rgba(56,225,230,.14)" stroke="#38e1e6" stroke-width="1.5"/><path d="M22 8 L31 32 L22 27 L13 32 Z" fill="#e3262f" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></svg>';
+const carSvg = '<svg viewBox="0 0 44 44" width="44" height="44"><circle class="anel" cx="22" cy="22" r="18" stroke-width="1.5"/><path class="seta" d="M22 8 L31 32 L22 27 L13 32 Z" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></svg>';
 
 function criarMarcador(v){
   v.marker = L.marker(v.pos,{icon:L.divIcon({
@@ -827,6 +833,12 @@ async function buscarEndereco(v){
   }catch(e){}
   geoEmCurso=false;
 }
+/* cor da setinha no mapa */
+function corSeta(v){
+  if(!v.gpsT || Date.now()-v.gpsT>600000) return 'c-sem'; // sem GPS (ou GPS velho): cinza
+  if(v.vel>2) return 'c-mov';                              // andando: verde
+  return 'c-par';                                          // parada, com ignição ligada ou desligada: amarela
+}
 function status(v){
   if(!v.pos) return ['Sem posição','st-off'];
   if(v.bloq) return ['Bloqueado','st-block'];
@@ -959,7 +971,7 @@ function animar(now){
       if(f>=1){ v.de=null; v.para=null }
     }
     const el=v.marker.getElement();
-    if(el){const c=el.querySelector('.car');if(c){c.style.transform='rotate('+v.rumo+'deg)';c.classList.toggle('off',!v.online||v.ign===false)}}
+    if(el){const c=el.querySelector('.car');if(c){c.style.transform='rotate('+v.rumo+'deg)';const cor=corSeta(v);if(c.dataset.cor!==cor){c.classList.remove('c-mov','c-par','c-sem');c.classList.add(cor);c.dataset.cor=cor}}}
   });
   const a=ativo();
   if(seguir && a) centralizar(a.pos);
