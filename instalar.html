@@ -32,6 +32,30 @@ main{width:100%;max-width:440px;display:flex;flex-direction:column;gap:16px}
 .aviso{background:rgba(245,184,61,.12);border:1px solid var(--amber);color:var(--txt);border-radius:12px;padding:12px 14px;font-size:14px;line-height:1.45}
 .ok{background:rgba(51,209,122,.12);border:1px solid var(--green);border-radius:12px;padding:12px 14px;font-size:15px;line-height:1.45;font-weight:600}
 .peq{font-size:13px;color:var(--mut);line-height:1.45;text-align:center}
+/* iPhone: passo a passo ilustrado */
+.passo{background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.passo .t{display:flex;gap:10px;align-items:center;font-size:15px;line-height:1.35}
+.passo .t::before{content:attr(data-n);flex:none;width:28px;height:28px;border-radius:50%;background:var(--red);color:#fff;font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center}
+.mock{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px;font-size:13px;color:var(--mut)}
+.bar{display:flex;align-items:center;justify-content:space-around;height:46px}
+.bar .ic{width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:50%;opacity:.55}
+.bar svg,.row svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.dest{opacity:1!important;color:var(--red);position:relative;animation:pulso 1.4s ease-in-out infinite}
+.dest::after{content:"";position:absolute;inset:-4px;border:2px solid var(--red);border-radius:50%}
+.row{display:flex;align-items:center;justify-content:space-between;padding:10px 8px;border-bottom:1px solid var(--line);opacity:.6}
+.row:last-child{border-bottom:0}
+.row.dest{opacity:1;color:var(--txt);font-weight:700;background:rgba(227,38,47,.14);border:2px solid var(--red);border-radius:10px;animation:pulso 1.4s ease-in-out infinite}
+.row.dest::after{display:none}
+.dlg{display:flex;flex-direction:column;gap:10px}
+.dlg .top{display:flex;justify-content:space-between;align-items:center;font-weight:600;color:var(--txt)}
+.dlg .cancel{opacity:.6}
+.dlg .add{padding:6px 14px;border-radius:10px;border:2px solid var(--red);color:var(--red);font-weight:700;animation:pulso 1.4s ease-in-out infinite}
+.dlg .nm{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px;color:var(--txt)}
+.dlg .nm img{width:36px;height:36px;border-radius:8px}
+@keyframes pulso{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
+@media (prefers-reduced-motion:reduce){.dest,.row.dest,.dlg .add{animation:none}}
+#videoIos video{width:100%;border-radius:12px;background:#000}
+#dicaIos{font-size:13px;color:var(--mut);line-height:1.45}
 [hidden]{display:none!important}
 </style>
 </head>
@@ -65,15 +89,41 @@ main{width:100%;max-width:440px;display:flex;flex-direction:column;gap:16px}
   <section class="card" id="ios" hidden>
     <h2>Instalar no iPhone</h2>
     <div class="aviso" id="avisoIosWeb" hidden style="margin-bottom:12px">Esta página abriu dentro de outro aplicativo (como WhatsApp ou Instagram). Abra no <b>Safari</b> primeiro: toque no ícone de menu ou compartilhar e escolha <b>Abrir no Safari</b>.</div>
-    <ol class="steps">
-      <li><span>Toque em <b>Abrir o aplicativo</b> aqui embaixo.</span></li>
-      <li><span>Na barra do Safari, toque no botão <b>Compartilhar</b>
-        <svg viewBox="0 0 24 24"><path d="M12 3v12M8 7l4-4 4 4"/><path d="M6 11H5a1 1 0 00-1 1v8a1 1 0 001 1h14a1 1 0 001-1v-8a1 1 0 00-1-1h-1"/></svg>
-        (o quadrado com a seta para cima).</span></li>
-      <li><span>Role a lista e toque em <b>Adicionar à Tela de Início</b>
-        <svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M12 8v8M8 12h8"/></svg>.</span></li>
-      <li><span>Toque em <b>Adicionar</b>, no canto de cima.</span></li>
-    </ol>
+    <div id="videoIos" hidden style="margin-bottom:12px"></div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div class="passo">
+        <div class="t" data-n="1"><span>Toque em <b>Abrir o aplicativo</b> (botão aqui embaixo). Depois faça os passos 2 a 4 na tela do app.</span></div>
+      </div>
+      <div class="passo">
+        <div class="t" data-n="2"><span>Toque no botão <b>Compartilhar</b>, o quadrado com a seta para cima.</span></div>
+        <div class="mock" aria-hidden="true">
+          <div class="bar">
+            <span class="ic"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg></span>
+            <span class="ic"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></span>
+            <span class="ic dest"><svg viewBox="0 0 24 24"><path d="M12 3v12M8 7l4-4 4 4"/><path d="M6 11H5a1 1 0 00-1 1v8a1 1 0 001 1h14a1 1 0 001-1v-8a1 1 0 00-1-1h-1"/></svg></span>
+            <span class="ic"><svg viewBox="0 0 24 24"><path d="M5 4h11a3 3 0 013 3v13l-4-3H5z"/></svg></span>
+            <span class="ic"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="7" height="7" rx="1"/><rect x="13" y="4" width="7" height="7" rx="1"/><rect x="4" y="13" width="7" height="7" rx="1"/><rect x="13" y="13" width="7" height="7" rx="1"/></svg></span>
+          </div>
+        </div>
+        <p id="dicaIos">Não achou? Em alguns iPhones o botão fica dentro dos <b>três pontinhos ⋯</b> da barra do Safari. Toque neles e procure <b>Compartilhar</b>.</p>
+      </div>
+      <div class="passo">
+        <div class="t" data-n="3"><span>Role a lista para cima e toque em <b>Adicionar à Tela de Início</b>.</span></div>
+        <div class="mock" aria-hidden="true">
+          <div class="row"><span>Copiar</span><svg viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 00-2-2H6a2 2 0 00-2 2v8a2 2 0 002 2h2"/></svg></div>
+          <div class="row"><span>Adicionar aos Favoritos</span><svg viewBox="0 0 24 24"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/></svg></div>
+          <div class="row dest"><span>Adicionar à Tela de Início</span><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M12 8v8M8 12h8"/></svg></div>
+          <div class="row"><span>Marcar</span><svg viewBox="0 0 24 24"><path d="M4 20l4-1 11-11-3-3L5 16z"/></svg></div>
+        </div>
+      </div>
+      <div class="passo">
+        <div class="t" data-n="4"><span>Toque em <b>Adicionar</b>, no canto de cima. Pronto: o ícone “Rastreando” aparece na tela do iPhone.</span></div>
+        <div class="mock dlg" aria-hidden="true">
+          <div class="top"><span class="cancel">Cancelar</span><span>Tela de Início</span><span class="add">Adicionar</span></div>
+          <div class="nm"><img src="apple-touch-icon.png" alt=""><span>Rastreando</span></div>
+        </div>
+      </div>
+    </div>
   </section>
 
   <!-- Computador / outros -->
@@ -109,6 +159,14 @@ main{width:100%;max-width:440px;display:flex;flex-direction:column;gap:16px}
     else setTimeout(function(){ if (!promptAdiado) $('manualAndroid').hidden = false }, 2500);
   } else {
     $('outros').hidden = false;
+  }
+
+
+  /* vídeo opcional: se existir o arquivo tutorial-iphone.mp4 na mesma pasta, aparece aqui */
+  if (ios && !standalone) {
+    fetch('tutorial-iphone.mp4', {method:'HEAD'}).then(function(r){
+      if (r.ok) { var v = document.createElement('video'); v.src = 'tutorial-iphone.mp4'; v.controls = true; v.playsInline = true; v.preload = 'metadata'; $('videoIos').appendChild(v); $('videoIos').hidden = false; }
+    }).catch(function(){});
   }
 
   window.addEventListener('beforeinstallprompt', function(e){
