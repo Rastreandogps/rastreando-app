@@ -94,6 +94,12 @@ details.cli .gav{padding:0 0 12px 12px;border-left:2px solid var(--line);margin-
 .drow .s b{color:var(--txt);font-size:14px}
 .drow .bts{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
 .mini{height:36px;padding:0 14px;border-radius:10px;border:1px solid var(--line);background:var(--card2);font-size:13px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;color:var(--txt);text-decoration:none}
+.apsel{max-height:190px;overflow-y:auto;border:1px solid var(--line);border-radius:12px;background:var(--card2);margin-bottom:10px}
+.apit{display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid var(--line);cursor:pointer;font-size:14px}
+.apit:last-child{border-bottom:0}
+.apit input{width:20px;height:20px;flex:none}
+.apit small{color:var(--mut);font-size:12px;word-break:break-all}
+.apvazio{padding:12px;font-size:13px;color:var(--mut)}
 .fld{width:100%;height:46px;border-radius:12px;border:1px solid var(--line);background:var(--card2);color:var(--txt);padding:0 12px;font:inherit;font-size:16px;outline:none;margin-bottom:10px}
 .fld:focus{border-color:var(--cyan)}
 .fld:disabled{opacity:.6}
@@ -407,11 +413,27 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
     <button class="mini" id="cGerar" type="button" style="margin-bottom:10px">Gerar senha</button>
     <label class="flbl" for="cCpf">CPF (opcional)</label>
     <input class="fld" id="cCpf" inputmode="numeric" autocomplete="off">
+    <label class="flbl">Aparelhos deste cliente (opcional)</label>
+    <div class="apsel" id="cAparelhos"></div>
     <label class="fchk"><input type="checkbox" id="cLeitura" checked> Cliente não pode editar nem apagar o aparelho</label>
     <div class="ferr" id="cErro"></div>
     <div class="actions2">
       <button class="btn btn-out" data-close>Cancelar</button>
       <button class="btn btn-red" id="cSalvar">Criar cliente</button>
+    </div>
+  </div>
+</div>
+
+<!-- Vincular aparelhos a um cliente que já existe -->
+<div class="modal" id="mVinc">
+  <div class="box2">
+    <h3 id="vincTitulo">Vincular aparelhos</h3>
+    <p>Marque os aparelhos que este cliente pode ver no app.</p>
+    <div class="apsel" id="vincLista"></div>
+    <div class="ferr" id="vincErro"></div>
+    <div class="actions2">
+      <button class="btn btn-out" data-close>Cancelar</button>
+      <button class="btn btn-red" id="vincSalvar">Vincular</button>
     </div>
   </div>
 </div>
@@ -828,7 +850,7 @@ $('vSearch').addEventListener('input',desenharLista);
 function abrir(id){$(id).classList.add('show')}
 function fechar(){document.querySelectorAll('.modal').forEach(m=>m.classList.remove('show'))}
 document.querySelectorAll('[data-close]').forEach(b=>b.onclick=fechar);
-document.querySelectorAll('.modal').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)fechar()}));
+/* as janelas só fecham pelos botões (Cancelar/Fechar): tocar fora não fecha mais */
 
 function abrirConfirmacao(acao){
   const v=ativo(); if(!v) return;
@@ -1107,7 +1129,7 @@ function desenharClientes(){
         '<div class="bts">'+(v.fone?'<button class="mini" data-a="copiar">Copiar número</button><a class="mini" data-a="sms" href="'+esc(linkSms(v.fone))+'">Enviar SMS</a>':'')+
         '<button class="mini" data-a="editar">Editar</button></div></div>'
       ).join('') || '<div class="s" style="padding:8px 0">Nenhum veículo vinculado.</div>')+
-      '<div class="bts" style="margin-top:8px"><button class="mini" data-a="cpf" data-u="'+u.id+'">'+(cpf?'Alterar CPF':'Cadastrar CPF')+'</button></div></div></details>';
+      '<div class="bts" style="margin-top:8px"><button class="mini" data-a="vinc" data-u="'+u.id+'">+ Vincular aparelho</button><button class="mini" data-a="cpf" data-u="'+u.id+'">'+(cpf?'Alterar CPF':'Cadastrar CPF')+'</button></div></div></details>';
   }).join('') || '<div class="vempty">Nenhum cliente ainda.</div>';
 }
 $('aList').addEventListener('toggle',e=>{ const d=e.target; if(d.dataset && d.dataset.u) abertos[d.dataset.u]=d.open },true);
@@ -1127,6 +1149,14 @@ function copiar(txt){
 }
 $('aList').addEventListener('click',e=>{
   const b=e.target.closest('[data-a]'); if(!b) return;
+  if(b.dataset.a==='vinc'){
+    vincUserId=+b.dataset.u;
+    const u=usuarios.find(x=>x.id===vincUserId); if(!u) return;
+    $('vincTitulo').textContent='Vincular aparelhos a '+u.name;
+    $('vincLista').innerHTML=htmlAparelhos(aparelhosDe(u).map(v=>v.id));
+    $('vincErro').textContent=''; $('vincSalvar').disabled=false;
+    abrir('mVinc'); return;
+  }
   if(b.dataset.a==='cpf'){
     cpfUserId=+b.dataset.u;
     const u=usuarios.find(x=>x.id===cpfUserId);
@@ -1140,6 +1170,45 @@ $('aList').addEventListener('click',e=>{
   else if(b.dataset.a==='editar') abrirEquip(id);
   /* "sms" é um link normal: abre o aplicativo de mensagens do celular */
 });
+
+/* --- Aparelhos de um cliente --- */
+function htmlAparelhos(excluirIds){
+  const ex=new Set(excluirIds||[]);
+  const lista=veiculos.filter(v=>!ex.has(v.id)).sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
+  if(!lista.length) return '<div class="apvazio">Nenhum aparelho disponível. Cadastre o aparelho na aba Equipamentos.</div>';
+  return lista.map(v=>'<label class="apit"><input type="checkbox" value="'+v.id+'"><span><b>'+esc(v.nome)+'</b><br><small>IMEI '+esc(v.imei)+(v.contato?' · cliente atual: '+esc(v.contato):' · sem cliente')+'</small></span></label>').join('');
+}
+const marcados = idDiv => Array.prototype.map.call($(idDiv).querySelectorAll('input:checked'),i=>+i.value);
+/* liga os aparelhos ao cliente no Traccar; devolve os nomes dos que falharam */
+async function ligarAparelhos(user,ids){
+  const falhas=[];
+  for(const id of ids){
+    const v=veiculos.find(x=>x.id===id);
+    try{
+      await vincular(user.id,id);
+      if(v && !v.contato){ // se o aparelho ainda não tem e-mail de cliente, grava este (a lista do app usa esse campo)
+        try{ await api('/api/devices/'+id,{method:'PUT',headers:JSONH,body:JSON.stringify(Object.assign({},v.raw,{contact:user.email}))}) }catch(e){ if(e.sessao) throw e }
+      }
+    }catch(e){ if(e.sessao) throw e; falhas.push(v?v.nome:('#'+id)) }
+  }
+  return falhas;
+}
+async function atualizarAposVinculo(){
+  vinculos={}; buscando=false; await buscarSeguro(); desenharAdmin(); carregarVinculos();
+}
+let vincUserId=null;
+$('vincSalvar').onclick=async ()=>{
+  const ids=marcados('vincLista'), u=usuarios.find(x=>x.id===vincUserId);
+  if(!u) return;
+  if(!ids.length){ $('vincErro').textContent='Marque pelo menos um aparelho.'; return }
+  $('vincErro').textContent=''; $('vincSalvar').disabled=true;
+  try{
+    const falhas=await ligarAparelhos(u,ids);
+    if(falhas.length){ $('vincErro').textContent='Não consegui vincular: '+falhas.join(', ')+'. Os outros foram vinculados.'; await atualizarAposVinculo() }
+    else{ fechar(); toast(ids.length===1?'Aparelho vinculado':'Aparelhos vinculados'); await atualizarAposVinculo() }
+  }catch(e){ $('vincErro').textContent='Sessão expirada. Entre novamente.' }
+  $('vincSalvar').disabled=false;
+};
 
 $('cpfSalvar').onclick=async ()=>{
   const cpf=soDigitos($('cpfCampo').value);
@@ -1215,6 +1284,7 @@ function senhaAleatoria(){
 function abrirCliente(){
   ['cNome','cEmail','cSenha','cCpf'].forEach(i=>$(i).value='');
   $('cLeitura').checked=true; $('cErro').textContent=''; $('cSalvar').disabled=false;
+  $('cAparelhos').innerHTML=htmlAparelhos();
   abrir('mCliente');
 }
 $('cGerar').onclick=()=>{ $('cSenha').value=senhaAleatoria() };
@@ -1231,8 +1301,14 @@ $('cSalvar').onclick=async ()=>{
     const r=await api('/api/users',{method:'POST',headers:JSONH,body:JSON.stringify(corpo)});
     if(!r.ok) throw new Error(await msgErro(r,'Não foi possível criar o cliente'));
     let novo=null; try{ novo=await r.json() }catch(e){}
+    const idsAp=marcados('cAparelhos');
     await carregarUsuarios();
     fechar();
+    if(idsAp.length && novo && novo.id){
+      const falhas=await ligarAparelhos({id:novo.id,email:email},idsAp);
+      if(falhas.length) toast('Cliente criado, mas não consegui vincular: '+falhas.join(', ')+'. Use o botão Vincular aparelho.');
+      await atualizarAposVinculo();
+    }
     if(cpf && novo && novo.id){
       try{ await fn('vincular',{userId:novo.id,cpf:cpf}); await carregarCpfs() }
       catch(e){ toast('Cliente criado, mas o CPF não foi vinculado: '+e.message+' (use o botão CPF do cliente)') }
