@@ -879,6 +879,8 @@ function mesclar(ds,ps){
       v.vel = Math.round((p.speed||0)*1.852);
       guardarUltimos(v,p,a);
       v.fix = new Date(p.fixTime).getTime();
+      /* hora do último GPS válido (posição sem GPS não conta) */
+      if(p.valid!==false) v.gpsT = v.fix; else if(v.gpsT===undefined) v.gpsT = null;
       v.addr = p.address || null;
       v.rumo = p.course||0;
       v.posId = p.id;
@@ -993,8 +995,10 @@ function atualizar(){
     $('sBat').textContent=v.bat===null?'—':v.bat+'%';
     $('sVolt').textContent=v.volt===null?'—':v.volt.toFixed(1).replace('.',',')+' V';
     $('sVoltAge').textContent=(v.volt!==null && v.voltEm && Date.now()-v.voltEm>VALIDADE_ST)?tempo(Date.now()-v.voltEm):'';
-    const ult = v.ultimo || v.fix;
-    $('vUpd').textContent = ult ? 'Atualizado '+horaAtual(ult) : '';
+    /* dois horários: GSM = último contato do rastreador com o servidor; GPS = última posição de satélite */
+    const ult = v.ultimo || v.fix, gpsVelhoT = v.gpsT && Date.now()-v.gpsT>600000;
+    $('vUpd').innerHTML = (ult ? 'GSM '+horaAtual(ult) : '')+
+      '<br><span style="'+(v.gpsT===null||gpsVelhoT?'color:var(--amber);font-weight:600':'')+'">GPS '+(v.gpsT ? horaAtual(v.gpsT) : 'sem sinal')+'</span>';
     if(!v.addr) buscarEndereco(v);
     const endereco = v.addr || v.geo || '';
     $('vAddr').textContent = endereco;
@@ -1082,7 +1086,7 @@ document.querySelectorAll('[data-close]').forEach(b=>b.onclick=fechar);
 
 function abrirConfirmacao(acao){
   const v=ativo(); if(!v) return;
-  if(!v.online && acao==='bloquear'){
+  if(!v.online && acao==='bloquear' && !ehAdmin){
     toast('Aparelho sem conexão com o servidor. Por segurança, o bloqueio não foi enviado.');
     return;
   }
@@ -1094,7 +1098,8 @@ function abrirConfirmacao(acao){
   const bloquear = acao==='bloquear';
   $('cmdTitle').textContent=(bloquear?'Bloquear ':'Desbloquear ')+v.nome+'?';
   $('cmdText').textContent = bloquear
-    ? 'O motor será cortado. O veículo só volta a funcionar depois do desbloqueio.'
+    ? (v.online ? 'O motor será cortado. O veículo só volta a funcionar depois do desbloqueio.'+(ehAdmin?' Se o rastreador não responder em 10 segundos, o bloqueio vai também por SMS.':'')
+       : 'O rastreador está sem conexão de internet. O bloqueio será enviado por SMS (RELAY,1#) para o chip do veículo.')
     : (v.online ? 'O veículo poderá ser ligado normalmente.'
        : 'O rastreador está sem sinal agora. O desbloqueio fica guardado e o sistema continua tentando sozinho (pela internet e por SMS) até o rastreador obedecer.');
   const w=$('cmdWarn'), avisos=[];
@@ -1124,6 +1129,10 @@ $('cmdOk').onclick=async ()=>{
     else throw new Error('Este acesso ainda não está liberado para bloquear/desbloquear. Fale com a Rastreando GPS.');
     if(bloquear) desbCancelar(v.id); // a última ordem vence: para o desbloqueio automático deste veículo
     const online=v.online;
+    if(bloquear && ehAdmin && !online){ // administrador, rastreador sem internet: só por SMS (não deixa comando guardado na fila do servidor)
+      await smsBloquear(v);
+      throw {silencioso:true};
+    }
     let r=null;
     try{
       r=await api('/api/commands/send',{
@@ -1143,9 +1152,10 @@ $('cmdOk').onclick=async ()=>{
     }
     if(!r || !r.ok) throw new Error('O servidor recusou o comando (erro '+(r?r.status:'sem resposta')+')');
     toast('Comando enviado. Aguardando o aparelho...');
-    let respondeu=false;
+    let respondeu=false, smsFoi=false;
     for(let i=0;i<20 && !respondeu;i++){
       await sleep(2000);
+      if(bloquear && ehAdmin && !smsFoi && i===5 && !(v.posId!==posAntes && v.result)){ smsFoi=true; smsBloquear(v) } // 10 s sem resposta: SMS
       buscando=false; await buscarSeguro();
       if(v.posId!==posAntes && v.result){
         respondeu=true;
@@ -1155,7 +1165,7 @@ $('cmdOk').onclick=async ()=>{
         } else toast('O aparelho respondeu: '+v.result);
       }
     }
-    if(!respondeu) toast(!bloquear && desbPendente[v.id]
+    if(!respondeu) toast(smsFoi ? 'O rastreador não respondeu pela internet. O bloqueio também foi enviado por SMS: confira no mapa em alguns minutos.' : !bloquear && desbPendente[v.id]
       ? 'O rastreador ainda não respondeu. O sistema continua tentando sozinho, inclusive por SMS. Não precisa apertar de novo.'
       : 'O aparelho não respondeu em 40 segundos. Confira antes de repetir.',6000);
   }catch(e){
@@ -1224,6 +1234,18 @@ async function desbVerificar(){
 setInterval(desbVerificar,20000);
 setInterval(desbMostrar,1000);
 setTimeout(desbVerificar,3000);
+
+/* administrador: bloqueio por SMS (RELAY,1#) pelo servidor; o número do chip não passa pelo app */
+async function smsBloquear(v){
+  try{
+    const r=await fetch(DESB_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',
+      body:JSON.stringify({acao:'smsBloquear',token:lsGet('rg_token'),deviceId:v.id})});
+    let j={}; try{ j=await r.json() }catch(e){}
+    if(!r.ok) throw new Error(j.erro||('Erro '+r.status));
+    toast('Bloqueio enviado por SMS para o chip de '+v.nome+'. Confira no mapa em alguns minutos.',7000);
+    return true;
+  }catch(e){ toast('Não consegui enviar o SMS de bloqueio: '+(e.message||'erro'),7000); return false }
+}
 
 /* ===== NAVEGAR / VER A RUA / COMPARTILHAR ===== */
 $('btnNav').onclick=()=>{
