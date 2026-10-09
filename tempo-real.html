@@ -196,6 +196,25 @@ main{position:relative;flex:1;min-height:0;overflow:hidden}
 .btn-out{border:1px solid var(--line);background:var(--card2)}
 .btn[disabled]{opacity:.45;cursor:default}
 
+/* Botões do cartão do veículo (visual moderno, 09/10/2026) */
+#sheet .actions{grid-template-columns:1fr 1fr 44px;gap:8px}
+#sheet .actions.dois{grid-template-columns:1fr 1fr;margin-top:8px}
+#sheet .btn{height:44px;border-radius:14px;font-size:14.5px;font-weight:650;letter-spacing:.1px;transition:transform .12s ease,filter .12s ease,background .15s ease}
+#sheet .btn:active{transform:scale(.97)}
+#sheet .btn::before{content:'';width:17px;height:17px;flex:none;background:currentColor;-webkit-mask:var(--ic) center/contain no-repeat;mask:var(--ic) center/contain no-repeat;display:none}
+#btnBlock{background:linear-gradient(180deg,#ef3b43,#c81e26);color:#fff;border:0;box-shadow:0 6px 16px rgba(216,31,40,.28)}
+#btnBlock::before{--ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='4.5' y='10.5' width='15' height='10' rx='2.5'/%3E%3Cpath d='M8 10.5V7.5a4 4 0 018 0v3'/%3E%3C/svg%3E");display:block!important}
+#btnUnblock{background:rgba(26,158,87,.12);color:var(--green);border:1px solid rgba(26,158,87,.28)}
+#btnUnblock::before{--ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='4.5' y='10.5' width='15' height='10' rx='2.5'/%3E%3Cpath d='M8 10.5V7.5a4 4 0 017.6-1.7'/%3E%3C/svg%3E");display:block!important}
+#btnShare{background:var(--card2);border:1px solid var(--line);color:var(--txt);padding:0}
+#admSmsRow{display:none;margin-top:8px;gap:8px}
+#admSmsRow .btn{white-space:nowrap;height:34px;border-radius:999px;font-size:12.5px;font-weight:650}
+#admSmsRow .btn::before{--ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 5h16v11H9l-5 4z'/%3E%3Cpath d='M8 9.5h8M8 12.5h5'/%3E%3C/svg%3E");display:block;width:15px;height:15px}
+#btnBlockSms{background:rgba(227,38,47,.10);color:var(--red2);border:1px solid rgba(227,38,47,.30)}
+#btnUnblockSms{background:rgba(26,158,87,.10);color:var(--green);border:1px solid rgba(26,158,87,.26)}
+#btnNav,#btnRua{height:38px!important;border-radius:12px!important;font-size:13.5px!important;font-weight:600!important;background:transparent;border:1px solid var(--line);color:var(--mut)}
+#btnNav svg,#btnRua svg{width:16px;height:16px}
+
 /* Aba Veículos */
 .vview{position:absolute;inset:0;z-index:600;background:var(--bg);display:none;flex-direction:column}
 .vview.show{display:flex}
@@ -343,8 +362,8 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
       </button>
     </div>
     <div class="actions dois" id="admSmsRow" style="display:none">
-      <button class="btn btn-out" id="btnBlockSms" style="color:var(--red2,#e3262f);border-color:var(--red2,#e3262f)">Bloquear por SMS</button>
-      <button class="btn btn-out" id="btnUnblockSms">Desbloquear por SMS</button>
+      <button class="btn" id="btnBlockSms">Bloquear SMS</button>
+      <button class="btn" id="btnUnblockSms">Desbloquear SMS</button>
     </div>
     <div class="actions dois">
       <button class="btn btn-out" id="btnNav">
