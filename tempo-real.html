@@ -175,9 +175,11 @@ main{position:relative;flex:1;min-height:0;overflow:hidden}
 .st-block{background:rgba(227,38,47,.16);color:var(--red2)}
 .banner{display:none;margin-top:12px;padding:9px 12px;border-radius:10px;background:rgba(227,38,47,.12);border:1px solid rgba(227,38,47,.35);color:var(--red2);font-size:13px;font-weight:600}
 .banner.show{display:block}
-.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 0 12px}
-.stat{background:var(--card2);border-radius:12px;padding:10px 6px;text-align:center}
-.stat b{display:block;font-size:16px;margin-top:4px}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:14px 0 12px}
+@media(max-width:359px){.grid{grid-template-columns:repeat(2,1fr)}}
+.stat{background:var(--card2);border-radius:12px;padding:10px 4px;text-align:center}
+.stat b{display:block;font-size:14px;margin-top:4px;white-space:nowrap}
+.stat small{display:block;font-size:10px;color:var(--mut);margin-top:1px}
 .stat span{font-size:11px;color:var(--mut)}
 .addr{font-size:13px;color:var(--mut);display:flex;justify-content:space-between;gap:8px;margin-bottom:12px}
 .addr strong{color:var(--txt);font-weight:600}
@@ -291,6 +293,7 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
       <div class="stat"><span>Velocidade</span><b id="sSpeed"></b></div>
       <div class="stat"><span>Ignição</span><b id="sIgn"></b></div>
       <div class="stat"><span>Bateria</span><b id="sBat"></b></div>
+      <div class="stat"><span>Voltagem</span><b id="sVolt"></b><small id="sVoltAge"></small></div>
     </div>
     <div class="addr" id="addrRow"><strong id="vAddr"></strong><span id="vAgo"></span></div>
     <div class="addr" id="distRow" style="display:none"><strong id="vDist"></strong></div>
@@ -333,6 +336,7 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
       </div>
       <button class="btn btn-red anovo" id="aNovo">+ Novo equipamento</button>
       <button class="linkbtn" id="aFinAtualizar" style="display:none">Atualizar situação financeira</button>
+      <button class="linkbtn" id="aProteger" style="display:none">Proteger comandos dos clientes</button>
       <input class="search" id="aSearch" type="search" placeholder="Buscar nome, IMEI, chip ou e-mail" autocomplete="off">
     </div>
     <div class="vlist" id="aList"></div>
@@ -726,6 +730,31 @@ async function buscar(){
   mesclar(await rd.json(), await rp.json());
 }
 
+/* O rastreador manda pacotes diferentes (posição, status, resposta de comando) e nem todo pacote traz ignição/bateria/voltagem.
+   Por isso o app lembra o último valor recebido (no celular também) e só troca quando chega um novo. */
+const VALIDADE_ST=30*60*1000; /* ignição e bateria: depois de 30 min sem confirmação voltam a "—" */
+const fresco=(em,max)=>!!em && Date.now()-em<max;
+function lerUltimos(v){
+  let c={}; try{ c=JSON.parse(lsGet('rg_st_'+v.id)||'{}')||{} }catch(e){}
+  if(typeof c.ign==='boolean' && fresco(c.igEm,VALIDADE_ST)){ v.ign=c.ign; v.igEm=c.igEm }
+  if(typeof c.bat==='number' && fresco(c.batEm,VALIDADE_ST)){ v.bat=c.bat; v.batEm=c.batEm }
+  if(typeof c.volt==='number'){ v.volt=c.volt; v.voltEm=c.voltEm||0 }
+}
+function guardarUltimos(v,p,a){
+  const agora=Date.now(); let mudou=false;
+  if(typeof a.ignition==='boolean'){ v.ign=a.ignition; v.igEm=agora; mudou=true }
+  if(a.batteryLevel!=null && !isNaN(a.batteryLevel)){ v.bat=Math.round(a.batteryLevel); v.batEm=agora; mudou=true }
+  /* voltagem da bateria externa (do veículo/fonte). O J16 manda no campo adc1; "power" é o nome padrão do Traccar em outros modelos. */
+  const vv = a.power!=null ? a.power : a.adc1;
+  if(vv!=null && !isNaN(vv) && Number(vv)>0){
+    v.volt=Number(vv);
+    const t=new Date(p.deviceTime||p.serverTime||p.fixTime).getTime();
+    v.voltEm=isNaN(t)?agora:t; mudou=true;
+  }
+  if(v.ign!==null && !fresco(v.igEm,VALIDADE_ST)) v.ign=null;
+  if(v.bat!==null && !fresco(v.batEm,VALIDADE_ST)) v.bat=null;
+  if(mudou) lsSet('rg_st_'+v.id,JSON.stringify({ign:v.ign,igEm:v.igEm,bat:v.bat,batEm:v.batEm,volt:v.volt,voltEm:v.voltEm}));
+}
 function mesclar(ds,ps){
   const pm = {}; ps.forEach(p=>pm[p.deviceId]=p);
   const ids = new Set(ds.map(d=>d.id));
@@ -735,7 +764,8 @@ function mesclar(ds,ps){
     let v = veiculos.find(x=>x.id===d.id);
     if(!v){
       v = {id:d.id,visivel:true,marker:null,pos:null,de:null,para:null,t0:0,rumo:0,vel:0,
-           ign:null,bat:null,bloq:false,online:false,fix:null,ultimo:null,real:null,geo:null,geoPos:null,addr:null,posId:null,result:null,placa:'',nome:''};
+           ign:null,bat:null,igEm:0,batEm:0,volt:null,voltEm:0,bloq:false,online:false,fix:null,ultimo:null,real:null,geo:null,geoPos:null,addr:null,posId:null,result:null,placa:'',nome:''};
+      lerUltimos(v);
       veiculos.push(v);
     }
     v.nome = d.name || ('Aparelho '+d.id);
@@ -747,8 +777,7 @@ function mesclar(ds,ps){
     if(p){
       const a = p.attributes||{};
       v.vel = Math.round((p.speed||0)*1.852);
-      v.ign = typeof a.ignition==='boolean' ? a.ignition : null;
-      v.bat = a.batteryLevel!=null && !isNaN(a.batteryLevel) ? Math.round(a.batteryLevel) : null;
+      guardarUltimos(v,p,a);
       v.fix = new Date(p.fixTime).getTime();
       v.addr = p.address || null;
       v.rumo = p.course||0;
@@ -861,6 +890,8 @@ function atualizar(){
     $('sSpeed').textContent=v.vel+' km/h';
     $('sIgn').textContent=v.ign===null?'—':(v.ign?'Ligada':'Desligada');
     $('sBat').textContent=v.bat===null?'—':v.bat+'%';
+    $('sVolt').textContent=v.volt===null?'—':v.volt.toFixed(1).replace('.',',')+' V';
+    $('sVoltAge').textContent=(v.volt!==null && v.voltEm && Date.now()-v.voltEm>VALIDADE_ST)?tempo(Date.now()-v.voltEm):'';
     const ult = v.ultimo || v.fix;
     $('vUpd').textContent = ult ? 'Atualizado '+horaAtual(ult) : '';
     if(!v.addr) buscarEndereco(v);
@@ -980,9 +1011,14 @@ $('cmdOk').onclick=async ()=>{
   btn.innerHTML='<span class="spin"></span>Enviando...';
   const posAntes=v.posId;
   try{
+    const cid=await comandoSalvo(bloquear);
+    let corpoCmd;
+    if(cid) corpoCmd={id:cid,deviceId:v.id,type:'custom',attributes:{}};
+    else if(ehAdmin) corpoCmd={deviceId:v.id,type:'custom',attributes:{data:bloquear?CMD_FIXOS.bloquear:CMD_FIXOS.desbloquear}};
+    else throw new Error('Este acesso ainda não está liberado para bloquear/desbloquear. Fale com a Rastreando GPS.');
     const r=await api('/api/commands/send',{
       method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({deviceId:v.id,type:'custom',attributes:{data:bloquear?'RELAY,1#':'RELAY,0#'}})
+      body:JSON.stringify(corpoCmd)
     });
     if(!r.ok) throw new Error('O servidor recusou o comando (erro '+r.status+')');
     toast('Comando enviado. Aguardando o aparelho...');
@@ -1226,6 +1262,64 @@ async function carregarFin(forcar){
 /* ao abrir o painel ou a aba Clientes, atualiza se a informação tiver mais de 30 segundos */
 const finVelho = () => Date.now()-finEm>30000;
 $('aFinAtualizar').onclick=async ()=>{ const b=$('aFinAtualizar'); b.disabled=true; b.textContent='Atualizando...'; const ok=await carregarFin(true); if(ok) toast('Situação financeira atualizada.'); b.disabled=false; b.textContent=rotuloFin() };
+/* ===== COMANDOS FIXOS =====
+   O cliente só pode enviar Bloquear/Desbloquear (comandos salvos no Traccar). Comando livre fica barrado pelo servidor
+   (campo limitCommands do usuário). Quem cria/ajusta isso é o administrador. */
+const CMD_FIXOS={bloquear:'RELAY,1#',desbloquear:'RELAY,0#'};
+const acharCmd=(lista,data)=>(lista||[]).find(c=>c.type==='custom'&&c.attributes&&c.attributes.data===data);
+let cmdIds=null;
+async function garantirComandos(){
+  if(cmdIds) return cmdIds;
+  const r=await api('/api/commands');
+  if(!r.ok) throw new Error('Não consegui ler os comandos do servidor (erro '+r.status+')');
+  const lista=await r.json(), ids={};
+  for(const k of Object.keys(CMD_FIXOS)){
+    let c=acharCmd(lista,CMD_FIXOS[k]);
+    if(!c){
+      const p=await api('/api/commands',{method:'POST',headers:JSONH,body:JSON.stringify({type:'custom',description:(k==='bloquear'?'Bloquear':'Desbloquear')+' (Rastreando)',textChannel:false,attributes:{data:CMD_FIXOS[k]}})});
+      if(!p.ok) throw new Error(await msgErro(p,'Não consegui criar o comando '+k));
+      c=await p.json();
+    }
+    ids[k]=c.id;
+  }
+  cmdIds=ids; return ids;
+}
+async function protegerCliente(u){
+  const ids=await garantirComandos();
+  const r=await api('/api/commands?userId='+u.id);
+  const tem=r.ok?(await r.json()).map(c=>c.id):[];
+  for(const k of Object.keys(ids)){
+    if(tem.includes(ids[k])) continue;
+    const p=await api('/api/permissions',{method:'POST',headers:JSONH,body:JSON.stringify({userId:u.id,commandId:ids[k]})});
+    if(!p.ok) throw new Error(await msgErro(p,'Não consegui liberar o comando '+k));
+  }
+  if(!u.limitCommands){
+    const corpo=Object.assign({},u,{limitCommands:true}); delete corpo.password;
+    const q=await api('/api/users/'+u.id,{method:'PUT',headers:JSONH,body:JSON.stringify(corpo)});
+    if(!q.ok) throw new Error(await msgErro(q,'Não consegui travar os comandos livres'));
+  }
+}
+$('aProteger').onclick=async ()=>{
+  const b=$('aProteger'); b.disabled=true; b.textContent='Protegendo...';
+  let ok=0, falhas=[];
+  try{
+    await carregarUsuarios();
+    for(const u of usuarios.filter(x=>!x.administrator)){
+      try{ await protegerCliente(u); ok++ }
+      catch(e){ if(e.sessao) throw e; falhas.push(loginDe(u)) }
+    }
+    await carregarUsuarios();
+    toast(falhas.length?'Protegidos: '+ok+'. Falhou em: '+falhas.join(', '):'Pronto: '+ok+' cliente(s) só enviam Bloquear/Desbloquear.');
+  }catch(e){ if(e.sessao) sair('Sessão expirada. Entre novamente.'); else toast(e.message||'Não consegui concluir.') }
+  b.disabled=false; b.textContent='Proteger comandos dos clientes';
+};
+async function comandoSalvo(bloquear){
+  try{
+    const r=await api('/api/commands'); if(!r.ok) return null;
+    const c=acharCmd(await r.json(),bloquear?CMD_FIXOS.bloquear:CMD_FIXOS.desbloquear);
+    return c?c.id:null;
+  }catch(e){ if(e.sessao) throw e; return null }
+}
 function pedirConfirmacao(titulo,texto,rotulo,acao){
   $('confTitulo').textContent=titulo; $('confTexto').textContent=texto; $('confErro').textContent='';
   $('confOk').textContent=rotulo; $('confOk').disabled=false;
@@ -1261,6 +1355,7 @@ function desenharAdmin(){
   $('aNovo').classList.toggle('verde',abaAdmin==='equip'); $('aNovo').classList.toggle('azul',abaAdmin!=='equip');
   $('aSearch').style.display = abaAdmin==='equip' ? '' : 'none';
   $('aFinAtualizar').style.display = abaAdmin==='cli' ? '' : 'none';
+  $('aProteger').style.display = abaAdmin==='cli' ? '' : 'none';
   if(abaAdmin==='equip') desenharEquip(); else desenharClientes();
 }
 function desenharEquip(){
@@ -1615,11 +1710,15 @@ $('cSalvar').onclick=async ()=>{
       if(senha) mostrarAcesso('Acesso atualizado',lg.login,senha);
       $('cSalvar').disabled=false; return;
     }
-    const corpo={name:nome,email:lg.email,password:senha,administrator:false,deviceReadonly:$('cLeitura').checked,attributes:cpf?{cpf:cpf}:{}};
+    const corpo={name:nome,email:lg.email,password:senha,administrator:false,deviceReadonly:$('cLeitura').checked,limitCommands:true,attributes:cpf?{cpf:cpf}:{}};
     if(lg.loginTraccar) corpo.login=lg.loginTraccar;
     const r=await api('/api/users',{method:'POST',headers:JSONH,body:JSON.stringify(corpo)});
     if(!r.ok) throw new Error(await msgErro(r,'Não foi possível criar o cliente'));
     let novo=null; try{ novo=await r.json() }catch(e){}
+    if(novo && novo.id){
+      try{ await protegerCliente(novo) }
+      catch(e){ if(e.sessao) throw e; toast('Cliente criado, mas os botões de bloqueio não foram liberados. Use "Proteger comandos dos clientes".') }
+    }
     const idsAp=marcados('cAparelhos');
     await carregarUsuarios();
     fechar();
