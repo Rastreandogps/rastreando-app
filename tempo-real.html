@@ -467,7 +467,6 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
     <div class="lerr" id="lErr"></div>
     <button class="btn btn-red" id="lBtn" type="submit">Entrar</button>
     <a id="lInstalar" href="instalar.html" style="display:none;text-align:center;color:var(--cyan);font-size:14px;font-weight:600;padding:6px 0">Instalar o aplicativo no celular</a>
-    <div id="lDicaIos" style="display:none;text-align:center;color:var(--mut);font-size:13px;line-height:1.4">Para instalar no iPhone: toque em <b>Compartilhar</b> (quadrado com seta) e depois em <b>Adicionar à Tela de Início</b>.</div>
   </form>
 </div>
 
@@ -610,6 +609,14 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
     </div>
   </div>
 </div>
+
+<!-- Dica de instalação no iPhone (só aparece no Safari, antes de instalar) -->
+<div id="dicaIosApp" style="display:none;position:fixed;left:12px;right:12px;bottom:calc(14px + env(safe-area-inset-bottom));z-index:3000;background:var(--card);border:2px solid var(--red);border-radius:14px;padding:12px 14px 10px;box-shadow:0 8px 28px rgba(0,0,0,.5);text-align:center">
+  <button id="dicaIosFechar" aria-label="Fechar dica" style="position:absolute;top:4px;right:8px;font-size:22px;line-height:1;color:var(--mut);padding:4px 8px">×</button>
+  <div style="font-size:14px;line-height:1.4;padding:0 14px"><b>Instale o app no iPhone:</b> toque em <b>Compartilhar</b> (quadrado com seta) e depois em <b>Adicionar à Tela de Início</b>.</div>
+  <div class="setaIos" style="font-size:26px;color:var(--red);line-height:1;margin-top:4px">⬇</div>
+</div>
+<style>@keyframes pulaIos{0%,100%{transform:translateY(0)}50%{transform:translateY(7px)}}.setaIos{animation:pulaIos 1.1s ease-in-out infinite}@media (prefers-reduced-motion:reduce){.setaIos{animation:none}}</style>
 
 <div class="toast" id="toast"></div>
 
@@ -2118,7 +2125,16 @@ $('btnSair').onclick=()=>sair('');
     var ua=navigator.userAgent||'', ios=/iPhone|iPad|iPod/.test(ua);
     if(!inst){
       var l=document.getElementById('lInstalar'), d=document.getElementById('lDicaIos');
-      if(ios){ if(d)d.style.display='block' } else if(l){ l.style.display='block' }
+      if(ios){
+        var visto=null; try{ visto=localStorage.getItem('rg_dica_ios') }catch(e){}
+        var seguro=/Safari\//.test(ua) || /CriOS|FxiOS|EdgiOS/.test(ua);
+        var b=document.getElementById('dicaIosApp');
+        if(b && !visto && seguro){
+          b.style.display='block';
+          document.getElementById('dicaIosFechar').onclick=function(){ b.style.display='none'; try{ localStorage.setItem('rg_dica_ios','1') }catch(e){} };
+          setTimeout(function(){ b.style.display='none' },25000);
+        } else if(l && !seguro){ l.style.display='block' }
+      } else if(l){ l.style.display='block' }
     }
     if('serviceWorker' in navigator && location.protocol==='https:') navigator.serviceWorker.register('sw.js').catch(function(){});
   }catch(e){}
