@@ -4,6 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0f1115">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Rastreando">
 <title>Rastreando GPS</title>
 <script>
 try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'){document.documentElement.setAttribute('data-tema',t)}}catch(e){}
@@ -461,6 +466,8 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
     <input type="password" id="lSenha" placeholder="Senha" autocomplete="current-password" required>
     <div class="lerr" id="lErr"></div>
     <button class="btn btn-red" id="lBtn" type="submit">Entrar</button>
+    <a id="lInstalar" href="instalar.html" style="display:none;text-align:center;color:var(--cyan);font-size:14px;font-weight:600;padding:6px 0">Instalar o aplicativo no celular</a>
+    <div id="lDicaIos" style="display:none;text-align:center;color:var(--mut);font-size:13px;line-height:1.4">Para instalar no iPhone: toque em <b>Compartilhar</b> (quadrado com seta) e depois em <b>Adicionar à Tela de Início</b>.</div>
   </form>
 </div>
 
@@ -2105,6 +2112,16 @@ $('btnSair').onclick=()=>sair('');
     if(meta)meta.setAttribute('content',claro?'#f4f6f9':'#0f1115');
   }
   ajusta();
+  /* instalação como aplicativo: link só aparece quando o app ainda não está instalado */
+  try{
+    var inst=(window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone===true;
+    var ua=navigator.userAgent||'', ios=/iPhone|iPad|iPod/.test(ua);
+    if(!inst){
+      var l=document.getElementById('lInstalar'), d=document.getElementById('lDicaIos');
+      if(ios){ if(d)d.style.display='block' } else if(l){ l.style.display='block' }
+    }
+    if('serviceWorker' in navigator && location.protocol==='https:') navigator.serviceWorker.register('sw.js').catch(function(){});
+  }catch(e){}
   document.getElementById('btnTema').addEventListener('click',function(){
     var novo=raiz.getAttribute('data-tema')==='claro'?'escuro':'claro';
     raiz.setAttribute('data-tema',novo);

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f1115">
+<title>Instalar o app Rastreando GPS</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Rastreando">
+<style>
+:root{--bg:#0f1115;--card:#171a20;--card2:#1f232b;--line:#2a2f39;--txt:#f2f4f7;--mut:#9aa3b2;--red:#e3262f;--green:#33d17a;--amber:#f5b83d}
+@media (prefers-color-scheme:light){:root{--bg:#f4f6f9;--card:#fff;--card2:#eef1f5;--line:#d9dee6;--txt:#14181f;--mut:#5d6675;--red:#d81f28;--green:#1a9e57;--amber:#b87800}}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;min-height:100vh;min-height:100dvh;padding:24px 16px calc(24px + env(safe-area-inset-bottom));display:flex;justify-content:center}
+main{width:100%;max-width:440px;display:flex;flex-direction:column;gap:16px}
+.brand{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;padding-top:8px}
+.brand img{width:84px;height:84px;border-radius:20px;object-fit:cover;box-shadow:0 6px 20px rgba(0,0,0,.35)}
+.brand h1{font-size:22px;letter-spacing:.02em}
+.brand p{font-size:15px;color:var(--mut);line-height:1.4}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px}
+.card h2{font-size:16px;margin-bottom:10px}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:52px;border-radius:14px;font:inherit;font-weight:700;font-size:16px;border:0;cursor:pointer;text-decoration:none;color:#fff;background:var(--red)}
+.btn[disabled]{opacity:.5;cursor:default}
+.btn.out{background:var(--card2);color:var(--txt);border:1px solid var(--line)}
+.steps{list-style:none;display:flex;flex-direction:column;gap:12px;counter-reset:s}
+.steps li{display:flex;gap:12px;align-items:flex-start;font-size:15px;line-height:1.45;counter-increment:s}
+.steps li::before{content:counter(s);flex:none;width:28px;height:28px;border-radius:50%;background:var(--red);color:#fff;font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center}
+.steps svg{vertical-align:-5px;width:22px;height:22px;stroke:var(--red);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.aviso{background:rgba(245,184,61,.12);border:1px solid var(--amber);color:var(--txt);border-radius:12px;padding:12px 14px;font-size:14px;line-height:1.45}
+.ok{background:rgba(51,209,122,.12);border:1px solid var(--green);border-radius:12px;padding:12px 14px;font-size:15px;line-height:1.45;font-weight:600}
+.peq{font-size:13px;color:var(--mut);line-height:1.45;text-align:center}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<main>
+  <div class="brand">
+    <img src="logo.jpeg" alt="" onerror="this.onerror=null;this.src='icon-192.png'">
+    <h1>Rastreando GPS</h1>
+    <p>Instale o aplicativo no seu celular para acompanhar seu veículo com um toque, como qualquer outro app.</p>
+  </div>
+
+  <div class="ok" id="jaInstalado" hidden>O aplicativo já está instalado neste aparelho.</div>
+  <div class="ok" id="instaladoAgora" hidden>Pronto! O aplicativo foi instalado. Procure o ícone “Rastreando” na tela do seu celular.</div>
+
+  <!-- Android -->
+  <section class="card" id="android" hidden>
+    <h2>Instalar no Android</h2>
+    <div class="aviso" id="avisoAndroidWeb" hidden style="margin-bottom:12px">Esta página abriu dentro de outro aplicativo (como WhatsApp ou Instagram). Toque nos três pontinhos <b>⋮</b> e escolha <b>Abrir no Chrome</b> para poder instalar.</div>
+    <button class="btn" id="btnInstalar" disabled>Instalar o aplicativo</button>
+    <div id="manualAndroid" hidden style="margin-top:14px">
+      <p class="peq" style="text-align:left;margin-bottom:10px">Se o botão não funcionar, faça assim no Chrome:</p>
+      <ol class="steps">
+        <li><span>Toque nos <b>três pontinhos ⋮</b> no canto de cima da tela.</span></li>
+        <li><span>Toque em <b>Instalar aplicativo</b> (ou <b>Adicionar à tela inicial</b>).</span></li>
+        <li><span>Confirme em <b>Instalar</b>.</span></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- iPhone -->
+  <section class="card" id="ios" hidden>
+    <h2>Instalar no iPhone</h2>
+    <div class="aviso" id="avisoIosWeb" hidden style="margin-bottom:12px">Esta página abriu dentro de outro aplicativo (como WhatsApp ou Instagram). Abra no <b>Safari</b> primeiro: toque no ícone de menu ou compartilhar e escolha <b>Abrir no Safari</b>.</div>
+    <ol class="steps">
+      <li><span>Toque em <b>Abrir o aplicativo</b> aqui embaixo.</span></li>
+      <li><span>Na barra do Safari, toque no botão <b>Compartilhar</b>
+        <svg viewBox="0 0 24 24"><path d="M12 3v12M8 7l4-4 4 4"/><path d="M6 11H5a1 1 0 00-1 1v8a1 1 0 001 1h14a1 1 0 001-1v-8a1 1 0 00-1-1h-1"/></svg>
+        (o quadrado com a seta para cima).</span></li>
+      <li><span>Role a lista e toque em <b>Adicionar à Tela de Início</b>
+        <svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M12 8v8M8 12h8"/></svg>.</span></li>
+      <li><span>Toque em <b>Adicionar</b>, no canto de cima.</span></li>
+    </ol>
+  </section>
+
+  <!-- Computador / outros -->
+  <section class="card" id="outros" hidden>
+    <h2>Abra no celular</h2>
+    <p style="font-size:15px;line-height:1.45;color:var(--mut)">Para instalar, abra este mesmo endereço no navegador do seu celular (Chrome no Android, Safari no iPhone).</p>
+  </section>
+
+  <a class="btn out" id="abrir" href="tempo-real.html">Abrir o aplicativo</a>
+  <p class="peq">Dúvidas? Fale com a Rastreando GPS.</p>
+</main>
+
+<script>
+(function(){
+  var ua = navigator.userAgent || '';
+  var ios = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  var android = /Android/i.test(ua);
+  var standalone = (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
+  var navegadorInterno = /FBAN|FBAV|Instagram|Line\/|MicroMessenger|WhatsApp|TikTok|; wv\)/i.test(ua) ||
+    (ios && !/Safari\//.test(ua) && !/CriOS|FxiOS|EdgiOS/.test(ua));
+  var $ = function(id){ return document.getElementById(id) };
+  var promptAdiado = null;
+
+  if (standalone) {
+    $('jaInstalado').hidden = false;
+    $('abrir').className = 'btn';
+  } else if (ios) {
+    $('ios').hidden = false;
+    if (navegadorInterno) $('avisoIosWeb').hidden = false;
+  } else if (android) {
+    $('android').hidden = false;
+    if (navegadorInterno) { $('avisoAndroidWeb').hidden = false; $('manualAndroid').hidden = false; }
+    else setTimeout(function(){ if (!promptAdiado) $('manualAndroid').hidden = false }, 2500);
+  } else {
+    $('outros').hidden = false;
+  }
+
+  window.addEventListener('beforeinstallprompt', function(e){
+    e.preventDefault();
+    promptAdiado = e;
+    $('btnInstalar').disabled = false;
+    $('manualAndroid').hidden = true;
+  });
+  $('btnInstalar').addEventListener('click', function(){
+    if (!promptAdiado) { $('manualAndroid').hidden = false; return }
+    promptAdiado.prompt();
+    promptAdiado.userChoice.then(function(r){
+      if (r && r.outcome === 'accepted') { $('android').hidden = true; $('instaladoAgora').hidden = false; $('abrir').className = 'btn' }
+      promptAdiado = null; $('btnInstalar').disabled = true;
+    }).catch(function(){});
+  });
+  window.addEventListener('appinstalled', function(){ $('android').hidden = true; $('instaladoAgora').hidden = false });
+
+  if ('serviceWorker' in navigator && location.protocol === 'https:') {
+    navigator.serviceWorker.register('sw.js').catch(function(){});
+  }
+})();
+</script>
+</body>
+</html>
