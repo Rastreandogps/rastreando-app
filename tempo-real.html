@@ -246,6 +246,12 @@ main{position:relative;flex:1;min-height:0;overflow:hidden}
 #smsCusto{font-size:11.5px;color:var(--mut);margin-top:6px;text-align:center}
 #btnRenome{margin-left:6px;width:28px;height:28px;border-radius:8px;border:1px solid var(--line);background:var(--card2);color:var(--mut);display:none;align-items:center;justify-content:center;vertical-align:middle}
 #btnRenome svg{width:14px;height:14px}
+#btnAncora{margin-left:6px;width:28px;height:28px;border-radius:8px;border:1px solid var(--line);background:var(--card2);color:var(--mut);display:none;align-items:center;justify-content:center;vertical-align:middle}
+#btnAncora svg{width:15px;height:15px}
+#btnAncora.on{color:#e3262f;border-color:#e3262f}
+.ancopt{display:block;width:100%;text-align:left;margin:8px 0;padding:12px 14px;border-radius:14px;border:1.5px solid var(--line);background:var(--card2);color:inherit;font:inherit;cursor:pointer}
+.ancopt b{display:block;font-size:15px}.ancopt small{display:block;color:var(--mut);font-size:12.5px;margin-top:2px}
+.ancopt.bl{border-color:#e3262f}
 .vname{display:flex;align-items:center}
 #admSmsRow .btn{white-space:nowrap;height:34px;border-radius:999px;font-size:12.5px;font-weight:650}
 #admSmsRow .btn::before{--ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 5h16v11H9l-5 4z'/%3E%3Cpath d='M8 9.5h8M8 12.5h5'/%3E%3C/svg%3E");display:block;width:15px;height:15px}
@@ -396,7 +402,7 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
       <div class="handlewrap"><span class="handle"></span></div>
       <div class="row">
         <div>
-          <div class="vname"><span id="vName"></span><button id="btnRenome" aria-label="Editar nome do veículo" title="Editar nome"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></button></div>
+          <div class="vname"><span id="vName"></span><button id="btnRenome" aria-label="Editar nome do veículo" title="Editar nome"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></button><button id="btnAncora" aria-label="Cerca rápida (âncora)" title="Cerca rápida (âncora)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="2.2"/><path d="M12 7.2V21"/><path d="M8 11h8"/><path d="M5 14c0 4 3 7 7 7s7-3 7-7"/></svg></button></div>
           <div class="plate" id="vPlate"></div>
         </div>
         <div class="stwrap"><span class="status" id="vStatus"></span><div class="upd" id="vUpd"></div></div>
@@ -584,7 +590,7 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
     <label class="flbl" for="eImei">IMEI (15 números)</label>
     <input class="fld" id="eImei" inputmode="numeric" autocomplete="off">
     <label class="flbl" for="eFone">Número do chip (com DDD)</label>
-    <input class="fld" id="eFone" inputmode="tel" placeholder="(21) 99999-9999" autocomplete="off">
+    <input class="fld" id="eFone" inputmode="tel" placeholder="(11) 99999-9999" autocomplete="off">
     <label class="flbl" for="eEmail">Cliente (dono do veículo)</label>
     <input class="fld" id="eBuscaCli" type="search" placeholder="Buscar cliente pelo nome ou login" autocomplete="off" autocapitalize="none" style="margin-bottom:6px">
     <select class="fld" id="eEmail" style="appearance:auto"></select>
@@ -671,6 +677,7 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
     <label class="fchk"><input type="checkbox" id="pmSms"> Bloquear e desbloquear por SMS (pela plataforma, R$ 0,10 cada)</label>
     <label class="fchk"><input type="checkbox" id="pmReset"> Botão de reset (RESET#), pela plataforma (R$ 0,10) ou pelo celular dele (grátis)</label>
     <label class="fchk"><input type="checkbox" id="pmNome"> Editar o nome do veículo</label>
+    <label class="fchk"><input type="checkbox" id="pmAncora"> Cerca rápida (botão da âncora no veículo)</label>
     <div id="pmCob" style="background:var(--card2);border-radius:12px;padding:10px 12px;font-size:13.5px;margin:4px 0 10px"></div>
     <div class="ferr" id="pmErro"></div>
     <div class="actions2">
@@ -752,6 +759,27 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
 </div>
 
 <!-- Aviso de bloqueio por cerca -->
+<div class="modal" id="mAncora">
+  <div class="box2">
+    <h3 id="anTitulo">Cerca rápida (âncora)</h3>
+    <p id="anTexto" style="font-size:13.5px;color:var(--mut);margin:0 0 8px"></p>
+    <label class="flbl" for="anRaio">Tamanho da cerca</label>
+    <select class="fld" id="anRaio">
+      <option value="50">50 m (bem pertinho)</option>
+      <option value="100" selected>100 m</option>
+      <option value="200">200 m</option>
+      <option value="500">500 m</option>
+    </select>
+    <button class="ancopt" id="anAvisar"><b>Só avisar</b><small>Você recebe a notificação se o veículo sair daqui.</small></button>
+    <button class="ancopt bl" id="anBloquear"><b>Avisar e bloquear</b><small>Se o veículo sair daqui, o bloqueio é enviado automaticamente.</small></button>
+    <div class="ferr" id="anErro"></div>
+    <div class="actions2">
+      <button class="btn btn-out" id="anRemover" style="display:none">Remover âncora</button>
+      <button class="btn btn-out" data-close>Cancelar</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal" id="mCercaBloq">
   <div class="box2">
     <h3>Bloqueio automático</h3>
@@ -1385,6 +1413,7 @@ function desbCancelar(id){
 }
 function desbMostrar(){
   const v=ativo(), row=$('desbRow'); if(!row) return;
+  try{ marcarBotaoAncora() }catch(e){}
   const d=v && desbPendente[v.id];
   if(!d){ row.style.display='none'; return }
   $('desbTxt').textContent='Desbloqueio em andamento: o sistema está tentando sozinho'+(d.smsEnviado&&d.smsEmMs?' (SMS enviado às '+horaAtual(d.smsEmMs)+')':'')+'.';
@@ -1440,15 +1469,15 @@ async function smsBloquear(v,bloquear){
 }
 
 /* ===== PERMISSÕES DO CLIENTE (o administrador escolhe) ===== */
-let permCli={smsBloqueio:false,reset:false,editarNome:false}, cobrCli=null;
+let permCli={smsBloqueio:false,reset:false,editarNome:false,cercaRapida:false}, cobrCli=null;
 const brl2 = n => 'R$ '+Number(n||0).toFixed(2).replace('.',',');
 async function carregarPermissoes(){
-  if(ehAdmin){ permCli={smsBloqueio:true,reset:true,editarNome:true}; cobrCli=null; mostrarBotoesSms(); return }
+  if(ehAdmin){ permCli={smsBloqueio:true,reset:true,editarNome:true,cercaRapida:true}; cobrCli=null; mostrarBotoesSms(); return }
   if(!lsGet('rg_token')) return;
   try{
     const r=await fetch(DESB_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',body:JSON.stringify({acao:'minhas',token:lsGet('rg_token')})});
     if(!r.ok) return;
-    const j=await r.json(); permCli=Object.assign({smsBloqueio:false,reset:false,editarNome:false},j.perm||{}); cobrCli=j.cobranca||null;
+    const j=await r.json(); permCli=Object.assign({smsBloqueio:false,reset:false,editarNome:false,cercaRapida:false},j.perm||{}); cobrCli=j.cobranca||null;
     mostrarBotoesSms();
   }catch(e){}
 }
@@ -1467,6 +1496,7 @@ function mostrarBotoesSms(){
   const c=$('smsCusto');
   if(!ehAdmin && cobrCli && (sms||rs)){ c.textContent='SMS pela plataforma: '+cobrCli.pendentes+' ('+brl2(cobrCli.valor)+' na próxima fatura)'; c.style.display='' } else c.style.display='none';
   $('btnRenome').style.display=(ehAdmin||permCli.editarNome)?'inline-flex':'none';
+  $('btnAncora').style.display=(ehAdmin||permCli.cercaRapida)?'inline-flex':'none';
 }
 /* Reset: pela plataforma (cobrado) ou pelo celular do cliente (grátis) */
 function linkSmsTexto(f,txt){
@@ -1531,7 +1561,7 @@ async function chamarPerm(acao,extra){
 }
 function mostrarPerm(j){
   const p=j.perm||{}, c=j.cobranca||{pendentes:0,valor:0};
-  $('pmSms').checked=!!p.smsBloqueio; $('pmReset').checked=!!p.reset; $('pmNome').checked=!!p.editarNome;
+  $('pmSms').checked=!!p.smsBloqueio; $('pmReset').checked=!!p.reset; $('pmNome').checked=!!p.editarNome; $('pmAncora').checked=!!p.cercaRapida;
   $('pmCob').innerHTML='SMS pela plataforma a cobrar: <b>'+c.pendentes+'</b> = <b>'+brl2(c.valor)+'</b>'+
     (c.faturadoEm?'<br><span style="color:var(--mut);font-size:12px">Último zerado em '+fmtHora(c.faturadoEm)+' · total já faturado: '+(c.totalFaturado||0)+' SMS</span>':'');
   $('pmZerar').disabled=!c.pendentes;
@@ -1544,7 +1574,7 @@ async function abrirPermissoes(userId){
 }
 $('pmSalvar').onclick=async()=>{
   $('pmSalvar').disabled=true; $('pmErro').textContent='';
-  try{ mostrarPerm(await chamarPerm('permSalvar',{perm:{smsBloqueio:$('pmSms').checked,reset:$('pmReset').checked,editarNome:$('pmNome').checked}})); toast('Permissões salvas.') }
+  try{ mostrarPerm(await chamarPerm('permSalvar',{perm:{smsBloqueio:$('pmSms').checked,reset:$('pmReset').checked,editarNome:$('pmNome').checked,cercaRapida:$('pmAncora').checked}})); toast('Permissões salvas.') }
   catch(e){ $('pmErro').textContent=e.message }
   $('pmSalvar').disabled=false;
 };
@@ -2609,6 +2639,76 @@ $('cpSalvar').onclick=async()=>{
   }
 };
 
+
+/* ===== CERCA RÁPIDA (âncora): 1 toque cria uma cerca em volta do veículo, onde ele está agora ===== */
+const ANC_PREFIXO='Âncora · ';
+function ancoraDe(v){
+  return cercas.find(x=>{ const a=x.g.attributes||{}; return String(x.g.name||'').startsWith(ANC_PREFIXO) && String(a.veiculos||'')===String(v.id) });
+}
+function marcarBotaoAncora(){
+  const v=ativo(), b=$('btnAncora'); if(!b) return;
+  b.classList.toggle('on',!!(v && ancoraDe(v)));
+}
+async function abrirAncora(){
+  const v=ativo(); if(!v){ toast('Escolha um veículo com posição no mapa.'); return }
+  $('anErro').textContent=''; $('anTitulo').textContent='Cerca rápida · '+v.nome;
+  await carregarCercas().catch(()=>{});
+  const ex=ancoraDe(v);
+  if(ex){
+    const a=ex.g.attributes||{};
+    $('anTexto').textContent='Este veículo já tem uma âncora de '+fmtRaio(ex.c.raio)+' ('+(a.acao==='bloquear'?'avisa e bloqueia':'só avisa')+'). Escolha de novo para trocar, ou remova.';
+    $('anRaio').value=String([50,100,200,500].includes(Math.round(ex.c.raio))?Math.round(ex.c.raio):100);
+  } else {
+    $('anTexto').textContent='Cria uma cerca em volta de onde o veículo está agora. Se ele sair dela, você é avisado.';
+  }
+  $('anRemover').style.display=ex?'':'none';
+  abrir('mAncora');
+}
+async function criarAncora(bloq,relancar){
+  const v=ativo(); if(!v) return;
+  const raio=+$('anRaio').value||100, ex=ancoraDe(v);
+  if(!ehAdmin && !ex && cercas.length>=CERCA_MAX_CLIENTE){ const m='Limite de '+CERCA_MAX_CLIENTE+' cercas. Exclua uma para criar outra.'; $('anErro').textContent=m; if(relancar) throw new Error(m); return }
+  $('anAvisar').disabled=true; $('anBloquear').disabled=true; $('anErro').textContent='';
+  let criada=null;
+  try{
+    const corpo={name:ANC_PREFIXO+v.nome,description:'',area:'CIRCLE ('+v.pos[0].toFixed(6)+' '+v.pos[1].toFixed(6)+', '+raio+')',
+      attributes:{acao:bloq?'bloquear':'notificar',quando:'sair',veiculos:String(v.id),criada:new Date().toISOString(),jaDentro:String(v.id),lados:v.id+':d',dono:(lsGet('rg_email')||'').toLowerCase(),ancora:'1'}};
+    const r=await api('/api/geofences',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(corpo)});
+    if(!r.ok) throw new Error('O servidor não aceitou criar a cerca (erro '+r.status+').');
+    criada=await r.json();
+    const p=await api('/api/permissions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({deviceId:+v.id,geofenceId:criada.id})});
+    if(!p.ok) throw new Error('Não consegui ligar a cerca ao veículo (erro '+p.status+').');
+    if(ex){ try{ await api('/api/geofences/'+ex.g.id,{method:'DELETE'}) }catch(e){ if(e.sessao) throw e } } /* troca: só apaga a antiga depois da nova criada */
+    fechar(); await carregarCercas(); marcarBotaoAncora();
+    toast('Âncora criada: '+(bloq?'avisa e bloqueia':'avisa')+' se '+v.nome+' sair de '+fmtRaio(raio)+' deste ponto.',6000);
+  }catch(e){
+    if(e.sessao) return;
+    if(criada && criada.id){ try{ await api('/api/geofences/'+criada.id,{method:'DELETE'}) }catch(x){} }
+    $('anErro').textContent=e.message||'Não consegui criar a âncora.';
+    $('anAvisar').disabled=false; $('anBloquear').disabled=false;
+    if(relancar) throw e;
+  }
+  $('anAvisar').disabled=false; $('anBloquear').disabled=false;
+}
+$('btnAncora').onclick=abrirAncora;
+$('anAvisar').onclick=()=>criarAncora(false);
+$('anBloquear').onclick=()=>{
+  const v=ativo(); if(!v) return;
+  const raio=+$('anRaio').value||100;
+  fechar();
+  pedirConfirmacao('Bloquear se sair da cerca?','Se '+v.nome+' sair da cerca, o bloqueio será enviado automaticamente, mesmo com o veículo em movimento (o rastreador só corta abaixo de 20 km/h). Confirma?','Sim, avisar e bloquear',async()=>{ $('anRaio').value=String(raio); await criarAncora(true,true) });
+};
+$('anRemover').onclick=async()=>{
+  const v=ativo(); const ex=v&&ancoraDe(v); if(!ex) return;
+  $('anRemover').disabled=true;
+  try{
+    const r=await api('/api/geofences/'+ex.g.id,{method:'DELETE'});
+    if(!r.ok && r.status!==204) throw new Error('Não consegui remover (erro '+r.status+').');
+    fechar(); await carregarCercas(); marcarBotaoAncora(); toast('Âncora removida.');
+  }catch(e){ if(!e.sessao) $('anErro').textContent=e.message||'Não consegui remover.' }
+  $('anRemover').disabled=false;
+};
+
 /* ----- alertas (ignição e cercas) — vêm do servidor (rastreamento-alertas.js) ----- */
 const chaveVisto=()=>'rg_alvisto_'+(lsGet('rg_email')||'');
 async function fnAl(acao,extra){
@@ -2747,7 +2847,7 @@ function mostrarLogin(msg){
 function sair(msg){
   lsDel('rg_token'); lsDel('rg_email'); try{sessionStorage.removeItem('rg_basic')}catch(e){}
   cercasReset();
-  permCli={smsBloqueio:false,reset:false,editarNome:false}; cobrCli=null;
+  permCli={smsBloqueio:false,reset:false,editarNome:false,cercaRapida:false}; cobrCli=null;
   ehAdmin=false; usuarios=[]; $('aview').classList.remove('show');
   document.querySelector('nav button[data-tab="Admin"]').style.display='none'; document.querySelector('nav button[data-tab="Faturas"]').style.display='none'; cpfsMapa={}; faturasDados=null; aplicarBloqueio(null); euDesligar(); $('btnEu').style.display='none'; irPara('Mapa');
   auth=null;
