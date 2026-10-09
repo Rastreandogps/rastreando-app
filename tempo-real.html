@@ -322,7 +322,7 @@ body.desenhando .follow,body.desenhando .sheet,body.desenhando .vazio{display:no
 .alrow .dot.i{background:#60a5fa}.alrow .dot.b{background:var(--red)}
 .alrow{padding:12px 0;border-bottom:1px solid var(--line);display:flex;gap:10px;align-items:flex-start}
 .alrow .dot{width:10px;height:10px;border-radius:50%;margin-top:6px;flex:none}
-.alrow .dot.e{background:var(--green)}.alrow .dot.s{background:var(--amber)}
+.alrow .dot.e{background:var(--green)}.alrow .dot.s{background:var(--amber)}.alrow .dot.v{background:#a78bfa}
 .alrow .tx{font-size:15px;font-weight:600}
 .alrow .hr{font-size:12px;color:var(--mut);margin-top:2px}
 .alrow.novo .tx::after{content:" • novo";color:var(--red2);font-size:12px}
@@ -487,6 +487,10 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
       <details class="alcard alcfg" id="alIgnBox"><summary><span>Alertas de ignição</span><small id="alIgnResumo"></small><span class="seta">›</span></summary>
         <p class="alhint">Escolha os veículos que avisam quando a ignição liga ou desliga. Os alertas de cerca já vêm ligados em toda cerca criada.</p>
         <div id="alIgn"></div>
+      </details>
+      <details class="alcard alcfg" id="alVoltaBox"><summary><span>Avisar quando voltar a transmitir</span><small id="alVoltaResumo"></small><span class="seta">›</span></summary>
+        <p class="alhint">Para aparelho que perde o sinal (estrada, área rural). Ligue no veículo: quando ele ficar 30 minutos ou mais sem posição e voltar a transmitir, você recebe um aviso. Depois de avisar, a chave desliga sozinha; é só ligar de novo quando quiser outro aviso.</p>
+        <div id="alVolta"></div>
       </details>
       <div id="alItens"></div>
     </div>
@@ -2586,7 +2590,7 @@ async function fnAl(acao,extra){
   if(!r.ok) throw new Error(j.erro||('Erro '+r.status));
   return j;
 }
-let alCfg={ign:{}};
+let alCfg={ign:{},volta:{}};
 async function carregarAlertas(aberta){
   if(!auth || !lsGet('rg_token')) return;
   try{
@@ -2596,6 +2600,7 @@ async function carregarAlertas(aberta){
     if(alertasIds){
       const novos=alertas.filter(e=>!alertasIds.has(e.id));
       if(novos.length && !$('alview').classList.contains('show')) toast('Alerta: '+novos[0].titulo,5000);
+      if(novos.some(e=>e.tipo==='volta')) carregarCfgAlertas(); /* o aviso de "voltou" desliga sozinho no servidor: atualiza a chave */
     }
     alertasIds=novosIds;
     desenharAlertas();
@@ -2607,7 +2612,7 @@ function desenharAlertas(){
   const v2=lsGet(chaveVisto()), limite=v2?new Date(v2).getTime():Date.now();
   const abertaAgora=$('alview').classList.contains('show');
   const novos=alertas.filter(e=>e.em>limite).length;
-  const cor=t=>t==='ignicao_on'||t==='ignicao_off'?'i':(t==='cerca_bloqueio'?'b':(t==='cerca_saiu'?'s':'e'));
+  const cor=t=>t==='ignicao_on'||t==='ignicao_off'?'i':(t==='volta'?'v':(t==='cerca_bloqueio'?'b':(t==='cerca_saiu'?'s':'e')));
   $('alItens').innerHTML=alertas.map(e=>
     '<div class="alrow'+(e.em>limite&&!abertaAgora?' novo':'')+'"><span class="dot '+cor(e.tipo)+'"></span><div><div class="tx">'+esc(e.titulo)+'</div>'+
     '<div class="hr">'+esc(new Date(e.em).toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}))+(e.texto?' · '+esc(e.texto):'')+'</div></div></div>'
@@ -2666,8 +2671,8 @@ async function ativarPush(){
 
 /* ----- alertas de ignição por veículo ----- */
 async function carregarCfgAlertas(){
-  try{ const j=await fnAl('alertasEstado'); alCfg=j.cfg||{ign:{}} }catch(e){}
-  desenharIgn();
+  try{ const j=await fnAl('alertasEstado'); alCfg=j.cfg||{ign:{},volta:{}} }catch(e){}
+  desenharIgn(); desenharVolta();
 }
 function desenharIgn(){
   const ign=alCfg.ign||{}, lista=veiculos.slice().sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
@@ -2680,7 +2685,28 @@ $('alIgn').addEventListener('change',async e=>{
   i.disabled=true;
   try{ const j=await fnAl('alertasIgnicao',{deviceId:+i.dataset.ign,ligado:i.checked}); alCfg=j.cfg||alCfg; toast(i.checked?'Alerta de ignição ligado.':'Alerta de ignição desligado.') }
   catch(err){ i.checked=!i.checked; toast(err.message) }
-  i.disabled=false; desenharIgn();
+  i.disabled=false; desenharIgn(); desenharVolta();
+});
+
+/* ----- aviso "voltou a transmitir" por veículo (manual, um aviso por vez) ----- */
+function desenharVolta(){
+  const vo=alCfg.volta||{}, lista=veiculos.slice().sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
+  const n=lista.filter(v=>vo[String(v.id)]).length;
+  $('alVoltaResumo').textContent=n?(n+(n===1?' veículo':' veículos')):'nenhum';
+  $('alVolta').innerHTML=lista.map(v=>'<div class="igrow"><span>'+esc(v.nome)+'</span><label class="sw"><input type="checkbox" data-volta="'+v.id+'"'+(vo[String(v.id)]?' checked':'')+'><span></span></label></div>').join('') || '<div class="alhint">Nenhum veículo.</div>';
+}
+$('alVolta').addEventListener('change',async e=>{
+  const i=e.target.closest('input[data-volta]'); if(!i) return;
+  i.disabled=true;
+  try{
+    const j=await fnAl('alertasVolta',{deviceId:+i.dataset.volta,ligado:i.checked});
+    alCfg=Object.assign({ign:{},volta:{}},j.cfg||alCfg);
+    if(!i.checked) toast('Aviso desligado.');
+    else if(j.transmitindo) toast('Aviso ligado. Este aparelho está transmitindo agora: o aviso só vale quando ele ficar sem sinal e voltar.',7000);
+    else toast('Aviso ligado. Você será avisado quando este aparelho voltar a transmitir.',5000);
+  }
+  catch(err){ i.checked=!i.checked; toast(err.message) }
+  i.disabled=false; desenharVolta();
 });
 /* tocar na notificação abre a aba Alertas */
 if('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('message',e=>{ if(e.data&&e.data.abrir==='alertas') irPara('Alertas') });
