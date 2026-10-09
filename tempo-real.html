@@ -234,6 +234,13 @@ nav button{position:relative}
 .cpanel select.fld{appearance:auto}
 .cveic{max-height:116px;overflow-y:auto;border:1px solid var(--line);border-radius:12px;padding:6px 10px;margin-bottom:10px;background:var(--card2)}
 .cveic .fchk{margin:6px 0}
+.cbusca{display:flex;gap:6px;margin-bottom:6px}
+.cbusca .fld{flex:1;margin:0}
+.cres{border:1px solid var(--line);border-radius:12px;background:var(--card2);margin-bottom:10px;max-height:150px;overflow-y:auto;display:none}
+.cres.show{display:block}
+.cres button{display:block;width:100%;text-align:left;padding:9px 12px;font-size:13px;color:var(--txt);border-bottom:1px solid var(--line);background:none}
+.cres button:last-child{border-bottom:0}
+.cres .vazio{padding:9px 12px;font-size:13px;color:var(--mut)}
 .cpin{width:26px;height:26px;border-radius:50%;background:var(--red);border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.5)}
 body.desenhando .follow,body.desenhando .sheet,body.desenhando .vazio{display:none!important}
 .alrow{padding:12px 0;border-bottom:1px solid var(--line);display:flex;gap:10px;align-items:flex-start}
@@ -395,8 +402,10 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
     <div class="vlist" id="alList"></div>
   </section>
   <section class="cpanel" id="cpanel">
-    <div class="chead"><b>Nova cerca</b><button class="linkbtn" id="cpCancel">Cancelar</button></div>
-    <p class="chint">Toque no mapa ou arraste o ponto vermelho para escolher o centro.</p>
+    <div class="chead"><b id="cpTitulo">Nova cerca</b><button class="linkbtn" id="cpCancel">Cancelar</button></div>
+    <p class="chint">Toque no mapa, arraste o ponto vermelho ou busque um endereço para escolher o centro.</p>
+    <div class="cbusca"><input class="fld" id="cpBusca" placeholder="Buscar endereço (rua, bairro, cidade)" autocomplete="off" enterkeyhint="search"><button class="mini" id="cpBuscar">Buscar</button></div>
+    <div class="cres" id="cpRes"></div>
     <label class="flbl" for="cpNome">Nome da cerca</label>
     <input class="fld" id="cpNome" maxlength="40" placeholder="Ex.: Casa, Oficina" autocomplete="off">
     <label class="flbl" for="cpRaio">Tamanho (raio): <b id="cpRaioTxt">200 m</b></label>
@@ -1958,7 +1967,7 @@ function desenharCercasLista(){
     return '<div class="arow" data-id="'+x.g.id+'"><div class="t">'+esc(x.g.name||'Cerca')+'</div>'+
       '<div class="s">Raio '+fmtRaio(x.c.raio)+' · '+(bloq?'BLOQUEIA ':'avisa ')+(FRASE_QUANDO[a.quando]||FRASE_QUANDO.ambos)+'</div>'+
       '<div class="s">'+(ids.length?ids.map(nomeVeic).map(esc).join(', '):'sem veículo informado')+'</div>'+
-      '<div class="bts"><button class="mini" data-a="ver">Ver no mapa</button><button class="mini perigo" data-a="excluir">Excluir</button></div></div>';
+      '<div class="bts"><button class="mini" data-a="ver">Ver no mapa</button><button class="mini" data-a="editar">Editar</button><button class="mini perigo" data-a="excluir">Excluir</button></div></div>';
   }).join('') || '<div class="vempty">Nenhuma cerca criada ainda.<br>Toque em “+ Nova cerca”.</div>';
 }
 $('cList').addEventListener('click',e=>{
@@ -1967,6 +1976,8 @@ $('cList').addEventListener('click',e=>{
   if(b.dataset.a==='ver'){
     irPara('Mapa');
     map.fitBounds(L.circle([x.c.lat,x.c.lon],{radius:x.c.raio}).getBounds(),{padding:[30,30]});
+  } else if(b.dataset.a==='editar'){
+    abrirDesenho(x);
   } else if(b.dataset.a==='excluir'){
     pedirConfirmacao('Excluir cerca','Excluir a cerca “'+(x.g.name||'')+'”? Ela deixa de avisar'+((x.g.attributes||{}).acao==='bloquear'?' e de bloquear':'')+'.','Excluir',async()=>{
       const r=await api('/api/geofences/'+x.g.id,{method:'DELETE'});
@@ -1987,15 +1998,26 @@ $('cNova').onclick=()=>{
   if(!ehAdmin && cercas.length>=CERCA_MAX_CLIENTE){ toast('Limite de '+CERCA_MAX_CLIENTE+' cercas. Exclua uma para criar outra.'); return }
   abrirDesenho();
 };
-function abrirDesenho(){
+/* posição do controle de tamanho (0 a 100) para um raio em metros: o contrário de raioDe */
+function valorDoRaio(r){ return Math.max(0,Math.min(100,Math.round(100*Math.log(Math.max(r,1)/50)/Math.log(100)))) }
+function textoBotaoSalvar(){ return desenho && desenho.edit ? 'Salvar alterações' : 'Criar cerca' }
+function abrirDesenho(edit){
   irPara('Mapa'); setSeguir(false);
-  const v=ativo(), c0=v?L.latLng(v.pos[0],v.pos[1]):map.getCenter();
-  desenho={centro:c0,raio:raioDe(30),marker:null,circulo:null};
-  $('cpNome').value=''; $('cpRaio').value=30; $('cpQuando').value='entrar'; $('cpErro').textContent='';
-  $('cpBloq').checked=false; bloqConfirmado=false; $('cpBloqRow').style.display=CERCA_BLOQUEIO?'':'none';
-  $('cpSalvar').disabled=false; $('cpSalvar').textContent='Criar cerca';
-  const sel=selId;
-  $('cpVeic').innerHTML=veiculos.map(x=>'<label class="fchk"><input type="checkbox" value="'+x.id+'"'+(x.id===sel?' checked':'')+'> '+esc(x.nome)+'</label>').join('');
+  const v=ativo();
+  const a=edit ? (edit.g.attributes||{}) : {};
+  const c0=edit ? L.latLng(edit.c.lat,edit.c.lon) : (v?L.latLng(v.pos[0],v.pos[1]):map.getCenter());
+  desenho={centro:c0,raio:edit?edit.c.raio:raioDe(30),marker:null,circulo:null,edit:edit||null};
+  $('cpTitulo').textContent=edit?'Editar cerca':'Nova cerca';
+  $('cpNome').value=edit?(edit.g.name||''):''; $('cpRaio').value=edit?valorDoRaio(edit.c.raio):30; $('cpRaioTxt').textContent=fmtRaio(desenho.raio);
+  $('cpQuando').value=edit?(a.quando||'ambos'):'entrar'; $('cpErro').textContent='';
+  $('cpBusca').value=''; $('cpRes').classList.remove('show'); $('cpRes').innerHTML='';
+  const eraBloq=!!(edit && a.acao==='bloquear');
+  $('cpBloq').checked=eraBloq; bloqConfirmado=eraBloq; $('cpBloqRow').style.display=CERCA_BLOQUEIO?'':'none';
+  $('cpSalvar').disabled=false; $('cpSalvar').textContent=textoBotaoSalvar();
+  const sel=selId, marcados=edit?String(a.veiculos||'').split(',').filter(Boolean):null;
+  /* veículo da cerca que não aparece na lista deste acesso continua na cerca (não é removido sem querer) */
+  desenho.extras=marcados?marcados.filter(id=>!veiculos.some(x=>String(x.id)===id)):[];
+  $('cpVeic').innerHTML=veiculos.map(x=>'<label class="fchk"><input type="checkbox" value="'+x.id+'"'+((marcados?marcados.includes(String(x.id)):x.id===sel)?' checked':'')+'> '+esc(x.nome)+'</label>').join('');
   desenho.marker=L.marker(c0,{draggable:true,zIndexOffset:2000,icon:L.divIcon({className:'',html:'<div class="cpin"></div>',iconSize:[26,26],iconAnchor:[13,13]})}).addTo(map);
   desenho.circulo=L.circle(c0,{radius:desenho.raio,color:'#e3262f',weight:2,fillOpacity:.12}).addTo(map);
   desenho.marker.on('drag',e=>{ desenho.centro=e.latlng; desenho.circulo.setLatLng(e.latlng) });
@@ -2014,6 +2036,30 @@ function cancelarDesenho(){
   desenho=null; document.body.classList.remove('desenhando'); $('cpanel').classList.remove('show');
 }
 map.on('click',e=>{ if(desenho){ desenho.centro=e.latlng; desenho.marker.setLatLng(e.latlng); desenho.circulo.setLatLng(e.latlng) } });
+/* buscar endereço para pôr a cerca em outro lugar (OpenStreetMap, só quando o cliente toca em Buscar) */
+let buscaAnt=0;
+async function buscarEnderecoCerca(){
+  if(!desenho) return;
+  const q=$('cpBusca').value.trim(), box=$('cpRes');
+  if(q.length<3){ box.innerHTML='<div class="vazio">Digite pelo menos 3 letras.</div>'; box.classList.add('show'); return }
+  if(Date.now()-buscaAnt<1200) return; buscaAnt=Date.now();
+  box.innerHTML='<div class="vazio">Buscando...</div>'; box.classList.add('show');
+  try{
+    const c=map.getCenter();
+    const r=await fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=6&countrycodes=br&accept-language=pt-BR&viewbox='+(c.lng-1)+','+(c.lat+1)+','+(c.lng+1)+','+(c.lat-1)+'&q='+encodeURIComponent(q));
+    const lista=r.ok?await r.json():[];
+    if(!lista.length){ box.innerHTML='<div class="vazio">Nenhum endereço encontrado. Tente com o bairro ou a cidade.</div>'; return }
+    box.innerHTML=lista.map((x,i)=>'<button data-i="'+i+'">'+esc(String(x.display_name||'').split(', Região')[0])+'</button>').join('');
+    box.onclick=e=>{
+      const b=e.target.closest('button[data-i]'); if(!b||!desenho) return;
+      const x=lista[+b.dataset.i], ll=L.latLng(+x.lat,+x.lon);
+      desenho.centro=ll; desenho.marker.setLatLng(ll); desenho.circulo.setLatLng(ll);
+      box.classList.remove('show'); $('cpBusca').blur(); ajustarDesenho();
+    };
+  }catch(e){ box.innerHTML='<div class="vazio">Não consegui buscar agora. Confira a internet.</div>' }
+}
+$('cpBuscar').onclick=buscarEnderecoCerca;
+$('cpBusca').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); buscarEnderecoCerca() } });
 $('cpRaio').addEventListener('input',()=>{
   if(!desenho) return;
   desenho.raio=raioDe(+$('cpRaio').value); $('cpRaioTxt').textContent=fmtRaio(desenho.raio); desenho.circulo.setRadius(desenho.raio);
@@ -2040,7 +2086,41 @@ $('cpSalvar').onclick=async()=>{
   /* de que lado da cerca cada veículo está AGORA (última posição conhecida): d = dentro, f = fora, ? = sem posição */
   const lados=ids.map(id=>{ const v=veiculos.find(x=>String(x.id)===id); return id+':'+(v&&v.pos?(distM(v.pos,[c.lat,c.lng])<=raio?'d':'f'):'?') });
   const quandoSel=$('cpQuando').value;
-  const btn=$('cpSalvar'); btn.disabled=true; btn.textContent='Criando...';
+  const btn=$('cpSalvar');
+  if(desenho.edit){ /* ----- editar cerca existente ----- */
+    btn.disabled=true; btn.textContent='Salvando...';
+    try{
+      const g=desenho.edit.g, a0=g.attributes||{};
+      const antes=String(a0.veiculos||'').split(',').filter(Boolean);
+      const todos=ids.concat(desenho.extras||[]);
+      const ladosTodos=lados.concat((desenho.extras||[]).map(id=>id+':?'));
+      const corpo=Object.assign({},g,{name:nome,area:'CIRCLE ('+c.lat.toFixed(6)+' '+c.lng.toFixed(6)+', '+raio+')',
+        attributes:Object.assign({},a0,{acao:bloq?'bloquear':'notificar',quando:quandoSel,veiculos:todos.join(','),editada:new Date().toISOString(),jaDentro:jaDentro.join(','),lados:ladosTodos.join(',')})});
+      const r=await api('/api/geofences/'+g.id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(corpo)});
+      if(!r.ok) throw new Error('O servidor não aceitou salvar a cerca (erro '+r.status+').');
+      const falhas=[];
+      for(const id of todos.filter(x=>!antes.includes(x))){
+        const p=await api('/api/permissions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({deviceId:+id,geofenceId:g.id})});
+        if(!p.ok && p.status!==400) falhas.push(nomeVeic(id));
+      }
+      for(const id of antes.filter(x=>!todos.includes(x))){
+        const p=await api('/api/permissions',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({deviceId:+id,geofenceId:g.id})});
+        if(!p.ok && p.status!==204 && p.status!==404) falhas.push(nomeVeic(id));
+      }
+      cancelarDesenho(); await carregarCercas(); irPara('Cercas');
+      let aviso='Cerca salva.';
+      if(falhas.length) aviso='Cerca salva, mas não consegui atualizar o veículo: '+falhas.join(', ')+'. Tente de novo.';
+      else if(bloq && quandoSel==='sair'){ const fora=ids.filter(id=>!jaDentro.includes(id)); if(fora.length) aviso='Cerca salva. Atenção: '+fora.map(nomeVeic).join(', ')+' NÃO está dentro dela agora. O bloqueio só passa a valer depois que ele for visto dentro.' }
+      else if(bloq && quandoSel==='entrar' && jaDentro.length) aviso='Cerca salva. Atenção: '+jaDentro.map(nomeVeic).join(', ')+' já está dentro. Só bloqueia depois de sair e entrar de novo.';
+      toast(aviso,aviso.length>40?7000:3200);
+    }catch(e){
+      if(e.sessao) return;
+      erro(e.message||'Não consegui salvar a cerca.');
+      btn.disabled=false; btn.textContent=textoBotaoSalvar();
+    }
+    return;
+  }
+  btn.disabled=true; btn.textContent='Criando...';
   let criada=null;
   try{
     const corpo={name:nome,description:'',area:'CIRCLE ('+c.lat.toFixed(6)+' '+c.lng.toFixed(6)+', '+raio+')',
@@ -2076,8 +2156,9 @@ function quandoOk(ev,x){
   if(q==='entrar' && ev.type!=='geofenceEnter') return false;
   if(q==='sair' && ev.type!=='geofenceExit') return false;
   /* carro que já estava dentro quando a cerca foi criada: o Traccar gera uma "entrada" falsa logo depois */
-  if(ev.type==='geofenceEnter' && a.criada && String(a.jaDentro||'').split(',').includes(String(ev.deviceId))){
-    const dt=new Date(ev.eventTime).getTime()-new Date(a.criada).getTime();
+  const desde=a.editada||a.criada;
+  if(ev.type==='geofenceEnter' && desde && String(a.jaDentro||'').split(',').includes(String(ev.deviceId))){
+    const dt=new Date(ev.eventTime).getTime()-new Date(desde).getTime();
     if(dt<15*60*1000) return false;
   }
   return true;
