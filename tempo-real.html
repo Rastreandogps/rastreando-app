@@ -327,6 +327,7 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
     </div>
     <div class="addr" id="addrRow"><strong id="vAddr"></strong><span id="vAgo"></span></div>
     <div class="addr" id="distRow" style="display:none"><strong id="vDist"></strong></div>
+    <div class="addr" id="desbRow" style="display:none"><strong id="desbTxt" style="color:var(--grn,#16a34a)"></strong></div>
     <div class="actions">
       <button class="btn btn-red" id="btnBlock">Bloquear</button>
       <button class="btn btn-out" id="btnUnblock">Desbloquear</button>
@@ -1072,8 +1073,12 @@ document.querySelectorAll('[data-close]').forEach(b=>b.onclick=fechar);
 
 function abrirConfirmacao(acao){
   const v=ativo(); if(!v) return;
-  if(!v.online){
-    toast('Aparelho sem conexão com o servidor. Por segurança, o comando não foi enviado.');
+  if(!v.online && acao==='bloquear'){
+    toast('Aparelho sem conexão com o servidor. Por segurança, o bloqueio não foi enviado.');
+    return;
+  }
+  if(acao==='desbloquear' && desbPendente[v.id]){
+    toast('Já estamos desbloqueando este veículo automaticamente. Não precisa apertar de novo.',5000);
     return;
   }
   acaoCmd=acao;
@@ -1081,7 +1086,8 @@ function abrirConfirmacao(acao){
   $('cmdTitle').textContent=(bloquear?'Bloquear ':'Desbloquear ')+v.nome+'?';
   $('cmdText').textContent = bloquear
     ? 'O motor será cortado. O veículo só volta a funcionar depois do desbloqueio.'
-    : 'O veículo poderá ser ligado normalmente.';
+    : (v.online ? 'O veículo poderá ser ligado normalmente.'
+       : 'O rastreador está sem sinal agora. O desbloqueio fica guardado e o sistema continua tentando sozinho (pela internet e por SMS) até o rastreador obedecer.');
   const w=$('cmdWarn'), avisos=[];
   if(bloquear){
     if(v.vel>2) avisos.push('Atenção: o veículo está em movimento ('+v.vel+' km/h). Bloquear com o veículo andando pode causar acidente.');
@@ -1107,11 +1113,26 @@ $('cmdOk').onclick=async ()=>{
     if(cid) corpoCmd={id:cid,deviceId:v.id,type:'custom',attributes:{}};
     else if(ehAdmin) corpoCmd={deviceId:v.id,type:'custom',attributes:{data:bloquear?CMD_FIXOS.bloquear:CMD_FIXOS.desbloquear}};
     else throw new Error('Este acesso ainda não está liberado para bloquear/desbloquear. Fale com a Rastreando GPS.');
-    const r=await api('/api/commands/send',{
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify(corpoCmd)
-    });
-    if(!r.ok) throw new Error('O servidor recusou o comando (erro '+r.status+')');
+    if(bloquear) desbCancelar(v.id); // a última ordem vence: para o desbloqueio automático deste veículo
+    const online=v.online;
+    let r=null;
+    try{
+      r=await api('/api/commands/send',{
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify(corpoCmd)
+      });
+    }catch(e){ if(e.sessao || bloquear || online) throw e }
+    if(r && r.status===401){ const e=new Error('401'); e.sessao=true; throw e }
+    if(!bloquear){
+      // desbloqueio garantido: o sistema continua tentando sozinho (internet e SMS) até confirmar
+      const reg=await desbPedir(v.id);
+      if(!online){
+        if(!reg) throw new Error('Rastreador sem sinal e não consegui registrar o desbloqueio automático. Tente de novo em instantes ou fale com a Rastreando GPS.');
+        toast('Rastreador sem sinal. O desbloqueio ficou guardado e o sistema vai insistir sozinho, inclusive por SMS. Não precisa apertar de novo.',7000);
+        throw {silencioso:true};
+      }
+    }
+    if(!r || !r.ok) throw new Error('O servidor recusou o comando (erro '+(r?r.status:'sem resposta')+')');
     toast('Comando enviado. Aguardando o aparelho...');
     let respondeu=false;
     for(let i=0;i<20 && !respondeu;i++){
@@ -1125,15 +1146,75 @@ $('cmdOk').onclick=async ()=>{
         } else toast('O aparelho respondeu: '+v.result);
       }
     }
-    if(!respondeu) toast('O aparelho não respondeu em 40 segundos. Confira antes de repetir.');
+    if(!respondeu) toast(!bloquear && desbPendente[v.id]
+      ? 'O rastreador ainda não respondeu. O sistema continua tentando sozinho, inclusive por SMS. Não precisa apertar de novo.'
+      : 'O aparelho não respondeu em 40 segundos. Confira antes de repetir.',6000);
   }catch(e){
-    if(e.sessao) sair('Sessão expirada. Entre novamente.');
+    if(e && e.silencioso){ /* aviso já mostrado */ }
+    else if(e.sessao) sair('Sessão expirada. Entre novamente.');
     else toast(e.message && e.message!=='Failed to fetch' ? e.message : 'Não consegui falar com o servidor.');
   }
   cmdAndamento=false;
   $('btnBlock').textContent='Bloquear'; $('btnUnblock').textContent='Desbloquear';
   atualizar();
 };
+
+/* ===== DESBLOQUEIO GARANTIDO (Firebase: rastreamento-desbloqueio.js) =====
+   Depois de "Desbloquear", o sistema continua tentando sozinho até o rastreador confirmar:
+   reenvia pela internet quando ele volta e, depois de 3 min, manda 1 SMS para o chip.
+   O número do chip nunca vem para o app. "Bloquear" cancela o desbloqueio pendente. */
+const DESB_URL = 'https://southamerica-east1-rastreando-assinaturas.cloudfunctions.net/rastreamentoDesbloqueio';
+const desbPendente = {};   // id do veículo -> último status recebido (só enquanto pendente)
+async function fnDesb(acao,deviceId){
+  const tok=lsGet('rg_token');
+  if(!tok) throw new Error('sem token');
+  const r=await fetch(DESB_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',
+    body:JSON.stringify({acao:acao,token:tok,deviceId:deviceId})});
+  let j={}; try{ j=await r.json() }catch(e){}
+  if(!r.ok) throw new Error(j.erro||('Erro '+r.status));
+  return j;
+}
+async function desbPedir(id){
+  try{
+    const j=await fnDesb('pedir',id);
+    if(j.estado==='pendente'){ desbPendente[id]=j; lsSet('rg_desb_'+id,String(Date.now())) }
+    desbMostrar();
+    return true;
+  }catch(e){ return false }
+}
+function desbCancelar(id){
+  delete desbPendente[id]; lsDel('rg_desb_'+id); desbMostrar();
+  if(!lsGet('rg_token')) return;
+  lsSet('rg_desb_cancelar_'+id,'1');
+  fnDesb('cancelar',id).then(()=>lsDel('rg_desb_cancelar_'+id)).catch(()=>{});
+}
+function desbMostrar(){
+  const v=ativo(), row=$('desbRow'); if(!row) return;
+  const d=v && desbPendente[v.id];
+  if(!d){ row.style.display='none'; return }
+  $('desbTxt').textContent='Desbloqueio em andamento: o sistema está tentando sozinho'+(d.smsEnviado&&d.smsEmMs?' (SMS enviado às '+horaAtual(d.smsEmMs)+')':'')+'.';
+  row.style.display='flex';
+}
+async function desbVerificar(){
+  if(document.visibilityState!=='visible' || !lsGet('rg_token')) return;
+  for(const v of veiculos){
+    try{
+      if(lsGet('rg_desb_cancelar_'+v.id)){ await fnDesb('cancelar',v.id); lsDel('rg_desb_cancelar_'+v.id) }
+      const ini=+(lsGet('rg_desb_'+v.id)||0);
+      if(!ini) continue;
+      if(Date.now()-ini>3*3600000){ lsDel('rg_desb_'+v.id); delete desbPendente[v.id]; continue }
+      const j=await fnDesb('status',v.id);
+      if(j.estado==='pendente'){ desbPendente[v.id]=j; continue }
+      delete desbPendente[v.id]; lsDel('rg_desb_'+v.id);
+      if(j.estado==='confirmado'){ v.bloq=false; lsSet('rg_bloq_'+v.id,'0'); toast('Desbloqueio de '+v.nome+' confirmado pelo rastreador.',6000) }
+      else if(j.estado==='expirado') toast('Não conseguimos confirmar o desbloqueio de '+v.nome+'. Fale com a Rastreando GPS.',8000);
+    }catch(e){}
+  }
+  desbMostrar();
+}
+setInterval(desbVerificar,20000);
+setInterval(desbMostrar,1000);
+setTimeout(desbVerificar,3000);
 
 /* ===== NAVEGAR / VER A RUA / COMPARTILHAR ===== */
 $('btnNav').onclick=()=>{
