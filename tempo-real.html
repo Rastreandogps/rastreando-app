@@ -579,7 +579,7 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
 <div class="modal" id="mConf">
   <div class="box2">
     <h3 id="confTitulo"></h3>
-    <p id="confTexto"></p>
+    <p id="confTexto" style="white-space:pre-line"></p>
     <div class="ferr" id="confErro"></div>
     <div class="actions2">
       <button class="btn btn-out" data-close>Cancelar</button>
@@ -1610,7 +1610,7 @@ function desenharEquip(){
     '<div class="s">IMEI '+esc(v.imei)+(v.contato?' · cliente: '+esc(v.contato):'')+'</div>'+
     '<div class="s">Chip: '+(v.fone?'<b>'+esc(fmtFone(v.fone))+'</b>':'não cadastrado')+'</div>'+
     '<div class="bts">'+
-      (v.fone?'<button class="mini" data-a="copiar">Copiar número</button><a class="mini" data-a="sms" href="'+esc(linkSms(v.fone))+'">Enviar SMS</a>':'')+
+      (v.fone?'<button class="mini" data-a="copiar">Copiar número</button><a class="mini" data-a="sms" href="'+esc(linkSms(v.fone))+'">Enviar SMS</a><button class="mini" data-a="cfgip">IP e Porta</button><button class="mini" data-a="cfgapn">APN</button>':'')+
       '<button class="mini" data-a="editar">Editar</button></div></div>'
   ).join('') || '<div class="vempty">Nenhum equipamento encontrado.</div>';
 }
@@ -1658,7 +1658,7 @@ function desenharClientes(){
         '<div class="drow" data-id="'+v.id+'"><div class="t">'+esc(v.nome)+'</div>'+
         '<div class="s">IMEI '+esc(v.imei)+'</div>'+
         '<div class="s">Chip: '+(v.fone?'<b>'+esc(fmtFone(v.fone))+'</b>':'não cadastrado')+'</div>'+
-        '<div class="bts">'+(v.fone?'<button class="mini" data-a="copiar">Copiar número</button><a class="mini" data-a="sms" href="'+esc(linkSms(v.fone))+'">Enviar SMS</a>':'')+
+        '<div class="bts">'+(v.fone?'<button class="mini" data-a="copiar">Copiar número</button><a class="mini" data-a="sms" href="'+esc(linkSms(v.fone))+'">Enviar SMS</a><button class="mini" data-a="cfgip">IP e Porta</button><button class="mini" data-a="cfgapn">APN</button>':'')+
         '<button class="mini" data-a="editar">Editar aparelho</button><button class="mini verm" data-a="desv" data-u="'+u.id+'">Desvincular</button></div></div>'
       ).join('') || '<div class="s" style="padding:4px 0 8px">Nenhum aparelho vinculado.</div>')+
       '</div></details>';
@@ -1737,8 +1737,22 @@ $('aList').addEventListener('click',e=>{
   }
   if(b.dataset.a==='copiar') copiar(soDigitos(v.fone)).then(()=>toast('Número copiado')).catch(()=>toast('Não foi possível copiar'));
   else if(b.dataset.a==='editar') abrirEquip(id);
+  else if(b.dataset.a==='cfgip' || b.dataset.a==='cfgapn') smsConfig(v, b.dataset.a==='cfgip'?'ip':'apn');
   /* "sms" é um link normal: abre o aplicativo de mensagens do celular */
 });
+
+/* SMS de configuração pelo SMS Market (o texto fica fixo no servidor) */
+function smsConfig(v,tipo){
+  const nome = tipo==='ip' ? 'IP e Porta' : 'APN';
+  const txt = tipo==='ip' ? 'SERVER,0,179.199.150.156,5023,0#' : 'APN,ss.vivo.com.br,vivo,vivo#';
+  pedirConfirmacao('Enviar '+nome, 'Enviar agora por SMS para o chip de '+v.nome+' ('+fmtFone(v.fone)+'):\n'+txt+(tipo==='ip'?'\n\nAtenção: ao receber, o rastreador passa a mandar posição para este servidor e deixa de aparecer na plataforma antiga.':''), 'Enviar SMS', async()=>{
+    const r=await fetch(DESB_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',
+      body:JSON.stringify({acao:'smsConfig',tipo:tipo,token:lsGet('rg_token'),deviceId:v.id})});
+    let j={}; try{ j=await r.json() }catch(e){}
+    if(!r.ok) throw new Error(j.erro||('Erro '+r.status));
+    toast('SMS de '+nome+' enviado para '+v.nome+'.',5000);
+  });
+}
 
 /* --- Aparelhos de um cliente --- */
 function htmlAparelhos(excluirIds){
