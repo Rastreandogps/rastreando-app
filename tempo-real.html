@@ -151,6 +151,8 @@ main{position:relative;flex:1;min-height:0;overflow:hidden}
 .follow{position:absolute;top:14px;right:14px;z-index:400;height:40px;padding:0 14px 0 12px;border-radius:20px;background:var(--card);border:1px solid var(--line);display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;box-shadow:0 4px 14px rgba(0,0,0,.4)}
 .follow svg{stroke:currentColor}
 .follow.active{border-color:var(--cyan);background:rgba(56,225,230,.12);color:var(--cyan)}
+#btnEu{top:62px;display:none}
+.eu-ponto{width:18px;height:18px;border-radius:50%;background:#1a73e8;border:3px solid #fff;box-shadow:0 0 0 2px rgba(26,115,232,.35),0 2px 8px rgba(0,0,0,.5)}
 
 /* Aviso sem veículo */
 .vazio{display:none;position:absolute;left:16px;right:16px;bottom:24px;z-index:450;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;text-align:center;font-weight:600}
@@ -266,6 +268,10 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2" fill="currentColor"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
     <span id="followTxt">Seguir</span>
   </button>
+  <button class="follow" id="btnEu" aria-pressed="false">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8"/><path d="M12 1v3M12 20v3M1 12h3M20 12h3"/></svg>
+    <span id="euTxt">Minha posição</span>
+  </button>
 
   <div class="vazio" id="vazio">Nenhum veículo selecionado<small>Abra a aba Veículos para escolher.</small></div>
 
@@ -287,6 +293,7 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
       <div class="stat"><span>Bateria</span><b id="sBat"></b></div>
     </div>
     <div class="addr" id="addrRow"><strong id="vAddr"></strong><span id="vAgo"></span></div>
+    <div class="addr" id="distRow" style="display:none"><strong id="vDist"></strong></div>
     <div class="actions">
       <button class="btn btn-red" id="btnBlock">Bloquear</button>
       <button class="btn btn-out" id="btnUnblock">Desbloquear</button>
@@ -564,6 +571,55 @@ function criarMarcador(v){
   v.marker.on('click',()=>{ selId = v.id; recolhido = false; atualizar(); });
   if(v.visivel) v.marker.addTo(map);
 }
+
+/* ===== MINHA POSIÇÃO (só administrador): bolinha azul + distância até o veículo =====
+   A posição do celular fica só no navegador: não é enviada para servidor nenhum. */
+const eu = {on:false, watch:null, pos:null, acc:0, ponto:null, circ:null, linha:null};
+function distM(a,b){
+  const R=6371000, rad=x=>x*Math.PI/180, dLa=rad(b[0]-a[0]), dLo=rad(b[1]-a[1]);
+  const h=Math.sin(dLa/2)**2+Math.cos(rad(a[0]))*Math.cos(rad(b[0]))*Math.sin(dLo/2)**2;
+  return 2*R*Math.asin(Math.sqrt(h));
+}
+function fmtDist(m){ return m<1000 ? Math.round(m/10)*10+' m' : (m/1000).toFixed(m<10000?1:0).replace('.',',')+' km' }
+function euDesligar(){
+  if(eu.watch!==null && navigator.geolocation){ try{ navigator.geolocation.clearWatch(eu.watch) }catch(e){} }
+  eu.watch=null; eu.on=false; eu.pos=null;
+  [eu.ponto,eu.circ,eu.linha].forEach(l=>{ if(l && map.hasLayer(l)) map.removeLayer(l) });
+  eu.ponto=eu.circ=eu.linha=null;
+  $('btnEu').classList.remove('active'); $('btnEu').setAttribute('aria-pressed','false'); $('euTxt').textContent='Minha posição';
+  $('distRow').style.display='none';
+}
+function euAtualizarTela(){
+  const v=ativo(), linha=$('distRow');
+  if(!eu.on || !eu.pos){ linha.style.display='none'; if(eu.linha && map.hasLayer(eu.linha)) map.removeLayer(eu.linha); return }
+  if(!v){ linha.style.display='none'; if(eu.linha && map.hasLayer(eu.linha)) map.removeLayer(eu.linha); return }
+  const d=distM(eu.pos,v.pos);
+  $('vDist').textContent='Você está a '+fmtDist(d)+' do veículo (em linha reta)'+(eu.acc>100?' · GPS do celular impreciso (±'+Math.round(eu.acc)+' m)':'');
+  linha.style.display='flex';
+  const pts=[eu.pos,v.pos];
+  if(eu.linha) eu.linha.setLatLngs(pts); else eu.linha=L.polyline(pts,{color:'#1a73e8',weight:3,dashArray:'6 8',opacity:.8}).addTo(map);
+}
+function euLigar(){
+  if(!navigator.geolocation){ toast('Este navegador não consegue pegar a posição do celular.'); return }
+  eu.on=true; $('btnEu').classList.add('active'); $('btnEu').setAttribute('aria-pressed','true'); $('euTxt').textContent='Localizando...';
+  let primeira=true;
+  eu.watch=navigator.geolocation.watchPosition(p=>{
+    eu.pos=[p.coords.latitude,p.coords.longitude]; eu.acc=p.coords.accuracy||0;
+    if(!eu.ponto){
+      eu.circ=L.circle(eu.pos,{radius:eu.acc,color:'#1a73e8',weight:1,fillColor:'#1a73e8',fillOpacity:.12,interactive:false}).addTo(map);
+      eu.ponto=L.marker(eu.pos,{icon:L.divIcon({className:'',html:'<div class="eu-ponto"></div>',iconSize:[18,18],iconAnchor:[9,9]}),interactive:false,keyboard:false,zIndexOffset:900}).addTo(map);
+    } else { eu.ponto.setLatLng(eu.pos); eu.circ.setLatLng(eu.pos); eu.circ.setRadius(eu.acc) }
+    $('euTxt').textContent='Minha posição';
+    if(primeira){ primeira=false; const v=ativo(); if(v && !seguir) map.fitBounds(L.latLngBounds([eu.pos,v.pos]),{padding:[60,60],maxZoom:17}); else if(!v) map.setView(eu.pos,16) }
+    euAtualizarTela();
+  },err=>{
+    if(err.code===1){ toast('Permissão negada. Libere a localização deste site nas configurações do navegador.'); euDesligar(); return }
+    /* sem sinal passageiro (garagem, túnel): continua tentando, sem desligar */
+    const agora=Date.now(); if(!eu.avisou || agora-eu.avisou>30000){ eu.avisou=agora; toast('Sem sinal de localização do celular agora. Continuo tentando.') }
+  },{enableHighAccuracy:true,maximumAge:5000,timeout:25000});
+}
+$('btnEu').onclick=()=>{ if(eu.on) euDesligar(); else euLigar() };
+setInterval(()=>{ if(eu.on) euAtualizarTela() },2000);
 
 /* ===== SEGUIR VEÍCULO ===== */
 function setSeguir(on){
@@ -1151,6 +1207,7 @@ async function descobrirAdmin(){
   }catch(e){}
   document.querySelector('nav button[data-tab="Admin"]').style.display = ehAdmin ? '' : 'none';
   document.querySelector('nav button[data-tab="Faturas"]').style.display = ehAdmin ? 'none' : '';
+  $('btnEu').style.display = ehAdmin ? 'flex' : 'none';
 }
 async function carregarCpfs(){
   try{ const r=await fn('cpfs'); cpfsMapa=r.mapa||{}; if(abaAdmin==='cli' && $('aview').classList.contains('show')) desenharClientes() }
@@ -1590,7 +1647,7 @@ function mostrarLogin(msg){
 function sair(msg){
   lsDel('rg_token'); lsDel('rg_email'); try{sessionStorage.removeItem('rg_basic')}catch(e){}
   ehAdmin=false; usuarios=[]; $('aview').classList.remove('show');
-  document.querySelector('nav button[data-tab="Admin"]').style.display='none'; document.querySelector('nav button[data-tab="Faturas"]').style.display='none'; cpfsMapa={}; faturasDados=null; aplicarBloqueio(null); irPara('Mapa');
+  document.querySelector('nav button[data-tab="Admin"]').style.display='none'; document.querySelector('nav button[data-tab="Faturas"]').style.display='none'; cpfsMapa={}; faturasDados=null; aplicarBloqueio(null); euDesligar(); $('btnEu').style.display='none'; irPara('Mapa');
   auth=null;
   veiculos.forEach(v=>{ if(v.marker&&map.hasLayer(v.marker)) map.removeLayer(v.marker) });
   veiculos=[]; selId=null; primeiraCarga=true; assinaturaLista='';
