@@ -1078,7 +1078,7 @@ function abrirConfirmacao(acao){
     return;
   }
   if(acao==='desbloquear' && desbPendente[v.id]){
-    toast('Já estamos desbloqueando este veículo automaticamente. Não precisa apertar de novo.',5000);
+    toast('O rastreador encontra-se sem sinal de satélite. As tentativas serão feitas automaticamente. Aguarde cinco minutos e verifique se o veículo desbloqueou.',7000);
     return;
   }
   acaoCmd=acao;
