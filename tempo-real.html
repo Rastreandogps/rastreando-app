@@ -513,8 +513,9 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
     <input class="fld" id="eImei" inputmode="numeric" autocomplete="off">
     <label class="flbl" for="eFone">Número do chip (com DDD)</label>
     <input class="fld" id="eFone" inputmode="tel" placeholder="(21) 99999-9999" autocomplete="off">
-    <label class="flbl" for="eEmail">Login do cliente (e-mail ou usuário; o cliente precisa já existir)</label>
-    <input class="fld" id="eEmail" type="text" autocomplete="off" autocapitalize="none">
+    <label class="flbl" for="eEmail">Cliente (dono do veículo)</label>
+    <input class="fld" id="eBuscaCli" type="search" placeholder="Buscar cliente pelo nome ou login" autocomplete="off" autocapitalize="none" style="margin-bottom:6px">
+    <select class="fld" id="eEmail" style="appearance:auto"></select>
     <div class="ferr" id="eErro"></div>
     <div class="actions2">
       <button class="btn btn-out" data-close>Cancelar</button>
@@ -1826,10 +1827,33 @@ function abrirEquip(id){
   $('eNome').value = v ? v.nome : '';
   $('eImei').value = v ? v.imei : ''; $('eImei').disabled = !!v;
   $('eFone').value = v ? fmtFone(v.fone) : '';
-  $('eEmail').value = v ? v.contato : '';
+  $('eBuscaCli').value='';
+  preencherClientesEquip(v ? v.contato : '');
   $('eErro').textContent=''; $('eSalvar').disabled=false;
   abrir('mEquip');
+  carregarUsuarios().then(()=>{ if($('mEquip').classList.contains('show')) preencherClientesEquip($('eEmail').value, $('eBuscaCli').value) }).catch(()=>{});
 }
+/* lista de clientes (não administradores) para escolher o dono do equipamento */
+function preencherClientesEquip(atual, filtro){
+  const f=String(filtro||'').trim().toLowerCase();
+  const sel=$('eEmail'), atualL=String(atual||'').toLowerCase();
+  const lista=usuarios.filter(u=>!u.administrator)
+    .map(u=>({login:loginDe(u), nome:u.name||loginDe(u)}))
+    .filter(x=>x.login)
+    .sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
+  const vis=lista.filter(x=>!f || x.nome.toLowerCase().includes(f) || x.login.toLowerCase().includes(f) || x.login.toLowerCase()===atualL);
+  let html='<option value="">— Sem cliente —</option>';
+  if(atualL && !lista.some(x=>x.login.toLowerCase()===atualL)) html+='<option value="'+esc(atual)+'">'+esc(atual)+' (não encontrado)</option>';
+  html+=vis.map(x=>'<option value="'+esc(x.login)+'">'+esc(x.nome)+(x.nome!==x.login?' ('+esc(x.login.replace(EMAIL_FALSO,''))+')':'')+'</option>').join('');
+  if(f && !vis.length) html+='<option value="" disabled>Nenhum cliente encontrado</option>';
+  sel.innerHTML=html;
+  const opt=[...sel.options].find(o=>o.value.toLowerCase()===atualL);
+  sel.value=opt?opt.value:'';
+}
+$('eBuscaCli').addEventListener('input',()=>{
+  preencherClientesEquip($('eEmail').value, $('eBuscaCli').value);
+  const s=$('eEmail'); if(!s.value && s.options.length===2 && s.options[1].value) s.value=s.options[1].value; // um só resultado: já escolhe
+});
 async function vincular(userId,deviceId){
   const r=await api('/api/devices?userId='+userId);
   if(r.ok){ const l=await r.json(); if(l.some(x=>x.id===deviceId)) return }
