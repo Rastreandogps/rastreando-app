@@ -45,6 +45,27 @@ try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'){document.do
 .lerr{min-height:18px;font-size:13px;color:var(--red2);font-weight:600;text-align:center}
 .stwrap{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
 .upd{font-size:11px;color:var(--mut);white-space:nowrap}
+.aview{position:absolute;inset:0;z-index:600;background:var(--bg);display:none;flex-direction:column}
+.aview.show{display:flex}
+.atabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.atab{height:40px;border-radius:10px;border:1px solid var(--line);background:var(--card);font-weight:600;font-size:14px}
+.atab.on{border-color:var(--cyan);color:var(--cyan)}
+.anovo{width:100%;margin-top:10px}
+.arow{padding:12px 0;border-bottom:1px solid var(--line)}
+.arow .t{font-size:16px;font-weight:600}
+.arow .s{font-size:12px;color:var(--mut);margin-top:2px;word-break:break-all}
+.arow .s b{color:var(--txt);font-size:14px;letter-spacing:.02em}
+.arow .bts{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.mini{height:36px;padding:0 14px;border-radius:10px;border:1px solid var(--line);background:var(--card2);font-size:13px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;color:var(--txt);text-decoration:none}
+.fld{width:100%;height:46px;border-radius:12px;border:1px solid var(--line);background:var(--card2);color:var(--txt);padding:0 12px;font:inherit;font-size:16px;outline:none;margin-bottom:10px}
+.fld:focus{border-color:var(--cyan)}
+.fld:disabled{opacity:.6}
+.flbl{display:block;font-size:12px;color:var(--mut);margin:0 0 4px 2px}
+.ferr{min-height:18px;font-size:13px;color:var(--red2);font-weight:600;margin-bottom:6px}
+.fchk{display:flex;align-items:center;gap:8px;font-size:14px;margin:2px 0 12px}
+.fchk input{width:20px;height:20px}
+.box2{max-height:92vh;overflow-y:auto}
+.acesso{background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:12px;font-size:13px;white-space:pre-wrap;word-break:break-all;margin-bottom:12px}
 .hdir{display:flex;align-items:center;gap:8px}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;background:var(--bg);color:var(--txt);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
@@ -240,6 +261,18 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
     </div>
     <div class="vlist" id="vList"></div>
   </section>
+  <section class="aview" id="aview">
+    <div class="vtop">
+      <div class="vtitle"><h2>Administração</h2><span class="vcount" id="aCount"></span></div>
+      <div class="atabs">
+        <button class="atab on" id="aTabEquip">Equipamentos</button>
+        <button class="atab" id="aTabCli">Clientes</button>
+      </div>
+      <button class="btn btn-red anovo" id="aNovo">+ Novo equipamento</button>
+      <input class="search" id="aSearch" type="search" placeholder="Buscar nome, IMEI, chip ou e-mail" autocomplete="off">
+    </div>
+    <div class="vlist" id="aList"></div>
+  </section>
 </main>
 
 <nav>
@@ -248,6 +281,7 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
   <button data-tab="Histórico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Histórico</button>
   <button data-tab="Cercas"><svg viewBox="0 0 24 24"><path d="M12 3l8 4v6c0 4-3.5 7-8 8-4.5-1-8-4-8-8V7l8-4z"/></svg>Cercas</button>
   <button data-tab="Alertas"><svg viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 1112 0v5l2 2H4l2-2z"/><path d="M10 21h4"/></svg>Alertas</button>
+  <button data-tab="Admin" style="display:none"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1.1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1.1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.8.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8V9a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"/></svg>Admin</button>
 </nav>
 
 <!-- Confirmar comando -->
@@ -293,6 +327,62 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
     <div class="lerr" id="lErr"></div>
     <button class="btn btn-red" id="lBtn" type="submit">Entrar</button>
   </form>
+</div>
+
+<!-- Equipamento (novo / editar) -->
+<div class="modal" id="mEquip">
+  <div class="box2">
+    <h3 id="eTitulo">Novo equipamento</h3>
+    <label class="flbl" for="eNome">Nome do veículo ou equipamento</label>
+    <input class="fld" id="eNome" autocomplete="off">
+    <label class="flbl" for="eImei">IMEI (15 números)</label>
+    <input class="fld" id="eImei" inputmode="numeric" autocomplete="off">
+    <label class="flbl" for="eFone">Número do chip (com DDD)</label>
+    <input class="fld" id="eFone" inputmode="tel" placeholder="(21) 99999-9999" autocomplete="off">
+    <label class="flbl" for="eEmail">E-mail do cliente (o cliente precisa já existir)</label>
+    <input class="fld" id="eEmail" type="email" autocomplete="off">
+    <div class="ferr" id="eErro"></div>
+    <div class="actions2">
+      <button class="btn btn-out" data-close>Cancelar</button>
+      <button class="btn btn-red" id="eSalvar">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Cliente novo -->
+<div class="modal" id="mCliente">
+  <div class="box2">
+    <h3>Novo cliente</h3>
+    <label class="flbl" for="cNome">Nome</label>
+    <input class="fld" id="cNome" autocomplete="off">
+    <label class="flbl" for="cEmail">E-mail (é o login do cliente)</label>
+    <input class="fld" id="cEmail" type="email" autocomplete="off">
+    <label class="flbl" for="cSenha">Senha</label>
+    <input class="fld" id="cSenha" autocomplete="off">
+    <button class="mini" id="cGerar" type="button" style="margin-bottom:10px">Gerar senha</button>
+    <label class="flbl" for="cCpf">CPF (opcional)</label>
+    <input class="fld" id="cCpf" inputmode="numeric" autocomplete="off">
+    <label class="fchk"><input type="checkbox" id="cLeitura" checked> Cliente não pode editar nem apagar o aparelho</label>
+    <div class="ferr" id="cErro"></div>
+    <div class="actions2">
+      <button class="btn btn-out" data-close>Cancelar</button>
+      <button class="btn btn-red" id="cSalvar">Criar cliente</button>
+    </div>
+  </div>
+</div>
+
+<!-- Acesso criado -->
+<div class="modal" id="mAcesso">
+  <div class="box2">
+    <h3>Cliente criado</h3>
+    <p>Envie estes dados ao cliente. A senha só aparece agora.</p>
+    <div class="acesso" id="acessoTxt"></div>
+    <div class="actions2">
+      <button class="btn btn-out" id="acessoCopiar">Copiar</button>
+      <a class="btn btn-red" id="acessoWpp" target="_blank" rel="noopener" style="text-decoration:none">WhatsApp</a>
+    </div>
+    <button class="btn btn-out" data-close style="width:100%;margin-top:8px">Fechar</button>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -458,6 +548,7 @@ function mesclar(ds,ps){
     v.nome = d.name || ('Aparelho '+d.id);
     v.placa = (d.attributes&&d.attributes.placa) || d.model || '';
     v.online = d.status==='online';
+    v.imei = d.uniqueId || ''; v.fone = d.phone || ''; v.contato = d.contact || ''; v.raw = d;
     v.ultimo = d.lastUpdate ? new Date(d.lastUpdate).getTime() : null;
     const p = pm[d.id];
     if(p){
@@ -487,8 +578,8 @@ function mesclar(ds,ps){
     }
   });
   if(!selId || !veiculos.find(v=>v.id===selId)) selId = veiculos.length ? veiculos[0].id : null;
-  const sig = veiculos.map(v=>v.id+':'+v.nome+':'+v.placa).join('|');
-  if(sig!==assinaturaLista){ assinaturaLista=sig; desenharLista() }
+  const sig = veiculos.map(v=>v.id+':'+v.nome+':'+v.placa+':'+v.fone+':'+v.contato).join('|');
+  if(sig!==assinaturaLista){ assinaturaLista=sig; desenharLista(); if(ehAdmin && $('aview').classList.contains('show') && abaAdmin==='equip') desenharEquip() }
   if(primeiraCarga){ primeiraCarga=false; mudouSelecao() }
   atualizarContagem(); atualizar();
 }
@@ -739,12 +830,191 @@ $('btnShare').onclick=()=>toast('Compartilhar: em construção');
 function irPara(tab){
   document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.tab===tab));
   $('vview').classList.toggle('show',tab==='Veículos');
+  $('aview').classList.toggle('show',tab==='Admin');
+  if(tab==='Admin') abrirAdmin();
 }
 document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
   const t=b.dataset.tab;
-  if(t==='Mapa'||t==='Veículos') irPara(t);
+  if(t==='Mapa'||t==='Veículos'||(t==='Admin'&&ehAdmin)) irPara(t);
   else toast(t+': em construção');
 });
+
+/* ===== ÁREA DO ADMINISTRADOR ===== */
+let ehAdmin=false, usuarios=[], abaAdmin='equip', editandoId=null;
+const JSONH={'Content-Type':'application/json'};
+const soDigitos = s => String(s==null?'':s).replace(/\D/g,'');
+function fmtFone(f){
+  const d=soDigitos(f);
+  if(d.length===11) return '('+d.slice(0,2)+') '+d.slice(2,7)+'-'+d.slice(7);
+  if(d.length===10) return '('+d.slice(0,2)+') '+d.slice(2,6)+'-'+d.slice(6);
+  return f||'';
+}
+function linkSms(f){
+  let d=soDigitos(f); if(!d) return '';
+  if(d.length===10||d.length===11) d='55'+d;
+  return 'sms:+'+d;
+}
+async function msgErro(r,padrao){
+  let t=''; try{ t=(await r.text()).trim() }catch(e){}
+  if(r.status===400 && /duplic|unique|already|exist/i.test(t)) return 'Já existe um cadastro com esse dado (IMEI ou e-mail repetido).';
+  if(r.status===403) return 'Sem permissão. Só administrador faz isso.';
+  return padrao+' (erro '+r.status+')'+(t && t.length<120 && !/</.test(t) ? ': '+t.split('\n')[0] : '');
+}
+async function carregarUsuarios(){
+  try{ const r=await api('/api/users'); if(r.ok) usuarios=await r.json() }
+  catch(e){ if(e.sessao) throw e }
+}
+/* Só é administrador quem o Traccar diz que é: a lista de usuários traz o campo "administrator". */
+async function descobrirAdmin(){
+  ehAdmin=false;
+  try{
+    await carregarUsuarios();
+    const em=(lsGet('rg_email')||'').toLowerCase();
+    ehAdmin = !!usuarios.find(u=>u.administrator && String(u.email||'').toLowerCase()===em);
+  }catch(e){}
+  const bt=document.querySelector('nav button[data-tab="Admin"]');
+  bt.style.display = ehAdmin ? '' : 'none';
+  document.querySelector('nav').style.gridTemplateColumns = 'repeat('+(ehAdmin?6:5)+',1fr)';
+}
+async function abrirAdmin(){
+  await carregarUsuarios();
+  desenharAdmin();
+}
+function desenharAdmin(){
+  $('aTabEquip').classList.toggle('on',abaAdmin==='equip');
+  $('aTabCli').classList.toggle('on',abaAdmin==='cli');
+  $('aNovo').textContent = abaAdmin==='equip' ? '+ Novo equipamento' : '+ Novo cliente';
+  $('aSearch').style.display = abaAdmin==='equip' ? '' : 'none';
+  if(abaAdmin==='equip') desenharEquip(); else desenharClientes();
+}
+function desenharEquip(){
+  const q=$('aSearch').value.trim().toLowerCase();
+  const lista=veiculos.filter(v=>!q||[v.nome,v.imei,v.fone,v.contato].join(' ').toLowerCase().includes(q));
+  $('aCount').textContent=veiculos.length+' equipamentos';
+  $('aList').innerHTML = lista.map(v=>
+    '<div class="arow" data-id="'+v.id+'"><div class="t">'+esc(v.nome)+'</div>'+
+    '<div class="s">IMEI '+esc(v.imei)+(v.contato?' · cliente: '+esc(v.contato):'')+'</div>'+
+    '<div class="s">Chip: '+(v.fone?'<b>'+esc(fmtFone(v.fone))+'</b>':'não cadastrado')+'</div>'+
+    '<div class="bts">'+
+      (v.fone?'<button class="mini" data-a="copiar">Copiar número</button><a class="mini" data-a="sms" href="'+esc(linkSms(v.fone))+'">Enviar SMS</a>':'')+
+      '<button class="mini" data-a="editar">Editar</button></div></div>'
+  ).join('') || '<div class="vempty">Nenhum equipamento encontrado.</div>';
+}
+function desenharClientes(){
+  const cl=usuarios.filter(u=>!u.administrator);
+  $('aCount').textContent=cl.length+' clientes';
+  $('aList').innerHTML = cl.map(u=>
+    '<div class="arow"><div class="t">'+esc(u.name)+'</div><div class="s">'+esc(u.email)+'</div></div>'
+  ).join('') || '<div class="vempty">Nenhum cliente ainda.</div>';
+}
+$('aTabEquip').onclick=()=>{abaAdmin='equip';desenharAdmin()};
+$('aTabCli').onclick=()=>{abaAdmin='cli';desenharAdmin()};
+$('aSearch').addEventListener('input',desenharEquip);
+$('aNovo').onclick=()=>{ if(abaAdmin==='equip') abrirEquip(null); else abrirCliente() };
+
+function copiar(txt){
+  try{
+    if(navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(txt);
+  }catch(e){}
+  const ta=document.createElement('textarea'); ta.value=txt; ta.style.position='fixed'; ta.style.opacity='0';
+  document.body.appendChild(ta); ta.select();
+  try{ document.execCommand('copy') }finally{ document.body.removeChild(ta) }
+  return Promise.resolve();
+}
+$('aList').addEventListener('click',e=>{
+  const b=e.target.closest('[data-a]'); if(!b) return;
+  const id=+b.closest('.arow').dataset.id, v=veiculos.find(x=>x.id===id); if(!v) return;
+  if(b.dataset.a==='copiar') copiar(soDigitos(v.fone)).then(()=>toast('Número copiado')).catch(()=>toast('Não foi possível copiar'));
+  else if(b.dataset.a==='editar') abrirEquip(id);
+  /* "sms" é um link normal: abre o aplicativo de mensagens do celular */
+});
+
+/* --- Equipamento --- */
+function abrirEquip(id){
+  editandoId=id||null;
+  const v=id?veiculos.find(x=>x.id===id):null;
+  $('eTitulo').textContent = v ? 'Editar equipamento' : 'Novo equipamento';
+  $('eNome').value = v ? v.nome : '';
+  $('eImei').value = v ? v.imei : ''; $('eImei').disabled = !!v;
+  $('eFone').value = v ? fmtFone(v.fone) : '';
+  $('eEmail').value = v ? v.contato : '';
+  $('eErro').textContent=''; $('eSalvar').disabled=false;
+  abrir('mEquip');
+}
+async function vincular(userId,deviceId){
+  const r=await api('/api/devices?userId='+userId);
+  if(r.ok){ const l=await r.json(); if(l.some(x=>x.id===deviceId)) return }
+  const p=await api('/api/permissions',{method:'POST',headers:JSONH,body:JSON.stringify({userId:userId,deviceId:deviceId})});
+  if(!p.ok) throw new Error(await msgErro(p,'O equipamento foi salvo, mas não consegui vincular ao cliente'));
+}
+$('eSalvar').onclick=async ()=>{
+  const erro=m=>{ $('eErro').textContent=m };
+  const nome=$('eNome').value.trim(), imei=soDigitos($('eImei').value), fone=soDigitos($('eFone').value),
+        email=$('eEmail').value.trim().toLowerCase();
+  if(!nome) return erro('Informe o nome do veículo ou equipamento.');
+  if(!editandoId && imei.length!==15) return erro('O IMEI precisa ter 15 números.');
+  if(fone && fone.length<10) return erro('O número do chip precisa ter DDD e o número.');
+  if(email && !/^\S+@\S+\.\S+$/.test(email)) return erro('E-mail inválido.');
+  erro(''); $('eSalvar').disabled=true;
+  try{
+    await carregarUsuarios();
+    const cli = email ? usuarios.find(u=>String(u.email||'').toLowerCase()===email) : null;
+    if(email && !cli){ erro('Não existe cliente com esse e-mail. Crie o cliente primeiro, na aba Clientes.'); $('eSalvar').disabled=false; return }
+    let r;
+    if(editandoId){
+      const v=veiculos.find(x=>x.id===editandoId);
+      r=await api('/api/devices/'+editandoId,{method:'PUT',headers:JSONH,body:JSON.stringify(Object.assign({},v.raw,{name:nome,phone:fone,contact:email}))});
+    } else {
+      r=await api('/api/devices',{method:'POST',headers:JSONH,body:JSON.stringify({name:nome,uniqueId:imei,phone:fone,contact:email})});
+    }
+    if(!r.ok) throw new Error(await msgErro(r,'Não foi possível salvar o equipamento'));
+    const d=await r.json();
+    if(cli) await vincular(cli.id,d.id);
+    fechar(); toast(editandoId?'Equipamento atualizado':'Equipamento cadastrado');
+    buscando=false; await buscarSeguro(); desenharAdmin();
+  }catch(e){
+    if(!e.sessao) erro(e.message && e.message!=='Failed to fetch' ? e.message : 'Não consegui falar com o servidor.');
+  }
+  $('eSalvar').disabled=false;
+};
+
+/* --- Cliente --- */
+function senhaAleatoria(){
+  const c='abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ23456789'; let s='';
+  const a=new Uint32Array(10); (window.crypto||window.msCrypto).getRandomValues(a);
+  a.forEach(n=>s+=c[n%c.length]); return s;
+}
+function abrirCliente(){
+  ['cNome','cEmail','cSenha','cCpf'].forEach(i=>$(i).value='');
+  $('cLeitura').checked=true; $('cErro').textContent=''; $('cSalvar').disabled=false;
+  abrir('mCliente');
+}
+$('cGerar').onclick=()=>{ $('cSenha').value=senhaAleatoria() };
+$('cSalvar').onclick=async ()=>{
+  const erro=m=>{ $('cErro').textContent=m };
+  const nome=$('cNome').value.trim(), email=$('cEmail').value.trim().toLowerCase(), senha=$('cSenha').value, cpf=soDigitos($('cCpf').value);
+  if(!nome) return erro('Informe o nome do cliente.');
+  if(!/^\S+@\S+\.\S+$/.test(email)) return erro('Informe um e-mail válido.');
+  if(senha.length<6) return erro('A senha precisa ter pelo menos 6 caracteres.');
+  if(cpf && cpf.length!==11) return erro('O CPF precisa ter 11 números.');
+  erro(''); $('cSalvar').disabled=true;
+  try{
+    const corpo={name:nome,email:email,password:senha,administrator:false,deviceReadonly:$('cLeitura').checked,attributes:cpf?{cpf:cpf}:{}};
+    const r=await api('/api/users',{method:'POST',headers:JSONH,body:JSON.stringify(corpo)});
+    if(!r.ok) throw new Error(await msgErro(r,'Não foi possível criar o cliente'));
+    await carregarUsuarios();
+    fechar();
+    const link=location.origin+location.pathname;
+    const msg='Olá! Seu acesso ao Rastreando GPS:\n'+link+'\nE-mail: '+email+'\nSenha: '+senha;
+    $('acessoTxt').textContent=msg;
+    $('acessoWpp').href='https://wa.me/?text='+encodeURIComponent(msg);
+    $('acessoCopiar').onclick=()=>copiar(msg).then(()=>toast('Mensagem copiada')).catch(()=>toast('Não foi possível copiar'));
+    abrir('mAcesso'); desenharAdmin();
+  }catch(e){
+    if(!e.sessao) erro(e.message && e.message!=='Failed to fetch' ? e.message : 'Não consegui falar com o servidor.');
+  }
+  $('cSalvar').disabled=false;
+};
 
 /* ===== ENTRAR / SAIR ===== */
 function mostrarLogin(msg){
@@ -752,7 +1022,9 @@ function mostrarLogin(msg){
   $('lErr').textContent = msg||'';
 }
 function sair(msg){
-  lsDel('rg_token'); try{sessionStorage.removeItem('rg_basic')}catch(e){}
+  lsDel('rg_token'); lsDel('rg_email'); try{sessionStorage.removeItem('rg_basic')}catch(e){}
+  ehAdmin=false; usuarios=[]; $('aview').classList.remove('show');
+  document.querySelector('nav button[data-tab="Admin"]').style.display='none'; document.querySelector('nav').style.gridTemplateColumns='repeat(5,1fr)'; irPara('Mapa');
   auth=null;
   veiculos.forEach(v=>{ if(v.marker&&map.hasLayer(v.marker)) map.removeLayer(v.marker) });
   veiculos=[]; selId=null; primeiraCarga=true; assinaturaLista='';
@@ -785,10 +1057,13 @@ $('lform').addEventListener('submit',async e=>{
   e.preventDefault();
   const btn=$('lBtn'); btn.disabled=true; btn.textContent='Entrando...'; $('lErr').textContent='';
   try{
-    await entrar($('lEmail').value.trim(),$('lSenha').value);
+    const emailLogin=$('lEmail').value.trim();
+    await entrar(emailLogin,$('lSenha').value);
+    lsSet('rg_email',emailLogin);
     $('lSenha').value='';
     $('login').classList.remove('show');
     indicador('CONECTANDO...',false);
+    await descobrirAdmin();
     await buscarSeguro();
   }catch(err){
     $('lErr').textContent = (err instanceof TypeError)
@@ -803,8 +1078,10 @@ $('btnSair').onclick=()=>sair('');
   setSeguir(false);
   const tok=lsGet('rg_token'), basic=ssGet('rg_basic');
   if(tok) auth='Bearer '+tok; else if(basic) auth=basic;
+  if(auth && !lsGet('rg_email')){ lsDel('rg_token'); try{sessionStorage.removeItem('rg_basic')}catch(e){} auth=null; mostrarLogin('Entre novamente para atualizar o app.'); return }
   if(auth){
     $('login').classList.remove('show');
+    await descobrirAdmin();
     await buscarSeguro();
   } else mostrarLogin('');
 })();
