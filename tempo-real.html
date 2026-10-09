@@ -99,6 +99,10 @@ details.cli .cinfo .t{font-size:16px;font-weight:600}
 details.cli .cinfo .s{font-size:12px;color:var(--mut);margin-top:2px;word-break:break-all}
 details.cli .qtd{font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px;border:1px solid var(--line);background:var(--card2);white-space:nowrap}
 details.cli .seta{transition:transform .2s;color:var(--mut)}
+details.cli .qseta{display:inline-block;transition:transform .2s;margin-left:2px}
+details.cli[open] .qseta{transform:rotate(180deg)}
+details.cli[open] .qnomes{display:none}
+details.cli .qnomes{font-weight:600;color:var(--txt,inherit)}
 details.cli[open] .seta{transform:rotate(90deg)}
 details.cli .gav{padding:0 0 12px 12px;border-left:2px solid var(--line);margin-left:4px}
 .drow{padding:10px 12px;margin-bottom:8px;border:1px solid var(--line);border-radius:12px;background:var(--card)}
@@ -1981,7 +1985,8 @@ function desenharClientes(){
       '<div class="s">WhatsApp: '+(u.phone&&normWpp(u.phone)?'<b>'+esc(fmtWpp(u.phone))+'</b>':'<span class="bd-mal">não cadastrado</span>')+'</div>'+
       '<div class="s">Acesso: '+(u.disabled?'<b class="bd-mal">DESATIVADO</b>':'<b class="bd-ok">Ativo</b>')+'</div>'+
       '<div class="s">Financeiro: <b class="'+fin.c+'">'+esc(fin.t)+'</b></div>'+
-      '<div class="s" style="margin-top:6px"><span class="qtd">'+ap.length+(ap.length===1?' veículo':' veículos')+'</span></div></div>'+
+      '<div class="s" style="margin-top:6px"><span class="qtd">'+ap.length+(ap.length===1?' veículo':' veículos')+' <span class="qseta">▾</span></span></div>'+
+      (ap.length?'<div class="s qnomes">'+esc(ap.map(v=>v.nome).join(' · '))+'</div>':'')+'</div>'+
       '<span class="cacoes"><button class="ico" data-a="edcli" data-u="'+u.id+'" aria-label="Editar cliente" title="Editar cliente">'+ICO_PEN+'</button>'+
       '<button class="ico lix" data-a="delcli" data-u="'+u.id+'" aria-label="Excluir cliente" title="Excluir cliente">'+ICO_LIX+'</button></span><span class="seta">›</span></summary>'+
       '<div class="gav">'+
