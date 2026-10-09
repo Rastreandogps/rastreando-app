@@ -389,6 +389,33 @@ function horaAtual(ms){
   if(d.toDateString()===h.toDateString()) return hm;
   return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+' '+hm;
 }
+/* ===== ENDEREÇO POR EXTENSO =====
+   Se o Traccar não trouxer o endereço, o app pergunta ao serviço público do OpenStreetMap (Nominatim).
+   Só para o veículo selecionado, só quando ele andou mais de ~60 m e no máximo 1 consulta a cada 10 s.
+   ATENÇÃO: serviço público, adequado só para o piloto (ver decisão do mapa/endereço no PRD). */
+let geoEmCurso=false, geoUltima=0;
+async function buscarEndereco(v){
+  if(v.addr || !v.real || geoEmCurso) return;
+  if(v.geoPos && Math.abs(v.geoPos[0]-v.real[0])<0.0006 && Math.abs(v.geoPos[1]-v.real[1])<0.0006) return;
+  if(Date.now()-geoUltima<10000) return;
+  geoEmCurso=true; geoUltima=Date.now();
+  try{
+    const r=await fetch('https://nominatim.openstreetmap.org/reverse?format=jsonv2&addressdetails=1&zoom=18&accept-language=pt-BR&lat='+v.real[0]+'&lon='+v.real[1]);
+    if(r.ok){
+      const j=await r.json(), a=j.address||{};
+      const rua=a.road||a.pedestrian||a.residential||a.footway||'';
+      const num=a.house_number?', '+a.house_number:'';
+      const bairro=a.suburb||a.neighbourhood||a.quarter||'';
+      const cidade=a.city||a.town||a.municipality||a.village||'';
+      let txt=(rua?rua+num:'');
+      if(bairro) txt+=(txt?' - ':'')+bairro;
+      if(cidade) txt+=(txt?', ':'')+cidade;
+      v.geo = txt || (j.display_name?String(j.display_name).split(',').slice(0,3).join(','):null);
+      v.geoPos=v.real.slice();
+    }
+  }catch(e){}
+  geoEmCurso=false;
+}
 function status(v){
   if(!v.pos) return ['Sem posição','st-off'];
   if(v.bloq) return ['Bloqueado','st-block'];
@@ -425,7 +452,7 @@ function mesclar(ds,ps){
     let v = veiculos.find(x=>x.id===d.id);
     if(!v){
       v = {id:d.id,visivel:true,marker:null,pos:null,de:null,para:null,t0:0,rumo:0,vel:0,
-           ign:null,bat:null,bloq:false,online:false,fix:null,ultimo:null,addr:null,posId:null,result:null,placa:'',nome:''};
+           ign:null,bat:null,bloq:false,online:false,fix:null,ultimo:null,real:null,geo:null,geoPos:null,addr:null,posId:null,result:null,placa:'',nome:''};
       veiculos.push(v);
     }
     v.nome = d.name || ('Aparelho '+d.id);
@@ -442,6 +469,7 @@ function mesclar(ds,ps){
       v.addr = p.address || null;
       v.rumo = p.course||0;
       v.posId = p.id;
+      v.real = [p.latitude,p.longitude];
       v.result = a.result || null;
       v.bloq = typeof a.blocked==='boolean' ? a.blocked : lsGet('rg_bloq_'+v.id)==='1';
       const nova = [p.latitude,p.longitude];
@@ -551,10 +579,12 @@ function atualizar(){
     $('sBat').textContent=v.bat===null?'—':v.bat+'%';
     const ult = v.ultimo || v.fix;
     $('vUpd').textContent = ult ? 'Atualizado '+horaAtual(ult) : '';
-    $('vAddr').textContent = v.addr || '';
+    if(!v.addr) buscarEndereco(v);
+    const endereco = v.addr || v.geo || '';
+    $('vAddr').textContent = endereco;
     const gpsVelho = v.fix && Date.now()-v.fix>600000;
     $('vAgo').textContent = gpsVelho ? 'Sem sinal de GPS '+tempo(Date.now()-v.fix) : '';
-    $('addrRow').style.display = (v.addr || gpsVelho) ? 'flex' : 'none';
+    $('addrRow').style.display = (endereco || gpsVelho) ? 'flex' : 'none';
     $('banner').classList.toggle('show',v.bloq);
     $('btnBlock').disabled=cmdAndamento;
     $('btnUnblock').disabled=cmdAndamento;
