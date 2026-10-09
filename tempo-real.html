@@ -438,6 +438,19 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
   </div>
 </div>
 
+<!-- Desvincular aparelho de um cliente -->
+<div class="modal" id="mDesv">
+  <div class="box2">
+    <h3>Desvincular aparelho</h3>
+    <p id="desvTexto"></p>
+    <div class="ferr" id="desvErro"></div>
+    <div class="actions2">
+      <button class="btn btn-out" data-close>Cancelar</button>
+      <button class="btn btn-red" id="desvSalvar">Desvincular</button>
+    </div>
+  </div>
+</div>
+
 <!-- Acesso criado -->
 <div class="modal" id="mAcesso">
   <div class="box2">
@@ -1127,7 +1140,7 @@ function desenharClientes(){
         '<div class="s">IMEI '+esc(v.imei)+'</div>'+
         '<div class="s">Chip: '+(v.fone?'<b>'+esc(fmtFone(v.fone))+'</b>':'não cadastrado')+'</div>'+
         '<div class="bts">'+(v.fone?'<button class="mini" data-a="copiar">Copiar número</button><a class="mini" data-a="sms" href="'+esc(linkSms(v.fone))+'">Enviar SMS</a>':'')+
-        '<button class="mini" data-a="editar">Editar</button></div></div>'
+        '<button class="mini" data-a="editar">Editar</button><button class="mini" data-a="desv" data-u="'+u.id+'" style="color:#d93025;border-color:#d93025">Desvincular</button></div></div>'
       ).join('') || '<div class="s" style="padding:8px 0">Nenhum veículo vinculado.</div>')+
       '<div class="bts" style="margin-top:8px"><button class="mini" data-a="vinc" data-u="'+u.id+'">+ Vincular aparelho</button><button class="mini" data-a="cpf" data-u="'+u.id+'">'+(cpf?'Alterar CPF':'Cadastrar CPF')+'</button></div></div></details>';
   }).join('') || '<div class="vempty">Nenhum cliente ainda.</div>';
@@ -1166,6 +1179,13 @@ $('aList').addEventListener('click',e=>{
     abrir('mCpf'); return;
   }
   const id=+b.closest('[data-id]').dataset.id, v=veiculos.find(x=>x.id===id); if(!v) return;
+  if(b.dataset.a==='desv'){
+    desvUserId=+b.dataset.u; desvDevId=id;
+    const u=usuarios.find(x=>x.id===desvUserId); if(!u) return;
+    $('desvTexto').textContent='Tirar "'+v.nome+'" da conta de '+u.name+'? O cliente deixa de ver este aparelho no app. O equipamento continua cadastrado e pode ser vinculado de novo.';
+    $('desvErro').textContent=''; $('desvSalvar').disabled=false;
+    abrir('mDesv'); return;
+  }
   if(b.dataset.a==='copiar') copiar(soDigitos(v.fone)).then(()=>toast('Número copiado')).catch(()=>toast('Não foi possível copiar'));
   else if(b.dataset.a==='editar') abrirEquip(id);
   /* "sms" é um link normal: abre o aplicativo de mensagens do celular */
@@ -1196,7 +1216,31 @@ async function ligarAparelhos(user,ids){
 async function atualizarAposVinculo(){
   vinculos={}; buscando=false; await buscarSeguro(); desenharAdmin(); carregarVinculos();
 }
-let vincUserId=null;
+let vincUserId=null, desvUserId=null, desvDevId=null;
+$('desvSalvar').onclick=async ()=>{
+  const u=usuarios.find(x=>x.id===desvUserId), v=veiculos.find(x=>x.id===desvDevId);
+  if(!u||!v){ fechar(); return }
+  $('desvErro').textContent=''; $('desvSalvar').disabled=true;
+  try{
+    const r=await api('/api/permissions',{method:'DELETE',headers:JSONH,body:JSON.stringify({userId:u.id,deviceId:v.id})});
+    if(!r.ok) throw new Error(await msgErro(r,'Não consegui desvincular'));
+    /* se o e-mail do cliente estava gravado no aparelho, limpa para o app não mostrar o cliente antigo */
+    let avisoContato=false;
+    if(String(v.contato||'').toLowerCase()===String(u.email||'').toLowerCase()){
+      try{
+        const c=await api('/api/devices/'+v.id,{method:'PUT',headers:JSONH,body:JSON.stringify(Object.assign({},v.raw,{contact:''}))});
+        if(!c.ok) avisoContato=true;
+      }catch(e){ if(e.sessao) throw e; avisoContato=true }
+    }
+    delete abertos[u.id]; abertos[u.id]=true;
+    fechar();
+    toast(avisoContato?'Desvinculado, mas o e-mail antigo continua no aparelho.':'Aparelho desvinculado.');
+    await atualizarAposVinculo();
+  }catch(e){
+    if(e.sessao) return;
+    $('desvErro').textContent=e.message||'Não consegui desvincular.'; $('desvSalvar').disabled=false;
+  }
+};
 $('vincSalvar').onclick=async ()=>{
   const ids=marcados('vincLista'), u=usuarios.find(x=>x.id===vincUserId);
   if(!u) return;
