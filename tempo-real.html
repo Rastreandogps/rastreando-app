@@ -1156,12 +1156,19 @@ async function carregarCpfs(){
   try{ const r=await fn('cpfs'); cpfsMapa=r.mapa||{}; if(abaAdmin==='cli' && $('aview').classList.contains('show')) desenharClientes() }
   catch(e){}
 }
-let finMapa=null; /* situação financeira de cada cliente (vem do servidor de faturas) */
+let finMapa=null, finEm=0; /* situação financeira de cada cliente (vem do servidor de faturas) */
+function rotuloFin(){
+  if(!finEm) return 'Atualizar situação financeira';
+  const h=new Date(finEm).toLocaleTimeString('pt-BR',{timeZone:'America/Sao_Paulo',hour:'2-digit',minute:'2-digit'});
+  return 'Atualizar situação financeira (última: '+h+')';
+}
 async function carregarFin(forcar){
-  try{ const r=await fn('situacao',{forcar:!!forcar}); finMapa=r.clientes||{}; if(abaAdmin==='cli' && $('aview').classList.contains('show')) desenharClientes(); return true }
+  try{ const r=await fn('situacao',{forcar:!!forcar}); finMapa=r.clientes||{}; finEm=Date.now(); $('aFinAtualizar').textContent=rotuloFin(); if(abaAdmin==='cli' && $('aview').classList.contains('show')) desenharClientes(); return true }
   catch(e){ if(forcar) toast('Não consegui atualizar o financeiro: '+e.message); return false }
 }
-$('aFinAtualizar').onclick=async ()=>{ const b=$('aFinAtualizar'); b.disabled=true; b.textContent='Atualizando...'; const ok=await carregarFin(true); if(ok) toast('Situação financeira atualizada.'); b.disabled=false; b.textContent='Atualizar situação financeira' };
+/* ao abrir o painel ou a aba Clientes, atualiza se a informação tiver mais de 30 segundos */
+const finVelho = () => Date.now()-finEm>30000;
+$('aFinAtualizar').onclick=async ()=>{ const b=$('aFinAtualizar'); b.disabled=true; b.textContent='Atualizando...'; const ok=await carregarFin(true); if(ok) toast('Situação financeira atualizada.'); b.disabled=false; b.textContent=rotuloFin() };
 function pedirConfirmacao(titulo,texto,rotulo,acao){
   $('confTitulo').textContent=titulo; $('confTexto').textContent=texto; $('confErro').textContent='';
   $('confOk').textContent=rotulo; $('confOk').disabled=false;
@@ -1188,7 +1195,7 @@ async function abrirAdmin(){
   desenharAdmin();
   carregarVinculos();
   carregarCpfs();
-  carregarFin(false);
+  carregarFin(finVelho());
 }
 function desenharAdmin(){
   $('aTabEquip').classList.toggle('on',abaAdmin==='equip');
@@ -1264,7 +1271,7 @@ function desenharClientes(){
 }
 $('aList').addEventListener('toggle',e=>{ const d=e.target; if(d.dataset && d.dataset.u) abertos[d.dataset.u]=d.open },true);
 $('aTabEquip').onclick=()=>{abaAdmin='equip';desenharAdmin()};
-$('aTabCli').onclick=()=>{abaAdmin='cli';desenharAdmin()};
+$('aTabCli').onclick=()=>{abaAdmin='cli';desenharAdmin(); if(finVelho()) carregarFin(true)};
 $('aSearch').addEventListener('input',desenharEquip);
 $('aNovo').onclick=()=>{ if(abaAdmin==='equip') abrirEquip(null); else abrirCliente() };
 
