@@ -47,6 +47,25 @@ try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'){document.do
 .upd{font-size:11px;color:var(--mut);white-space:nowrap}
 .aview{position:absolute;inset:0;z-index:600;background:var(--bg);display:none;flex-direction:column}
 .aview.show{display:flex}
+.fview{position:absolute;inset:0;z-index:600;background:var(--bg);display:none;flex-direction:column}
+.fview.show{display:flex}
+.fres{border-radius:12px;padding:12px 14px;font-size:14px;font-weight:600;margin-top:12px;line-height:1.4}
+.fres.mal{background:rgba(227,38,47,.12);border:1px solid rgba(227,38,47,.35);color:var(--red2)}
+.fres.bem{background:rgba(51,209,122,.12);border:1px solid rgba(51,209,122,.35);color:var(--green)}
+.fres.info{background:var(--card);border:1px solid var(--line);color:var(--txt);font-weight:500}
+.fsec{font-size:13px;font-weight:700;color:var(--mut);margin:18px 0 4px;letter-spacing:.04em}
+.fcard{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-top:8px}
+.fcard .ft{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.fcard .fv{font-size:18px;font-weight:700}
+.fcard .fd{font-size:13px;color:var(--mut);margin-top:2px}
+.fcard .fo{font-size:12px;color:var(--mut);margin-top:2px}
+.fbad{font-size:11px;font-weight:700;padding:4px 8px;border-radius:20px;white-space:nowrap}
+.fbad.v{background:rgba(227,38,47,.16);color:var(--red2)}
+.fbad.a{background:rgba(56,225,230,.12);color:var(--cyan)}
+.fbad.p{background:rgba(51,209,122,.14);color:var(--green)}
+.fcard .bts{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.pixqr{display:block;width:200px;height:200px;margin:0 auto 12px;background:#fff;border-radius:10px;padding:6px}
+.pixcode{background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:10px;font-size:12px;word-break:break-all;margin-bottom:12px;max-height:84px;overflow:auto}
 .atabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
 .atab{height:40px;border-radius:10px;border:1px solid var(--line);background:var(--card);font-weight:600;font-size:14px}
 .atab.on{border-color:var(--cyan);color:var(--cyan)}
@@ -174,7 +193,7 @@ main{position:relative;flex:1;min-height:0;overflow:hidden}
 .vempty{padding:24px 0;text-align:center;color:var(--mut);font-size:14px}
 
 /* Navegação */
-nav{display:grid;grid-template-columns:repeat(5,1fr);background:var(--bg);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom);z-index:5}
+nav{display:grid;grid-template-columns:repeat(6,1fr);background:var(--bg);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom);z-index:5}
 nav button{padding:9px 0 8px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;color:var(--mut)}
 nav button.on{color:var(--txt)}
 nav button.on svg{stroke:var(--red2)}
@@ -291,6 +310,13 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
     </div>
     <div class="vlist" id="aList"></div>
   </section>
+  <section class="fview" id="fview">
+    <div class="vtop">
+      <div class="vtitle"><h2>Faturas</h2><button class="linkbtn" id="fAtualizar">Atualizar</button></div>
+      <div id="fResumo"></div>
+    </div>
+    <div class="vlist" id="fList"></div>
+  </section>
 </main>
 
 <nav>
@@ -299,6 +325,7 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
   <button data-tab="Histórico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Histórico</button>
   <button data-tab="Cercas"><svg viewBox="0 0 24 24"><path d="M12 3l8 4v6c0 4-3.5 7-8 8-4.5-1-8-4-8-8V7l8-4z"/></svg>Cercas</button>
   <button data-tab="Alertas"><svg viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 1112 0v5l2 2H4l2-2z"/><path d="M10 21h4"/></svg>Alertas</button>
+  <button data-tab="Faturas" style="display:none"><svg viewBox="0 0 24 24"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6M9 13h8M9 17h8"/></svg>Faturas</button>
   <button data-tab="Admin" style="display:none"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1.1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1.1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.8.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8V9a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"/></svg>Admin</button>
 </nav>
 
@@ -400,6 +427,36 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
       <a class="btn btn-red" id="acessoWpp" target="_blank" rel="noopener" style="text-decoration:none">WhatsApp</a>
     </div>
     <button class="btn btn-out" data-close style="width:100%;margin-top:8px">Fechar</button>
+  </div>
+</div>
+
+<!-- PIX da fatura -->
+<div class="modal" id="mPix">
+  <div class="box2">
+    <h3>Pagar com PIX</h3>
+    <p id="pixInfo"></p>
+    <img class="pixqr" id="pixQr" alt="QR Code do PIX">
+    <div class="pixcode" id="pixCode"></div>
+    <div class="actions2">
+      <button class="btn btn-out" data-close>Fechar</button>
+      <button class="btn btn-red" id="pixCopiar">Copiar código</button>
+    </div>
+    <p style="margin:12px 0 0;font-size:12px">Depois de pagar, volte em Faturas e toque em Atualizar. O banco leva alguns instantes para avisar.</p>
+  </div>
+</div>
+
+<!-- CPF do cliente (administrador) -->
+<div class="modal" id="mCpf">
+  <div class="box2">
+    <h3 id="cpfTitulo">CPF do cliente</h3>
+    <p>É com o CPF que o cliente vê as faturas dele. Deixe em branco para remover.</p>
+    <label class="flbl" for="cpfCampo">CPF ou CNPJ</label>
+    <input class="fld" id="cpfCampo" inputmode="numeric" autocomplete="off">
+    <div class="ferr" id="cpfErro"></div>
+    <div class="actions2">
+      <button class="btn btn-out" data-close>Cancelar</button>
+      <button class="btn btn-red" id="cpfSalvar">Salvar</button>
+    </div>
   </div>
 </div>
 
@@ -849,16 +906,106 @@ function irPara(tab){
   document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.tab===tab));
   $('vview').classList.toggle('show',tab==='Veículos');
   $('aview').classList.toggle('show',tab==='Admin');
+  $('fview').classList.toggle('show',tab==='Faturas');
   if(tab==='Admin') abrirAdmin();
+  if(tab==='Faturas') abrirFaturas(false);
 }
 document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
   const t=b.dataset.tab;
-  if(t==='Mapa'||t==='Veículos'||(t==='Admin'&&ehAdmin)) irPara(t);
+  if(t==='Mapa'||t==='Veículos'||(t==='Admin'&&ehAdmin)||(t==='Faturas'&&!ehAdmin)) irPara(t);
   else toast(t+': em construção');
 });
 
+/* ===== SERVIDOR DE FATURAS (Firebase) ===== */
+/* Endereço da função publicada no Firebase. Se o endereço que aparecer na publicação for diferente, troque aqui. */
+const FN_URL = 'https://southamerica-east1-rastreando-assinaturas.cloudfunctions.net/rastreamentoApi';
+async function fn(acao,extra){
+  const tok=lsGet('rg_token');
+  if(!tok) throw new Error('Para usar esta função, saia do app e entre de novo.');
+  let r;
+  try{
+    r=await fetch(FN_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',
+      body:JSON.stringify(Object.assign({acao:acao,token:tok},extra||{}))});
+  }catch(e){ throw new Error('Não consegui falar com o servidor de faturas. Confira a internet.') }
+  let j={}; try{ j=await r.json() }catch(e){}
+  if(!r.ok) throw new Error(j.erro||('Erro '+r.status));
+  return j;
+}
+const brl = n => 'R$ '+Number(n||0).toFixed(2).replace('.',',');
+const dmy = iso => { const m=/^(\d{4})-(\d{2})-(\d{2})/.exec(String(iso||'')); return m ? m[3]+'/'+m[2]+'/'+m[1] : '' };
+const diasDe = (a,b) => Math.round((Date.parse(b+'T00:00:00Z')-Date.parse(a+'T00:00:00Z'))/86400000);
+function fmtCpf(c){
+  const d=soDigitos(c);
+  if(d.length===11) return d.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/,'$1.$2.$3-$4');
+  if(d.length===14) return d.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/,'$1.$2.$3/$4-$5');
+  return c||'';
+}
+
+/* ===== ABA FATURAS (cliente) ===== */
+let faturasDados=null, faturasCarregando=false;
+async function abrirFaturas(forcar){
+  if(faturasCarregando) return;
+  faturasCarregando=true;
+  if(!faturasDados || forcar) $('fList').innerHTML='<div class="vempty">Carregando faturas...</div>';
+  try{
+    faturasDados = await fn('faturas',{forcar:!!forcar});
+    desenharFaturas();
+  }catch(e){
+    $('fResumo').innerHTML='';
+    $('fList').innerHTML='<div class="vempty">'+esc(e.message)+'</div>';
+  }
+  faturasCarregando=false;
+}
+function desenharFaturas(){
+  const d=faturasDados, R=$('fResumo'), L=$('fList');
+  if(!d){ R.innerHTML=''; L.innerHTML=''; return }
+  if(d.semCpf){ R.innerHTML=''; L.innerHTML='<div class="vempty">Seu CPF ainda não está vinculado ao seu acesso.<br>Fale com a Rastreando GPS.</div>'; return }
+  if(d.semCadastro){ R.innerHTML=''; L.innerHTML='<div class="vempty">Não encontramos cobranças para o seu CPF.<br>Fale com a Rastreando GPS.</div>'; return }
+  const rs=d.resumo;
+  R.innerHTML = rs.qtdVencidas>0
+    ? '<div class="fres mal">Você tem '+rs.qtdVencidas+(rs.qtdVencidas===1?' fatura vencida':' faturas vencidas')+': '+brl(rs.totalVencido)+'<br><span style="font-weight:500">Maior atraso: '+rs.maiorAtraso+(rs.maiorAtraso===1?' dia':' dias')+'. Pague para evitar o bloqueio do veículo.</span></div>'
+    : (d.abertas.length ? '<div class="fres bem">Nenhuma fatura vencida. Obrigado!</div>' : '<div class="fres bem">Tudo em dia. Nenhuma fatura em aberto.</div>');
+  let h='';
+  if(d.abertas.length){
+    h+='<div class="fsec">EM ABERTO</div>';
+    h+=d.abertas.map(f=>{
+      const dif=diasDe(d.hoje,f.vencimento);
+      const bad = f.vencida ? '<span class="fbad v">Vencida há '+f.diasAtraso+(f.diasAtraso===1?' dia':' dias')+'</span>'
+        : '<span class="fbad a">'+(dif<=0?'Vence hoje':'Vence em '+dif+(dif===1?' dia':' dias'))+'</span>';
+      const orig = f.vencida && f.atualizado>f.valor ? '<div class="fo">Valor original '+brl(f.valor)+' + multa e juros</div>' : '';
+      const pix = f.forma!=='CREDIT_CARD' ? '<button class="btn btn-red mini" style="color:#fff;border:0" data-a="pix" data-id="'+esc(f.id)+'">Pagar com PIX</button>' : '';
+      const ver = f.link ? '<a class="mini" href="'+esc(f.link)+'" target="_blank" rel="noopener">Ver fatura</a>' : '';
+      return '<div class="fcard"><div class="ft"><div><div class="fv">'+brl(f.atualizado)+'</div><div class="fd">Vencimento '+dmy(f.vencimento)+'</div>'+orig+
+        (f.descricao?'<div class="fo">'+esc(f.descricao)+'</div>':'')+'</div>'+bad+'</div><div class="bts">'+pix+ver+'</div></div>';
+    }).join('');
+  }
+  if(d.pagas.length){
+    h+='<div class="fsec">PAGAS RECENTEMENTE</div>';
+    h+=d.pagas.map(f=>'<div class="fcard"><div class="ft"><div><div class="fv" style="font-size:16px">'+brl(f.valor)+'</div><div class="fd">Vencimento '+dmy(f.vencimento)+(f.pagoEm?' · pago em '+dmy(f.pagoEm):'')+'</div></div><span class="fbad p">Paga</span></div></div>').join('');
+  }
+  L.innerHTML=h;
+}
+$('fAtualizar').onclick=()=>abrirFaturas(true);
+$('fList').addEventListener('click',async e=>{
+  const b=e.target.closest('[data-a="pix"]'); if(!b) return;
+  b.disabled=true; const t0=b.textContent; b.textContent='Gerando PIX...';
+  try{
+    const r=await fn('pix',{id:b.dataset.id});
+    if(r.paga){ toast('Esta fatura já está paga.'); abrirFaturas(true) }
+    else if(r.semPix){ toast('Esta fatura é no cartão. Use "Ver fatura".'); if(r.link) window.open(r.link,'_blank','noopener') }
+    else{
+      $('pixInfo').textContent='Valor '+brl(r.valor)+' · vencimento '+dmy(r.vencimento)+'. Abra o app do seu banco e escaneie, ou copie o código.';
+      $('pixQr').src='data:image/png;base64,'+r.imagem;
+      $('pixCode').textContent=r.copiaCola;
+      $('pixCopiar').onclick=()=>copiar(r.copiaCola).then(()=>toast('Código PIX copiado')).catch(()=>toast('Não foi possível copiar'));
+      abrir('mPix');
+    }
+  }catch(err){ toast(err.message) }
+  b.disabled=false; b.textContent=t0;
+});
+
 /* ===== ÁREA DO ADMINISTRADOR ===== */
-let ehAdmin=false, usuarios=[], abaAdmin='equip', editandoId=null;
+let ehAdmin=false, usuarios=[], abaAdmin='equip', editandoId=null, cpfsMapa={}, cpfUserId=null;
 const JSONH={'Content-Type':'application/json'};
 const soDigitos = s => String(s==null?'':s).replace(/\D/g,'');
 function fmtFone(f){
@@ -890,14 +1037,18 @@ async function descobrirAdmin(){
     const em=(lsGet('rg_email')||'').toLowerCase();
     ehAdmin = !!usuarios.find(u=>u.administrator && String(u.email||'').toLowerCase()===em);
   }catch(e){}
-  const bt=document.querySelector('nav button[data-tab="Admin"]');
-  bt.style.display = ehAdmin ? '' : 'none';
-  document.querySelector('nav').style.gridTemplateColumns = 'repeat('+(ehAdmin?6:5)+',1fr)';
+  document.querySelector('nav button[data-tab="Admin"]').style.display = ehAdmin ? '' : 'none';
+  document.querySelector('nav button[data-tab="Faturas"]').style.display = ehAdmin ? 'none' : '';
+}
+async function carregarCpfs(){
+  try{ const r=await fn('cpfs'); cpfsMapa=r.mapa||{}; if(abaAdmin==='cli' && $('aview').classList.contains('show')) desenharClientes() }
+  catch(e){}
 }
 async function abrirAdmin(){
   await carregarUsuarios();
   desenharAdmin();
   carregarVinculos();
+  carregarCpfs();
 }
 function desenharAdmin(){
   $('aTabEquip').classList.toggle('on',abaAdmin==='equip');
@@ -921,7 +1072,6 @@ function desenharEquip(){
   ).join('') || '<div class="vempty">Nenhum equipamento encontrado.</div>';
 }
 let vinculos={}, abertos={};
-function fmtCpf(c){ const d=soDigitos(c||''); return d.length===11 ? d.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/,'$1.$2.$3-$4') : (c||'') }
 function aparelhosDe(u){
   /* vínculo real do Traccar (quando já carregado); senão, pelo e-mail gravado no equipamento */
   if(vinculos[u.id]) return vinculos[u.id].map(id=>veiculos.find(v=>v.id===id)).filter(Boolean);
@@ -944,7 +1094,7 @@ function desenharClientes(){
   const cl=usuarios.filter(u=>!u.administrator);
   $('aCount').textContent=cl.length+' clientes';
   $('aList').innerHTML = cl.map(u=>{
-    const ap=aparelhosDe(u), cpf=u.attributes && u.attributes.cpf;
+    const ap=aparelhosDe(u), cpf=(cpfsMapa[u.id] && cpfsMapa[u.id].cpf) || (u.attributes && u.attributes.cpf);
     return '<details class="cli" data-u="'+u.id+'"'+(abertos[u.id]?' open':'')+'><summary>'+
       '<div class="cinfo"><div class="t">'+esc(u.name)+'</div>'+
       '<div class="s">'+esc(u.email)+'</div>'+
@@ -956,7 +1106,8 @@ function desenharClientes(){
         '<div class="s">Chip: '+(v.fone?'<b>'+esc(fmtFone(v.fone))+'</b>':'não cadastrado')+'</div>'+
         '<div class="bts">'+(v.fone?'<button class="mini" data-a="copiar">Copiar número</button><a class="mini" data-a="sms" href="'+esc(linkSms(v.fone))+'">Enviar SMS</a>':'')+
         '<button class="mini" data-a="editar">Editar</button></div></div>'
-      ).join('') || '<div class="s" style="padding:8px 0">Nenhum veículo vinculado.</div>')+'</div></details>';
+      ).join('') || '<div class="s" style="padding:8px 0">Nenhum veículo vinculado.</div>')+
+      '<div class="bts" style="margin-top:8px"><button class="mini" data-a="cpf" data-u="'+u.id+'">'+(cpf?'Alterar CPF':'Cadastrar CPF')+'</button></div></div></details>';
   }).join('') || '<div class="vempty">Nenhum cliente ainda.</div>';
 }
 $('aList').addEventListener('toggle',e=>{ const d=e.target; if(d.dataset && d.dataset.u) abertos[d.dataset.u]=d.open },true);
@@ -976,11 +1127,35 @@ function copiar(txt){
 }
 $('aList').addEventListener('click',e=>{
   const b=e.target.closest('[data-a]'); if(!b) return;
+  if(b.dataset.a==='cpf'){
+    cpfUserId=+b.dataset.u;
+    const u=usuarios.find(x=>x.id===cpfUserId);
+    const atual=(cpfsMapa[cpfUserId] && cpfsMapa[cpfUserId].cpf) || (u && u.attributes && u.attributes.cpf) || '';
+    $('cpfTitulo').textContent='CPF de '+(u?u.name:'cliente');
+    $('cpfCampo').value=fmtCpf(atual); $('cpfErro').textContent=''; $('cpfSalvar').disabled=false;
+    abrir('mCpf'); return;
+  }
   const id=+b.closest('[data-id]').dataset.id, v=veiculos.find(x=>x.id===id); if(!v) return;
   if(b.dataset.a==='copiar') copiar(soDigitos(v.fone)).then(()=>toast('Número copiado')).catch(()=>toast('Não foi possível copiar'));
   else if(b.dataset.a==='editar') abrirEquip(id);
   /* "sms" é um link normal: abre o aplicativo de mensagens do celular */
 });
+
+$('cpfSalvar').onclick=async ()=>{
+  const cpf=soDigitos($('cpfCampo').value);
+  if(cpf && cpf.length!==11 && cpf.length!==14){ $('cpfErro').textContent='O CPF precisa ter 11 números (ou CNPJ com 14).'; return }
+  $('cpfErro').textContent=''; $('cpfSalvar').disabled=true;
+  try{
+    const r=await fn('vincular',{userId:cpfUserId,cpf:cpf});
+    fechar();
+    if(r.removido) toast('CPF removido');
+    else if(!r.achouNoAsaas) toast('CPF salvo, mas não achei esse CPF no Asaas.');
+    else if(r.repetido) toast('CPF salvo (Asaas: '+r.nomeAsaas+'). Atenção: já está em outro acesso.');
+    else toast('CPF vinculado: '+r.nomeAsaas);
+    await carregarCpfs(); desenharAdmin();
+  }catch(e){ $('cpfErro').textContent=e.message }
+  $('cpfSalvar').disabled=false;
+};
 
 /* --- Equipamento --- */
 function abrirEquip(id){
@@ -1055,8 +1230,13 @@ $('cSalvar').onclick=async ()=>{
     const corpo={name:nome,email:email,password:senha,administrator:false,deviceReadonly:$('cLeitura').checked,attributes:cpf?{cpf:cpf}:{}};
     const r=await api('/api/users',{method:'POST',headers:JSONH,body:JSON.stringify(corpo)});
     if(!r.ok) throw new Error(await msgErro(r,'Não foi possível criar o cliente'));
+    let novo=null; try{ novo=await r.json() }catch(e){}
     await carregarUsuarios();
     fechar();
+    if(cpf && novo && novo.id){
+      try{ await fn('vincular',{userId:novo.id,cpf:cpf}); await carregarCpfs() }
+      catch(e){ toast('Cliente criado, mas o CPF não foi vinculado: '+e.message+' (use o botão CPF do cliente)') }
+    }
     const link=location.origin+location.pathname;
     const msg='Olá! Seu acesso ao Rastreando GPS:\n'+link+'\nE-mail: '+email+'\nSenha: '+senha;
     $('acessoTxt').textContent=msg;
@@ -1077,7 +1257,7 @@ function mostrarLogin(msg){
 function sair(msg){
   lsDel('rg_token'); lsDel('rg_email'); try{sessionStorage.removeItem('rg_basic')}catch(e){}
   ehAdmin=false; usuarios=[]; $('aview').classList.remove('show');
-  document.querySelector('nav button[data-tab="Admin"]').style.display='none'; document.querySelector('nav').style.gridTemplateColumns='repeat(5,1fr)'; irPara('Mapa');
+  document.querySelector('nav button[data-tab="Admin"]').style.display='none'; document.querySelector('nav button[data-tab="Faturas"]').style.display='none'; cpfsMapa={}; irPara('Mapa');
   auth=null;
   veiculos.forEach(v=>{ if(v.marker&&map.hasLayer(v.marker)) map.removeLayer(v.marker) });
   veiculos=[]; selId=null; primeiraCarga=true; assinaturaLista='';
