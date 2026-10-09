@@ -214,6 +214,31 @@ main{position:relative;flex:1;min-height:0;overflow:hidden}
 .vp{font-size:12px;color:var(--mut);letter-spacing:.08em;margin-top:2px}
 .vempty{padding:24px 0;text-align:center;color:var(--mut);font-size:14px}
 
+/* Cercas e alertas */
+.cview,.alview{position:absolute;inset:0;z-index:600;background:var(--bg);display:none;flex-direction:column}
+.cview.show,.alview.show{display:flex}
+nav button{position:relative}
+.nbadge{position:absolute;top:3px;left:calc(50% + 6px);min-width:16px;height:16px;padding:0 4px;border-radius:8px;background:var(--red);color:#fff;font-size:10px;font-weight:700;line-height:16px;text-align:center;display:none}
+.nbadge.show{display:block}
+.cpanel{position:absolute;left:0;right:0;bottom:0;z-index:700;margin:0 auto;max-width:520px;max-height:56%;overflow-y:auto;background:var(--card);border:1px solid var(--line);border-bottom:0;border-radius:18px 18px 0 0;padding:12px 16px 14px;box-shadow:0 -8px 24px rgba(0,0,0,.45);display:none}
+.cpanel.show{display:block}
+.cpanel .chead{display:flex;align-items:center;justify-content:space-between}
+.cpanel .chead b{font-size:17px}
+.cpanel .chint{font-size:13px;color:var(--mut);margin:2px 0 10px}
+.cpanel input[type=range]{width:100%;margin:2px 0 12px;accent-color:var(--red)}
+.cpanel select.fld{appearance:auto}
+.cveic{max-height:116px;overflow-y:auto;border:1px solid var(--line);border-radius:12px;padding:6px 10px;margin-bottom:10px;background:var(--card2)}
+.cveic .fchk{margin:6px 0}
+.cpin{width:26px;height:26px;border-radius:50%;background:var(--red);border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.5)}
+body.desenhando .follow,body.desenhando .sheet,body.desenhando .vazio{display:none!important}
+.alrow{padding:12px 0;border-bottom:1px solid var(--line);display:flex;gap:10px;align-items:flex-start}
+.alrow .dot{width:10px;height:10px;border-radius:50%;margin-top:6px;flex:none}
+.alrow .dot.e{background:var(--green)}.alrow .dot.s{background:var(--amber)}
+.alrow .tx{font-size:15px;font-weight:600}
+.alrow .hr{font-size:12px;color:var(--mut);margin-top:2px}
+.alrow.novo .tx::after{content:" • novo";color:var(--red2);font-size:12px}
+.arow .mini.perigo{color:var(--red2)}
+
 /* Navegação */
 nav{display:grid;grid-template-columns:repeat(6,1fr);background:var(--bg);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom);z-index:5}
 nav button{padding:9px 0 8px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;color:var(--mut)}
@@ -348,6 +373,40 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
     </div>
     <div class="vlist" id="fList"></div>
   </section>
+  <section class="cview" id="cview">
+    <div class="vtop">
+      <div class="vtitle"><h2>Cercas virtuais</h2></div>
+      <div class="vcount" id="cCount"></div>
+      <button class="btn btn-red anovo" id="cNova" style="margin-top:12px;width:100%">+ Nova cerca</button>
+    </div>
+    <div class="vlist" id="cList"></div>
+  </section>
+  <section class="alview" id="alview">
+    <div class="vtop">
+      <div class="vtitle"><h2>Alertas</h2><button class="linkbtn" id="alAtualizar">Atualizar</button></div>
+      <div class="vcount">Entradas e saídas de cercas nos últimos 7 dias</div>
+    </div>
+    <div class="vlist" id="alList"></div>
+  </section>
+  <section class="cpanel" id="cpanel">
+    <div class="chead"><b>Nova cerca</b><button class="linkbtn" id="cpCancel">Cancelar</button></div>
+    <p class="chint">Toque no mapa ou arraste o ponto vermelho para escolher o centro.</p>
+    <label class="flbl" for="cpNome">Nome da cerca</label>
+    <input class="fld" id="cpNome" maxlength="40" placeholder="Ex.: Casa, Oficina" autocomplete="off">
+    <label class="flbl" for="cpRaio">Tamanho (raio): <b id="cpRaioTxt">200 m</b></label>
+    <input type="range" id="cpRaio" min="0" max="100" step="1" value="30">
+    <label class="flbl" for="cpQuando">Avisar quando o veículo</label>
+    <select class="fld" id="cpQuando">
+      <option value="entrar">Entrar na cerca</option>
+      <option value="sair">Sair da cerca</option>
+      <option value="ambos">Entrar ou sair</option>
+    </select>
+    <div class="flbl">Veículos desta cerca</div>
+    <div class="cveic" id="cpVeic"></div>
+    <label class="fchk" id="cpBloqRow" style="display:none"><input type="checkbox" id="cpBloq"> Bloquear o veículo quando isso acontecer</label>
+    <div class="ferr" id="cpErro"></div>
+    <button class="btn btn-red" id="cpSalvar" style="width:100%">Criar cerca</button>
+  </section>
 </main>
 
 <nav>
@@ -355,7 +414,7 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
   <button data-tab="Veículos"><svg viewBox="0 0 24 24"><path d="M4 16v-4l2-5h12l2 5v4"/><path d="M4 12h16"/><circle cx="7.5" cy="16.5" r="1.5"/><circle cx="16.5" cy="16.5" r="1.5"/></svg>Veículos</button>
   <button data-tab="Histórico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Histórico</button>
   <button data-tab="Cercas"><svg viewBox="0 0 24 24"><path d="M12 3l8 4v6c0 4-3.5 7-8 8-4.5-1-8-4-8-8V7l8-4z"/></svg>Cercas</button>
-  <button data-tab="Alertas"><svg viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 1112 0v5l2 2H4l2-2z"/><path d="M10 21h4"/></svg>Alertas</button>
+  <button data-tab="Alertas"><svg viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 1112 0v5l2 2H4l2-2z"/><path d="M10 21h4"/></svg>Alertas<span class="nbadge" id="alBadge"></span></button>
   <button data-tab="Faturas" style="display:none"><svg viewBox="0 0 24 24"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6M9 13h8M9 17h8"/></svg>Faturas</button>
   <button data-tab="Admin" style="display:none"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1.1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1.1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.8.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8V9a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"/></svg>Admin</button>
 </nav>
@@ -529,6 +588,18 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
     <div class="actions2">
       <button class="btn btn-out" data-close>Cancelar</button>
       <button class="btn btn-red" id="cpfSalvar">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Aviso de bloqueio por cerca -->
+<div class="modal" id="mCercaBloq">
+  <div class="box2">
+    <h3>Bloqueio automático</h3>
+    <p>O bloqueio será enviado mesmo com o carro em movimento. Tem certeza que quer prosseguir?</p>
+    <div class="actions2">
+      <button class="btn btn-out" id="cbqNao">Cancelar</button>
+      <button class="btn btn-red" id="cbqSim">OK, prosseguir</button>
     </div>
   </div>
 </div>
@@ -812,6 +883,7 @@ async function buscarSeguro(){
   try{
     await buscar();
     indicador('TEMPO REAL',true);
+    if(!cercasIniciado){ cercasIniciado=true; carregarCercas().then(()=>carregarAlertas(false)) }
   }catch(e){
     if(e.sessao){ sair('Sessão expirada. Entre novamente.') }
     else indicador('SEM CONEXÃO',false);
@@ -1062,14 +1134,19 @@ function irPara(tab){
   $('vview').classList.toggle('show',tab==='Veículos');
   $('aview').classList.toggle('show',tab==='Admin');
   $('fview').classList.toggle('show',tab==='Faturas');
+  $('cview').classList.toggle('show',tab==='Cercas');
+  $('alview').classList.toggle('show',tab==='Alertas');
+  if(desenho && tab!=='Mapa') cancelarDesenho();
   const bar=$('avisoPag'); if(bar && bar.textContent){ bar.classList.toggle('show',tab!=='Faturas'); try{ setTimeout(()=>map.invalidateSize(),50) }catch(e){} }
   if(tab==='Admin') abrirAdmin();
   if(tab==='Faturas') abrirFaturas(false);
+  if(tab==='Cercas'){ desenharCercasLista(); carregarCercas() }
+  if(tab==='Alertas'){ desenharAlertas(); carregarAlertas(true) }
 }
 document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
   const t=b.dataset.tab;
   if(bloqueioNivel==='bloqueado' && !ehAdmin && t!=='Faturas'){ toast('Acesso bloqueado. Regularize suas faturas para voltar a usar.'); irPara('Faturas'); return }
-  if(t==='Mapa'||t==='Veículos'||(t==='Admin'&&ehAdmin)||(t==='Faturas'&&!ehAdmin)) irPara(t);
+  if(t==='Mapa'||t==='Veículos'||(t==='Admin'&&ehAdmin)||(t==='Faturas'&&!ehAdmin)||t==='Cercas'||t==='Alertas') irPara(t);
   else toast(t+': em construção');
 });
 
@@ -1738,6 +1815,206 @@ $('cSalvar').onclick=async ()=>{
   $('cSalvar').disabled=false;
 };
 
+/* ===== CERCAS VIRTUAIS (círculo = ponto + raio) =====
+   A cerca fica no Traccar (ele detecta entrada/saída). Guardamos nos atributos: acao, quando, veiculos, criada, jaDentro.
+   Alertas: lidos direto do Traccar com o acesso do próprio usuário. */
+const CERCA_BLOQUEIO=false; /* troque para true só depois que o servidor de bloqueio automático estiver publicado */
+const CERCA_MAX_CLIENTE=10;
+let cercas=[], cercasIniciado=false, desenho=null, bloqConfirmado=false;
+let alertas=[], alertasIds=null, alertaTimer=null;
+const camadaCercas=L.layerGroup().addTo(map);
+
+function lerCirculo(area){
+  const m=/CIRCLE\s*\(\s*(-?[\d.]+)\s+(-?[\d.]+)\s*,\s*([\d.]+)\s*\)/i.exec(String(area||''));
+  return m ? {lat:+m[1],lon:+m[2],raio:+m[3]} : null;
+}
+const FRASE_QUANDO={entrar:'ao entrar',sair:'ao sair',ambos:'ao entrar ou sair'};
+function fmtRaio(r){ return r<1000 ? Math.round(r)+' m' : (r/1000).toFixed(r<10000?1:0).replace('.',',')+' km' }
+function nomeVeic(id){ const v=veiculos.find(x=>String(x.id)===String(id)); return v?v.nome:'Veículo' }
+function raioDe(v){ const r=50*Math.pow(100,v/100); return r<500 ? Math.round(r/10)*10 : Math.round(r/50)*50 }
+
+async function carregarCercas(){
+  if(!auth) return;
+  try{
+    const r=await api('/api/geofences'+(ehAdmin?'?all=true':''));
+    if(!r.ok) throw new Error(r.status);
+    const lista=await r.json();
+    cercas=lista.map(g=>({g:g,c:lerCirculo(g.area)})).filter(x=>x.c);
+    camadaCercas.clearLayers();
+    cercas.forEach(x=>{
+      const bloq=(x.g.attributes||{}).acao==='bloquear';
+      L.circle([x.c.lat,x.c.lon],{radius:x.c.raio,color:bloq?'#e3262f':'#f5b83d',weight:2,dashArray:'6 6',fillOpacity:.08})
+        .bindTooltip(x.g.name||'Cerca').addTo(camadaCercas);
+    });
+    desenharCercasLista();
+    if(cercas.length && !alertaTimer) alertaTimer=setInterval(()=>{ if(document.visibilityState==='visible' && auth) carregarAlertas(false) },30000);
+  }catch(e){ if(e.sessao) throw e; $('cCount').textContent='Não consegui carregar as cercas agora.' }
+}
+function desenharCercasLista(){
+  $('cCount').textContent = cercas.length ? cercas.length+(cercas.length===1?' cerca':' cercas') : '';
+  $('cList').innerHTML = cercas.map(x=>{
+    const a=x.g.attributes||{}, ids=String(a.veiculos||'').split(',').filter(Boolean);
+    const bloq=a.acao==='bloquear';
+    return '<div class="arow" data-id="'+x.g.id+'"><div class="t">'+esc(x.g.name||'Cerca')+'</div>'+
+      '<div class="s">Raio '+fmtRaio(x.c.raio)+' · '+(bloq?'BLOQUEIA ':'avisa ')+(FRASE_QUANDO[a.quando]||FRASE_QUANDO.ambos)+'</div>'+
+      '<div class="s">'+(ids.length?ids.map(nomeVeic).map(esc).join(', '):'sem veículo informado')+'</div>'+
+      '<div class="bts"><button class="mini" data-a="ver">Ver no mapa</button><button class="mini perigo" data-a="excluir">Excluir</button></div></div>';
+  }).join('') || '<div class="vempty">Nenhuma cerca criada ainda.<br>Toque em “+ Nova cerca”.</div>';
+}
+$('cList').addEventListener('click',e=>{
+  const b=e.target.closest('button[data-a]'); if(!b) return;
+  const row=b.closest('.arow'), x=cercas.find(c=>String(c.g.id)===row.dataset.id); if(!x) return;
+  if(b.dataset.a==='ver'){
+    irPara('Mapa');
+    map.fitBounds(L.circle([x.c.lat,x.c.lon],{radius:x.c.raio}).getBounds(),{padding:[30,30]});
+  } else if(b.dataset.a==='excluir'){
+    pedirConfirmacao('Excluir cerca','Excluir a cerca “'+(x.g.name||'')+'”? Ela deixa de avisar'+((x.g.attributes||{}).acao==='bloquear'?' e de bloquear':'')+'.','Excluir',async()=>{
+      const r=await api('/api/geofences/'+x.g.id,{method:'DELETE'});
+      if(!r.ok && r.status!==204) throw new Error('Não consegui excluir (erro '+r.status+').');
+      await carregarCercas();
+    });
+  }
+});
+
+/* ----- desenhar nova cerca ----- */
+function cercasReset(){
+  cancelarDesenho(); cercas=[]; cercasIniciado=false; alertas=[]; alertasIds=null;
+  camadaCercas.clearLayers(); if(alertaTimer){ clearInterval(alertaTimer); alertaTimer=null }
+  $('alBadge').classList.remove('show'); $('cList').innerHTML=''; $('alList').innerHTML='';
+}
+$('cNova').onclick=()=>{
+  if(!veiculos.length){ toast('Nenhum veículo disponível para criar cerca.'); return }
+  if(!ehAdmin && cercas.length>=CERCA_MAX_CLIENTE){ toast('Limite de '+CERCA_MAX_CLIENTE+' cercas. Exclua uma para criar outra.'); return }
+  abrirDesenho();
+};
+function abrirDesenho(){
+  irPara('Mapa'); setSeguir(false);
+  const v=ativo(), c0=v?L.latLng(v.pos[0],v.pos[1]):map.getCenter();
+  desenho={centro:c0,raio:raioDe(30),marker:null,circulo:null};
+  $('cpNome').value=''; $('cpRaio').value=30; $('cpQuando').value='entrar'; $('cpErro').textContent='';
+  $('cpBloq').checked=false; bloqConfirmado=false; $('cpBloqRow').style.display=CERCA_BLOQUEIO?'':'none';
+  $('cpSalvar').disabled=false; $('cpSalvar').textContent='Criar cerca';
+  const sel=selId;
+  $('cpVeic').innerHTML=veiculos.map(x=>'<label class="fchk"><input type="checkbox" value="'+x.id+'"'+(x.id===sel?' checked':'')+'> '+esc(x.nome)+'</label>').join('');
+  desenho.marker=L.marker(c0,{draggable:true,zIndexOffset:2000,icon:L.divIcon({className:'',html:'<div class="cpin"></div>',iconSize:[26,26],iconAnchor:[13,13]})}).addTo(map);
+  desenho.circulo=L.circle(c0,{radius:desenho.raio,color:'#e3262f',weight:2,fillOpacity:.12}).addTo(map);
+  desenho.marker.on('drag',e=>{ desenho.centro=e.latlng; desenho.circulo.setLatLng(e.latlng) });
+  document.body.classList.add('desenhando'); $('cpanel').classList.add('show');
+  ajustarDesenho(true);
+}
+function ajustarDesenho(pan){
+  if(!desenho) return;
+  map.invalidateSize();
+  const h=$('cpanel').offsetHeight||300;
+  map.fitBounds(desenho.circulo.getBounds(),{paddingTopLeft:[30,30],paddingBottomRight:[30,h+20],maxZoom:17,animate:false});
+}
+function cancelarDesenho(){
+  if(!desenho) return;
+  [desenho.marker,desenho.circulo].forEach(l=>{ if(l && map.hasLayer(l)) map.removeLayer(l) });
+  desenho=null; document.body.classList.remove('desenhando'); $('cpanel').classList.remove('show');
+}
+map.on('click',e=>{ if(desenho){ desenho.centro=e.latlng; desenho.marker.setLatLng(e.latlng); desenho.circulo.setLatLng(e.latlng) } });
+$('cpRaio').addEventListener('input',()=>{
+  if(!desenho) return;
+  desenho.raio=raioDe(+$('cpRaio').value); $('cpRaioTxt').textContent=fmtRaio(desenho.raio); desenho.circulo.setRadius(desenho.raio);
+});
+$('cpRaio').addEventListener('change',()=>ajustarDesenho());
+$('cpCancel').onclick=()=>{ cancelarDesenho(); irPara('Cercas') };
+$('cpBloq').addEventListener('change',()=>{
+  if($('cpBloq').checked){ bloqConfirmado=false; abrir('mCercaBloq') } else bloqConfirmado=false;
+});
+$('cbqNao').onclick=()=>{ $('cpBloq').checked=false; bloqConfirmado=false; fechar() };
+$('cbqSim').onclick=()=>{ bloqConfirmado=true; fechar() };
+$('cpSalvar').onclick=async()=>{
+  if(!desenho) return;
+  const erro=t=>{ $('cpErro').textContent=t };
+  const nome=$('cpNome').value.trim();
+  const ids=[...$('cpVeic').querySelectorAll('input:checked')].map(i=>i.value);
+  const bloq=CERCA_BLOQUEIO && $('cpBloq').checked;
+  if(!nome) return erro('Dê um nome para a cerca.');
+  if(!ids.length) return erro('Escolha pelo menos um veículo.');
+  if(bloq && !bloqConfirmado){ abrir('mCercaBloq'); return }
+  erro('');
+  const c=desenho.centro, raio=desenho.raio;
+  const jaDentro=ids.filter(id=>{ const v=veiculos.find(x=>String(x.id)===id); return v && v.pos && distM(v.pos,[c.lat,c.lng])<=raio });
+  const btn=$('cpSalvar'); btn.disabled=true; btn.textContent='Criando...';
+  let criada=null;
+  try{
+    const corpo={name:nome,description:'',area:'CIRCLE ('+c.lat.toFixed(6)+' '+c.lng.toFixed(6)+', '+raio+')',
+      attributes:{acao:bloq?'bloquear':'notificar',quando:$('cpQuando').value,veiculos:ids.join(','),criada:new Date().toISOString(),jaDentro:jaDentro.join(',')}};
+    const r=await api('/api/geofences',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(corpo)});
+    if(!r.ok) throw new Error('O servidor não aceitou criar a cerca (erro '+r.status+').');
+    criada=await r.json();
+    for(const id of ids){
+      const p=await api('/api/permissions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({deviceId:+id,geofenceId:criada.id})});
+      if(!p.ok) throw new Error('Não consegui ligar a cerca ao veículo '+nomeVeic(id)+' (erro '+p.status+').');
+    }
+    cancelarDesenho(); await carregarCercas(); irPara('Cercas');
+    toast(jaDentro.length?'Cerca criada. Atenção: '+jaDentro.map(nomeVeic).join(', ')+' já está dentro dela.':'Cerca criada.');
+  }catch(e){
+    if(e.sessao) return;
+    if(criada && criada.id){ try{ await api('/api/geofences/'+criada.id,{method:'DELETE'}) }catch(x){} }
+    erro(e.message||'Não consegui criar a cerca.');
+    btn.disabled=false; btn.textContent='Criar cerca';
+  }
+};
+
+/* ----- alertas ----- */
+const chaveVisto=()=>'rg_alvisto_'+(lsGet('rg_email')||'');
+function quandoOk(ev,x){
+  /* a cerca só avisa o que foi escolhido (entrar / sair / ambos); o Traccar gera os dois tipos */
+  if(!x) return true;
+  const a=x.g.attributes||{}, q=a.quando||'ambos';
+  if(q==='entrar' && ev.type!=='geofenceEnter') return false;
+  if(q==='sair' && ev.type!=='geofenceExit') return false;
+  /* carro que já estava dentro quando a cerca foi criada: o Traccar gera uma "entrada" falsa logo depois */
+  if(ev.type==='geofenceEnter' && a.criada && String(a.jaDentro||'').split(',').includes(String(ev.deviceId))){
+    const dt=new Date(ev.eventTime).getTime()-new Date(a.criada).getTime();
+    if(dt<15*60*1000) return false;
+  }
+  return true;
+}
+async function carregarAlertas(aberta){
+  if(!auth || !veiculos.length) return;
+  try{
+    const agora=new Date(), de=new Date(agora.getTime()-7*86400000);
+    const q=veiculos.map(v=>'deviceId='+v.id).join('&')+'&type=geofenceEnter&type=geofenceExit&from='+encodeURIComponent(de.toISOString())+'&to='+encodeURIComponent(agora.toISOString());
+    const r=await api('/api/reports/events?'+q);
+    if(!r.ok) throw new Error(r.status);
+    const lista=await r.json();
+    alertas=lista.filter(ev=>quandoOk(ev,cercas.find(c=>c.g.id===ev.geofenceId)))
+      .sort((a,b)=>new Date(b.eventTime)-new Date(a.eventTime)).slice(0,100);
+    const novosIds=new Set(alertas.map(e=>e.id));
+    if(alertasIds){
+      const novos=alertas.filter(e=>!alertasIds.has(e.id));
+      if(novos.length && !$('alview').classList.contains('show')) toast('Alerta de cerca: '+textoAlerta(novos[0]));
+    }
+    alertasIds=novosIds;
+    desenharAlertas();
+  }catch(e){ if(e.sessao) throw e }
+}
+function textoAlerta(ev){
+  const x=cercas.find(c=>c.g.id===ev.geofenceId), nome=x?(x.g.name||'cerca'):'uma cerca';
+  return nomeVeic(ev.deviceId)+(ev.type==='geofenceEnter'?' entrou em ':' saiu de ')+nome;
+}
+function desenharAlertas(){
+  const visto=lsGet(chaveVisto());
+  if(visto===null && alertasIds){ lsSet(chaveVisto(),new Date().toISOString()) }
+  const v2=lsGet(chaveVisto()), limite=v2?new Date(v2).getTime():Date.now();
+  const abertaAgora=$('alview').classList.contains('show');
+  const novos=alertas.filter(e=>new Date(e.eventTime).getTime()>limite).length;
+  $('alList').innerHTML=alertas.map(e=>{
+    const eNovo=new Date(e.eventTime).getTime()>limite;
+    return '<div class="alrow'+(eNovo&&!abertaAgora?' novo':'')+'"><span class="dot '+(e.type==='geofenceEnter'?'e':'s')+'"></span><div><div class="tx">'+esc(textoAlerta(e))+'</div>'+
+      '<div class="hr">'+esc(new Date(e.eventTime).toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}))+'</div></div></div>';
+  }).join('') || '<div class="vempty">Nenhum alerta nos últimos 7 dias.</div>';
+  const b=$('alBadge');
+  if(abertaAgora){ lsSet(chaveVisto(),new Date().toISOString()); b.classList.remove('show') }
+  else if(novos>0){ b.textContent=novos>9?'9+':novos; b.classList.add('show') }
+  else b.classList.remove('show');
+}
+$('alAtualizar').onclick=()=>carregarAlertas(true);
+
 /* ===== ENTRAR / SAIR ===== */
 function mostrarLogin(msg){
   $('login').classList.add('show');
@@ -1745,6 +2022,7 @@ function mostrarLogin(msg){
 }
 function sair(msg){
   lsDel('rg_token'); lsDel('rg_email'); try{sessionStorage.removeItem('rg_basic')}catch(e){}
+  cercasReset();
   ehAdmin=false; usuarios=[]; $('aview').classList.remove('show');
   document.querySelector('nav button[data-tab="Admin"]').style.display='none'; document.querySelector('nav button[data-tab="Faturas"]').style.display='none'; cpfsMapa={}; faturasDados=null; aplicarBloqueio(null); euDesligar(); $('btnEu').style.display='none'; irPara('Mapa');
   auth=null;
