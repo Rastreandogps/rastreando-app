@@ -560,6 +560,17 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
 #aview .aico.girando svg{animation:giraFin 1s linear infinite}
 @keyframes giraFin{to{transform:rotate(360deg)}}
 #aview .ameta{font-size:12.5px;color:var(--mut);margin:10px 2px 0}
+#aview .afiltros{display:flex;align-items:center;gap:8px;margin:10px 0 2px;min-width:0}
+#aview .afiltros[hidden]{display:none}
+#aview .fchips{display:flex;gap:6px;overflow-x:auto;min-width:0;flex:1;padding:2px 2px 4px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+#aview .fchips::-webkit-scrollbar{display:none}
+#aview .fchip,#aview .fordem{flex:none;display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--txt);font:inherit;font-size:12.5px;font-weight:600;cursor:pointer;white-space:nowrap}
+#aview .fchip span{font-size:11.5px;font-weight:700;color:var(--mut)}
+#aview .fchip.on{background:#3b82f6;border-color:#3b82f6;color:#fff}
+#aview .fchip.on span{color:rgba(255,255,255,.85)}
+#aview .fchip.alerta:not(.on) span{color:var(--red2)}
+#aview .fordem{color:#3b82f6}
+#aview .fordem svg{width:14px;height:14px}
 #aview .ameta b{color:var(--txt);font-weight:650}
 #aview .vtop{padding-top:14px;padding-bottom:4px}
 /* cartão aberto (selecionado) em destaque */
@@ -750,6 +761,7 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
         <button class="aico anovo" id="aNovo" title="Novo equipamento" aria-label="Novo equipamento"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
       </div>
       <div class="ameta"><b id="aCount"></b><span id="aFinTxt"></span><span id="aTabNome" hidden></span></div>
+      <div class="afiltros" id="aFiltros" hidden></div>
       <button class="linkbtn" id="aProteger" style="display:none">Proteger comandos dos clientes</button>
     </div>
     <div class="vlist" id="aList"></div>
@@ -2538,6 +2550,7 @@ function desenharAdmin(){
   abaAnt=abaAdmin;
   $('aFinAtualizar').style.display = abaAdmin==='cli' ? '' : 'none';
   $('aProteger').style.display = 'none'; /* botão aposentado: cliente novo já nasce com os comandos liberados */
+  if($('aFiltros')) $('aFiltros').hidden = abaAdmin!=='cli';
   if(abaAdmin==='equip') desenharEquip(); else desenharClientes();
 }
 let buscaAdmin={equip:'',cli:''}, abaAnt=null;
@@ -2673,6 +2686,42 @@ function blocoUso(u){
     '<div class="unota">Conta o que o cliente apertou no app (ou por SMS). Bloqueio da cerca não entra.</div>'+
   '</div>';
 }
+/* filtros e ordem da lista de clientes (10/10/2026). A escolha fica lembrada neste aparelho. */
+const finDe=u=>finMapa&&finMapa[u.id];
+const FILTROS_CLI=[
+  {id:'todos',  t:'Todos',        ok:()=>true},
+  {id:'emdia',  t:'Em dia',       fin:1, ok:u=>{const f=finDe(u);return !!f&&f.nivel==='ok'}, tit:'Sem mensalidade vencida'},
+  {id:'atras',  t:'Atrasados',    fin:1, ok:u=>{const f=finDe(u);return !!f&&(f.nivel==='aviso'||(f.nivel==='bloqueado'&&f.especial))}, tit:'Mensalidade vencida, acesso ainda liberado (1 a 4 dias, ou cliente especial)'},
+  {id:'conf',   t:'Confiança',    fin:1, ok:u=>{const f=finDe(u);return !!f&&f.nivel==='confianca'}, tit:'Usando o "Já paguei" (48 horas)'},
+  {id:'susp',   t:'Suspensos',    fin:1, ok:u=>{const f=finDe(u);return !!f&&f.nivel==='bloqueado'&&!f.especial}, tit:'Acesso ao app suspenso por falta de pagamento (5 dias ou mais)'},
+  {id:'desat',  t:'Desativados',  ok:u=>!!u.disabled, tit:'Acesso desativado por você'},
+  {id:'semcpf', t:'Sem CPF',      ok:(u,cpfDe)=>!cpfDe(u), tit:'Sem CPF vinculado: não vê faturas nem é suspenso por atraso'},
+  {id:'semwpp', t:'Sem WhatsApp', ok:u=>!(u.phone&&normWpp(u.phone)), tit:'Sem WhatsApp: não recebe o aviso de desbloqueio nem a mensagem de acesso'},
+  {id:'nunca',  t:'Nunca entrou', ac:1, ok:u=>!(acessosMapa&&acessosMapa[u.id]&&acessosMapa[u.id].ultimoMs), tit:'Sem nenhum acesso registrado (o registro começou em 10/10/2026)'}
+];
+let filtroCli='todos', ordemCli='nome';
+try{ filtroCli=localStorage.getItem('rg_cli_filtro')||'todos'; ordemCli=localStorage.getItem('rg_cli_ordem')||'nome' }catch(e){}
+if(!FILTROS_CLI.some(f=>f.id===filtroCli)) filtroCli='todos';
+function desenharFiltrosCli(lista,cpfDe){
+  const box=$('aFiltros'); if(!box) return;
+  box.hidden=false;
+  const chips=FILTROS_CLI.map(f=>{
+    const espera=(f.fin&&!finMapa)||(f.ac&&!acessosMapa);
+    const n=espera?'…':lista.filter(u=>f.ok(u,cpfDe)).length;
+    return '<button type="button" class="fchip'+(f.id===filtroCli?' on':'')+(f.id==='susp'&&n>0?' alerta':'')+'" data-f="'+f.id+'"'+(f.tit?' title="'+esc(f.tit)+'"':'')+'>'+esc(f.t)+' <span>'+n+'</span></button>';
+  }).join('');
+  const ord='<button type="button" class="fordem" data-o="1" title="Trocar a ordem da lista">'+
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4v16M3 16l4 4 4-4M17 20V4M13 8l4-4 4 4"/></svg>'+
+    (ordemCli==='acesso'?'Último acesso':'A–Z')+'</button>';
+  const sl=box.querySelector('.fchips'), x=sl?sl.scrollLeft:0;
+  box.innerHTML=ord+'<div class="fchips">'+chips+'</div>';
+  const novo=box.querySelector('.fchips'); if(novo) novo.scrollLeft=x;
+}
+$('aFiltros').addEventListener('click',e=>{
+  const c=e.target.closest('[data-f]'), o=e.target.closest('[data-o]');
+  if(c){ filtroCli=c.dataset.f; try{localStorage.setItem('rg_cli_filtro',filtroCli)}catch(er){} desenharClientes(); return }
+  if(o){ ordemCli=ordemCli==='acesso'?'nome':'acesso'; try{localStorage.setItem('rg_cli_ordem',ordemCli)}catch(er){} desenharClientes(); if(ordemCli==='acesso') carregarAcessos(); }
+});
 /* estrela de cliente especial ao lado do nome (10/10/2026): cheia = especial; vazia = normal; toque marca/tira */
 const ICO_ESTRELA='<svg viewBox="0 0 24 24"><path d="M12 3.2l2.7 5.6 6.1.8-4.5 4.2 1.1 6.1L12 17l-5.4 2.9 1.1-6.1-4.5-4.2 6.1-.8z"/></svg>';
 const ICO_ENGR='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>';
@@ -2685,9 +2734,18 @@ function desenharClientes(){
   const todos=usuarios.filter(u=>!u.administrator);
   const q=$('aSearch').value.trim().toLowerCase(), qn=soNum(q);
   const cpfDe=u=>soNum((cpfsMapa[u.id]&&cpfsMapa[u.id].cpf)||(u.attributes&&u.attributes.cpf)||'');
-  const cl=todos.filter(u=>!q||[u.name,loginDe(u)].join(' ').toLowerCase().includes(q)||(qn.length>=3&&cpfDe(u).includes(qn)))
-    .sort((a,b)=>String(a.name||loginDe(a)).trim().localeCompare(String(b.name||loginDe(b)).trim(),'pt-BR',{sensitivity:'base'}));
-  $('aCount').textContent=(q?cl.length+' de ':'')+todos.length+' clientes';
+  const busca=todos.filter(u=>!q||[u.name,loginDe(u)].join(' ').toLowerCase().includes(q)||(qn.length>=3&&cpfDe(u).includes(qn)));
+  desenharFiltrosCli(busca,cpfDe);
+  const filtro=FILTROS_CLI.find(f=>f.id===filtroCli)||FILTROS_CLI[0];
+  const esperaFin=filtro.fin&&!finMapa, esperaAc=filtro.ac&&!acessosMapa;
+  const porNome=(a,b)=>String(a.name||loginDe(a)).trim().localeCompare(String(b.name||loginDe(b)).trim(),'pt-BR',{sensitivity:'base'});
+  const ultAc=u=>(acessosMapa&&acessosMapa[u.id]&&acessosMapa[u.id].ultimoMs)||0;
+  const cl=(esperaFin||esperaAc)?[]:busca.filter(u=>filtro.ok(u,cpfDe))
+    .sort(ordemCli==='acesso'?((a,b)=>(ultAc(b)-ultAc(a))||porNome(a,b)):porNome);
+  const filtrado=q||filtro.id!=='todos';
+  $('aCount').textContent=(filtrado?cl.length+' de ':'')+todos.length+' clientes';
+  if(esperaFin||esperaAc){ $('aList').innerHTML='<div class="vempty">'+(esperaFin?'Aguardando a situação financeira carregar...':'Aguardando o registro de acessos carregar...')+'</div>'; return }
+  if(!cl.length && todos.length){ $('aList').innerHTML='<div class="vempty">Nenhum cliente neste filtro'+(q?' com essa busca':'')+'.</div>'; return }
   $('aList').innerHTML = cl.map(u=>{
     const ap=aparelhosDe(u), cpf=(cpfsMapa[u.id] && cpfsMapa[u.id].cpf) || (u.attributes && u.attributes.cpf), fin=situacaoFin(u), fm=finMapa&&finMapa[u.id];
     const iniciais=String(u.name||loginDe(u)||'?').trim().split(/\s+/).slice(0,2).map(x=>x[0]||'').join('').toUpperCase();
