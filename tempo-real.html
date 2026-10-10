@@ -271,8 +271,45 @@ main{position:relative;flex:1;min-height:0;overflow:hidden}
 #admSmsRow .btn::before{--ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 5h16v11H9l-5 4z'/%3E%3Cpath d='M8 9.5h8M8 12.5h5'/%3E%3C/svg%3E");display:block;width:15px;height:15px}
 #btnBlockSms{background:rgba(227,38,47,.10);color:var(--red2);border:1px solid rgba(227,38,47,.30)}
 #btnUnblockSms{background:rgba(26,158,87,.10);color:var(--green);border:1px solid rgba(26,158,87,.26)}
-#btnNav,#btnRua{height:38px!important;border-radius:12px!important;font-size:13.5px!important;font-weight:600!important;background:transparent;border:1px solid var(--line);color:var(--mut)}
-#btnNav svg,#btnRua svg{width:16px;height:16px}
+/* Navegar e Ver a rua: botões modernos, ícone colorido + título + legenda (10/10/2026) */
+#sheet .navrow{gap:8px}
+#sheet .navbtn{height:54px;justify-content:flex-start;gap:10px;padding:0 10px 0 8px;border-radius:16px;background:var(--card2);border:1px solid var(--line);color:var(--txt);text-align:left;min-width:0}
+#sheet .navbtn .navic{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex:none;color:#fff}
+#sheet .navbtn .navic svg{width:21px;height:21px}
+#sheet .navbtn .nv{background:linear-gradient(135deg,#3b82f6,#2563eb);box-shadow:0 4px 10px rgba(37,99,235,.32)}
+#sheet .navbtn .st{background:linear-gradient(135deg,#fbbf24,#ea580c);box-shadow:0 4px 10px rgba(234,88,12,.30)}
+#sheet .navbtn .navtx{display:flex;flex-direction:column;align-items:flex-start;min-width:0;line-height:1.2}
+#sheet .navbtn .navtx b{font-size:14px;font-weight:700}
+#sheet .navbtn .navtx small{font-size:11.5px;font-weight:500;color:var(--mut);white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+#sheet .navbtn:disabled{opacity:.45;filter:grayscale(.6)}
+
+/* terceiro botão da fileira de SMS (administrador): "Mais SMS" abre o cartão com todos os SMS */
+#btnResetSms.mais{background:rgba(56,225,230,.10);color:var(--cyan);border:1px solid rgba(56,225,230,.32)}
+:root[data-tema="claro"] #btnResetSms.mais{background:rgba(10,143,149,.08);border-color:rgba(10,143,149,.30)}
+#admSmsRow #btnResetSms.mais::before{--ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3.5' y='3.5' width='7' height='7' rx='2'/%3E%3Crect x='13.5' y='3.5' width='7' height='7' rx='2'/%3E%3Crect x='3.5' y='13.5' width='7' height='7' rx='2'/%3E%3Crect x='13.5' y='13.5' width='7' height='7' rx='2'/%3E%3C/svg%3E")}
+
+/* cartão "Enviar SMS" */
+.smshead{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+#smsVeic{font-size:13px;color:var(--mut);font-weight:600;text-align:right;overflow-wrap:anywhere}
+.smsfone{font-size:13px;color:var(--mut);margin:0 0 12px}
+.smsfone b{color:var(--txt)}
+.smsfone.sem{color:var(--red2);font-weight:600;line-height:1.4}
+.smsgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.smsopt{display:flex;align-items:center;gap:10px;min-width:0;padding:10px;border-radius:14px;border:1px solid var(--line);background:var(--card2);color:var(--txt);font:inherit;text-align:left;cursor:pointer;transition:transform .12s ease,background .15s ease}
+.smsopt:active{transform:scale(.97)}
+.smsopt:disabled{opacity:.45;cursor:default}
+.smsopt .smsic{width:34px;height:34px;border-radius:11px;display:flex;align-items:center;justify-content:center;flex:none;background:rgba(56,225,230,.14);color:var(--cyan)}
+:root[data-tema="claro"] .smsopt .smsic{background:rgba(10,143,149,.10)}
+.smsopt .smsic svg{width:18px;height:18px}
+.smsopt .smstx{display:flex;flex-direction:column;min-width:0;line-height:1.2}
+.smsopt .smstx b{font-size:13.5px;font-weight:700}
+.smsopt .smstx small{font-size:11px;font-weight:500;color:var(--mut);margin-top:2px}
+.smsopt.alerta{border-color:rgba(227,38,47,.32);background:rgba(227,38,47,.07)}
+.smsopt.alerta .smsic{background:rgba(227,38,47,.14);color:var(--red2)}
+.smsopt.aviso{border-color:rgba(184,120,0,.32);background:rgba(245,184,61,.10)}
+.smsopt.aviso .smsic{background:rgba(245,184,61,.20);color:var(--amber)}
+.smsopt:last-child:nth-child(odd){grid-column:1/-1}
+@media (min-width:900px){#mSmsCmds{align-items:center}#mSmsCmds .box2{border-radius:18px}}
 
 /* Aba Veículos */
 .vview{position:absolute;inset:0;z-index:600;background:var(--bg);display:none;flex-direction:column}
@@ -607,14 +644,14 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
       <button class="btn" id="btnResetSms">Reset</button>
     </div>
     <div id="smsCusto" style="display:none"></div>
-    <div class="actions dois">
-      <button class="btn btn-out" id="btnNav">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l18-8-8 18-2-8z"/></svg>
-        Navegar
+    <div class="actions dois navrow">
+      <button class="btn navbtn" id="btnNav" type="button">
+        <span class="navic nv"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5 19 20.5l-7-3.8-7 3.8z"/></svg></span>
+        <span class="navtx"><b>Navegar</b><small>Traçar rota</small></span>
       </button>
-      <button class="btn btn-out" id="btnRua">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="2.5"/><path d="M12 8v6M8 11h8M9 21l3-7 3 7"/></svg>
-        Ver a rua
+      <button class="btn navbtn" id="btnRua" type="button">
+        <span class="navic st"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21.5s-6.5-5.4-6.5-11a6.5 6.5 0 0 1 13 0c0 5.6-6.5 11-6.5 11z"/><circle cx="12" cy="9" r="1.7"/><path d="M9.4 14.3c.6-1.4 1.5-2 2.6-2s2 .6 2.6 2"/></svg></span>
+        <span class="navtx"><b>Ver a rua</b><small>Street View</small></span>
       </button>
     </div>
   </section>
@@ -793,6 +830,16 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
     <div class="pickhead"><h3>Escolher veículo</h3><span id="pickCount"></span></div>
     <input class="fld" id="pickBusca" type="search" placeholder="Buscar nome ou placa" autocomplete="off" enterkeyhint="search">
     <div class="picklist" id="pickList"></div>
+    <div class="actions2" style="grid-template-columns:1fr"><button class="btn btn-out" data-close>Fechar</button></div>
+  </div>
+</div>
+
+<!-- Enviar SMS ao rastreador (só administrador): todos os SMS de configuração -->
+<div class="modal" id="mSmsCmds">
+  <div class="box2">
+    <div class="smshead"><h3>Enviar SMS</h3><span id="smsVeic"></span></div>
+    <div class="smsfone" id="smsFone"></div>
+    <div class="smsgrid" id="smsGrid"></div>
     <div class="actions2" style="grid-template-columns:1fr"><button class="btn btn-out" data-close>Fechar</button></div>
   </div>
 </div>
@@ -1025,6 +1072,9 @@ const sleep = ms => new Promise(r=>setTimeout(r,ms));
 const ativo = () => veiculos.find(v=>v.id===selId && v.visivel && v.pos) || null;
 const visiveis = () => veiculos.filter(v=>v.visivel);
 const comPos = () => veiculos.filter(v=>v.visivel && v.pos);
+/* aparelho que ainda não enviou sinal (sem posição): dá para escolher e mandar SMS; só não aparece no mapa */
+let semPosId = null;
+const cartao = () => ativo() || veiculos.find(v=>v.id===semPosId && v.id===selId && v.visivel && !v.pos) || null;
 
 /* ===== MAPA ===== */
 const map = L.map('map',{zoomControl:false,attributionControl:false}).setView([-22.787,-43.307],15);
@@ -1103,7 +1153,7 @@ function setSeguir(on){
   if(on) map.dragging.disable(); else map.dragging.enable();
 }
 $('follow').onclick = ()=>{
-  if(!seguir && !ativo()){ toast('Nenhum veículo selecionado'); return }
+  if(!seguir && !ativo()){ toast(cartao()?'Este aparelho ainda não enviou sinal: não há posição no mapa.':'Nenhum veículo selecionado'); return }
   setSeguir(!seguir);
 };
 const telaLarga = () => window.matchMedia('(min-width:900px)').matches;
@@ -1189,7 +1239,7 @@ function corSeta(v){
   return 'c-par';                                          // parada, com ignição ligada ou desligada: amarela
 }
 function status(v){
-  if(!v.pos) return ['Sem posição','st-off'];
+  if(!v.pos) return ['Aguardando sinal','st-off'];
   if(v.bloq) return ['Bloqueado','st-block'];
   if(!v.online) return ['Sem conexão','st-off'];
   if(v.ign===false) return ['Desligado','st-off'];
@@ -1395,7 +1445,7 @@ zone.addEventListener('pointercancel',soltar);
 
 /* ===== TELA ===== */
 function atualizar(){
-  const v=ativo();
+  const v=cartao(), sp=!!(v && !v.pos); /* sp = aparelho ainda sem sinal */
   sheet.style.display = v ? 'block' : 'none';
   $('vazio').style.display = (v || !veiculos.length) ? 'none' : 'block';
   if(v){
@@ -1403,7 +1453,7 @@ function atualizar(){
     $('vName').textContent=v.nome; $('vPick').classList.toggle('multi',veiculos.length>1);
     $('vPlate').textContent=v.placa;
     $('vStatus').textContent=txt; $('vStatus').className='status '+cls;
-    $('sSpeed').textContent=v.vel+' km/h';
+    $('sSpeed').textContent=sp?'—':v.vel+' km/h';
     $('sIgn').textContent=v.ign===null?'—':(v.ign?'Ligada':'Desligada');
     $('sBat').textContent=v.bat===null?'—':v.bat+'%';
     $('sVolt').textContent=v.volt===null?'—':v.volt.toFixed(1).replace('.',',')+' V';
@@ -1411,17 +1461,19 @@ function atualizar(){
     /* dois horários: GSM = último contato do rastreador com o servidor; GPS = última posição de satélite */
     const ult = v.ultimo || v.fix, gpsVelhoT = v.gpsT && Date.now()-v.gpsT>600000;
     $('vUpd').innerHTML = (ult ? 'GSM '+horaAtual(ult) : '')+
-      '<br><span style="'+(v.gpsT===null||gpsVelhoT?'color:var(--amber);font-weight:600':'')+'">GPS '+(v.gpsT ? horaAtual(v.gpsT) : 'sem sinal')+'</span>';
+      '<br><span style="'+(!v.gpsT||gpsVelhoT?'color:var(--amber);font-weight:600':'')+'">GPS '+(v.gpsT ? horaAtual(v.gpsT) : 'sem sinal')+'</span>';
     if(!v.addr) buscarEndereco(v);
-    const endereco = v.addr || v.geo || '';
+    const endereco = sp ? 'Aguardando o primeiro sinal do rastreador' : (v.addr || v.geo || '');
     $('vAddr').textContent = endereco;
     const gpsVelho = v.fix && Date.now()-v.fix>600000;
-    $('vAgo').textContent = gpsVelho ? 'Sem sinal de GPS '+tempo(Date.now()-v.fix) : '';
+    $('vAgo').textContent = sp ? 'Sem posição no mapa' : (gpsVelho ? 'Sem sinal de GPS '+tempo(Date.now()-v.fix) : '');
     $('addrRow').style.display = (endereco || gpsVelho) ? 'flex' : 'none';
     $('banner').classList.toggle('show',v.bloq);
-    $('btnBlock').disabled=cmdAndamento;
+    /* sem sinal ainda: Bloquear/Desbloquear pela internet não fazem sentido (os botões de SMS ficam ativos) */
+    $('btnBlock').disabled=cmdAndamento||sp;
     mostrarBotoesSms();
-    $('btnUnblock').disabled=cmdAndamento;
+    $('btnUnblock').disabled=cmdAndamento||sp;
+    $('btnNav').disabled=sp; $('btnRua').disabled=sp;
     aplicarSheet();
   }
   document.querySelectorAll('.vrow').forEach(r=>{
@@ -1480,11 +1532,25 @@ $('vList').addEventListener('change',e=>{
 $('vList').addEventListener('click',e=>{
   const b=e.target.closest('.vinfo'); if(!b) return;
   const v=veiculos.find(x=>x.id===+b.parentNode.dataset.id);
-  if(!v.pos){ toast('Este aparelho ainda não enviou posição'); return }
-  v.visivel=true; aplicarVisibilidade(); selId=v.id; recolhido=false;
-  sincronizarChecks(); atualizarContagem();
-  irPara('Mapa'); setSeguir(true); atualizar();
+  escolherVeiculo(v,true);
 });
+/* escolhe um veículo para o cartão. Com posição: mostra no mapa e segue. Sem posição (ainda não enviou sinal):
+   o cartão abre zerado, nada aparece no mapa e dá para mandar SMS. */
+function escolherVeiculo(v,irMapa){
+  if(!v) return;
+  if(v.pos){
+    v.visivel=true; aplicarVisibilidade(); selId=v.id; semPosId=null; recolhido=false;
+    sincronizarChecks(); atualizarContagem();
+    if(irMapa) irPara('Mapa');
+    setSeguir(true); atualizar();
+  } else {
+    v.visivel=true; selId=v.id; semPosId=v.id; recolhido=false;
+    setSeguir(false);
+    sincronizarChecks(); atualizarContagem();
+    if(irMapa) irPara('Mapa');
+    atualizar();
+  }
+}
 $('vAll').onclick=()=>{
   const todos = visiveis().length===veiculos.length;
   veiculos.forEach(v=>v.visivel=!todos);
@@ -1522,10 +1588,7 @@ $('pickList').addEventListener('click',e=>{
   const b=e.target.closest('.pitem'); if(!b) return;
   const v=veiculos.find(x=>x.id===+b.dataset.id); if(!v) return;
   fechar();
-  if(!v.pos){ toast('Este aparelho ainda não enviou posição'); return }
-  v.visivel=true; aplicarVisibilidade(); selId=v.id; recolhido=false;
-  sincronizarChecks(); atualizarContagem();
-  setSeguir(true); atualizar();
+  escolherVeiculo(v,false);
 });
 $('mPick').addEventListener('click',e=>{ if(e.target===$('mPick')) fechar() });
 $('vPick').addEventListener('pointerdown',e=>{ if(veiculos.length>1) e.stopPropagation() });
@@ -1660,7 +1723,7 @@ function desbCancelar(id){
   fnDesb('cancelar',id).then(()=>lsDel('rg_desb_cancelar_'+id)).catch(()=>{});
 }
 function desbMostrar(){
-  const v=ativo(), row=$('desbRow'); if(!row) return;
+  const v=cartao(), row=$('desbRow'); if(!row) return;
   try{ marcarBotaoAncora() }catch(e){}
   const d=v && desbPendente[v.id];
   if(!d){ row.style.display='none'; return }
@@ -1690,14 +1753,14 @@ setTimeout(desbVerificar,3000);
 
 /* administrador: botão "Bloquear por SMS" (manual, dispara na hora) */
 $('btnBlockSms').onclick=()=>{
-  const v=ativo(); if(!v || !(ehAdmin||permCli.smsBloqueio)) return;
+  const v=cartao(); if(!v || !(ehAdmin||permCli.smsBloqueio)) return;
   pedirConfirmacao('Bloquear por SMS','Enviar agora o SMS de bloqueio para '+v.nome+'? O SMS fica guardado na operadora e chega quando o rastreador tiver sinal de celular.'+textoCusto(),'Enviar SMS',async()=>{
     desbCancelar(v.id); // a última ordem vence
     if(!(await smsBloquear(v))) throw new Error('O SMS não foi enviado. Veja o aviso na tela.');
   });
 };
 $('btnUnblockSms').onclick=()=>{
-  const v=ativo(); if(!v || !(ehAdmin||permCli.smsBloqueio)) return;
+  const v=cartao(); if(!v || !(ehAdmin||permCli.smsBloqueio)) return;
   pedirConfirmacao('Desbloquear por SMS','Enviar agora o SMS de desbloqueio para '+v.nome+'? O SMS fica guardado na operadora e chega quando o rastreador tiver sinal de celular.'+textoCusto(),'Enviar SMS',async()=>{
     if(!(await smsBloquear(v,false))) throw new Error('O SMS não foi enviado. Veja o aviso na tela.');
   });
@@ -1740,11 +1803,16 @@ function mostrarBotoesSms(){
   const n=(sms?2:0)+(rs?1:0);
   row.style.display=n?'grid':'none'; row.style.gridTemplateColumns='repeat('+Math.max(n,1)+',1fr)';
   row.classList.toggle('tres',n===3);
-  if(n===3) row.style.gridTemplateColumns='1.15fr 1.35fr .75fr';
+  if(n===3) row.style.gridTemplateColumns = ehAdmin ? '1.1fr 1.3fr 1fr' : '1.15fr 1.35fr .75fr';
+  /* administrador: o terceiro botão abre o cartão com todos os SMS; cliente com permissão: continua sendo o Reset */
+  const b3=$('btnResetSms'), t3=ehAdmin?'Mais SMS':'Reset';
+  if(b3.textContent!==t3) b3.textContent=t3;
+  b3.classList.toggle('mais',!!ehAdmin);
   const c=$('smsCusto');
   if(!ehAdmin && cobrCli && (sms||rs)){ c.textContent='SMS pela plataforma: '+cobrCli.pendentes+' ('+brl2(cobrCli.valor)+' na próxima fatura)'; c.style.display='' } else c.style.display='none';
   $('btnRenome').style.display=(ehAdmin||permCli.editarNome)?'inline-flex':'none';
-  $('btnAncora').style.display=(ehAdmin||permCli.cercaRapida)?'inline-flex':'none';
+  const semSinal=(()=>{ const c=cartao(); return !!(c && !c.pos) })();
+  $('btnAncora').style.display=(!semSinal && (ehAdmin||permCli.cercaRapida))?'inline-flex':'none';
   const verEu=ehAdmin||permCli.minhaPosicao;
   $('btnEu').style.display=verEu?'flex':'none';
   if(!verEu && eu.on) euDesligar();
@@ -1754,8 +1822,10 @@ function linkSmsTexto(f,txt){
   const base=linkSms(f); if(!base) return '';
   return base+(/iPhone|iPad|iPod/.test(navigator.userAgent)?'&':'?')+'body='+encodeURIComponent(txt);
 }
-$('btnResetSms').onclick=()=>{
-  const v=ativo(); if(!v || !(ehAdmin||permCli.reset)) return;
+/* terceiro botão da fileira de SMS: administrador abre o cartão com todos os SMS; cliente (com permissão) vai direto ao Reset */
+$('btnResetSms').onclick=()=>{ if(ehAdmin) abrirCartaoSms(); else abrirReset() };
+function abrirReset(){
+  const v=cartao(); if(!v || !(ehAdmin||permCli.reset)) return;
   $('rsTexto').textContent='Enviar o comando de reset (RESET#) para '+v.nome+'? O rastreador reinicia e volta a se conectar em alguns minutos.';
   const podeCel=!ehAdmin && !!v.fone;
   $('rsPlatRow').style.display=podeCel?'':'none';
@@ -1763,11 +1833,35 @@ $('btnResetSms').onclick=()=>{
   $('rsPlatTxt').textContent='Enviar pela plataforma ('+brl2(cobrCli?cobrCli.preco:0.1)+', cobrado na próxima fatura). Desmarque para enviar pelo seu celular, sem custo.';
   $('rsErro').textContent=''; $('rsOk').disabled=false; atualizarBotaoReset();
   abrir('mReset');
-};
+}
+/* cartão "Enviar SMS" (só administrador): todos os SMS de configuração do rastreador escolhido.
+   O texto de cada SMS fica fixo no servidor; o app só escolhe qual. */
+const SMS_CARD=[
+  {t:'ip',nome:'IP/Porta',desc:'Aponta para este servidor',cls:''},
+  {t:'apn',nome:'APN',desc:'Internet do chip (Vivo)',cls:''},
+  {t:'reset',nome:'Reset',desc:'Reinicia o rastreador',cls:''},
+  {t:'imediato',nome:'Bloq. imediato',desc:'Corta em qualquer velocidade',cls:'alerta'},
+  {t:'fabrica',nome:'Fábrica',desc:'Volta ao padrão de fábrica',cls:'aviso'}
+];
+function abrirCartaoSms(){
+  const v=cartao(); if(!v || !ehAdmin) return;
+  const tem=!!v.fone;
+  $('smsVeic').textContent=v.nome;
+  $('smsFone').className='smsfone'+(tem?'':' sem');
+  $('smsFone').innerHTML = tem ? 'Chip <b>'+esc(fmtFone(v.fone))+'</b>' : 'Este equipamento não tem número de chip cadastrado. Cadastre em Admin > Equipamentos para poder mandar SMS.';
+  $('smsGrid').innerHTML = SMS_CARD.map(c=>'<button type="button" class="smsopt '+c.cls+'" data-t="'+c.t+'"'+(tem?'':' disabled')+'><span class="smsic">'+IC[c.t]+'</span><span class="smstx"><b>'+c.nome+'</b><small>'+c.desc+'</small></span></button>').join('');
+  abrir('mSmsCmds');
+}
+$('smsGrid').addEventListener('click',e=>{
+  const b=e.target.closest('.smsopt'); if(!b || b.disabled) return;
+  const v=cartao(); if(!v) return;
+  const t=b.dataset.t; fechar();
+  if(t==='reset') abrirReset(); else smsConfig(v,t);
+});
 function atualizarBotaoReset(){ $('rsOk').textContent=($('rsPlatRow').style.display!=='none' && !$('rsPlat').checked)?'Enviar pelo meu celular':'Enviar pela plataforma' }
 $('rsPlat').addEventListener('change',atualizarBotaoReset);
 $('rsOk').onclick=async()=>{
-  const v=ativo(); if(!v) return;
+  const v=cartao(); if(!v) return;
   if($('rsPlatRow').style.display!=='none' && !$('rsPlat').checked){
     const l=linkSmsTexto(v.fone,'RESET#'); fechar(); if(l) location.href=l; return;
   }
@@ -1785,11 +1879,11 @@ $('rsOk').onclick=async()=>{
 $('btnRenome').addEventListener('pointerdown',e=>e.stopPropagation());
 $('btnRenome').onclick=e=>{
   e.stopPropagation();
-  const v=ativo(); if(!v) return;
+  const v=cartao(); if(!v) return;
   $('rnNome').value=v.nome; $('rnErro').textContent=''; $('rnOk').disabled=false; abrir('mRenome');
 };
 $('rnOk').onclick=async()=>{
-  const v=ativo(); if(!v) return;
+  const v=cartao(); if(!v) return;
   const nome=$('rnNome').value.trim();
   if(!nome) { $('rnErro').textContent='Digite o nome.'; return }
   $('rnOk').disabled=true;
