@@ -302,6 +302,17 @@ nav button{position:relative}
 .cpanel select.fld{appearance:auto}
 .cveic{max-height:116px;overflow-y:auto;border:1px solid var(--line);border-radius:12px;padding:6px 10px;margin-bottom:10px;background:var(--card2)}
 .cveic .fchk{margin:6px 0}
+.ccores{display:flex;flex-wrap:wrap;gap:10px;margin:2px 0 14px}
+.ccor{width:34px;height:34px;border-radius:50%;border:2px solid var(--line);padding:0;position:relative;cursor:pointer;flex:none}
+.ccor.on{box-shadow:0 0 0 3px var(--card),0 0 0 5px var(--txt)}
+.ccor.pad{background:conic-gradient(#e3262f 0 50%,#f5b83d 50% 100%)}
+.ccor.pad::after{content:'A';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.6)}
+.cdot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:7px;vertical-align:1px}
+#cpanel .falta{border-color:#e3262f!important;background:rgba(227,38,47,.08)!important;box-shadow:0 0 0 3px rgba(227,38,47,.15)}
+#cpanel .falta-lbl{color:#e3262f!important}
+#cpanel .falta.treme{animation:treme .35s}
+@keyframes treme{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+@media (prefers-reduced-motion:reduce){#cpanel .falta.treme{animation:none}}
 .cbusca{display:flex;gap:6px;margin-bottom:6px}
 .cbusca .fld{flex:1;margin:0}
 .cres{border:1px solid var(--line);border-radius:12px;background:var(--card2);margin-bottom:10px;max-height:150px;overflow-y:auto;display:none}
@@ -555,6 +566,8 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
     <div class="cres" id="cpRes"></div>
     <label class="flbl" for="cpRaio">Tamanho (raio): <b id="cpRaioTxt">200 m</b></label>
     <input type="range" id="cpRaio" min="0" max="100" step="1" value="30">
+    <label class="flbl">Cor da cerca: <b id="cpCorTxt">Padrão</b></label>
+    <div class="ccores" id="cpCores"></div>
     <label class="flbl" for="cpQuando">Avisar quando o veículo</label>
     <select class="fld" id="cpQuando">
       <option value="">Escolha: entrar, sair ou os dois</option>
@@ -2513,6 +2526,17 @@ function fmtRaio(r){ return r<1000 ? Math.round(r)+' m' : (r/1000).toFixed(r<100
 function nomeVeic(id){ const v=veiculos.find(x=>String(x.id)===String(id)); return v?v.nome:'Veículo' }
 function raioDe(v){ const r=50*Math.pow(100,v/100); return r<500 ? Math.round(r/10)*10 : Math.round(r/50)*50 }
 
+/* cores da cerca: "Padrão" = vermelha se bloqueia, amarela se só avisa (como sempre foi) */
+const CORES_CERCA=[['','Padrão'],['#2563eb','Azul'],['#16a34a','Verde'],['#8b5cf6','Roxo'],['#ec4899','Rosa'],['#f97316','Laranja'],['#0891b2','Ciano'],['#64748b','Cinza']];
+const corValida=c=>CORES_CERCA.some(x=>x[0] && x[0]===c);
+const corDaCerca=a=>{ a=a||{}; return corValida(a.cor) ? a.cor : (a.acao==='bloquear' ? '#e3262f' : '#f5b83d') };
+let corEscolhida='';
+function desenharCores(){
+  $('cpCores').innerHTML=CORES_CERCA.map(x=>'<button type="button" class="ccor'+(x[0]?'':' pad')+(x[0]===corEscolhida?' on':'')+'" data-cor="'+x[0]+'" title="'+x[1]+'" aria-label="Cor '+x[1]+'"'+(x[0]?' style="background:'+x[0]+'"':'')+'></button>').join('');
+  $('cpCorTxt').textContent=(CORES_CERCA.find(x=>x[0]===corEscolhida)||CORES_CERCA[0])[1];
+  if(desenho && desenho.circulo) desenho.circulo.setStyle({color:corEscolhida || ($('cpBloq').checked ? '#e3262f' : '#f5b83d')});
+}
+$('cpCores').addEventListener('click',e=>{ const b=e.target.closest('[data-cor]'); if(!b) return; corEscolhida=b.dataset.cor; desenharCores() });
 async function carregarCercas(){
   if(!auth) return;
   try{
@@ -2522,8 +2546,7 @@ async function carregarCercas(){
     cercas=lista.map(g=>({g:g,c:lerCirculo(g.area)})).filter(x=>x.c);
     camadaCercas.clearLayers();
     cercas.forEach(x=>{
-      const bloq=(x.g.attributes||{}).acao==='bloquear';
-      L.circle([x.c.lat,x.c.lon],{radius:x.c.raio,color:bloq?'#e3262f':'#f5b83d',weight:2,dashArray:'6 6',fillOpacity:.08})
+      L.circle([x.c.lat,x.c.lon],{radius:x.c.raio,color:corDaCerca(x.g.attributes),weight:2,dashArray:'6 6',fillOpacity:.08})
         .bindTooltip(x.g.name||'Cerca').addTo(camadaCercas);
     });
     desenharCercasLista();
@@ -2534,7 +2557,7 @@ function desenharCercasLista(){
   $('cList').innerHTML = cercas.map(x=>{
     const a=x.g.attributes||{}, ids=String(a.veiculos||'').split(',').filter(Boolean);
     const bloq=a.acao==='bloquear';
-    return '<div class="arow" data-id="'+x.g.id+'"><div class="t">'+esc(x.g.name||'Cerca')+'</div>'+
+    return '<div class="arow" data-id="'+x.g.id+'"><div class="t"><span class="cdot" style="background:'+corDaCerca(a)+'"></span>'+esc(x.g.name||'Cerca')+'</div>'+
       '<div class="s">Raio '+fmtRaio(x.c.raio)+' · '+(bloq?'BLOQUEIA ':'avisa ')+(FRASE_QUANDO[a.quando]||FRASE_QUANDO.ambos)+'</div>'+
       '<div class="s">'+(ids.length?ids.map(nomeVeic).map(esc).join(', '):'sem veículo informado')+'</div>'+
       '<div class="bts"><button class="mini" data-a="ver">Ver no mapa</button><button class="mini" data-a="editar">Editar</button><button class="mini perigo" data-a="excluir">Excluir</button></div></div>';
@@ -2579,7 +2602,8 @@ function abrirDesenho(edit){
   desenho={centro:c0,raio:edit?edit.c.raio:raioDe(30),marker:null,circulo:null,edit:edit||null};
   $('cpTitulo').textContent=edit?'Editar cerca':'Nova cerca';
   $('cpNome').value=edit?(edit.g.name||''):''; $('cpRaio').value=edit?valorDoRaio(edit.c.raio):30; $('cpRaioTxt').textContent=fmtRaio(desenho.raio);
-  $('cpQuando').value=edit?(a.quando||'ambos'):''; $('cpErro').textContent='';
+  $('cpQuando').value=edit?(a.quando||'ambos'):''; $('cpErro').textContent=''; limparFaltas();
+  corEscolhida=(edit && corValida(a.cor)) ? a.cor : '';
   $('cpBusca').value=''; $('cpRes').classList.remove('show'); $('cpRes').innerHTML='';
   const eraBloq=!!(edit && a.acao==='bloquear');
   $('cpBloq').checked=eraBloq; bloqConfirmado=eraBloq; $('cpBloqRow').style.display=CERCA_BLOQUEIO?'':'none';
@@ -2591,6 +2615,7 @@ function abrirDesenho(edit){
   desenho.marker=L.marker(c0,{draggable:true,zIndexOffset:2000,icon:L.divIcon({className:'',html:'<div class="cpin"></div>',iconSize:[26,26],iconAnchor:[13,13]})}).addTo(map);
   desenho.circulo=L.circle(c0,{radius:desenho.raio,color:'#e3262f',weight:2,fillOpacity:.12}).addTo(map);
   desenho.marker.on('drag',e=>{ desenho.centro=e.latlng; desenho.circulo.setLatLng(e.latlng) });
+  desenharCores();
   document.body.classList.add('desenhando'); $('cpanel').classList.add('show');
   ajustarDesenho(true);
 }
@@ -2602,6 +2627,17 @@ function moverCercaParaVeiculo(v){
   desenho.centro=ll; desenho.marker.setLatLng(ll); desenho.circulo.setLatLng(ll);
   ajustarDesenho();
 }
+function lblDe(id){ return document.querySelector('#cpanel label[for="'+id+'"]') || ($(id).previousElementSibling && $(id).previousElementSibling.classList.contains('flbl') ? $(id).previousElementSibling : null) }
+function limparFaltas(){ ['cpNome','cpQuando','cpVeic'].forEach(id=>{ $(id).classList.remove('falta','treme'); const l=lblDe(id); if(l) l.classList.remove('falta-lbl') }) }
+function marcarFaltas(ids){
+  ids.forEach(id=>{ const el=$(id); el.classList.add('falta'); void el.offsetWidth; el.classList.add('treme'); const l=lblDe(id); if(l) l.classList.add('falta-lbl') });
+  const primeiro=$(ids[0]); try{ primeiro.scrollIntoView({behavior:'smooth',block:'center'}) }catch(e){}
+  if(ids[0]==='cpNome') setTimeout(()=>{ try{ primeiro.focus({preventScroll:true}) }catch(e){} },300);
+}
+const tirarFalta=id=>{ $(id).classList.remove('falta','treme'); const l=lblDe(id); if(l) l.classList.remove('falta-lbl') };
+$('cpNome').addEventListener('input',()=>{ if($('cpNome').value.trim()) tirarFalta('cpNome') });
+$('cpQuando').addEventListener('change',()=>{ if($('cpQuando').value) tirarFalta('cpQuando') });
+$('cpVeic').addEventListener('change',()=>{ if($('cpVeic').querySelector('input:checked')) tirarFalta('cpVeic') });
 $('cpVeic').addEventListener('change',e=>{
   if(!desenho || desenho.edit) return;
   const cb=e.target; if(!cb || cb.type!=='checkbox' || !cb.checked) return;
@@ -2676,10 +2712,11 @@ $('cpRaio').addEventListener('input',()=>{
 });
 $('cpRaio').addEventListener('change',()=>ajustarDesenho());
 $('cpCancel').onclick=()=>{ cancelarDesenho(); irPara('Cercas') };
+$('cpBloq').addEventListener('change',()=>{ if(!corEscolhida) desenharCores() });
 $('cpBloq').addEventListener('change',()=>{
   if($('cpBloq').checked){ bloqConfirmado=false; abrir('mCercaBloq') } else bloqConfirmado=false;
 });
-$('cbqNao').onclick=()=>{ $('cpBloq').checked=false; bloqConfirmado=false; fechar() };
+$('cbqNao').onclick=()=>{ $('cpBloq').checked=false; bloqConfirmado=false; fechar(); if(!corEscolhida) desenharCores() };
 $('cbqSim').onclick=()=>{ bloqConfirmado=true; fechar() };
 $('cpSalvar').onclick=async()=>{
   if(!desenho) return;
@@ -2687,9 +2724,13 @@ $('cpSalvar').onclick=async()=>{
   const nome=$('cpNome').value.trim();
   const ids=[...$('cpVeic').querySelectorAll('input:checked')].map(i=>i.value);
   const bloq=CERCA_BLOQUEIO && $('cpBloq').checked;
-  if(!nome) return erro('Dê um nome para a cerca.');
-  if(!ids.length) return erro('Escolha pelo menos um veículo.');
-  if(!$('cpQuando').value) return erro('Escolha quando avisar: ao entrar, ao sair ou nos dois casos.');
+  /* campo que falta fica vermelho (em vez de mensagem) */
+  const faltam=[];
+  if(!nome) faltam.push('cpNome');
+  if(!$('cpQuando').value) faltam.push('cpQuando');
+  if(!ids.length) faltam.push('cpVeic');
+  limparFaltas();
+  if(faltam.length){ erro(''); marcarFaltas(faltam); return }
   if(bloq && !bloqConfirmado){ abrir('mCercaBloq'); return }
   erro('');
   const c=desenho.centro, raio=desenho.raio;
@@ -2707,6 +2748,7 @@ $('cpSalvar').onclick=async()=>{
       const ladosTodos=lados.concat((desenho.extras||[]).map(id=>id+':?'));
       const corpo=Object.assign({},g,{name:nome,area:'CIRCLE ('+c.lat.toFixed(6)+' '+c.lng.toFixed(6)+', '+raio+')',
         attributes:Object.assign({},a0,{acao:bloq?'bloquear':'notificar',quando:quandoSel,veiculos:todos.join(','),editada:new Date().toISOString(),jaDentro:jaDentro.join(','),lados:ladosTodos.join(',')})});
+      if(corEscolhida) corpo.attributes.cor=corEscolhida; else delete corpo.attributes.cor;
       const r=await api('/api/geofences/'+g.id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(corpo)});
       if(!r.ok) throw new Error('O servidor não aceitou salvar a cerca (erro '+r.status+').');
       const falhas=[];
@@ -2736,6 +2778,7 @@ $('cpSalvar').onclick=async()=>{
   try{
     const corpo={name:nome,description:'',area:'CIRCLE ('+c.lat.toFixed(6)+' '+c.lng.toFixed(6)+', '+raio+')',
       attributes:{acao:bloq?'bloquear':'notificar',quando:$('cpQuando').value,veiculos:ids.join(','),criada:new Date().toISOString(),jaDentro:jaDentro.join(','),lados:lados.join(','),dono:(lsGet('rg_email')||'').toLowerCase()}};
+    if(corEscolhida) corpo.attributes.cor=corEscolhida;
     const r=await api('/api/geofences',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(corpo)});
     if(!r.ok) throw new Error('O servidor não aceitou criar a cerca (erro '+r.status+').');
     criada=await r.json();
