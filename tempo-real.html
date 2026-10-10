@@ -75,6 +75,8 @@ try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'){document.do
 .fres.trava{background:rgba(227,38,47,.16);border:2px solid var(--red2);color:var(--red2);font-size:15px}
 #avisoPag{flex:none;display:none;padding:7px 14px;font-size:12.5px;font-weight:600;line-height:1.3;cursor:pointer;text-align:center}
 #avisoPag.show{display:block}
+#avisoPag.show{animation:avisoPisca 1.8s ease-in-out infinite}
+@keyframes avisoPisca{0%,100%{opacity:1}50%{opacity:.55}}
 #avisoPag.a{background:#3a2c08;border:1px solid #ffb020;color:#ffd27a}
 #avisoPag.c{background:#2d2a08;border:1px solid #e6c200;color:#ffe680}
 nav button.trav{opacity:.35}
