@@ -593,6 +593,8 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
 #aview .cstar svg{width:18px;height:18px;fill:none;stroke:var(--mut);stroke-width:1.8;stroke-linejoin:round;opacity:.55}
 #aview .cstar:hover svg{opacity:1}
 #aview .cstar.on svg{fill:#f5b83d;stroke:#e0a020;opacity:1}
+#aview .fval{display:block;margin-top:5px;font-size:12px;font-weight:600;color:var(--mut)}
+#aview .fval.venc{color:var(--red2)}
 #aview .flink{display:flex;align-items:center;gap:4px;margin-top:6px;padding:0;border:0;background:none;font:inherit;font-size:12px;font-weight:600;color:#3b82f6;cursor:pointer;text-align:left}
 #aview .flink svg{width:13px;height:13px;flex:none}
 #aview .flink:hover{text-decoration:underline}
@@ -641,6 +643,15 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
 .pitem .status{flex:none}
 .pvz{padding:18px 8px;text-align:center;color:var(--mut);font-size:14px}
 @media (min-width:900px){#mPick{align-items:center}#mPick .box2{border-radius:18px}}
+/* janela de permissões no meio da tela, no celular e no computador (10/10/2026) */
+#mPerm{align-items:center;padding:16px}
+#mPerm .box2{border-radius:18px;padding-bottom:16px;max-height:calc(100vh - 32px);overflow-y:auto}
+#mPerm .fchk input{flex:none;width:18px;height:18px}
+#mPerm .pmval{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:8px 0 2px;padding-top:10px;border-top:1px solid var(--line)}
+#mPerm .pmvl{font-size:14px;font-weight:600}
+#mPerm .pmval .fld{width:auto;flex:1;min-width:150px;margin:0;height:40px}
+#mPerm .pmval .linkbtn{margin:0;padding:0 4px}
+#mPerm .pmvh{font-size:12.5px;color:var(--mut);margin:4px 0 8px;line-height:1.4}
 /* vínculo de vários clientes no equipamento */
 .eclis{max-height:220px;overflow-y:auto;border:1px solid var(--line);border-radius:12px;background:var(--card2);margin-bottom:6px}
 .eclis label{display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid var(--line);cursor:pointer;font-size:14px}
@@ -1028,11 +1039,15 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
   <div class="box2">
     <h3 id="pmTitulo">Permissões do app</h3>
     <p style="font-size:13px;color:var(--mut);margin:0 0 10px">Escolha o que aparece no app deste cliente.</p>
+    <label class="fchk"><input type="checkbox" id="pmApp"> Bloquear e desbloquear pelo app (desmarque para quem só pode ver o veículo, como motorista ou familiar)</label>
+    <label class="fchk"><input type="checkbox" id="pmCercaBloq"> Criar cerca e âncora que bloqueiam o veículo automaticamente</label>
     <label class="fchk"><input type="checkbox" id="pmSms"> Bloquear e desbloquear por SMS (pela plataforma, R$ 0,10 cada)</label>
     <label class="fchk"><input type="checkbox" id="pmReset"> Botão de reset (RESET#), pela plataforma (R$ 0,10) ou pelo celular dele (grátis)</label>
     <label class="fchk"><input type="checkbox" id="pmNome"> Editar o nome do veículo</label>
     <label class="fchk"><input type="checkbox" id="pmAncora"> Cerca rápida (botão da âncora no veículo)</label>
     <label class="fchk"><input type="checkbox" id="pmEu"> Ver a posição do próprio celular no mapa (botão Minha posição)</label>
+    <div class="pmval"><span class="pmvl">Acesso válido até</span><input class="fld" type="date" id="pmValidade"><button type="button" class="linkbtn" id="pmSemVal">Sem validade</button></div>
+    <p class="pmvh" id="pmValTxt"></p>
     <div id="pmCob" style="background:var(--card2);border-radius:12px;padding:10px 12px;font-size:13.5px;margin:4px 0 10px"></div>
     <div class="ferr" id="pmErro"></div>
     <div class="actions2">
@@ -1125,7 +1140,7 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
       <option value="200">200 m</option>
       <option value="500">500 m</option>
     </select>
-    <label class="fchk"><input type="checkbox" id="anBloq"> Bloquear o veículo se ele sair da cerca</label>
+    <label class="fchk" id="anBloqRow"><input type="checkbox" id="anBloq"> Bloquear o veículo se ele sair da cerca</label>
     <p id="anAviso" style="display:none;font-size:12.5px;color:var(--red2);margin:2px 0 8px">Sem marcar, você só recebe a notificação. Marcando, o bloqueio é enviado automaticamente, mesmo com o veículo em movimento (o rastreador só corta abaixo de 20 km/h).</p>
     <div class="ferr" id="anErro"></div>
     <div class="actions2">
@@ -1954,15 +1969,17 @@ async function smsBloquear(v,bloquear){
 }
 
 /* ===== PERMISSÕES DO CLIENTE (o administrador escolhe) ===== */
-let permCli={smsBloqueio:false,reset:false,editarNome:false,cercaRapida:false,minhaPosicao:false}, cobrCli=null;
+let permCli={smsBloqueio:false,reset:false,editarNome:false,cercaRapida:false,minhaPosicao:false,appBloqueio:true,cercaBloqueio:true}, cobrCli=null;
 const brl2 = n => 'R$ '+Number(n||0).toFixed(2).replace('.',',');
 async function carregarPermissoes(){
-  if(ehAdmin){ permCli={smsBloqueio:true,reset:true,editarNome:true,cercaRapida:true,minhaPosicao:true}; cobrCli=null; mostrarBotoesSms(); return }
+  if(ehAdmin){ permCli={smsBloqueio:true,reset:true,editarNome:true,cercaRapida:true,minhaPosicao:true,appBloqueio:true,cercaBloqueio:true}; cobrCli=null; mostrarBotoesSms(); return }
   if(!lsGet('rg_token')) return;
+  /* permissões guardadas no usuário do Traccar: Bloquear/Desbloquear pelo app e cerca que bloqueia (padrão: liberado) */
+  try{ const rs=await api('/api/session'); if(rs.ok){ const me=await rs.json(); permCli.appBloqueio=permAttr(me,'appBloqueio'); permCli.cercaBloqueio=permAttr(me,'cercaBloqueio'); mostrarBotoesSms() } }catch(e){ if(e.sessao) return }
   try{
     const r=await fetch(DESB_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',body:JSON.stringify({acao:'minhas',token:lsGet('rg_token')})});
     if(!r.ok) return;
-    const j=await r.json(); permCli=Object.assign({smsBloqueio:false,reset:false,editarNome:false,cercaRapida:false,minhaPosicao:false},j.perm||{}); cobrCli=j.cobranca||null;
+    const j=await r.json(); permCli=Object.assign({smsBloqueio:false,reset:false,editarNome:false,cercaRapida:false,minhaPosicao:false},j.perm||{},{appBloqueio:permCli.appBloqueio,cercaBloqueio:permCli.cercaBloqueio}); cobrCli=j.cobranca||null;
     mostrarBotoesSms();
   }catch(e){}
 }
@@ -1985,6 +2002,9 @@ function mostrarBotoesSms(){
   const c=$('smsCusto');
   if(!ehAdmin && cobrCli && (sms||rs)){ c.textContent='SMS pela plataforma: '+cobrCli.pendentes+' ('+brl2(cobrCli.valor)+' na próxima fatura)'; c.style.display='' } else c.style.display='none';
   $('btnRenome').style.display=(ehAdmin||permCli.editarNome)?'inline-flex':'none';
+  const podeApp=ehAdmin||permCli.appBloqueio!==false;
+  $('btnBlock').style.display=podeApp?'':'none'; $('btnUnblock').style.display=podeApp?'':'none';
+  const acts=$('btnBlock').parentElement; if(acts) acts.style.gridTemplateColumns=podeApp?'':'52px';
   const semSinal=(()=>{ const c=cartao(); return !!(c && !c.pos) })();
   $('btnAncora').style.display=(!semSinal && (ehAdmin||permCli.cercaRapida))?'inline-flex':'none';
   const verEu=ehAdmin||permCli.minhaPosicao;
@@ -2099,6 +2119,44 @@ async function chamarPerm(acao,extra){
   if(!r.ok) throw new Error(j.erro||('Erro '+r.status));
   return j;
 }
+/* permissões guardadas no próprio usuário do Traccar (10/10/2026). Sem o campo = liberado (padrão de fábrica). */
+const permAttr=(u,k)=>!(u&&u.attributes&&u.attributes[k]===false);
+const isoData=ms=>{ const d=new Date(ms); return isNaN(d)?'':new Date(d.getTime()-3*3600000).toISOString().slice(0,10) };
+function validadeDe(u){ const t=u&&u.expirationTime?Date.parse(u.expirationTime):0; return t>0?t:0 }
+function textoValidade(){
+  const v=$('pmValidade').value;
+  if(!v){ $('pmValTxt').textContent='Sem validade: o acesso só para se você desativar.'; return }
+  const fim=Date.parse(v+'T23:59:59-03:00');
+  $('pmValTxt').innerHTML=fim<Date.now()?'<span style="color:var(--red2)">Essa data já passou: o cliente fica sem acesso ao salvar.</span>':'O acesso desliga sozinho no fim do dia '+v.split('-').reverse().join('/')+'. Os rastreadores continuam funcionando.';
+}
+$('pmValidade').addEventListener('input',textoValidade);
+$('pmSemVal').onclick=()=>{ $('pmValidade').value=''; textoValidade() };
+function mostrarPermTraccar(u){
+  $('pmApp').checked=permAttr(u,'appBloqueio'); $('pmCercaBloq').checked=permAttr(u,'cercaBloqueio');
+  const t=validadeDe(u); $('pmValidade').value=t?isoData(t):''; textoValidade();
+}
+async function salvarPermTraccar(u){
+  const app=$('pmApp').checked, cb=$('pmCercaBloq').checked, v=$('pmValidade').value;
+  const attrs=Object.assign({},u.attributes||{});
+  if(app) delete attrs.appBloqueio; else attrs.appBloqueio=false;
+  if(cb) delete attrs.cercaBloqueio; else attrs.cercaBloqueio=false;
+  const exp=v?new Date(v+'T23:59:59-03:00').toISOString():null;
+  const mudouApp=permAttr(u,'appBloqueio')!==app;
+  const igual=JSON.stringify(attrs)===JSON.stringify(u.attributes||{}) && (validadeDe(u)||0)===(exp?Date.parse(exp):0);
+  if(!igual){
+    const corpo=Object.assign({},u,{attributes:attrs,expirationTime:exp}); delete corpo.password;
+    const r=await api('/api/users/'+u.id,{method:'PUT',headers:JSONH,body:JSON.stringify(corpo)});
+    if(!r.ok) throw new Error(await msgErro(r,'Não consegui salvar no servidor de rastreamento'));
+  }
+  /* trava de verdade: sem a permissão, o servidor recusa o comando Bloquear/Desbloquear desse cliente */
+  if(mudouApp){
+    const ids=await garantirComandos();
+    for(const k of Object.keys(ids)){
+      const r=await api('/api/permissions',{method:app?'POST':'DELETE',headers:JSONH,body:JSON.stringify({userId:u.id,commandId:ids[k]})});
+      if(!r.ok && !(app && r.status===400) && !(!app && r.status===404)) throw new Error(await msgErro(r,'Não consegui '+(app?'liberar':'travar')+' o comando '+k));
+    }
+  }
+}
 function mostrarPerm(j){
   const p=j.perm||{}, c=j.cobranca||{pendentes:0,valor:0};
   $('pmSms').checked=!!p.smsBloqueio; $('pmReset').checked=!!p.reset; $('pmNome').checked=!!p.editarNome; $('pmAncora').checked=!!p.cercaRapida; $('pmEu').checked=!!p.minhaPosicao;
@@ -2109,13 +2167,19 @@ function mostrarPerm(j){
 async function abrirPermissoes(userId){
   const u=usuarios.find(x=>x.id===userId); if(!u) return;
   permUserId=userId; $('pmTitulo').textContent='Permissões do app: '+(u.name||loginDe(u));
-  $('pmErro').textContent=''; $('pmCob').textContent='Carregando...'; abrir('mPerm');
+  $('pmErro').textContent=''; $('pmCob').textContent='Carregando...'; mostrarPermTraccar(u); abrir('mPerm');
   try{ mostrarPerm(await chamarPerm('permLer')) }catch(e){ $('pmErro').textContent=e.message }
 }
 $('pmSalvar').onclick=async()=>{
   $('pmSalvar').disabled=true; $('pmErro').textContent='';
-  try{ mostrarPerm(await chamarPerm('permSalvar',{perm:{smsBloqueio:$('pmSms').checked,reset:$('pmReset').checked,editarNome:$('pmNome').checked,cercaRapida:$('pmAncora').checked,minhaPosicao:$('pmEu').checked}})); toast('Permissões salvas.') }
-  catch(e){ $('pmErro').textContent=e.message }
+  try{
+    const u=usuarios.find(x=>x.id===permUserId); if(!u) throw new Error('Cliente não encontrado. Feche e abra de novo.');
+    await salvarPermTraccar(u);
+    mostrarPerm(await chamarPerm('permSalvar',{perm:{smsBloqueio:$('pmSms').checked,reset:$('pmReset').checked,editarNome:$('pmNome').checked,cercaRapida:$('pmAncora').checked,minhaPosicao:$('pmEu').checked}}));
+    await carregarUsuarios(); const u2=usuarios.find(x=>x.id===permUserId); if(u2) mostrarPermTraccar(u2);
+    desenharAdmin(); toast('Permissões salvas.')
+  }
+  catch(e){ if(!e.sessao) $('pmErro').textContent=e.message }
   $('pmSalvar').disabled=false;
 };
 $('pmZerar').onclick=async()=>{
@@ -2694,7 +2758,7 @@ const FILTROS_CLI=[
   {id:'atras',  t:'Atrasados',    fin:1, ok:u=>{const f=finDe(u);return !!f&&(f.nivel==='aviso'||(f.nivel==='bloqueado'&&f.especial))}, tit:'Mensalidade vencida, acesso ainda liberado (1 a 4 dias, ou cliente especial)'},
   {id:'conf',   t:'Confiança',    fin:1, ok:u=>{const f=finDe(u);return !!f&&f.nivel==='confianca'}, tit:'Usando o "Já paguei" (48 horas)'},
   {id:'susp',   t:'Suspensos',    fin:1, ok:u=>{const f=finDe(u);return !!f&&f.nivel==='bloqueado'&&!f.especial}, tit:'Acesso ao app suspenso por falta de pagamento (5 dias ou mais)'},
-  {id:'desat',  t:'Desativados',  ok:u=>!!u.disabled, tit:'Acesso desativado por você'},
+  {id:'desat',  t:'Desativados',  ok:u=>!!u.disabled||(validadeDe(u)>0&&validadeDe(u)<Date.now()), tit:'Acesso desativado por você ou com a validade vencida'},
   {id:'semcpf', t:'Sem CPF',      ok:(u,cpfDe)=>!cpfDe(u), tit:'Sem CPF vinculado: não vê faturas nem é suspenso por atraso'},
   {id:'semwpp', t:'Sem WhatsApp', ok:u=>!(u.phone&&normWpp(u.phone)), tit:'Sem WhatsApp: não recebe o aviso de desbloqueio nem a mensagem de acesso'},
   {id:'nunca',  t:'Nunca entrou', ac:1, ok:u=>!(acessosMapa&&acessosMapa[u.id]&&acessosMapa[u.id].ultimoMs), tit:'Sem nenhum acesso registrado (o registro começou em 10/10/2026)'}
@@ -2756,7 +2820,7 @@ function desenharClientes(){
         '<div class="ficha">'+
           '<div class="fi"><span class="fl">CPF</span><span class="fv">'+(cpf?esc(fmtCpf(cpf)):'<span class="fmut">não cadastrado</span>')+'</span></div>'+
           '<div class="fi"><span class="fl">WhatsApp</span><span class="fv">'+(temWpp?esc(fmtWpp(u.phone)):'<span class="bd-mal">não cadastrado</span>')+'</span></div>'+
-          '<div class="fi"><span class="fl">Acesso</span><span class="fv"><button type="button" class="pill pbtn '+(u.disabled?'bd-mal':'bd-ok')+'" data-a="bloq" data-u="'+u.id+'" title="'+(u.disabled?'Toque para reativar o acesso':'Toque para desativar o acesso')+'">'+(u.disabled?'Desativado':'Ativo')+' <span class="ptroca">⇄</span></button><button type="button" class="flink" data-a="perm" data-u="'+u.id+'" title="O que este cliente pode usar no app">'+ICO_ENGR+'Permissões</button></span></div>'+
+          '<div class="fi"><span class="fl">Acesso</span><span class="fv"><button type="button" class="pill pbtn '+(u.disabled?'bd-mal':'bd-ok')+'" data-a="bloq" data-u="'+u.id+'" title="'+(u.disabled?'Toque para reativar o acesso':'Toque para desativar o acesso')+'">'+(u.disabled?'Desativado':'Ativo')+' <span class="ptroca">⇄</span></button>'+(validadeDe(u)?'<span class="fval'+(validadeDe(u)<Date.now()?' venc':'')+'">'+(validadeDe(u)<Date.now()?'venceu em ':'válido até ')+esc(isoData(validadeDe(u)).split('-').reverse().join('/'))+'</span>':'')+'<button type="button" class="flink" data-a="perm" data-u="'+u.id+'" title="O que este cliente pode usar no app e até quando">'+ICO_ENGR+'Permissões</button></span></div>'+
           '<div class="fi"><span class="fl">Financeiro</span><span class="fv"><span class="pill '+(fin.c||'neutro')+'">'+esc(fin.t)+'</span>'+(fm&&(fm.confiancaUsada||fm.nivel==='confianca')?'<button type="button" class="flink" data-a="zerar" data-u="'+u.id+'" title="Devolve ao cliente o direito de usar o Já paguei de novo">Zerar confiança</button>':'')+'</span></div>'+
           '<div class="fi largo"><span class="fl">Último acesso</span><span class="fv">'+valorAcesso(u)+'</span></div>'+
         '</div>'+
@@ -3240,7 +3304,8 @@ $('cSalvar').onclick=async ()=>{
 /* ===== CERCAS VIRTUAIS (círculo = ponto + raio) =====
    A cerca fica no Traccar (ele detecta entrada/saída). Guardamos nos atributos: acao, quando, veiculos, criada, jaDentro.
    Alertas: lidos direto do Traccar com o acesso do próprio usuário. */
-const CERCA_BLOQUEIO=true;  /* troque para true só depois que o servidor de bloqueio automático estiver publicado */
+const CERCA_BLOQUEIO=true;
+const podeCercaBloq=()=>CERCA_BLOQUEIO && (ehAdmin || permCli.cercaBloqueio!==false);  /* troque para true só depois que o servidor de bloqueio automático estiver publicado */
 const CERCA_MAX_CLIENTE=10;
 let cercas=[], cercasIniciado=false, desenho=null, bloqConfirmado=false;
 let alertas=[], alertasIds=null, alertaTimer=null;
@@ -3349,7 +3414,7 @@ function abrirDesenho(edit){
   opacEscolhida=(edit && opacValida(a.opac)) ? String(a.opac) : '';
   $('cpBusca').value=''; $('cpRes').classList.remove('show'); $('cpRes').innerHTML='';
   const eraBloq=!!(edit && a.acao==='bloquear');
-  $('cpBloq').checked=eraBloq; bloqConfirmado=eraBloq; $('cpBloqRow').style.display=CERCA_BLOQUEIO?'':'none';
+  $('cpBloq').checked=eraBloq; bloqConfirmado=eraBloq; $('cpBloqRow').style.display=podeCercaBloq()?'':'none';
   $('cpSalvar').disabled=false; $('cpSalvar').textContent=textoBotaoSalvar();
   const sel=selId, marcados=edit?String(a.veiculos||'').split(',').filter(Boolean):null;
   /* veículo da cerca que não aparece na lista deste acesso continua na cerca (não é removido sem querer) */
@@ -3559,7 +3624,7 @@ function marcarBotaoAncora(){
 async function abrirAncora(){
   const v=ativo(); if(!v){ toast('Escolha um veículo com posição no mapa.'); return }
   $('anErro').textContent=''; $('anTitulo').textContent='Cerca rápida · '+v.nome;
-  $('anRaio').value='100'; $('anBloq').checked=false; $('anAviso').style.display='none';
+  $('anRaio').value='100'; $('anBloq').checked=false; $('anAviso').style.display='none'; $('anBloqRow').style.display=podeCercaBloq()?'':'none';
   $('anTexto').textContent='Cria uma cerca em volta de onde o veículo está agora. Se ele sair dela, você é avisado.';
   $('anCriar').textContent='Criar âncora'; $('anCriar').disabled=false; $('anRemover').style.display='none';
   abrir('mAncora');
