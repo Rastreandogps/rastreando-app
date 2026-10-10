@@ -651,6 +651,7 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
 #mPerm .pmval{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:8px 0 2px;padding-top:10px;border-top:1px solid var(--line)}
 #mPerm .pmvl{font-size:14px;font-weight:600}
 #mPerm .pmval .fld{width:auto;flex:1;min-width:150px;margin:0;height:40px}
+#mPerm .pmval .fld.hora{flex:none;width:110px;min-width:0}
 #mPerm .pmval .linkbtn{margin:0;padding:0 4px}
 #mPerm .pmvh{font-size:12.5px;color:var(--mut);margin:4px 0 8px;line-height:1.4}
 /* vínculo de vários clientes no equipamento */
@@ -1047,7 +1048,7 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
     <label class="fchk"><input type="checkbox" id="pmNome"> Editar o nome do veículo</label>
     <label class="fchk"><input type="checkbox" id="pmAncora"> Cerca rápida (botão da âncora no veículo)</label>
     <label class="fchk"><input type="checkbox" id="pmEu"> Ver a posição do próprio celular no mapa (botão Minha posição)</label>
-    <div class="pmval"><span class="pmvl">Acesso válido até</span><input class="fld" type="date" id="pmValidade"><button type="button" class="linkbtn" id="pmSemVal">Sem validade</button></div>
+    <div class="pmval"><span class="pmvl">Acesso válido até</span><input class="fld" type="date" id="pmValidade"><input class="fld hora" type="time" id="pmHora" value="23:59" step="60"><button type="button" class="linkbtn" id="pmSemVal">Sem validade</button></div>
     <p class="pmvh" id="pmValTxt"></p>
     <div id="pmCob" style="background:var(--card2);border-radius:12px;padding:10px 12px;font-size:13.5px;margin:4px 0 10px"></div>
     <div class="ferr" id="pmErro"></div>
@@ -2123,25 +2124,28 @@ async function chamarPerm(acao,extra){
 /* permissões guardadas no próprio usuário do Traccar (10/10/2026). Sem o campo = liberado (padrão de fábrica). */
 const permAttr=(u,k)=>!(u&&u.attributes&&u.attributes[k]===false);
 const isoData=ms=>{ const d=new Date(ms); return isNaN(d)?'':new Date(d.getTime()-3*3600000).toISOString().slice(0,10) };
+const horaSP=ms=>new Date(ms).toLocaleTimeString('pt-BR',{timeZone:'America/Sao_Paulo',hour:'2-digit',minute:'2-digit'});
+const fimValidade=()=>{ const v=$('pmValidade').value; if(!v) return 0; const h=$('pmHora').value||'23:59'; return Date.parse(v+'T'+h+':59-03:00') };
+function txtValidade(ms){ const d=isoData(ms).split('-').reverse().join('/'), h=horaSP(ms); return h==='23:59'?d:d+' às '+h }
 function validadeDe(u){ const t=u&&u.expirationTime?Date.parse(u.expirationTime):0; return t>0?t:0 }
 function textoValidade(){
   const v=$('pmValidade').value;
   if(!v){ $('pmValTxt').textContent='Sem validade: o acesso só para se você desativar.'; return }
-  const fim=Date.parse(v+'T23:59:59-03:00');
-  $('pmValTxt').innerHTML=fim<Date.now()?'<span style="color:var(--red2)">Essa data já passou: o cliente fica sem acesso ao salvar.</span>':'O acesso desliga sozinho no fim do dia '+v.split('-').reverse().join('/')+'. Os rastreadores continuam funcionando.';
+  const fim=fimValidade();
+  $('pmValTxt').innerHTML=fim<Date.now()?'<span style="color:var(--red2)">Esse horário já passou: o cliente fica sem acesso ao salvar.</span>':'O acesso desliga sozinho em '+txtValidade(fim)+'. Os rastreadores continuam funcionando.';
 }
-$('pmValidade').addEventListener('input',textoValidade);
-$('pmSemVal').onclick=()=>{ $('pmValidade').value=''; textoValidade() };
+$('pmValidade').addEventListener('input',textoValidade); $('pmHora').addEventListener('input',textoValidade);
+$('pmSemVal').onclick=()=>{ $('pmValidade').value=''; $('pmHora').value='23:59'; textoValidade() };
 function mostrarPermTraccar(u){
   $('pmApp').checked=permAttr(u,'appBloqueio'); $('pmCercaBloq').checked=permAttr(u,'cercaBloqueio');
-  const t=validadeDe(u); $('pmValidade').value=t?isoData(t):''; textoValidade();
+  const t=validadeDe(u); $('pmValidade').value=t?isoData(t):''; $('pmHora').value=t?horaSP(t):'23:59'; textoValidade();
 }
 async function salvarPermTraccar(u){
   const app=$('pmApp').checked, cb=$('pmCercaBloq').checked, v=$('pmValidade').value;
   const attrs=Object.assign({},u.attributes||{});
   if(app) delete attrs.appBloqueio; else attrs.appBloqueio=false;
   if(cb) delete attrs.cercaBloqueio; else attrs.cercaBloqueio=false;
-  const exp=v?new Date(v+'T23:59:59-03:00').toISOString():null;
+  const exp=v?new Date(fimValidade()).toISOString():null;
   const mudouApp=permAttr(u,'appBloqueio')!==app;
   const igual=JSON.stringify(attrs)===JSON.stringify(u.attributes||{}) && (validadeDe(u)||0)===(exp?Date.parse(exp):0);
   if(!igual){
@@ -2821,7 +2825,7 @@ function desenharClientes(){
         '<div class="ficha">'+
           '<div class="fi"><span class="fl">CPF</span><span class="fv">'+(cpf?esc(fmtCpf(cpf)):'<span class="fmut">não cadastrado</span>')+'</span></div>'+
           '<div class="fi"><span class="fl">WhatsApp</span><span class="fv">'+(temWpp?esc(fmtWpp(u.phone)):'<span class="bd-mal">não cadastrado</span>')+'</span></div>'+
-          '<div class="fi"><span class="fl">Acesso</span><span class="fv"><button type="button" class="pill pbtn '+(u.disabled?'bd-mal':'bd-ok')+'" data-a="bloq" data-u="'+u.id+'" title="'+(u.disabled?'Toque para reativar o acesso':'Toque para desativar o acesso')+'">'+(u.disabled?'Desativado':'Ativo')+' <span class="ptroca">⇄</span></button>'+(validadeDe(u)?'<span class="fval'+(validadeDe(u)<Date.now()?' venc':'')+'">'+(validadeDe(u)<Date.now()?'venceu em ':'válido até ')+esc(isoData(validadeDe(u)).split('-').reverse().join('/'))+'</span>':'')+'<button type="button" class="flink" data-a="perm" data-u="'+u.id+'" title="O que este cliente pode usar no app e até quando">'+ICO_ENGR+'Permissões</button></span></div>'+
+          '<div class="fi"><span class="fl">Acesso</span><span class="fv"><button type="button" class="pill pbtn '+(u.disabled?'bd-mal':'bd-ok')+'" data-a="bloq" data-u="'+u.id+'" title="'+(u.disabled?'Toque para reativar o acesso':'Toque para desativar o acesso')+'">'+(u.disabled?'Desativado':'Ativo')+' <span class="ptroca">⇄</span></button>'+(validadeDe(u)?'<span class="fval'+(validadeDe(u)<Date.now()?' venc':'')+'">'+(validadeDe(u)<Date.now()?'venceu em ':'válido até ')+esc(txtValidade(validadeDe(u)))+'</span>':'')+'<button type="button" class="flink" data-a="perm" data-u="'+u.id+'" title="O que este cliente pode usar no app e até quando">'+ICO_ENGR+'Permissões</button></span></div>'+
           '<div class="fi"><span class="fl">Financeiro</span><span class="fv"><span class="pill '+(fin.c||'neutro')+'">'+esc(fin.t)+'</span>'+(fm&&(fm.confiancaUsada||fm.nivel==='confianca')?'<button type="button" class="flink" data-a="zerar" data-u="'+u.id+'" title="Devolve ao cliente o direito de usar o Já paguei de novo">Zerar confiança</button>':'')+'</span></div>'+
           '<div class="fi largo"><span class="fl">Último acesso</span><span class="fv">'+valorAcesso(u)+'</span></div>'+
         '</div>'+
