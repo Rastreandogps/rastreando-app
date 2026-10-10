@@ -202,6 +202,8 @@ main{position:relative;flex:1;min-height:0;overflow:hidden}
 /* Cartão do veículo (arrastável) */
 .sheet{position:absolute;left:0;right:0;bottom:0;z-index:450;margin:0 auto;max-width:520px;background:var(--card);border:1px solid var(--line);border-bottom:0;border-radius:18px 18px 0 0;padding:0 16px 14px;box-shadow:0 -8px 24px rgba(0,0,0,.45);transition:transform .22s ease;will-change:transform}
 .sheet.drag{transition:none}
+/* computador: cartão do veículo no canto esquerdo (celular não muda) */
+@media (min-width:900px){.sheet{left:16px;right:auto;margin:0;width:440px;max-width:440px}}
 .dragzone{touch-action:none;cursor:grab;user-select:none;-webkit-user-select:none}
 .handlewrap{padding:10px 0 12px}
 .handle{display:block;width:44px;height:5px;border-radius:3px;background:var(--line);margin:0 auto}
@@ -973,7 +975,17 @@ $('follow').onclick = ()=>{
   if(!seguir && !ativo()){ toast('Nenhum veículo selecionado'); return }
   setSeguir(!seguir);
 };
+const telaLarga = () => window.matchMedia('(min-width:900px)').matches;
+/* no computador o cartão fica à esquerda: quanto da largura do mapa ele cobre */
+function coberturaLado(){
+  if(!telaLarga()) return 0;
+  const s = $('sheet');
+  if(s.style.display==='none') return 0;
+  const m = $('main').getBoundingClientRect(), r = s.getBoundingClientRect();
+  return Math.max(0, r.right - m.left);
+}
 function cobertura(){
+  if(telaLarga()) return 0;
   const s = $('sheet');
   if(s.style.display==='none') return 0;
   const m = $('main').getBoundingClientRect(), r = s.getBoundingClientRect();
@@ -981,7 +993,7 @@ function cobertura(){
 }
 function centralizar(pos){
   const z = map.getZoom(), c = cobertura();
-  const p = map.project(L.latLng(pos),z).add([0,c/2]);
+  const p = map.project(L.latLng(pos),z).add([-coberturaLado()/2,c/2]);
   const cur = map.project(map.getCenter(),z);
   if(Math.abs(cur.x-p.x)>0.5 || Math.abs(cur.y-p.y)>0.5){
     map.setView(map.unproject(p,z),z,{animate:false});
@@ -991,7 +1003,7 @@ function ajustarTodos(vs){
   if(!vs.length) return;
   const c = cobertura();
   map.fitBounds(L.latLngBounds(vs.map(v=>v.pos)),{
-    paddingTopLeft:[40,70],paddingBottomRight:[40,c+30],maxZoom:17,animate:false
+    paddingTopLeft:[40+coberturaLado(),70],paddingBottomRight:[40,c+30],maxZoom:17,animate:false
   });
 }
 
