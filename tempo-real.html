@@ -207,6 +207,52 @@ main{position:relative;flex:1;min-height:0;overflow:hidden}
 .car svg{overflow:visible;filter:drop-shadow(0 1px 3px rgba(0,0,0,.45))}
 .carlabel{position:absolute;bottom:46px;left:50%;transform:translateX(-50%);background:rgba(15,17,21,.85);border:1px solid var(--line);border-radius:6px;padding:2px 6px;font-size:11px;white-space:nowrap;color:var(--txt)}
 
+/* ===== HISTÓRICO DE ROTAS (10/10/2026) ===== */
+#map.hist-on .leaflet-marker-icon:not(.hmk){visibility:hidden;pointer-events:none}
+body.hist-on #follow,body.hist-on #btnEu{display:none!important}
+.hpanel .hperres{display:none;align-items:center;justify-content:space-between;gap:8px;background:var(--card2);border-radius:12px;padding:8px 12px;font-size:13.5px;font-weight:600}
+.hpanel .hperres button{border:0;background:none;color:#3b82f6;font:inherit;font-size:13px;font-weight:700;cursor:pointer;padding:0}
+.hpanel.achou .hdias,.hpanel.achou .hper,.hpanel.achou .hbuscar{display:none}
+.hpanel.achou .hperres{display:flex}
+.hpanel{position:absolute;left:0;right:0;bottom:0;z-index:460;margin:0 auto;max-width:520px;max-height:62%;overflow-y:auto;background:var(--card);border:1px solid var(--line);border-bottom:0;border-radius:18px 18px 0 0;padding:12px 16px 14px;box-shadow:0 -8px 24px rgba(0,0,0,.45);display:none}
+.hpanel.show{display:block}
+@media (min-width:900px){.hpanel{left:16px;right:auto;margin:0;width:440px;max-width:440px;bottom:16px;border-radius:18px;border-bottom:1px solid var(--line);max-height:calc(100% - 32px)}}
+.hpanel .htop{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.hpanel .htop h3{font-size:17px;font-weight:700;flex:none}
+.hpanel select,.hpanel input{height:40px;border-radius:11px;border:1px solid var(--line);background:var(--card2);color:var(--txt);font:inherit;font-size:14px;padding:0 10px;min-width:0}
+.hpanel .htop select{flex:1}
+.hpanel .hdias{display:flex;gap:6px;margin-bottom:8px}
+.hpanel .hdia{flex:1;height:36px;border-radius:999px;border:1px solid var(--line);background:var(--card2);color:var(--txt);font:inherit;font-size:13px;font-weight:600;cursor:pointer}
+.hpanel .hdia.on{background:#3b82f6;border-color:#3b82f6;color:#fff}
+.hpanel .hper{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:6px;margin-bottom:8px}
+.hpanel .hper label{display:flex;flex-direction:column;gap:3px;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--mut)}
+.hpanel .hper input{width:100%}
+.hpanel .hbuscar{width:100%;height:44px;border:0;border-radius:13px;background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;font:inherit;font-size:15px;font-weight:700;cursor:pointer}
+.hpanel .hbuscar:disabled{opacity:.6}
+.hpanel .hmsg{font-size:13px;color:var(--mut);margin-top:10px;text-align:center}
+.hpanel .hres{display:none;margin-top:12px}
+.hpanel .hres.show{display:block}
+.hpanel .hcards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-bottom:10px}
+.hpanel .hcard{background:var(--card2);border-radius:12px;padding:8px 6px;text-align:center}
+.hpanel .hcard b{display:block;font-size:15px;font-weight:700}
+.hpanel .hcard small{font-size:10.5px;color:var(--mut)}
+.hpanel .hplay{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.hpanel .hbtn{flex:none;width:44px;height:44px;border-radius:50%;border:0;background:#16a34a;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.hpanel .hbtn svg{width:20px;height:20px;fill:currentColor}
+.hpanel .hvel{flex:none;height:34px;padding:0 10px;border-radius:999px;border:1px solid var(--line);background:var(--card2);color:var(--txt);font:inherit;font-size:12.5px;font-weight:700;cursor:pointer}
+.hpanel input[type=range]{flex:1;height:auto;padding:0;border:0;background:none;accent-color:#3b82f6}
+.hpanel .hinfo{display:flex;justify-content:space-between;font-size:12.5px;color:var(--mut);margin-bottom:8px}
+.hpanel .hinfo b{color:var(--txt)}
+.hpanel details{background:var(--card2);border-radius:12px;padding:8px 10px}
+.hpanel summary{font-size:13px;font-weight:700;cursor:pointer}
+.hpanel .hstop{display:flex;gap:8px;align-items:center;padding:7px 0;border-top:1px solid var(--line);font-size:13px;cursor:pointer}
+.hpanel .hstop:first-of-type{border-top:0}
+.hpanel .hstop .n{flex:none;width:22px;height:22px;border-radius:50%;background:#3b82f6;color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.hpanel .hstop small{color:var(--mut)}
+.hpin{width:24px;height:24px;border-radius:50%;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.5);color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.hpin.ini{background:#16a34a}.hpin.fim{background:#dc2626}.hpin.par{background:#3b82f6;width:22px;height:22px}
+.hmk .car{transition:none}
+
 /* Botão Seguir */
 .follow{position:absolute;top:14px;right:14px;z-index:400;height:40px;padding:0 14px 0 12px;border-radius:20px;background:var(--card);border:1px solid var(--line);display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;box-shadow:0 4px 14px rgba(0,0,0,.4)}
 .follow svg{stroke:currentColor}
@@ -748,6 +794,39 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
         <span class="navic st"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21.5s-6.5-5.4-6.5-11a6.5 6.5 0 0 1 13 0c0 5.6-6.5 11-6.5 11z"/><circle cx="12" cy="9" r="1.7"/><path d="M9.4 14.3c.6-1.4 1.5-2 2.6-2s2 .6 2.6 2"/></svg></span>
         <span class="navtx"><b>Ver a rua</b><small>Street View</small></span>
       </button>
+    </div>
+  </section>
+
+  <!-- Histórico de rotas (10/10/2026) -->
+  <section class="hpanel" id="hpanel">
+    <div class="htop"><h3>Histórico</h3><select id="hVeic" aria-label="Veículo"></select></div>
+    <div class="hdias">
+      <button type="button" class="hdia on" data-d="0">Hoje</button>
+      <button type="button" class="hdia" data-d="1">Ontem</button>
+      <button type="button" class="hdia" data-d="2">Anteontem</button>
+    </div>
+    <div class="hper">
+      <label>Dia<input type="date" id="hData"></label>
+      <label>Das<input type="time" id="hDe" value="00:00"></label>
+      <label>Até<input type="time" id="hAte" value="23:59"></label>
+    </div>
+    <button type="button" class="hbuscar" id="hBuscar">Ver trajeto</button>
+    <div class="hperres"><span id="hPerTxt"></span><button type="button" id="hAlterar">Alterar</button></div>
+    <div class="hmsg" id="hMsg">Guardamos os últimos 90 dias.</div>
+    <div class="hres" id="hRes">
+      <div class="hcards">
+        <div class="hcard"><b id="hDist">—</b><small>percorridos</small></div>
+        <div class="hcard"><b id="hMov">—</b><small>em movimento</small></div>
+        <div class="hcard"><b id="hMax">—</b><small>vel. máxima</small></div>
+        <div class="hcard"><b id="hNPar">—</b><small>paradas</small></div>
+      </div>
+      <div class="hplay">
+        <button type="button" class="hbtn" id="hPlay" aria-label="Reproduzir"></button>
+        <input type="range" id="hBarra" min="0" max="1000" value="0" aria-label="Posição no trajeto">
+        <button type="button" class="hvel" id="hVel" title="Velocidade da reprodução">1x</button>
+      </div>
+      <div class="hinfo"><span id="hHora">—</span><span id="hVelPt">—</span></div>
+      <details id="hParadas"><summary>Paradas</summary><div id="hParLista"></div></details>
     </div>
   </section>
 
@@ -1589,6 +1668,7 @@ function atualizar(){
   const v=cartao(), sp=!!(v && !v.pos); /* sp = aparelho ainda sem sinal */
   sheet.style.display = v ? 'block' : 'none';
   $('vazio').style.display = (v || !veiculos.length) ? 'none' : 'block';
+  if(typeof hist!=='undefined' && hist && hist.on){ sheet.style.display='none'; $('vazio').style.display='none' }
   if(v){
     const [txt,cls]=status(v);
     $('vName').textContent=v.nome; $('vPick').classList.toggle('multi',veiculos.length>1);
@@ -2215,6 +2295,7 @@ function irPara(tab){
   $('alview').classList.toggle('show',tab==='Alertas');
   if(desenho && tab!=='Mapa') cancelarDesenho();
   const bar=$('avisoPag'); if(bar && bar.textContent){ bar.classList.toggle('show',tab!=='Faturas'); try{ setTimeout(()=>map.invalidateSize(),50) }catch(e){} }
+  if(tab==='Histórico') histEntrar(); else histSair();
   if(tab==='Admin') abrirAdmin();
   if(tab==='Faturas') abrirFaturas(false);
   if(tab==='Cercas'){ desenharCercasLista(); carregarCercas() }
@@ -2223,9 +2304,164 @@ function irPara(tab){
 document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
   const t=b.dataset.tab;
   if(bloqueioNivel==='bloqueado' && !ehAdmin && t!=='Faturas'){ toast('Acesso ao aplicativo suspenso. Regularize suas faturas para voltar a usar.'); irPara('Faturas'); return }
-  if(t==='Mapa'||t==='Veículos'||(t==='Admin'&&ehAdmin)||(t==='Faturas'&&!ehAdmin)||t==='Cercas'||t==='Alertas') irPara(t);
+  if(t==='Mapa'||t==='Veículos'||t==='Histórico'||(t==='Admin'&&ehAdmin)||(t==='Faturas'&&!ehAdmin)||t==='Cercas'||t==='Alertas') irPara(t);
   else toast(t+': em construção');
 });
+
+/* ===== HISTÓRICO DE ROTAS (10/10/2026) =====
+   Lê do Traccar o trajeto (/api/reports/route) e as paradas (/api/reports/stops) do veículo no período escolhido.
+   Desenha no mapa, mostra o resumo e reproduz o caminho (replay). Os veículos ao vivo ficam escondidos enquanto o histórico está aberto. */
+const HIST_DIAS=90;
+const ICO_PLAY='<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>', ICO_PAUSA='<svg viewBox="0 0 24 24"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>';
+var hist={on:false,camada:null,marc:null,pts:[],tv:[],total:0,t:0,toca:false,vel:4,raf:0,ult:0,seguirAntes:false};
+const VELS=[1,4,16];      /* 1x = 1 minuto do trajeto em 1 segundo */
+const hojeSP=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'America/Sao_Paulo'}).format(new Date());
+const diaMenos=n=>new Intl.DateTimeFormat('en-CA',{timeZone:'America/Sao_Paulo'}).format(new Date(Date.now()-n*86400000));
+const hhmm=ms=>new Date(ms).toLocaleTimeString('pt-BR',{timeZone:'America/Sao_Paulo',hour:'2-digit',minute:'2-digit'});
+function durCurta(ms){ const m=Math.round(ms/60000); if(m<60) return m+' min'; const h=Math.floor(m/60), r=m%60; return h+' h'+(r?' '+r+' min':'') }
+function distHist(a,b){ const R=6371000,toR=Math.PI/180,dLa=(b[0]-a[0])*toR,dLo=(b[1]-a[1])*toR; const x=Math.sin(dLa/2)**2+Math.cos(a[0]*toR)*Math.cos(b[0]*toR)*Math.sin(dLo/2)**2; return 2*R*Math.asin(Math.sqrt(x)) }
+function histVeiculos(){
+  const sel=$('hVeic'), atual=+sel.value||selId;
+  const lista=veiculos.slice().sort((a,b)=>String(a.nome).localeCompare(String(b.nome),'pt-BR',{sensitivity:'base'}));
+  sel.innerHTML=lista.map(v=>'<option value="'+v.id+'">'+esc(v.nome)+(v.placa?' · '+esc(v.placa):'')+'</option>').join('');
+  if(lista.some(v=>v.id===atual)) sel.value=String(atual);
+}
+function histMarcarDia(){
+  const d=$('hData').value;
+  document.querySelectorAll('.hdia').forEach(b=>b.classList.toggle('on',diaMenos(+b.dataset.d)===d));
+}
+function histEntrar(){
+  if(hist.on) { histVeiculos(); return }
+  hist.on=true; hist.seguirAntes=seguir; if(seguir) setSeguir(false);
+  $('map').classList.add('hist-on'); sheet.style.display='none'; $('vazio').style.display='none';
+  document.body.classList.add('hist-on');
+  const d=$('hData'); d.max=hojeSP(); d.min=diaMenos(HIST_DIAS); if(!d.value) d.value=hojeSP();
+  histVeiculos(); histMarcarDia();
+  $('hpanel').classList.add('show');
+  setTimeout(()=>{ try{ map.invalidateSize() }catch(e){} },50);
+}
+function histLimpar(){
+  histParar();
+  if(hist.camada){ map.removeLayer(hist.camada); hist.camada=null }
+  hist.marc=null; hist.pts=[]; hist.tv=[]; hist.total=0; hist.t=0;
+  $('hRes').classList.remove('show'); $('hpanel').classList.remove('achou');
+}
+function histSair(){
+  if(!hist.on) return;
+  histLimpar(); hist.on=false;
+  $('map').classList.remove('hist-on'); $('hpanel').classList.remove('show');
+  document.body.classList.remove('hist-on'); $('hpanel').classList.remove('achou');
+  if(hist.seguirAntes && ativo()) setSeguir(true);
+  atualizar();
+}
+$('hAlterar').onclick=()=>{ histLimpar(); $('hMsg').textContent='Guardamos os últimos 90 dias.' };
+$('hVeic').addEventListener('change',()=>{ if(hist.pts.length||$('hpanel').classList.contains('achou')) $('hBuscar').click() });
+document.querySelectorAll('.hdia').forEach(b=>b.onclick=()=>{ $('hData').value=diaMenos(+b.dataset.d); $('hDe').value='00:00'; $('hAte').value='23:59'; histMarcarDia() });
+$('hData').addEventListener('input',histMarcarDia);
+/* fundo do mapa livre do painel (para enquadrar o trajeto) */
+function histPadding(){
+  const p=$('hpanel'), h=p.offsetHeight||0;
+  return telaLarga()?{paddingTopLeft:[p.offsetWidth+40,50],paddingBottomRight:[40,50]}:{paddingTopLeft:[30,80],paddingBottomRight:[30,h+30]};
+}
+$('hBuscar').onclick=async()=>{
+  const id=+$('hVeic').value, dia=$('hData').value, de=$('hDe').value||'00:00', ate=$('hAte').value||'23:59';
+  if(!id){ toast('Escolha um veículo.'); return }
+  if(!dia){ toast('Escolha o dia.'); return }
+  if(dia<diaMenos(HIST_DIAS)){ toast('Guardamos só os últimos '+HIST_DIAS+' dias.'); return }
+  const ini=Date.parse(dia+'T'+de+':00-03:00'), fim=Date.parse(dia+'T'+ate+':59-03:00');
+  if(!(fim>ini)){ toast('O horário final precisa ser depois do inicial.'); return }
+  const from=new Date(ini).toISOString(), to=new Date(Math.min(fim,Date.now())).toISOString();
+  const b=$('hBuscar'); b.disabled=true; b.textContent='Buscando...'; $('hMsg').textContent=''; histLimpar();
+  try{
+    const q='deviceId='+id+'&from='+encodeURIComponent(from)+'&to='+encodeURIComponent(to);
+    const [rr,rs]=await Promise.all([api('/api/reports/route?'+q),api('/api/reports/stops?'+q)]);
+    if(!rr.ok) throw new Error('O servidor respondeu erro '+rr.status+' ao buscar o trajeto.');
+    const pos=await rr.json(), stops=rs.ok?await rs.json():[];
+    histMostrar(pos,stops,id);
+  }catch(e){ if(!e.sessao) $('hMsg').textContent=e.message||'Não consegui buscar o trajeto.' }
+  b.disabled=false; b.textContent='Ver trajeto';
+};
+function histMostrar(pos,stops,id){
+  /* só posições com GPS válido, em ordem, sem repetir o mesmo ponto parado */
+  const pts=[];
+  (pos||[]).filter(p=>p.valid!==false && p.latitude && p.longitude).sort((a,b)=>Date.parse(a.fixTime)-Date.parse(b.fixTime)).forEach(p=>{
+    const ll=[p.latitude,p.longitude], t=Date.parse(p.fixTime), u=pts[pts.length-1];
+    if(u && t<=u.t) return;
+    if(u && u.ll[0]===ll[0] && u.ll[1]===ll[1] && (p.speed||0)<1){ u.fim=t; return }
+    pts.push({ll,t,fim:t,vel:Math.round((p.speed||0)*1.852),rumo:p.course||0});
+  });
+  if(pts.length<2){ $('hMsg').textContent=pts.length?'O veículo ficou parado nesse período.':'Sem trajeto nesse período (o rastreador pode ter ficado desligado ou sem GPS).'; if(pts.length) map.setView(pts[0].ll,16); return }
+  /* resumo */
+  let dist=0, mov=0, max=0;
+  for(let i=1;i<pts.length;i++){
+    const d=distHist(pts[i-1].ll,pts[i].ll), dt=pts[i].t-pts[i-1].fim;
+    if(d<5000 || dt>0 && d/(dt/1000)<70) dist+=d;   /* ignora "pulo" de GPS impossível */
+    if(pts[i].vel>3 && dt<600000) mov+=dt;
+    if(pts[i].vel>max) max=pts[i].vel;
+  }
+  const paradas=(stops||[]).filter(s=>s.latitude&&s.longitude).map(s=>({ll:[s.latitude,s.longitude],ini:Date.parse(s.startTime),fim:Date.parse(s.endTime),dur:s.duration||(Date.parse(s.endTime)-Date.parse(s.startTime))}));
+  $('hDist').textContent=dist>=1000?(dist/1000).toFixed(dist>=100000?0:1).replace('.',',')+' km':Math.round(dist)+' m';
+  $('hMov').textContent=mov?durCurta(mov):'—';
+  $('hMax').textContent=max+' km/h';
+  $('hNPar').textContent=String(paradas.length);
+  /* desenho */
+  const g=L.layerGroup();
+  const linha=pts.map(p=>p.ll);
+  L.polyline(linha,{color:'#ffffff',weight:8,opacity:.85,interactive:false}).addTo(g);
+  L.polyline(linha,{color:'#2563eb',weight:4.5,opacity:.95,interactive:false}).addTo(g);
+  const pin=(ll,cls,txt,tit)=>L.marker(ll,{icon:L.divIcon({className:'hmk',html:'<div class="hpin '+cls+'">'+txt+'</div>',iconSize:[24,24],iconAnchor:[12,12]}),title:tit,zIndexOffset:500}).addTo(g);
+  paradas.forEach((s,i)=>pin(s.ll,'par',i+1,'Parada '+(i+1)+': '+hhmm(s.ini)+' a '+hhmm(s.fim)+' ('+durCurta(s.dur)+')'));
+  pin(pts[0].ll,'ini','A','Início '+hhmm(pts[0].t));
+  pin(pts[pts.length-1].ll,'fim','B','Fim '+hhmm(pts[pts.length-1].t));
+  const mk=L.marker(pts[0].ll,{icon:L.divIcon({className:'hmk',html:'<div class="car c-mov">'+carSvg+'</div>',iconSize:[44,44],iconAnchor:[22,22]}),interactive:false,zIndexOffset:1000}).addTo(g);
+  g.addTo(map); hist.camada=g; hist.marc=mk; hist.pts=pts;
+  /* linha do tempo do replay: parado conta no máximo 20 s, para não ficar esperando à toa */
+  const tv=[0]; for(let i=1;i<pts.length;i++) tv.push(tv[i-1]+Math.min(pts[i].t-pts[i-1].fim,20000)+Math.min(pts[i-1].fim-pts[i-1].t,20000));
+  hist.tv=tv; hist.total=tv[tv.length-1]||1; hist.t=0;
+  $('hParLista').innerHTML=paradas.length?paradas.map((s,i)=>'<div class="hstop" data-i="'+i+'"><span class="n">'+(i+1)+'</span><span>'+hhmm(s.ini)+' às '+hhmm(s.fim)+' <small>· '+durCurta(s.dur)+'</small></span></div>').join(''):'<div class="hstop"><small>Nenhuma parada longa nesse período.</small></div>';
+  $('hParLista').onclick=e=>{ const r=e.target.closest('[data-i]'); if(r){ const s=paradas[+r.dataset.i]; map.setView(s.ll,17) } };
+  $('hParadas').querySelector('summary').textContent='Paradas ('+paradas.length+')';
+  $('hRes').classList.add('show'); $('hMsg').textContent='';
+  $('hPerTxt').textContent=$('hData').value.split('-').reverse().join('/')+' · '+$('hDe').value+' às '+$('hAte').value; $('hpanel').classList.add('achou');
+  $('hPlay').innerHTML=ICO_PLAY; $('hVel').textContent=hist.vel+'x';
+  histPosicionar();
+  setTimeout(()=>{ try{ map.fitBounds(L.latLngBounds(linha),Object.assign({maxZoom:17},histPadding())) }catch(e){} },60);
+}
+/* coloca o carrinho no ponto do tempo hist.t (interpola entre dois pontos) */
+function histPosicionar(){
+  const tv=hist.tv, pts=hist.pts; if(!pts.length) return;
+  let i=0, a=0, b=tv.length-1;
+  while(a<=b){ const m=(a+b)>>1; if(tv[m]<=hist.t){ i=m; a=m+1 } else b=m-1 }
+  const p=pts[i], q=pts[Math.min(i+1,pts.length-1)];
+  const seg=(tv[i+1]||tv[i])-tv[i], f=seg>0?Math.min(1,(hist.t-tv[i])/seg):0;
+  const ll=[p.ll[0]+(q.ll[0]-p.ll[0])*f, p.ll[1]+(q.ll[1]-p.ll[1])*f];
+  hist.marc.setLatLng(ll);
+  const el=hist.marc.getElement(); const c=el&&el.querySelector('.car');
+  if(c){ const rumo=(p.ll[0]!==q.ll[0]||p.ll[1]!==q.ll[1])?Math.atan2((q.ll[1]-p.ll[1])*Math.cos(p.ll[0]*Math.PI/180),q.ll[0]-p.ll[0])*180/Math.PI:p.rumo; c.style.transform='rotate('+rumo+'deg)'; c.classList.toggle('c-mov',p.vel>2); c.classList.toggle('c-par',p.vel<=2) }
+  const real=p.t+(q.t-p.t)*f;
+  $('hHora').innerHTML='<b>'+hhmm(real)+'</b>';
+  $('hVelPt').innerHTML='<b>'+(f<.5?p.vel:q.vel)+' km/h</b>';
+  $('hBarra').value=String(Math.round(hist.t/hist.total*1000));
+  if(hist.toca && !map.getBounds().pad(-0.15).contains(ll)) map.panTo(ll,{animate:true});
+}
+function histParar(){ hist.toca=false; cancelAnimationFrame(hist.raf); $('hPlay').innerHTML=ICO_PLAY; $('hPlay').setAttribute('aria-label','Reproduzir') }
+function histQuadro(agora){
+  if(!hist.toca) return;
+  const dt=Math.min(agora-(hist.ult||agora),100); hist.ult=agora;
+  hist.t=Math.min(hist.total,hist.t+dt*60*hist.vel);   /* 1x: 1 min do trajeto por segundo */
+  histPosicionar();
+  if(hist.t>=hist.total){ histParar(); return }
+  hist.raf=requestAnimationFrame(histQuadro);
+}
+$('hPlay').onclick=()=>{
+  if(!hist.pts.length) return;
+  if(hist.toca){ histParar(); return }
+  if(hist.t>=hist.total) hist.t=0;
+  hist.toca=true; hist.ult=0; $('hPlay').innerHTML=ICO_PAUSA; $('hPlay').setAttribute('aria-label','Pausar');
+  hist.raf=requestAnimationFrame(histQuadro);
+};
+$('hVel').onclick=()=>{ hist.vel=VELS[(VELS.indexOf(hist.vel)+1)%VELS.length]; $('hVel').textContent=hist.vel+'x' };
+$('hBarra').addEventListener('input',()=>{ if(!hist.pts.length) return; hist.t=(+$('hBarra').value/1000)*hist.total; histPosicionar() });
 
 /* ===== SERVIDOR DE FATURAS (Firebase) ===== */
 /* Endereço da função publicada no Firebase. Se o endereço que aparecer na publicação for diferente, troque aqui. */
