@@ -263,7 +263,10 @@ body.hist-on #follow,body.hist-on #btnEu{display:none!important}
 .hpop .leaflet-popup-tip{background:var(--card)}
 .hpop .leaflet-popup-content{margin:12px 14px;min-width:190px}
 .hpop .hpopt{font-size:14px;font-weight:700}
-.hpop .hpopd{font-size:12.5px;color:var(--mut);margin:2px 0 10px}
+.hpop .hpopd{font-size:12.5px;color:var(--mut);margin:2px 0 4px}
+.hpop .hpope{font-size:12px;color:var(--mut);margin:0 0 10px;line-height:1.35;max-width:230px}
+.hpanel .hend{display:block;font-style:normal;font-size:11.5px;color:var(--mut);line-height:1.3;margin-top:1px}
+.hpanel .hend:empty{display:none}
 .hpop .hpopb{display:block;text-align:center;padding:9px 10px;border-radius:10px;background:#2563eb;color:#fff!important;font-size:13px;font-weight:700;text-decoration:none;margin-top:6px}
 .hpop .hpopb.ap{background:var(--card2);color:var(--txt)!important;border:1px solid var(--line)}
 .hpop a.leaflet-popup-close-button{color:var(--mut)}
@@ -317,8 +320,10 @@ body.hist-on #follow,body.hist-on #btnEu{display:none!important}
 .st-block{background:rgba(227,38,47,.16);color:var(--red2)}
 .banner{display:none;margin-top:12px;padding:9px 12px;border-radius:10px;background:rgba(227,38,47,.12);border:1px solid rgba(227,38,47,.35);color:var(--red2);font-size:13px;font-weight:600}
 .banner.show{display:block}
-.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:14px 0 12px}
-@media(max-width:359px){.grid{grid-template-columns:repeat(2,1fr)}}
+.grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px;margin:14px 0 12px}
+@media(max-width:359px){.grid{grid-template-columns:repeat(3,1fr)}}
+.grid .stat{padding:10px 2px}
+@media(max-width:480px){.grid .stat span{font-size:10px}.grid .stat b{font-size:13px}}
 .stat{background:var(--card2);border-radius:12px;padding:10px 4px;text-align:center}
 .stat b{display:block;font-size:14px;margin-top:4px;white-space:nowrap}
 .stat small{display:block;font-size:10px;color:var(--mut);margin-top:1px}
@@ -783,6 +788,7 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
       <div class="stat"><span>Ignição</span><b id="sIgn"></b></div>
       <div class="stat"><span>Bateria</span><b id="sBat"></b></div>
       <div class="stat"><span>Voltagem</span><b id="sVolt"></b><small id="sVoltAge"></small></div>
+      <div class="stat"><span>Odômetro</span><b id="sOdo"></b></div>
     </div>
     <div class="addr" id="addrRow"><strong id="vAddr"></strong><span id="vAgo"></span></div>
     <div class="addr" id="distRow" style="display:none"><strong id="vDist"></strong></div>
@@ -1174,6 +1180,11 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
   <div class="box2">
     <h3>Nome do veículo</h3>
     <input class="fld" id="rnNome" maxlength="40" autocomplete="off">
+    <div id="rnOdoBox" style="display:none;margin-top:6px">
+      <h3 style="font-size:15px;margin-bottom:6px">Odômetro (km)</h3>
+      <div style="display:flex;gap:8px;align-items:center"><input class="fld" id="rnOdo" type="number" min="0" step="0.1" inputmode="decimal" style="margin:0;flex:1"><button type="button" class="btn btn-out" id="rnOdoZerar" style="flex:none;width:auto;padding:0 16px">Zerar</button></div>
+      <p style="font-size:12px;margin:6px 0 0">Digite o valor do painel do veículo ou toque em Zerar. O novo valor aparece no próximo sinal do rastreador.</p>
+    </div>
     <div class="ferr" id="rnErro"></div>
     <div class="actions2">
       <button class="btn btn-out" data-close>Cancelar</button>
@@ -1480,6 +1491,33 @@ async function buscarEndereco(v){
   }catch(e){}
   geoEmCurso=false;
 }
+/* endereço das paradas do histórico (10/10/2026): mesmo serviço, uma consulta por vez (1,2 s entre elas), guardado no aparelho */
+const geoCache={};
+function txtEndereco(j){
+  const a=(j&&j.address)||{};
+  const rua=a.road||a.pedestrian||a.residential||a.footway||'', num=a.house_number?', '+a.house_number:'';
+  const bairro=a.suburb||a.neighbourhood||a.quarter||'', cidade=a.city||a.town||a.municipality||a.village||'';
+  let txt=(rua?rua+num:''); if(bairro) txt+=(txt?' - ':'')+bairro; if(cidade) txt+=(txt?', ':'')+cidade;
+  return txt || (j&&j.display_name?String(j.display_name).split(',').slice(0,3).join(','):'');
+}
+const chaveGeo=ll=>ll[0].toFixed(4)+','+ll[1].toFixed(4);
+function enderecoGuardado(ll){ const k=chaveGeo(ll); if(geoCache[k]!==undefined) return geoCache[k]; try{ const x=localStorage.getItem('rg_geo_'+k); if(x!==null){ geoCache[k]=x; return x } }catch(e){} return null }
+let geoFilaGer=0;
+async function enderecosParadas(lista,aoAchar){
+  const ger=++geoFilaGer;
+  for(let i=0;i<lista.length;i++){
+    if(ger!==geoFilaGer) return;
+    const s=lista[i]; if(enderecoGuardado(s.ll)!==null){ aoAchar(i,enderecoGuardado(s.ll)); continue }
+    const espera=1200-(Date.now()-geoUltima); if(espera>0) await new Promise(r=>setTimeout(r,espera));
+    if(ger!==geoFilaGer) return;
+    geoUltima=Date.now();
+    try{
+      const r=await fetch('https://nominatim.openstreetmap.org/reverse?format=jsonv2&addressdetails=1&zoom=18&accept-language=pt-BR&lat='+s.ll[0]+'&lon='+s.ll[1]);
+      if(r.ok){ const t=txtEndereco(await r.json()); const k=chaveGeo(s.ll); geoCache[k]=t; try{ localStorage.setItem('rg_geo_'+k,t) }catch(e){} aoAchar(i,t) }
+    }catch(e){}
+  }
+}
+function fmtOdo(m){ if(m==null||isNaN(m)) return '—'; const km=m/1000; return (km<100?km.toFixed(1).replace('.',','):Math.round(km).toLocaleString('pt-BR'))+' km' }
 /* cor da setinha no mapa */
 function corSeta(v){
   if(!v.gpsT || Date.now()-v.gpsT>600000) return 'c-sem'; // sem GPS (ou GPS velho): cinza
@@ -1590,6 +1628,8 @@ function mesclar(ds,ps){
     if(p){
       const a = p.attributes||{};
       v.vel = Math.round((p.speed||0)*1.852);
+      /* odômetro total (Traccar: totalDistance, em metros). Depois de ajustar, espera a próxima posição para aceitar o valor do servidor */
+      if(a.totalDistance!=null && !(v.odoPos!=null && p.id===v.odoPos)){ v.odo=Number(a.totalDistance)||0; v.odoPos=null }
       guardarUltimos(v,p,a);
       v.fix = new Date(p.fixTime).getTime();
       /* hora do último GPS válido (posição sem GPS não conta) */
@@ -1715,6 +1755,7 @@ function atualizar(){
     $('sIgn').textContent=v.ign===null?'—':(v.ign?'Ligada':'Desligada');
     $('sBat').textContent=v.bat===null?'—':v.bat+'%';
     $('sVolt').textContent=v.volt===null?'—':v.volt.toFixed(1).replace('.',',')+' V';
+    $('sOdo').textContent=fmtOdo(v.odo);
     $('sVoltAge').textContent=(v.volt!==null && v.voltEm && Date.now()-v.voltEm>VALIDADE_ST)?tempo(Date.now()-v.voltEm):'';
     /* dois horários: GSM = último contato do rastreador com o servidor; GPS = última posição de satélite */
     const ult = v.ultimo || v.fix, gpsVelhoT = v.gpsT && Date.now()-v.gpsT>600000;
@@ -2207,14 +2248,31 @@ $('btnRenome').addEventListener('pointerdown',e=>e.stopPropagation());
 $('btnRenome').onclick=e=>{
   e.stopPropagation();
   const v=cartao(); if(!v) return;
-  $('rnNome').value=v.nome; $('rnErro').textContent=''; $('rnOk').disabled=false; abrir('mRenome');
+  $('rnNome').value=v.nome; $('rnErro').textContent=''; $('rnOk').disabled=false;
+  $('rnOdoBox').style.display=ehAdmin?'':'none'; $('rnOdo').value=v.odo!=null?(v.odo/1000).toFixed(1):''; $('rnOdo').dataset.ini=$('rnOdo').value;
+  abrir('mRenome');
 };
+$('rnOdoZerar').onclick=()=>{ $('rnOdo').value='0' };
+async function salvarOdometro(v){
+  if(!ehAdmin || $('rnOdo').value===$('rnOdo').dataset.ini) return false;
+  const km=Number(String($('rnOdo').value).replace(',','.'));
+  if(!(km>=0) || km>9999999) throw new Error('Odômetro inválido.');
+  const r=await api('/api/devices/'+v.id+'/accumulators',{method:'PUT',headers:JSONH,body:JSON.stringify({deviceId:v.id,totalDistance:Math.round(km*1000)})});
+  if(!r.ok) throw new Error(await msgErro(r,'Não consegui ajustar o odômetro'));
+  v.odo=Math.round(km*1000); v.odoPos=v.posId; return true;
+}
 $('rnOk').onclick=async()=>{
   const v=cartao(); if(!v) return;
   const nome=$('rnNome').value.trim();
   if(!nome) { $('rnErro').textContent='Digite o nome.'; return }
   $('rnOk').disabled=true;
+  if(nome===v.nome){
+    try{ const mudou=await salvarOdometro(v); fechar(); toast(mudou?'Odômetro ajustado.':'Nada mudou.'); atualizar() }
+    catch(e){ if(!e.sessao){ $('rnErro').textContent=e.message||'Não consegui salvar.'; $('rnOk').disabled=false } }
+    return;
+  }
   try{
+    await salvarOdometro(v);
     const r=await fetch(DESB_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',
       body:JSON.stringify({acao:'renomear',nome:nome,token:lsGet('rg_token'),deviceId:v.id})});
     let j={}; try{ j=await r.json() }catch(e){}
@@ -2371,7 +2429,7 @@ function histEntrar(){
   setTimeout(()=>{ try{ map.invalidateSize() }catch(e){} },50);
 }
 function histLimpar(){
-  histParar();
+  histParar(); geoFilaGer++;
   if(hist.camada){ map.removeLayer(hist.camada); hist.camada=null }
   hist.marc=null; hist.pts=[]; hist.tv=[]; hist.total=0; hist.t=0;
   $('hRes').classList.remove('show'); $('hpanel').classList.remove('achou');
@@ -2445,7 +2503,9 @@ const ehIphone=()=>/iPhone|iPad|iPod/.test(navigator.userAgent)||(/Macintosh/.te
 function popParada(s,i){
   const la=s.ll[0].toFixed(6), lo=s.ll[1].toFixed(6);
   const g='https://www.google.com/maps/search/?api=1&query='+la+','+lo, a='https://maps.apple.com/?q='+encodeURIComponent('Parada '+(i+1))+'&ll='+la+','+lo;
+  const end=enderecoGuardado(s.ll);
   return '<div class="hpopt">Parada '+(i+1)+'</div><div class="hpopd">'+(hist.varios?hhData(s.ini)+' ':'')+hhmm(s.ini)+' às '+hhmm(s.fim)+' · '+durCurta(s.dur)+'</div>'+
+    '<div class="hpope" data-pe="'+i+'">'+(end?esc(end):'Buscando endereço...')+'</div>'+
     '<a class="hpopb" href="'+g+'" target="_blank" rel="noopener">Abrir no Google Maps</a>'+
     (ehIphone()?'<a class="hpopb ap" href="'+a+'" target="_blank" rel="noopener">Abrir no Mapas (Apple)</a>':'');
 }
@@ -2455,9 +2515,13 @@ function histDesenharParadas(){
   hist.mkPar=lst.map((s,i)=>L.marker(s.ll,{icon:L.divIcon({className:'hmk',html:'<div class="hpinarea"><div class="hpin par">'+(i+1)+'</div></div>',iconSize:[44,44],iconAnchor:[22,22]}),zIndexOffset:600,bubblingMouseEvents:false})
     .bindPopup(popParada(s,i),{className:'hpop',closeButton:true,autoPanPaddingBottomRight:[20,($('hpanel').offsetHeight||0)+20]}).addTo(hist.camPar));
   $('hNPar').textContent=String(lst.length);
-  $('hParLista').innerHTML=lst.length?lst.map((s,i)=>'<div class="hstop" data-i="'+i+'"><span class="n">'+(i+1)+'</span><span>'+(hist.varios?hhData(s.ini)+' ':'')+hhmm(s.ini)+' às '+hhmm(s.fim)+' <small>· '+durCurta(s.dur)+'</small></span></div>').join(''):'<div class="hstop"><small>Nenhuma parada desse tamanho no período.</small></div>';
+  $('hParLista').innerHTML=lst.length?lst.map((s,i)=>'<div class="hstop" data-i="'+i+'"><span class="n">'+(i+1)+'</span><span>'+(hist.varios?hhData(s.ini)+' ':'')+hhmm(s.ini)+' às '+hhmm(s.fim)+' <small>· '+durCurta(s.dur)+'</small><em class="hend" data-e="'+i+'">'+esc(enderecoGuardado(s.ll)||'')+'</em></span></div>').join(''):'<div class="hstop"><small>Nenhuma parada desse tamanho no período.</small></div>';
   $('hParLista').onclick=e=>{ const r=e.target.closest('[data-i]'); if(r){ const i=+r.dataset.i, s=lst[i]; map.setView(s.ll,17); setTimeout(()=>{ try{ hist.mkPar[i].openPopup() }catch(er){} },350) } };
   $('hParadas').querySelector('summary').textContent='Paradas ('+lst.length+')';
+  enderecosParadas(lst,(i,t)=>{
+    const e=$('hParLista').querySelector('[data-e="'+i+'"]'); if(e) e.textContent=t;
+    const mk=hist.mkPar&&hist.mkPar[i]; if(mk) mk.setPopupContent(popParada(lst[i],i));
+  });
 }
 function histMostrar(pos,id){
   /* só posições com GPS válido, em ordem, sem repetir o mesmo ponto parado */
