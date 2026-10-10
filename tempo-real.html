@@ -224,7 +224,13 @@ body.hist-on #follow,body.hist-on #btnEu{display:none!important}
 .hpanel .hdias{display:flex;gap:6px;margin-bottom:8px}
 .hpanel .hdia{flex:1;height:36px;border-radius:999px;border:1px solid var(--line);background:var(--card2);color:var(--txt);font:inherit;font-size:13px;font-weight:600;cursor:pointer}
 .hpanel .hdia.on{background:#3b82f6;border-color:#3b82f6;color:#fff}
-.hpanel .hper{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:6px;margin-bottom:8px}
+.hpanel .hper{display:grid;grid-template-columns:1.5fr 1fr;gap:6px;margin-bottom:8px}
+.hpanel .hparf{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:13px;font-weight:600;margin-bottom:8px}
+.hpanel .hparf select{flex:1;max-width:230px;height:36px}
+.hpanel .hparf2{display:none;margin:0 0 8px}
+.hpanel.achou .hparf:not(.hparf2){display:none}
+.hpanel.achou .hparf2{display:flex}
+.hmk .hrot{position:absolute;bottom:44px;left:50%;transform:translateX(-50%);background:rgba(15,17,21,.9);color:#fff;border:1px solid rgba(255,255,255,.18);border-radius:7px;padding:2px 7px;font-size:11.5px;font-weight:700;white-space:nowrap;pointer-events:none}
 .hpanel .hper label{display:flex;flex-direction:column;gap:3px;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--mut)}
 .hpanel .hper input{width:100%}
 .hpanel .hbuscar{width:100%;height:44px;border:0;border-radius:13px;background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;font:inherit;font-size:15px;font-weight:700;cursor:pointer}
@@ -803,13 +809,25 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
     <div class="hdias">
       <button type="button" class="hdia on" data-d="0">Hoje</button>
       <button type="button" class="hdia" data-d="1">Ontem</button>
-      <button type="button" class="hdia" data-d="2">Anteontem</button>
+      <button type="button" class="hdia" data-d="7">7 dias</button>
     </div>
     <div class="hper">
-      <label>Dia<input type="date" id="hData"></label>
-      <label>Das<input type="time" id="hDe" value="00:00"></label>
-      <label>Até<input type="time" id="hAte" value="23:59"></label>
+      <label>De<input type="date" id="hData"></label>
+      <label>Hora<input type="time" id="hDe" value="00:00"></label>
+      <label>Até<input type="date" id="hData2"></label>
+      <label>Hora<input type="time" id="hAte" value="23:59"></label>
     </div>
+    <label class="hparf">Mostrar paradas
+      <select id="hParMin">
+        <option value="1">de 1 minuto ou mais</option>
+        <option value="5">acima de 5 minutos</option>
+        <option value="10">acima de 10 minutos</option>
+        <option value="60">acima de 1 hora</option>
+        <option value="180">acima de 3 horas</option>
+        <option value="300">acima de 5 horas</option>
+        <option value="360">acima de 6 horas</option>
+      </select>
+    </label>
     <button type="button" class="hbuscar" id="hBuscar">Ver trajeto</button>
     <div class="hperres"><span id="hPerTxt"></span><button type="button" id="hAlterar">Alterar</button></div>
     <div class="hmsg" id="hMsg">Guardamos os últimos 90 dias.</div>
@@ -826,6 +844,9 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
         <button type="button" class="hvel" id="hVel" title="Velocidade da reprodução">1x</button>
       </div>
       <div class="hinfo"><span id="hHora">—</span><span id="hVelPt">—</span></div>
+      <label class="hparf hparf2">Paradas
+        <select id="hParMin2" aria-label="Tamanho mínimo da parada"></select>
+      </label>
       <details id="hParadas"><summary>Paradas</summary><div id="hParLista"></div></details>
     </div>
   </section>
@@ -2311,14 +2332,14 @@ document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
 /* ===== HISTÓRICO DE ROTAS (10/10/2026) =====
    Lê do Traccar o trajeto (/api/reports/route) e as paradas (/api/reports/stops) do veículo no período escolhido.
    Desenha no mapa, mostra o resumo e reproduz o caminho (replay). Os veículos ao vivo ficam escondidos enquanto o histórico está aberto. */
-const HIST_DIAS=90;
+const HIST_DIAS=90, HIST_MAX_DIAS=7;
 const ICO_PLAY='<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>', ICO_PAUSA='<svg viewBox="0 0 24 24"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>';
 var hist={on:false,camada:null,marc:null,pts:[],tv:[],total:0,t:0,toca:false,vel:4,raf:0,ult:0,seguirAntes:false};
 const VELS=[1,4,16];      /* 1x = 1 minuto do trajeto em 1 segundo */
 const hojeSP=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'America/Sao_Paulo'}).format(new Date());
 const diaMenos=n=>new Intl.DateTimeFormat('en-CA',{timeZone:'America/Sao_Paulo'}).format(new Date(Date.now()-n*86400000));
 const hhmm=ms=>new Date(ms).toLocaleTimeString('pt-BR',{timeZone:'America/Sao_Paulo',hour:'2-digit',minute:'2-digit'});
-function durCurta(ms){ const m=Math.round(ms/60000); if(m<60) return m+' min'; const h=Math.floor(m/60), r=m%60; return h+' h'+(r?' '+r+' min':'') }
+function durCurta(ms){ const m=Math.round(ms/60000); if(m<60) return m+' min'; const h=Math.floor(m/60), r=m%60; if(h>=24){ const d=Math.floor(h/24), hh=h%24; return d+(d===1?' dia':' dias')+(hh?' '+hh+' h':'') } return h+' h'+(r?' '+r+' min':'') }
 function distHist(a,b){ const R=6371000,toR=Math.PI/180,dLa=(b[0]-a[0])*toR,dLo=(b[1]-a[1])*toR; const x=Math.sin(dLa/2)**2+Math.cos(a[0]*toR)*Math.cos(b[0]*toR)*Math.sin(dLo/2)**2; return 2*R*Math.asin(Math.sqrt(x)) }
 function histVeiculos(){
   const sel=$('hVeic'), atual=+sel.value||selId;
@@ -2327,15 +2348,15 @@ function histVeiculos(){
   if(lista.some(v=>v.id===atual)) sel.value=String(atual);
 }
 function histMarcarDia(){
-  const d=$('hData').value;
-  document.querySelectorAll('.hdia').forEach(b=>b.classList.toggle('on',diaMenos(+b.dataset.d)===d));
+  const d=$('hData').value, d2=$('hData2').value;
+  document.querySelectorAll('.hdia').forEach(b=>{ const n=+b.dataset.d; b.classList.toggle('on', n===7 ? (d===diaMenos(6)&&d2===hojeSP()) : (d===diaMenos(n)&&d2===d)) });
 }
 function histEntrar(){
   if(hist.on) { histVeiculos(); return }
   hist.on=true; hist.seguirAntes=seguir; if(seguir) setSeguir(false);
   $('map').classList.add('hist-on'); sheet.style.display='none'; $('vazio').style.display='none';
   document.body.classList.add('hist-on');
-  const d=$('hData'); d.max=hojeSP(); d.min=diaMenos(HIST_DIAS); if(!d.value) d.value=hojeSP();
+  const d=$('hData'), d2=$('hData2'); d.max=d2.max=hojeSP(); d.min=d2.min=diaMenos(HIST_DIAS); if(!d.value) d.value=hojeSP(); if(!d2.value) d2.value=d.value;
   histVeiculos(); histMarcarDia();
   $('hpanel').classList.add('show');
   setTimeout(()=>{ try{ map.invalidateSize() }catch(e){} },50);
@@ -2356,38 +2377,76 @@ function histSair(){
 }
 $('hAlterar').onclick=()=>{ histLimpar(); $('hMsg').textContent='Guardamos os últimos 90 dias.' };
 $('hVeic').addEventListener('change',()=>{ if(hist.pts.length||$('hpanel').classList.contains('achou')) $('hBuscar').click() });
-document.querySelectorAll('.hdia').forEach(b=>b.onclick=()=>{ $('hData').value=diaMenos(+b.dataset.d); $('hDe').value='00:00'; $('hAte').value='23:59'; histMarcarDia() });
-$('hData').addEventListener('input',histMarcarDia);
+document.querySelectorAll('.hdia').forEach(b=>b.onclick=()=>{
+  const d=+b.dataset.d;
+  if(d===7){ $('hData').value=diaMenos(6); $('hData2').value=hojeSP() } else { $('hData').value=diaMenos(d); $('hData2').value=diaMenos(d) }
+  $('hDe').value='00:00'; $('hAte').value='23:59'; histMarcarDia();
+});
+$('hData').addEventListener('input',()=>{ if(!$('hData2').value || $('hData2').value<$('hData').value) $('hData2').value=$('hData').value; histMarcarDia() });
+$('hData2').addEventListener('input',histMarcarDia);
+/* filtro de paradas: a escolha fica lembrada neste aparelho */
+$('hParMin2').innerHTML=$('hParMin').innerHTML;
+try{ const pm=localStorage.getItem('rg_hist_parmin'); if(pm){ $('hParMin').value=pm; $('hParMin2').value=pm } else { $('hParMin').value='5'; $('hParMin2').value='5' } }catch(e){ $('hParMin').value='5'; $('hParMin2').value='5' }
+function histParMudou(v){ $('hParMin').value=v; $('hParMin2').value=v; try{localStorage.setItem('rg_hist_parmin',v)}catch(e){} if(hist.pts.length) histDesenharParadas() }
+$('hParMin').addEventListener('change',()=>histParMudou($('hParMin').value));
+$('hParMin2').addEventListener('change',()=>histParMudou($('hParMin2').value));
 /* fundo do mapa livre do painel (para enquadrar o trajeto) */
 function histPadding(){
   const p=$('hpanel'), h=p.offsetHeight||0;
   return telaLarga()?{paddingTopLeft:[p.offsetWidth+40,50],paddingBottomRight:[40,50]}:{paddingTopLeft:[30,80],paddingBottomRight:[30,h+30]};
 }
 $('hBuscar').onclick=async()=>{
-  const id=+$('hVeic').value, dia=$('hData').value, de=$('hDe').value||'00:00', ate=$('hAte').value||'23:59';
+  const id=+$('hVeic').value, dia=$('hData').value, dia2=$('hData2').value||dia, de=$('hDe').value||'00:00', ate=$('hAte').value||'23:59';
   if(!id){ toast('Escolha um veículo.'); return }
-  if(!dia){ toast('Escolha o dia.'); return }
+  if(!dia){ toast('Escolha o dia inicial.'); return }
   if(dia<diaMenos(HIST_DIAS)){ toast('Guardamos só os últimos '+HIST_DIAS+' dias.'); return }
-  const ini=Date.parse(dia+'T'+de+':00-03:00'), fim=Date.parse(dia+'T'+ate+':59-03:00');
-  if(!(fim>ini)){ toast('O horário final precisa ser depois do inicial.'); return }
+  const ini=Date.parse(dia+'T'+de+':00-03:00'), fim=Date.parse(dia2+'T'+ate+':59-03:00');
+  if(!(fim>ini)){ toast('O fim precisa ser depois do início.'); return }
+  if(fim-ini>HIST_MAX_DIAS*86400000){ toast('Escolha no máximo '+HIST_MAX_DIAS+' dias de cada vez.',4500); return }
   const from=new Date(ini).toISOString(), to=new Date(Math.min(fim,Date.now())).toISOString();
   const b=$('hBuscar'); b.disabled=true; b.textContent='Buscando...'; $('hMsg').textContent=''; histLimpar();
   try{
     const q='deviceId='+id+'&from='+encodeURIComponent(from)+'&to='+encodeURIComponent(to);
-    const [rr,rs]=await Promise.all([api('/api/reports/route?'+q),api('/api/reports/stops?'+q)]);
+    const rr=await api('/api/reports/route?'+q);
     if(!rr.ok) throw new Error('O servidor respondeu erro '+rr.status+' ao buscar o trajeto.');
-    const pos=await rr.json(), stops=rs.ok?await rs.json():[];
-    histMostrar(pos,stops,id);
+    histMostrar(await rr.json(),id);
   }catch(e){ if(!e.sessao) $('hMsg').textContent=e.message||'Não consegui buscar o trajeto.' }
   b.disabled=false; b.textContent='Ver trajeto';
 };
-function histMostrar(pos,stops,id){
+const hhData=ms=>new Date(ms).toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo',day:'2-digit',month:'2-digit'});
+/* paradas calculadas a partir do próprio trajeto: o veículo ficou num raio de 60 m (contando também o tempo sem GPS, com a chave desligada) */
+function histAcharParadas(pts){
+  const out=[]; let ini=null;
+  for(let i=0;i<pts.length;i++){
+    const p=pts[i], q=pts[i+1];
+    const parado = (p.vel<=5||p.parou) && (p.fim-p.t>=30000 || (q && distHist(p.ll,q.ll)<60 && (q.t-p.fim)>=30000) || (q && distHist(p.ll,q.ll)<15));
+    if(parado && q){ if(ini===null) ini=i; continue }
+    if(ini!==null){
+      const a=pts[ini], fimT=(q && distHist(pts[i].ll,q.ll)<60)?q.t:pts[i].fim;
+      out.push({ll:a.ll,ini:a.t,fim:Math.max(fimT,pts[i].fim)}); ini=null;
+    }
+  }
+  if(ini!==null){ const a=pts[ini], z=pts[pts.length-1]; out.push({ll:a.ll,ini:a.t,fim:z.fim}) }
+  /* junta paradas no mesmo lugar separadas por menos de 2 minutos */
+  const j=[]; out.forEach(s=>{ const u=j[j.length-1]; if(u && s.ini-u.fim<120000 && distHist(u.ll,s.ll)<80) u.fim=Math.max(u.fim,s.fim); else j.push(s) });
+  return j.map(s=>Object.assign(s,{dur:s.fim-s.ini}));
+}
+function histDesenharParadas(){
+  const min=(+$('hParMin2').value||5)*60000, lst=(hist.todasParadas||[]).filter(s=>s.dur>=min);
+  if(hist.camPar) hist.camPar.clearLayers();
+  lst.forEach((s,i)=>L.marker(s.ll,{icon:L.divIcon({className:'hmk',html:'<div class="hpin par">'+(i+1)+'</div>',iconSize:[22,22],iconAnchor:[11,11]}),title:'Parada '+(i+1)+': '+(hist.varios?hhData(s.ini)+' ':'')+hhmm(s.ini)+' a '+hhmm(s.fim)+' ('+durCurta(s.dur)+')',zIndexOffset:500}).addTo(hist.camPar));
+  $('hNPar').textContent=String(lst.length);
+  $('hParLista').innerHTML=lst.length?lst.map((s,i)=>'<div class="hstop" data-i="'+i+'"><span class="n">'+(i+1)+'</span><span>'+(hist.varios?hhData(s.ini)+' ':'')+hhmm(s.ini)+' às '+hhmm(s.fim)+' <small>· '+durCurta(s.dur)+'</small></span></div>').join(''):'<div class="hstop"><small>Nenhuma parada desse tamanho no período.</small></div>';
+  $('hParLista').onclick=e=>{ const r=e.target.closest('[data-i]'); if(r){ const s=lst[+r.dataset.i]; map.setView(s.ll,17) } };
+  $('hParadas').querySelector('summary').textContent='Paradas ('+lst.length+')';
+}
+function histMostrar(pos,id){
   /* só posições com GPS válido, em ordem, sem repetir o mesmo ponto parado */
   const pts=[];
   (pos||[]).filter(p=>p.valid!==false && p.latitude && p.longitude).sort((a,b)=>Date.parse(a.fixTime)-Date.parse(b.fixTime)).forEach(p=>{
     const ll=[p.latitude,p.longitude], t=Date.parse(p.fixTime), u=pts[pts.length-1];
     if(u && t<=u.t) return;
-    if(u && u.ll[0]===ll[0] && u.ll[1]===ll[1] && (p.speed||0)<1){ u.fim=t; return }
+    if(u && u.ll[0]===ll[0] && u.ll[1]===ll[1] && (p.speed||0)<1){ u.fim=t; u.parou=true; return }
     pts.push({ll,t,fim:t,vel:Math.round((p.speed||0)*1.852),rumo:p.course||0});
   });
   if(pts.length<2){ $('hMsg').textContent=pts.length?'O veículo ficou parado nesse período.':'Sem trajeto nesse período (o rastreador pode ter ficado desligado ou sem GPS).'; if(pts.length) map.setView(pts[0].ll,16); return }
@@ -2399,30 +2458,28 @@ function histMostrar(pos,stops,id){
     if(pts[i].vel>3 && dt<600000) mov+=dt;
     if(pts[i].vel>max) max=pts[i].vel;
   }
-  const paradas=(stops||[]).filter(s=>s.latitude&&s.longitude).map(s=>({ll:[s.latitude,s.longitude],ini:Date.parse(s.startTime),fim:Date.parse(s.endTime),dur:s.duration||(Date.parse(s.endTime)-Date.parse(s.startTime))}));
+  hist.todasParadas=histAcharParadas(pts);
   $('hDist').textContent=dist>=1000?(dist/1000).toFixed(dist>=100000?0:1).replace('.',',')+' km':Math.round(dist)+' m';
   $('hMov').textContent=mov?durCurta(mov):'—';
   $('hMax').textContent=max+' km/h';
-  $('hNPar').textContent=String(paradas.length);
+
   /* desenho */
   const g=L.layerGroup();
   const linha=pts.map(p=>p.ll);
   L.polyline(linha,{color:'#ffffff',weight:8,opacity:.85,interactive:false}).addTo(g);
   L.polyline(linha,{color:'#2563eb',weight:4.5,opacity:.95,interactive:false}).addTo(g);
   const pin=(ll,cls,txt,tit)=>L.marker(ll,{icon:L.divIcon({className:'hmk',html:'<div class="hpin '+cls+'">'+txt+'</div>',iconSize:[24,24],iconAnchor:[12,12]}),title:tit,zIndexOffset:500}).addTo(g);
-  paradas.forEach((s,i)=>pin(s.ll,'par',i+1,'Parada '+(i+1)+': '+hhmm(s.ini)+' a '+hhmm(s.fim)+' ('+durCurta(s.dur)+')'));
   pin(pts[0].ll,'ini','A','Início '+hhmm(pts[0].t));
   pin(pts[pts.length-1].ll,'fim','B','Fim '+hhmm(pts[pts.length-1].t));
-  const mk=L.marker(pts[0].ll,{icon:L.divIcon({className:'hmk',html:'<div class="car c-mov">'+carSvg+'</div>',iconSize:[44,44],iconAnchor:[22,22]}),interactive:false,zIndexOffset:1000}).addTo(g);
-  g.addTo(map); hist.camada=g; hist.marc=mk; hist.pts=pts;
+  const mk=L.marker(pts[0].ll,{icon:L.divIcon({className:'hmk',html:'<div class="car c-mov">'+carSvg+'</div><div class="hrot"></div>',iconSize:[44,44],iconAnchor:[22,22]}),interactive:false,zIndexOffset:1000}).addTo(g);
+  g.addTo(map); hist.camada=g; hist.marc=mk; hist.pts=pts; hist.camPar=L.layerGroup().addTo(g); hist.varios=(pts[pts.length-1].t-pts[0].t>86400000)||hhData(pts[0].t)!==hhData(pts[pts.length-1].t);
+  histDesenharParadas();
   /* linha do tempo do replay: parado conta no máximo 20 s, para não ficar esperando à toa */
   const tv=[0]; for(let i=1;i<pts.length;i++) tv.push(tv[i-1]+Math.min(pts[i].t-pts[i-1].fim,20000)+Math.min(pts[i-1].fim-pts[i-1].t,20000));
   hist.tv=tv; hist.total=tv[tv.length-1]||1; hist.t=0;
-  $('hParLista').innerHTML=paradas.length?paradas.map((s,i)=>'<div class="hstop" data-i="'+i+'"><span class="n">'+(i+1)+'</span><span>'+hhmm(s.ini)+' às '+hhmm(s.fim)+' <small>· '+durCurta(s.dur)+'</small></span></div>').join(''):'<div class="hstop"><small>Nenhuma parada longa nesse período.</small></div>';
-  $('hParLista').onclick=e=>{ const r=e.target.closest('[data-i]'); if(r){ const s=paradas[+r.dataset.i]; map.setView(s.ll,17) } };
-  $('hParadas').querySelector('summary').textContent='Paradas ('+paradas.length+')';
   $('hRes').classList.add('show'); $('hMsg').textContent='';
-  $('hPerTxt').textContent=$('hData').value.split('-').reverse().join('/')+' · '+$('hDe').value+' às '+$('hAte').value; $('hpanel').classList.add('achou');
+  const dd=x=>x.split('-').reverse().join('/'), d1=$('hData').value, d2=$('hData2').value||d1;
+  $('hPerTxt').textContent=d1===d2?dd(d1)+' · '+$('hDe').value+' às '+$('hAte').value:dd(d1)+' '+$('hDe').value+' até '+dd(d2)+' '+$('hAte').value; $('hpanel').classList.add('achou');
   $('hPlay').innerHTML=ICO_PLAY; $('hVel').textContent=hist.vel+'x';
   histPosicionar();
   setTimeout(()=>{ try{ map.fitBounds(L.latLngBounds(linha),Object.assign({maxZoom:17},histPadding())) }catch(e){} },60);
@@ -2439,7 +2496,8 @@ function histPosicionar(){
   const el=hist.marc.getElement(); const c=el&&el.querySelector('.car');
   if(c){ const rumo=(p.ll[0]!==q.ll[0]||p.ll[1]!==q.ll[1])?Math.atan2((q.ll[1]-p.ll[1])*Math.cos(p.ll[0]*Math.PI/180),q.ll[0]-p.ll[0])*180/Math.PI:p.rumo; c.style.transform='rotate('+rumo+'deg)'; c.classList.toggle('c-mov',p.vel>2); c.classList.toggle('c-par',p.vel<=2) }
   const real=p.t+(q.t-p.t)*f;
-  $('hHora').innerHTML='<b>'+hhmm(real)+'</b>';
+  $('hHora').innerHTML='<b>'+(hist.varios?hhData(real)+' ':'')+hhmm(real)+'</b>';
+  const rot=el&&el.querySelector('.hrot'); if(rot) rot.textContent=hhData(real)+' '+hhmm(real);
   $('hVelPt').innerHTML='<b>'+(f<.5?p.vel:q.vel)+' km/h</b>';
   $('hBarra').value=String(Math.round(hist.t/hist.total*1000));
   if(hist.toca && !map.getBounds().pad(-0.15).contains(ll)) map.panTo(ll,{animate:true});
