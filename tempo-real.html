@@ -569,6 +569,25 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
 .vlist{min-height:0;-webkit-overflow-scrolling:touch}
 #aview .ficha2{margin-top:8px;grid-template-columns:repeat(2,minmax(0,1fr))!important}
 #aview .fi.todo{grid-column:1/-1}
+/* cartão do cliente: data de cadastro e uso do bloqueio na gaveta (10/10/2026) */
+#aview .cdesde{color:var(--mut);opacity:.8}
+#aview .cbloqagora{display:inline-block;margin-left:6px;padding:1px 8px;border-radius:999px;font-size:11px;font-weight:700;vertical-align:2px;background:rgba(227,38,47,.10);color:var(--red2)}
+#aview .uso{padding:12px;border-radius:14px;background:var(--card2)}
+#aview details.cli[open] .uso{background:var(--card)}
+#aview .ustats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+#aview .ust{padding:10px 8px;border-radius:12px;background:var(--card2);text-align:center;display:flex;flex-direction:column;gap:3px;min-width:0}
+#aview .ust b{font-size:16px;font-weight:700;color:var(--txt);overflow-wrap:anywhere}
+#aview .ust b.mal{color:var(--red2)} #aview .ust b.ok{color:var(--green)} #aview .ust b.am{color:var(--amber)}
+#aview .ust span{font-size:11px;color:var(--mut);line-height:1.3}
+#aview .ulin{display:flex;align-items:flex-start;gap:10px;margin-top:10px}
+#aview .uic{flex:none;width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center}
+#aview .uic svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+#aview .uic.b{background:rgba(227,38,47,.10);color:var(--red2)} #aview .uic.d{background:rgba(26,158,87,.12);color:var(--green)}
+#aview .ut{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--mut)}
+#aview .uv{font-size:13.5px;font-weight:600;color:var(--txt);overflow-wrap:anywhere}
+#aview .uv small{font-weight:500;color:var(--mut);font-size:12.5px}
+#aview .unada{font-size:13px;color:var(--mut)}
+#aview .unota{font-size:11.5px;color:var(--mut);margin-top:10px;line-height:1.4}
 /* trocar de veículo pelo nome no cartão (10/10/2026) */
 .vpick{display:inline-flex;align-items:center;gap:6px;min-width:0;max-width:100%;padding:3px 8px 3px 0;margin:-3px 0;border:0;border-radius:10px;background:none;color:inherit;font:inherit;text-align:left;cursor:default}
 .vpick #vName{overflow-wrap:anywhere}
@@ -924,6 +943,8 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
     <input class="fld" id="cCpf" inputmode="numeric" autocomplete="off">
     <label class="flbl" for="cWpp">WhatsApp do cliente (opcional) — com DDD, ex: (21) 99999-8888</label>
     <input class="fld" id="cWpp" type="tel" inputmode="tel" autocomplete="off" placeholder="(21) 99999-8888">
+    <label class="flbl" for="cDesde">Cliente desde (data do cadastro)</label>
+    <input class="fld" id="cDesde" type="date">
     <div id="cAparWrap"><label class="flbl" id="cAparLbl">Aparelhos deste cliente (opcional)</label>
     <div class="apsel" id="cAparelhos"></div></div>
     <label class="fchk"><input type="checkbox" id="cLeitura" checked> Cliente não pode editar nem apagar o aparelho</label>
@@ -2600,12 +2621,50 @@ async function carregarVinculos(){
   await Promise.all([worker(),worker(),worker(),worker()]);
   if($('aview').classList.contains('show')){ if(abaAdmin==='cli') desenharClientes(); else desenharEquip() }
 }
+/* data de cadastro do cliente: atributo criadoEm (AAAA-MM-DD). Clientes antigos não têm: o administrador pode preencher no lápis. */
+function hojeISO(){ return new Date().toLocaleDateString('en-CA',{timeZone:'America/Sao_Paulo'}) }
+function desdeDe(u){ const d=String((u&&u.attributes&&u.attributes.criadoEm)||''); return /^\d{4}-\d{2}-\d{2}$/.test(d)?d:'' }
+function fmtDesde(u){ const d=desdeDe(u); return d? d.slice(8,10)+'/'+d.slice(5,7)+'/'+d.slice(0,4) : '' }
+/* uso do bloqueio nos últimos 30 dias, pelo que o cliente apertou */
+function usoDados(u){
+  const a=acessosMapa&&acessosMapa[u.id], agora=Date.now(), ini=agora-30*86400000;
+  const evs=((a&&a.eventos)||[]).filter(e=>e&&e.t>=ini).sort((x,y)=>x.t-y.t);
+  const n=evs.filter(e=>e.tipo==='bloq').length;
+  const aberto={}; let total=0;
+  evs.forEach(e=>{ if(e.tipo==='bloq'){ if(aberto[e.dev]==null) aberto[e.dev]=e.t } else if(aberto[e.dev]!=null){ total+=e.t-aberto[e.dev]; delete aberto[e.dev] } });
+  const ab=Object.values(aberto), desde=ab.length?Math.min(...ab):0;
+  total+=ab.reduce((s,t)=>s+(agora-t),0);
+  return {a, n, total, desde, alto: total>3*86400000};
+}
+const ICO_CAD='<svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>';
+const ICO_CADAB='<svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 7.5-2"/></svg>';
+function linhaEvento(a,pre){
+  if(!a || !a[pre+'Ms']) return '<span class="fmut">nenhum registrado</span>';
+  const v=veiculos.find(x=>x.id===a[pre+'Dev']);
+  const nome=(v&&v.nome)||a[pre+'Nome']||'';
+  return esc(fmtHora(a[pre+'Ms']))+' <small>· '+haQuanto(a[pre+'Ms'])+(nome?' · '+esc(nome):'')+(a[pre+'Via']==='sms'?' · por SMS':'')+'</small>';
+}
+function blocoUso(u){
+  if(!acessosMapa) return '<div class="uso"><div class="unada">Carregando...</div></div>';
+  const d=usoDados(u), a=d.a;
+  if(!a || (!a.ultBloqMs && !a.ultDesbMs)) return '<div class="uso"><div class="unada">Este cliente ainda não usou Bloquear nem Desbloquear.</div></div>';
+  return '<div class="uso">'+
+    '<div class="ustats">'+
+      '<div class="ust"><b>'+d.n+'</b><span>'+(d.n===1?'bloqueio':'bloqueios')+' em 30 dias</span></div>'+
+      '<div class="ust"><b class="'+(d.alto?'am':'')+'">'+(d.total?durTxt(d.total):'—')+'</b><span>tempo bloqueado</span></div>'+
+      '<div class="ust"><b class="'+(d.desde?'mal':'ok')+'">'+(d.desde?'Bloqueado':'Livre')+'</b><span>'+(d.desde?'há '+durTxt(Date.now()-d.desde):'agora')+'</span></div>'+
+    '</div>'+
+    '<div class="ulin"><span class="uic b">'+ICO_CAD+'</span><div><div class="ut">Último bloqueio</div><div class="uv">'+linhaEvento(a,'ultBloq')+'</div></div></div>'+
+    '<div class="ulin"><span class="uic d">'+ICO_CADAB+'</span><div><div class="ut">Último desbloqueio</div><div class="uv">'+linhaEvento(a,'ultDesb')+'</div></div></div>'+
+    '<div class="unota">Conta o que o cliente apertou no app (ou por SMS). Bloqueio da cerca não entra.</div>'+
+  '</div>';
+}
 function desenharClientes(){
   const todos=usuarios.filter(u=>!u.administrator);
   const q=$('aSearch').value.trim().toLowerCase(), qn=soNum(q);
   const cpfDe=u=>soNum((cpfsMapa[u.id]&&cpfsMapa[u.id].cpf)||(u.attributes&&u.attributes.cpf)||'');
   const cl=todos.filter(u=>!q||[u.name,loginDe(u)].join(' ').toLowerCase().includes(q)||(qn.length>=3&&cpfDe(u).includes(qn)))
-    .sort((a,b)=>String(a.name||'').localeCompare(String(b.name||''),'pt-BR'));
+    .sort((a,b)=>String(a.name||loginDe(a)).trim().localeCompare(String(b.name||loginDe(b)).trim(),'pt-BR',{sensitivity:'base'}));
   $('aCount').textContent=(q?cl.length+' de ':'')+todos.length+' clientes';
   $('aList').innerHTML = cl.map(u=>{
     const ap=aparelhosDe(u), cpf=(cpfsMapa[u.id] && cpfsMapa[u.id].cpf) || (u.attributes && u.attributes.cpf), fin=situacaoFin(u), fm=finMapa&&finMapa[u.id];
@@ -2613,18 +2672,13 @@ function desenharClientes(){
     const temWpp=u.phone&&normWpp(u.phone);
     return '<details class="cli" data-u="'+u.id+'"'+(abertos[u.id]?' open':'')+'><summary>'+
       '<div class="cinfo">'+
-        '<div class="ctopo"><span class="cav">'+esc(iniciais)+'</span><div class="cnome"><div class="t">'+esc(u.name)+'</div><div class="clog">'+esc(loginDe(u).replace(EMAIL_FALSO,''))+'</div></div></div>'+
+        '<div class="ctopo"><span class="cav">'+esc(iniciais)+'</span><div class="cnome"><div class="t">'+esc(u.name)+(acessosMapa&&usoDados(u).desde?'<span class="cbloqagora">bloqueado</span>':'')+'</div><div class="clog">'+esc(loginDe(u).replace(EMAIL_FALSO,''))+' <span class="cdesde">· '+(fmtDesde(u)?'cliente desde '+fmtDesde(u):'sem data de cadastro')+'</span></div></div></div>'+
         '<div class="ficha">'+
           '<div class="fi"><span class="fl">CPF</span><span class="fv">'+(cpf?esc(fmtCpf(cpf)):'<span class="fmut">não cadastrado</span>')+'</span></div>'+
           '<div class="fi"><span class="fl">WhatsApp</span><span class="fv">'+(temWpp?esc(fmtWpp(u.phone)):'<span class="bd-mal">não cadastrado</span>')+'</span></div>'+
           '<div class="fi"><span class="fl">Acesso</span><span class="fv"><span class="pill '+(u.disabled?'bd-mal':'bd-ok')+'">'+(u.disabled?'Desativado':'Ativo')+'</span></span></div>'+
           '<div class="fi"><span class="fl">Financeiro</span><span class="fv"><span class="pill '+(fin.c||'neutro')+'">'+esc(fin.t)+'</span></span></div>'+
           '<div class="fi largo"><span class="fl">Último acesso</span><span class="fv">'+valorAcesso(u)+'</span></div>'+
-        '</div>'+
-        '<div class="ficha ficha2">'+
-          '<div class="fi"><span class="fl">Último bloqueio</span><span class="fv">'+valorBloqueio(u)+'</span></div>'+
-          '<div class="fi"><span class="fl">Último desbloqueio</span><span class="fv">'+valorDesbloqueio(u)+'</span></div>'+
-          '<div class="fi todo"><span class="fl">Bloqueios nos últimos 30 dias</span><span class="fv">'+usoBloqueio(u)+'</span></div>'+
         '</div>'+
         '<div class="vchips"><span class="qtd">'+ap.length+(ap.length===1?' veículo':' veículos')+' <span class="qseta">▾</span></span>'+
           ap.map(v=>'<span class="vchip qnomes">'+esc(v.nome)+(v.placa?' <small>'+esc(v.placa)+'</small>':'')+'</span>').join('')+'</div>'+
@@ -2633,6 +2687,7 @@ function desenharClientes(){
       '<button class="ico" data-a="edcli" data-u="'+u.id+'" aria-label="Editar cliente" title="Editar cliente">'+ICO_PEN+'</button>'+
       '<button class="ico lix" data-a="delcli" data-u="'+u.id+'" aria-label="Excluir cliente" title="Excluir cliente">'+ICO_LIX+'</button></span><span class="seta">›</span></summary>'+
       '<div class="gav">'+
+      '<div class="gsec"><span>USO DO BLOQUEIO</span></div>'+blocoUso(u)+
       '<div class="gsec"><span>DADOS DO CLIENTE</span></div>'+
       '<div class="cbox"><div class="bts">'+
         (u.disabled?'<button class="mini verde" data-a="bloq" data-u="'+u.id+'">Reativar acesso</button>':'<button class="mini verm" data-a="bloq" data-u="'+u.id+'">Bloquear acesso</button>')+
@@ -2964,6 +3019,7 @@ let editUserId=null;
 function abrirCliente(){
   editUserId=null;
   ['cNome','cEmail','cSenha','cCpf','cWpp'].forEach(i=>$(i).value='');
+  $('cDesde').value=hojeISO();
   $('cTitulo').textContent='Novo cliente'; $('cSalvar').textContent='Criar cliente'; $('cSenhaLbl').textContent='Senha';
   $('cAparWrap').style.display=''; $('cAparLbl').textContent='Aparelhos deste cliente (opcional)';
   $('cLeitura').checked=true; $('cErro').textContent=''; $('cSalvar').disabled=false;
@@ -2977,6 +3033,7 @@ function abrirEdicaoCliente(id){
   const cpf=(cpfsMapa[id]&&cpfsMapa[id].cpf)||(u.attributes&&u.attributes.cpf)||'';
   $('cCpf').value=fmtCpf(cpf);
   $('cWpp').value=fmtWpp(u.phone||'');
+  $('cDesde').value=desdeDe(u);
   $('cTitulo').textContent='Editar cliente'; $('cSalvar').textContent='Salvar'; $('cSenhaLbl').textContent='Nova senha (deixe vazio para não mudar)';
   /* aparelhos: marcado = vinculado. Desmarque para tirar, marque para vincular. */
   editAparAntes=aparelhosDe(u).map(v=>v.id);
@@ -3027,6 +3084,8 @@ $('cSalvar').onclick=async ()=>{
   if(usuarios.some(x=>x.id!==editando && (casaUsuario(x,lg.login)||casaUsuario(x,lg.email)))) return erro('Já existe um cliente com esse login.');
   const wpp=normWpp($('cWpp').value);
   if(wpp===null) return erro('WhatsApp inválido. Digite o DDD e o número, ex: (21) 99999-8888.');
+  const desde=String($('cDesde').value||'').trim();
+  if(desde && (!/^\d{4}-\d{2}-\d{2}$/.test(desde) || desde>hojeISO())) return erro('Data de cadastro inválida.');
   if(editando ? (senha && senha.length<6) : senha.length<6) return erro('A senha precisa ter pelo menos 6 caracteres.');
   if(editando ? (cpf && cpf.length!==11 && cpf.length!==14) : (cpf && cpf.length!==11)) return erro(editando?'O CPF precisa ter 11 números (ou CNPJ com 14).':'O CPF precisa ter 11 números.');
   erro(''); $('cSalvar').disabled=true;
@@ -3035,6 +3094,8 @@ $('cSalvar').onclick=async ()=>{
       const u=usuarios.find(x=>x.id===editando); if(!u) throw new Error('Cliente não encontrado. Atualize a lista.');
       const antigo=loginDe(u), antigoEmail=String(u.email||'');
       const corpo=Object.assign({},u,{name:nome,email:lg.email,login:lg.loginTraccar,deviceReadonly:$('cLeitura').checked,phone:wpp});
+      corpo.attributes=Object.assign({},u.attributes||{});
+      if(desde) corpo.attributes.criadoEm=desde; else delete corpo.attributes.criadoEm;
       if(senha) corpo.password=senha; else delete corpo.password;
       const r=await api('/api/users/'+editando,{method:'PUT',headers:JSONH,body:JSON.stringify(corpo)});
       if(!r.ok) throw new Error(await msgErro(r,'Não foi possível salvar o cliente'));
@@ -3074,6 +3135,7 @@ $('cSalvar').onclick=async ()=>{
       $('cSalvar').disabled=false; return;
     }
     const corpo={name:nome,email:lg.email,password:senha,administrator:false,deviceReadonly:$('cLeitura').checked,limitCommands:true,phone:wpp,attributes:cpf?{cpf:cpf}:{}};
+    corpo.attributes.criadoEm=desde||hojeISO();
     if(lg.loginTraccar) corpo.login=lg.loginTraccar;
     const r=await api('/api/users',{method:'POST',headers:JSONH,body:JSON.stringify(corpo)});
     if(!r.ok) throw new Error(await msgErro(r,'Não foi possível criar o cliente'));
