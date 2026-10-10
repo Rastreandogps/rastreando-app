@@ -499,6 +499,8 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
 #aview details.cli[open] .cbox{background:var(--card)}
 #aview details.cli[open] .gav details.eq{background:var(--card)}
 #aview details.cli,#aview details.eq{transition:box-shadow .2s,border-color .2s,background .2s}
+#aview .ecli .xvin{flex:none;width:18px;height:18px;margin:0 -4px 0 2px;border:0;border-radius:50%;background:rgba(37,99,235,.15);color:#2f6fe4;font-size:14px;line-height:18px;padding:0;cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
+#aview .ecli .xvin:hover{background:rgba(227,38,47,.18);color:var(--red2)}
 /* vínculo de vários clientes no equipamento */
 .eclis{max-height:220px;overflow-y:auto;border:1px solid var(--line);border-radius:12px;background:var(--card2);margin-bottom:6px}
 .eclis label{display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid var(--line);cursor:pointer;font-size:14px}
@@ -2164,6 +2166,7 @@ function msgAcesso(login){
     '\u{1F4F2} Instale o aplicativo no seu celular:\nhttps://rastreandogps.github.io/rastreando-app/instalar.html\n\n'+
     'Qualquer dúvida, é só chamar aqui. Boa viagem! \u{1F680}';
 }
+const ICO_UNLINK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 7H7a5 5 0 0 0 0 10h2M15 7h2a5 5 0 0 1 4 8M8 12h3"/><path d="M3 3l18 18"/></svg>';
 const ICO_COP='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg>';
 const ICO_EQ='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="10" r="3"/><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/></svg>';
 const ICO_USR='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>';
@@ -2192,7 +2195,9 @@ let abertosEq={};
 /* cartão de equipamento: fechado mostra nome, chip e cliente; aberto mostra os comandos. Copiar, lápis e lixeira sempre visíveis. */
 function cartaoEquip(v,userId){
   const cs=clientesDoEquip(v);
-  const pills = cs.length ? cs.map(u=>'<div class="ecli" title="'+esc(loginDe(u).replace(EMAIL_FALSO,''))+'">'+ICO_USR+'<span>'+esc(u.name||loginDe(u))+'</span></div>').join('')
+  /* selo de cada cliente; o "×" tira só o vínculo (o cliente continua existindo) */
+  const pills = cs.length ? cs.map(u=>'<div class="ecli" title="'+esc(loginDe(u).replace(EMAIL_FALSO,''))+'">'+ICO_USR+'<span>'+esc(u.name||loginDe(u))+'</span>'+
+      (vinculos[u.id]&&vinculos[u.id].includes(v.id)?'<button class="xvin" data-a="desv" data-u="'+u.id+'" aria-label="Tirar '+esc(u.name||'')+' deste equipamento" title="Tirar só o vínculo com este cliente">×</button>':'')+'</div>').join('')
     : (v.contato ? '<div class="ecli">'+ICO_USR+'<span>'+esc(String(v.contato).replace(EMAIL_FALSO,''))+'</span></div>' : '<div class="ecli sem">'+ICO_USR+'<span>Sem cliente</span></div>');
   return '<details class="eq" data-id="'+v.id+'"'+(abertosEq[v.id]?' open':'')+'><summary>'+
     '<div class="etopo"><span class="eav">'+ICO_EQ+'</span>'+
@@ -2202,7 +2207,9 @@ function cartaoEquip(v,userId){
     '<span class="eacoes">'+
       (v.fone?'<button class="ico cop" data-a="copiar" aria-label="Copiar número do chip" title="Copiar número">'+ICO_COP+'</button>':'')+
       '<button class="ico" data-a="editar" aria-label="Editar equipamento" title="Editar">'+ICO_PEN+'</button>'+
-      '<button class="ico lix" data-a="deleq" aria-label="Excluir equipamento" title="Excluir equipamento">'+ICO_LIX+'</button>'+
+      (userId
+        ? '<button class="ico lix" data-a="desv" data-u="'+userId+'" aria-label="Desvincular deste cliente" title="Desvincular deste cliente (o equipamento continua cadastrado)">'+ICO_UNLINK+'</button>'
+        : '<button class="ico lix" data-a="deleq" aria-label="Excluir equipamento" title="Excluir equipamento do sistema">'+ICO_LIX+'</button>')+
     '</span><span class="seta">›</span></summary>'+
     '<div class="corpo"><div class="s">IMEI '+esc(v.imei)+'</div>'+
     (v.fone?'<div class="cmds">'+
@@ -2213,7 +2220,7 @@ function cartaoEquip(v,userId){
       '<button class="cmd alerta" data-a="cfgimediato">'+IC.imediato+'Bloq. imediato</button>'+
       '<button class="cmd aviso" data-a="cfgfabrica">'+IC.fabrica+'Fábrica</button>'+
     '</div>':'<div class="s">Cadastre o número do chip (lápis) para enviar SMS.</div>')+
-    (userId?'<div class="eqrod"><button class="mini verm" data-a="desv" data-u="'+userId+'">Desvincular deste cliente</button></div>':'')+
+
     '</div></details>';
 }
 function desenharEquip(){
@@ -2378,7 +2385,7 @@ $('aList').addEventListener('click',e=>{
   if(b.dataset.a==='desv'){
     desvUserId=+b.dataset.u; desvDevId=id;
     const u=usuarios.find(x=>x.id===desvUserId); if(!u) return;
-    $('desvTexto').textContent='Tirar "'+v.nome+'" da conta de '+u.name+'? O cliente deixa de ver este aparelho no app. O equipamento continua cadastrado e pode ser vinculado de novo.';
+    $('desvTexto').textContent='Tirar "'+v.nome+'" da conta de '+u.name+'? O cliente deixa de ver este aparelho no app. Nada é apagado: o cliente e o equipamento continuam cadastrados e podem ser vinculados de novo.';
     $('desvErro').textContent=''; $('desvSalvar').disabled=false;
     abrir('mDesv'); return;
   }
