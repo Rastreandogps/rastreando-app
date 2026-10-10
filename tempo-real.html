@@ -362,6 +362,47 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .spin{width:16px;height:16px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:sp .8s linear infinite}
 @keyframes sp{to{transform:rotate(360deg)}}
+
+/* ===== Painel do administrador: visual novo (10/10/2026) ===== */
+#aview .atabs{background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:4px;gap:4px}
+#aview .atab{height:40px;border:0;border-radius:11px;background:transparent;color:var(--mut);font-weight:600;transition:background .2s,color .2s,box-shadow .2s}
+#aview .atab.on{background:var(--card);color:var(--txt);box-shadow:0 1px 2px rgba(16,24,40,.08),0 2px 8px rgba(16,24,40,.06)}
+#aview .btn.anovo{height:48px;border-radius:14px;font-weight:650;letter-spacing:.01em;box-shadow:0 6px 16px rgba(22,163,74,.22)}
+#aview .btn.anovo.verde{background:linear-gradient(135deg,#22b35e,#16a34a)}
+#aview .btn.anovo.azul{background:linear-gradient(135deg,#3b82f6,#2563eb);box-shadow:0 6px 16px rgba(37,99,235,.22)}
+#aview .search{border-radius:14px}
+#aview details.eq{border-radius:18px;border:1px solid var(--line);box-shadow:0 1px 2px rgba(16,24,40,.04),0 6px 18px rgba(16,24,40,.05);transition:box-shadow .2s}
+#aview details.eq[open]{box-shadow:0 2px 4px rgba(16,24,40,.05),0 10px 28px rgba(16,24,40,.08)}
+#aview details.eq summary{padding:12px 10px 12px 12px;gap:10px}
+#aview details.eq .eav{flex:none;width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:rgba(10,143,149,.10);color:var(--cyan)}
+#aview details.eq .eav svg{width:19px;height:19px}
+#aview details.eq .einfo .t{font-size:15px;font-weight:650}
+#aview details.eq .einfo .s{font-size:12.5px;margin-top:1px}
+#aview .ecli{display:inline-flex;align-items:center;gap:5px;max-width:100%;margin-top:5px;padding:3px 9px;border-radius:999px;font-size:11.5px;font-weight:600;background:rgba(37,99,235,.09);color:#2f6fe4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#aview .ecli svg{width:12px;height:12px;flex:none}
+#aview .ecli span{overflow:hidden;text-overflow:ellipsis}
+#aview .ecli.sem{background:var(--card2);color:var(--mut)}
+#aview .eacoes{display:flex;gap:6px;flex:none}
+#aview .ico{width:34px;height:34px;border-radius:11px;border:0;background:var(--card2);color:var(--mut);transition:background .15s,color .15s}
+#aview .ico:active{transform:scale(.94)}
+#aview .ico.cop{color:var(--cyan);background:rgba(10,143,149,.10)}
+#aview .ico.lix{border:0;background:rgba(227,38,47,.08)}
+#aview details.eq .seta{font-size:16px;opacity:.6}
+#aview details.eq .corpo{padding:2px 12px 14px;border-top:1px solid var(--line)}
+#aview details.eq .corpo .s{margin-top:10px}
+#aview .cmds{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+#aview .cmd{height:42px;padding:0 6px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--txt);font-size:12.5px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:6px;text-decoration:none;white-space:nowrap;transition:background .15s}
+#aview .cmd svg{width:15px;height:15px;flex:none;color:var(--mut)}
+#aview .cmd:active{background:var(--card2)}
+#aview .cmd.alerta{border-color:rgba(227,38,47,.30);background:rgba(227,38,47,.06);color:var(--red2)}
+#aview .cmd.alerta svg{color:var(--red2)}
+#aview .cmd.aviso{border-color:rgba(184,120,0,.30);background:rgba(245,184,61,.10);color:var(--amber)}
+#aview .cmd.aviso svg{color:var(--amber)}
+#aview .eqrod{display:flex;justify-content:flex-end;margin-top:10px}
+#aview .eqrod .mini{height:32px;font-size:12.5px;border-radius:10px}
+#aview details.cli{border-radius:18px;box-shadow:0 1px 2px rgba(16,24,40,.04),0 6px 18px rgba(16,24,40,.05)}
+#aview details.cli .gav details.eq{box-shadow:none}
+@media (max-width:360px){#aview .cmds{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
 <body>
@@ -1921,7 +1962,7 @@ function desenharAdmin(){
   $('aNovo').textContent = abaAdmin==='equip' ? '+ Novo equipamento' : '+ Novo cliente';
   $('aNovo').classList.toggle('verde',abaAdmin==='equip'); $('aNovo').classList.toggle('azul',abaAdmin!=='equip');
   $('aSearch').style.display = '';
-  const ph = abaAdmin==='equip' ? 'Buscar equipamento por nome, IMEI ou chip' : 'Buscar cliente por nome, login ou CPF';
+  const ph = abaAdmin==='equip' ? 'Buscar por nome, IMEI, chip ou cliente' : 'Buscar cliente por nome, login ou CPF';
   if($('aSearch').placeholder!==ph){ buscaAdmin[abaAnt||'equip']=$('aSearch').value; $('aSearch').value=buscaAdmin[abaAdmin]||''; $('aSearch').placeholder=ph }
   abaAnt=abaAdmin;
   $('aFinAtualizar').style.display = abaAdmin==='cli' ? '' : 'none';
@@ -1932,21 +1973,59 @@ let buscaAdmin={equip:'',cli:''}, abaAnt=null;
 const ICO_PEN='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg>';
 const ICO_LIX='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>';
 const soNum = t => String(t||'').replace(/\D/g,'');
-/* cartão de equipamento: fechado mostra só nome e chip; aberto mostra os comandos. Lápis sempre visível. */
+const ICO_COP='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg>';
+const ICO_EQ='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="10" r="3"/><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/></svg>';
+const ICO_USR='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>';
+const IC={
+  sms:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
+  ip:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="7" rx="2"/><rect x="3" y="13" width="18" height="7" rx="2"/><path d="M7 7.5h.01M7 16.5h.01"/></svg>',
+  apn:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0M12 19.5h.01"/></svg>',
+  reset:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>',
+  imediato:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg>',
+  fabrica:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 2 18a2 2 0 0 0 1.7 3h16.6A2 2 0 0 0 22 18L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>'
+};
+/* a quem o equipamento está ligado: vínculo real do Traccar; se ainda não carregou, o login gravado no equipamento */
+function clientesDoEquip(v){
+  const cl=usuarios.filter(u=>!u.administrator);
+  let lista=cl.filter(u=>vinculos[u.id] && vinculos[u.id].includes(v.id));
+  if(!lista.length) lista=cl.filter(u=>casaUsuario(u,v.contato));
+  return lista;
+}
+function rotuloCliente(v){
+  const cs=clientesDoEquip(v);
+  if(cs.length) return cs.map(u=>(u.name||'')+' · '+loginDe(u).replace(EMAIL_FALSO,'')).join('  |  ');
+  if(v.contato) return String(v.contato).replace(EMAIL_FALSO,'');
+  return '';
+}
+let abertosEq={};
+/* cartão de equipamento: fechado mostra nome, chip e cliente; aberto mostra os comandos. Copiar, lápis e lixeira sempre visíveis. */
 function cartaoEquip(v,userId){
-  return '<details class="eq" data-id="'+v.id+'"><summary>'+
+  const cli=rotuloCliente(v);
+  return '<details class="eq" data-id="'+v.id+'"'+(abertosEq[v.id]?' open':'')+'><summary>'+
+    '<span class="eav">'+ICO_EQ+'</span>'+
     '<div class="einfo"><div class="t">'+esc(v.nome)+'</div>'+
-    '<div class="s">Chip: '+(v.fone?'<b>'+esc(fmtFone(v.fone))+'</b>':'não cadastrado')+'</div></div>'+
-    '<button class="ico" data-a="editar" aria-label="Editar equipamento" title="Editar">'+ICO_PEN+'</button><span class="seta">›</span></summary>'+
-    '<div class="corpo"><div class="s">IMEI '+esc(v.imei)+(v.contato?' · cliente: '+esc(String(v.contato).replace(EMAIL_FALSO,'')):' · sem cliente')+'</div>'+
-    '<div class="bts">'+
-      (v.fone?'<button class="mini" data-a="copiar">Copiar número</button><a class="mini" data-a="sms" href="'+esc(linkSms(v.fone))+'">Enviar SMS</a><button class="mini" data-a="cfgip">IP e Porta</button><button class="mini" data-a="cfgapn">APN</button><button class="mini" data-a="cfgreset">Reset</button>':'<span class="s">Cadastre o número do chip (lápis) para enviar SMS.</span>')+
-      (userId?'<button class="mini verm" data-a="desv" data-u="'+userId+'">Desvincular</button>':'')+
-    '</div></div></details>';
+    '<div class="s">Chip: '+(v.fone?'<b>'+esc(fmtFone(v.fone))+'</b>':'não cadastrado')+'</div>'+
+    (cli?'<div class="ecli" title="'+esc(cli)+'">'+ICO_USR+'<span>'+esc(cli)+'</span></div>':'<div class="ecli sem">'+ICO_USR+'<span>Sem cliente</span></div>')+'</div>'+
+    '<span class="eacoes">'+
+      (v.fone?'<button class="ico cop" data-a="copiar" aria-label="Copiar número do chip" title="Copiar número">'+ICO_COP+'</button>':'')+
+      '<button class="ico" data-a="editar" aria-label="Editar equipamento" title="Editar">'+ICO_PEN+'</button>'+
+      '<button class="ico lix" data-a="deleq" aria-label="Excluir equipamento" title="Excluir equipamento">'+ICO_LIX+'</button>'+
+    '</span><span class="seta">›</span></summary>'+
+    '<div class="corpo"><div class="s">IMEI '+esc(v.imei)+'</div>'+
+    (v.fone?'<div class="cmds">'+
+      '<a class="cmd" data-a="sms" href="'+esc(linkSms(v.fone))+'">'+IC.sms+'SMS</a>'+
+      '<button class="cmd" data-a="cfgip">'+IC.ip+'IP/Porta</button>'+
+      '<button class="cmd" data-a="cfgapn">'+IC.apn+'APN</button>'+
+      '<button class="cmd" data-a="cfgreset">'+IC.reset+'Reset</button>'+
+      '<button class="cmd alerta" data-a="cfgimediato">'+IC.imediato+'Bloq. imediato</button>'+
+      '<button class="cmd aviso" data-a="cfgfabrica">'+IC.fabrica+'Fábrica</button>'+
+    '</div>':'<div class="s">Cadastre o número do chip (lápis) para enviar SMS.</div>')+
+    (userId?'<div class="eqrod"><button class="mini verm" data-a="desv" data-u="'+userId+'">Desvincular deste cliente</button></div>':'')+
+    '</div></details>';
 }
 function desenharEquip(){
   const q=$('aSearch').value.trim().toLowerCase(), qn=soNum(q);
-  const lista=veiculos.filter(v=>!q||[v.nome,v.contato].join(' ').toLowerCase().includes(q)||(qn.length>=3&&(soNum(v.imei).includes(qn)||soNum(v.fone).includes(qn))))
+  const lista=veiculos.filter(v=>!q||[v.nome,v.contato,rotuloCliente(v)].join(' ').toLowerCase().includes(q)||(qn.length>=3&&(soNum(v.imei).includes(qn)||soNum(v.fone).includes(qn))))
     .sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
   $('aCount').textContent=(q?lista.length+' de ':'')+veiculos.length+' equipamentos';
   $('aList').innerHTML = lista.map(v=>cartaoEquip(v,null)).join('') || '<div class="vempty">Nenhum equipamento encontrado.</div>';
@@ -1967,7 +2046,7 @@ async function carregarVinculos(){
     }
   }
   await Promise.all([worker(),worker(),worker(),worker()]);
-  if(abaAdmin==='cli' && $('aview').classList.contains('show')) desenharClientes();
+  if($('aview').classList.contains('show')){ if(abaAdmin==='cli') desenharClientes(); else desenharEquip() }
 }
 function desenharClientes(){
   const todos=usuarios.filter(u=>!u.administrator);
@@ -2002,7 +2081,7 @@ function desenharClientes(){
       '</div></details>';
   }).join('') || '<div class="vempty">Nenhum cliente ainda.</div>';
 }
-$('aList').addEventListener('toggle',e=>{ const d=e.target; if(d.dataset && d.dataset.u) abertos[d.dataset.u]=d.open },true);
+$('aList').addEventListener('toggle',e=>{ const d=e.target; if(d.dataset && d.dataset.u) abertos[d.dataset.u]=d.open; if(d.classList && d.classList.contains('eq')) abertosEq[d.dataset.id]=d.open },true);
 $('aTabEquip').onclick=()=>{abaAdmin='equip';desenharAdmin()};
 $('aTabCli').onclick=()=>{abaAdmin='cli';desenharAdmin(); if(finVelho()) carregarFin(true)};
 $('aSearch').addEventListener('input',()=>{ buscaAdmin[abaAdmin]=$('aSearch').value; if(abaAdmin==='equip') desenharEquip(); else desenharClientes() });
@@ -2080,6 +2159,14 @@ $('aList').addEventListener('click',e=>{
     abrir('mCpf'); return;
   }
   const id=+b.closest('[data-id]').dataset.id, v=veiculos.find(x=>x.id===id); if(!v) return;
+  if(b.dataset.a==='deleq'){
+    pedirConfirmacao('Excluir este equipamento?','Excluir "'+v.nome+'" (IMEI '+v.imei+')? Ele sai do sistema e da conta de todos os clientes, e o histórico de posições dele também é apagado. Não dá para desfazer. Se o rastreador continuar ligado, ele só volta a aparecer quando for cadastrado de novo.','Excluir equipamento',async()=>{
+      const r=await api('/api/devices/'+id,{method:'DELETE'});
+      if(!r.ok && r.status!==204) throw new Error(await msgErro(r,'Não foi possível excluir o equipamento'));
+      delete abertosEq[id]; vinculos={}; buscando=false; await buscarSeguro(); desenharAdmin(); carregarVinculos(); toast('Equipamento excluído.');
+    },{perigo:true});
+    return;
+  }
   if(b.dataset.a==='desv'){
     desvUserId=+b.dataset.u; desvDevId=id;
     const u=usuarios.find(x=>x.id===desvUserId); if(!u) return;
@@ -2089,21 +2176,26 @@ $('aList').addEventListener('click',e=>{
   }
   if(b.dataset.a==='copiar') copiar(soDigitos(v.fone)).then(()=>toast('Número copiado')).catch(()=>toast('Não foi possível copiar'));
   else if(b.dataset.a==='editar') abrirEquip(id);
-  else if(b.dataset.a==='cfgip' || b.dataset.a==='cfgapn' || b.dataset.a==='cfgreset') smsConfig(v, b.dataset.a.slice(3));
+  else if(/^cfg(ip|apn|reset|imediato|fabrica)$/.test(b.dataset.a)) smsConfig(v, b.dataset.a.slice(3));
   /* "sms" é um link normal: abre o aplicativo de mensagens do celular */
 });
 
 /* SMS de configuração pelo SMS Market (o texto fica fixo no servidor) */
 function smsConfig(v,tipo){
-  const nome = {ip:'IP e Porta',apn:'APN',reset:'Reset'}[tipo];
-  const txt = {ip:'SERVER,0,179.199.150.156,5023,0#',apn:'APN,ss.vivo.com.br,vivo,vivo#',reset:'RESET#'}[tipo];
-  pedirConfirmacao('Enviar '+nome, 'Enviar agora por SMS para o chip de '+v.nome+' ('+fmtFone(v.fone)+'):\n'+txt+(tipo==='ip'?'\n\nAtenção: ao receber, o rastreador passa a mandar posição para este servidor e deixa de aparecer na plataforma antiga.':''), 'Enviar SMS', async()=>{
+  const nome = {ip:'IP e Porta',apn:'APN',reset:'Reset',imediato:'Bloqueio imediato',fabrica:'Padrão de fábrica'}[tipo];
+  const txt = {ip:'SERVER,0,179.199.150.156,5023,0#',apn:'APN,ss.vivo.com.br,vivo,vivo#',reset:'RESET#',imediato:'SZCS#SOURCE_OFF_TYPE=1',fabrica:'FACTORYALL#'}[tipo];
+  const extra = {
+    ip:'\n\nAtenção: ao receber, o rastreador passa a mandar posição para este servidor e deixa de aparecer na plataforma antiga.',
+    imediato:'\n\nAtenção: com esta função ativa, o rastreador corta assim que receber o bloqueio, em qualquer velocidade. Com o veículo andando rápido, o corte pode causar acidente.',
+    fabrica:'\n\nAtenção: o rastreador volta às configurações de fábrica. É provável que ele perca o IP/Porta e o APN e suma do sistema até você reenviar "IP/Porta" e "APN". O bloqueio imediato também deve voltar ao padrão.'
+  }[tipo]||'';
+  pedirConfirmacao('Enviar '+nome, 'Enviar agora por SMS para o chip de '+v.nome+' ('+fmtFone(v.fone)+'):\n'+txt+extra, 'Enviar SMS', async()=>{
     const r=await fetch(DESB_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',
       body:JSON.stringify({acao:'smsConfig',tipo:tipo,token:lsGet('rg_token'),deviceId:v.id})});
     let j={}; try{ j=await r.json() }catch(e){}
     if(!r.ok) throw new Error(j.erro||('Erro '+r.status));
     toast('SMS de '+nome+' enviado para '+v.nome+'.',5000);
-  });
+  },{perigo:tipo==='imediato'||tipo==='fabrica'});
 }
 
 /* --- Aparelhos de um cliente --- */
