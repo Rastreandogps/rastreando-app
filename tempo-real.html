@@ -196,12 +196,14 @@ main{position:relative;flex:1;min-height:0;overflow:hidden}
 .leaflet-control-attribution a{color:var(--mut)!important}
 .car{width:44px;height:44px;transition:transform .25s linear}
 /* cor da setinha (09/10/2026): verde = andando; amarela = parada (ignição ligada ou desligada); cinza = sem GPS há mais de 10 min */
-.car .anel{fill:rgba(245,184,61,.16);stroke:#f5b83d}
-.car .seta{fill:#f5b83d}
-.car.c-mov .anel{fill:rgba(34,197,94,.16);stroke:#22c55e}
-.car.c-mov .seta{fill:#22c55e}
-.car.c-sem .anel{fill:rgba(148,163,184,.16);stroke:#94a3b8}
-.car.c-sem .seta{fill:#94a3b8}
+.car .anel{fill:rgba(255,255,255,.92);stroke:#e0a020;stroke-width:2.5px}
+.car .seta{fill:#f0a800;stroke:rgba(15,23,42,.55)}
+.car.c-mov .anel{stroke:#16a34a}
+.car.c-mov .seta{fill:#16a34a}
+.car.c-sem .anel{stroke:#475569}
+.car.c-sem .seta{fill:#64748b}
+/* setinha mais visível no mapa claro/bege (10/10/2026): disco branco, contorno colorido e sombra */
+.car svg{overflow:visible;filter:drop-shadow(0 1px 3px rgba(0,0,0,.45))}
 .carlabel{position:absolute;bottom:46px;left:50%;transform:translateX(-50%);background:rgba(15,17,21,.85);border:1px solid var(--line);border-radius:6px;padding:2px 6px;font-size:11px;white-space:nowrap;color:var(--txt)}
 
 /* Botão Seguir */
