@@ -258,6 +258,14 @@ body.hist-on #follow,body.hist-on #btnEu{display:none!important}
 .hpin{width:24px;height:24px;border-radius:50%;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.5);color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center}
 .hpin.ini{background:#16a34a}.hpin.fim{background:#dc2626}.hpin.par{background:#3b82f6;width:22px;height:22px}
 .hmk .car{transition:none}
+.hpop .leaflet-popup-content-wrapper{background:var(--card);color:var(--txt);border-radius:14px;box-shadow:0 6px 20px rgba(0,0,0,.4)}
+.hpop .leaflet-popup-tip{background:var(--card)}
+.hpop .leaflet-popup-content{margin:12px 14px;min-width:190px}
+.hpop .hpopt{font-size:14px;font-weight:700}
+.hpop .hpopd{font-size:12.5px;color:var(--mut);margin:2px 0 10px}
+.hpop .hpopb{display:block;text-align:center;padding:9px 10px;border-radius:10px;background:#2563eb;color:#fff!important;font-size:13px;font-weight:700;text-decoration:none;margin-top:6px}
+.hpop .hpopb.ap{background:var(--card2);color:var(--txt)!important;border:1px solid var(--line)}
+.hpop a.leaflet-popup-close-button{color:var(--mut)}
 
 /* Botão Seguir */
 .follow{position:absolute;top:14px;right:14px;z-index:400;height:40px;padding:0 14px 0 12px;border-radius:20px;background:var(--card);border:1px solid var(--line);display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;box-shadow:0 4px 14px rgba(0,0,0,.4)}
@@ -2431,13 +2439,23 @@ function histAcharParadas(pts){
   const j=[]; out.forEach(s=>{ const u=j[j.length-1]; if(u && s.ini-u.fim<120000 && distHist(u.ll,s.ll)<80) u.fim=Math.max(u.fim,s.fim); else j.push(s) });
   return j.map(s=>Object.assign(s,{dur:s.fim-s.ini}));
 }
+/* toque na bolinha da parada: abre o ponto no Google Maps (e, no iPhone, também no Mapas da Apple) */
+const ehIphone=()=>/iPhone|iPad|iPod/.test(navigator.userAgent)||(/Macintosh/.test(navigator.userAgent)&&navigator.maxTouchPoints>1);
+function popParada(s,i){
+  const la=s.ll[0].toFixed(6), lo=s.ll[1].toFixed(6);
+  const g='https://www.google.com/maps/search/?api=1&query='+la+','+lo, a='https://maps.apple.com/?q='+encodeURIComponent('Parada '+(i+1))+'&ll='+la+','+lo;
+  return '<div class="hpopt">Parada '+(i+1)+'</div><div class="hpopd">'+(hist.varios?hhData(s.ini)+' ':'')+hhmm(s.ini)+' às '+hhmm(s.fim)+' · '+durCurta(s.dur)+'</div>'+
+    '<a class="hpopb" href="'+g+'" target="_blank" rel="noopener">Abrir no Google Maps</a>'+
+    (ehIphone()?'<a class="hpopb ap" href="'+a+'" target="_blank" rel="noopener">Abrir no Mapas (Apple)</a>':'');
+}
 function histDesenharParadas(){
   const min=(+$('hParMin2').value||5)*60000, lst=(hist.todasParadas||[]).filter(s=>s.dur>=min);
   if(hist.camPar) hist.camPar.clearLayers();
-  lst.forEach((s,i)=>L.marker(s.ll,{icon:L.divIcon({className:'hmk',html:'<div class="hpin par">'+(i+1)+'</div>',iconSize:[22,22],iconAnchor:[11,11]}),title:'Parada '+(i+1)+': '+(hist.varios?hhData(s.ini)+' ':'')+hhmm(s.ini)+' a '+hhmm(s.fim)+' ('+durCurta(s.dur)+')',zIndexOffset:500}).addTo(hist.camPar));
+  hist.mkPar=lst.map((s,i)=>L.marker(s.ll,{icon:L.divIcon({className:'hmk',html:'<div class="hpin par">'+(i+1)+'</div>',iconSize:[22,22],iconAnchor:[11,11]}),zIndexOffset:500})
+    .bindPopup(popParada(s,i),{className:'hpop',closeButton:true,autoPanPaddingBottomRight:[20,($('hpanel').offsetHeight||0)+20]}).addTo(hist.camPar));
   $('hNPar').textContent=String(lst.length);
   $('hParLista').innerHTML=lst.length?lst.map((s,i)=>'<div class="hstop" data-i="'+i+'"><span class="n">'+(i+1)+'</span><span>'+(hist.varios?hhData(s.ini)+' ':'')+hhmm(s.ini)+' às '+hhmm(s.fim)+' <small>· '+durCurta(s.dur)+'</small></span></div>').join(''):'<div class="hstop"><small>Nenhuma parada desse tamanho no período.</small></div>';
-  $('hParLista').onclick=e=>{ const r=e.target.closest('[data-i]'); if(r){ const s=lst[+r.dataset.i]; map.setView(s.ll,17) } };
+  $('hParLista').onclick=e=>{ const r=e.target.closest('[data-i]'); if(r){ const i=+r.dataset.i, s=lst[i]; map.setView(s.ll,17); setTimeout(()=>{ try{ hist.mkPar[i].openPopup() }catch(er){} },350) } };
   $('hParadas').querySelector('summary').textContent='Paradas ('+lst.length+')';
 }
 function histMostrar(pos,id){
