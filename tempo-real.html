@@ -265,6 +265,9 @@ body.hist-on #follow,body.hist-on #btnEu{display:none!important}
 .hpop .hpopt{font-size:14px;font-weight:700}
 .hpop .hpopd{font-size:12.5px;color:var(--mut);margin:2px 0 4px}
 .hpop .hpope{font-size:12px;color:var(--mut);margin:0 0 10px;line-height:1.35;max-width:230px}
+.hpanel .hpdf{width:100%;height:42px;margin-top:8px;border-radius:12px;border:1px solid var(--line);background:var(--card2);color:var(--txt);font:inherit;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer}
+.hpanel .hpdf svg{width:18px;height:18px}
+.hpanel .hpdf:disabled{opacity:.6}
 .hpanel .hend{display:block;font-style:normal;font-size:11.5px;color:var(--mut);line-height:1.3;margin-top:1px}
 .hpanel .hend:empty{display:none}
 .hpop .hpopb{display:block;text-align:center;padding:9px 10px;border-radius:10px;background:#2563eb;color:#fff!important;font-size:13px;font-weight:700;text-decoration:none;margin-top:6px}
@@ -863,6 +866,7 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
         <select id="hParMin2" aria-label="Tamanho mínimo da parada"></select>
       </label>
       <details id="hParadas"><summary>Paradas</summary><div id="hParLista"></div></details>
+      <button type="button" class="hpdf" id="hPdf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M12 12v6M9 15l3 3 3-3"/></svg>Baixar PDF das paradas</button>
     </div>
   </section>
 
@@ -2512,6 +2516,7 @@ function popParada(s,i){
 function histDesenharParadas(){
   const min=(+$('hParMin2').value||5)*60000, lst=(hist.todasParadas||[]).filter(s=>s.dur>=min);
   if(hist.camPar) hist.camPar.clearLayers();
+  hist.parFilt=lst;
   hist.mkPar=lst.map((s,i)=>L.marker(s.ll,{icon:L.divIcon({className:'hmk',html:'<div class="hpinarea"><div class="hpin par">'+(i+1)+'</div></div>',iconSize:[44,44],iconAnchor:[22,22]}),zIndexOffset:600,bubblingMouseEvents:false})
     .bindPopup(popParada(s,i),{className:'hpop',closeButton:true,autoPanPaddingBottomRight:[20,($('hpanel').offsetHeight||0)+20]}).addTo(hist.camPar));
   $('hNPar').textContent=String(lst.length);
@@ -2523,6 +2528,77 @@ function histDesenharParadas(){
     const mk=hist.mkPar&&hist.mkPar[i]; if(mk) mk.setPopupContent(popParada(lst[i],i));
   });
 }
+/* ===== PDF das paradas (10/10/2026) =====
+   Montado no próprio aparelho (bibliotecas jsPDF e AutoTable, carregadas só quando o botão é tocado). Respeita o filtro de paradas. */
+function carregarScript(urls){
+  return new Promise((ok,erro)=>{
+    let i=0;
+    const tenta=()=>{ if(i>=urls.length){ erro(new Error('Não consegui carregar o gerador de PDF. Confira a internet.')); return }
+      const sc=document.createElement('script'); sc.src=urls[i++]; sc.onload=()=>ok(); sc.onerror=()=>{ sc.remove(); tenta() }; document.head.appendChild(sc) };
+    tenta();
+  });
+}
+async function libPdf(){
+  if(!(window.jspdf&&window.jspdf.jsPDF)) await carregarScript(['https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js','https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js']);
+  const t=new window.jspdf.jsPDF();
+  if(typeof t.autoTable!=='function') await carregarScript(['https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js','https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js']);
+  return window.jspdf.jsPDF;
+}
+async function logoDataUrl(){
+  try{ const r=await fetch('logo.jpeg'); if(!r.ok) return null; const b=await r.blob();
+    return await new Promise(ok=>{ const f=new FileReader(); f.onload=()=>ok(f.result); f.onerror=()=>ok(null); f.readAsDataURL(b) }) }catch(e){ return null }
+}
+$('hPdf').onclick=async()=>{
+  const lst=hist.parFilt||[]; if(!hist.pts.length){ toast('Busque o trajeto primeiro.'); return }
+  const b=$('hPdf'), t0=b.innerHTML; b.disabled=true; b.lastChild.textContent='Gerando PDF...';
+  try{
+    /* espera os endereços que faltam (no máximo 30 s) */
+    if(lst.some(x=>enderecoGuardado(x.ll)===null)){
+      b.lastChild.textContent='Buscando endereços...';
+      await Promise.race([enderecosParadas(lst,(i,t)=>{ const e=$('hParLista').querySelector('[data-e="'+i+'"]'); if(e) e.textContent=t; const mk=hist.mkPar&&hist.mkPar[i]; if(mk) mk.setPopupContent(popParada(lst[i],i)) }),new Promise(r=>setTimeout(r,30000))]);
+      b.lastChild.textContent='Gerando PDF...';
+    }
+    const JsPDF=await libPdf(), doc=new JsPDF({unit:'mm',format:'a4'});
+    const v=veiculos.find(x=>x.id===+$('hVeic').value)||{nome:'Veículo',placa:''};
+    const W=doc.internal.pageSize.getWidth();
+    const logo=await logoDataUrl();
+    doc.setFillColor(15,17,21); doc.rect(0,0,W,26,'F');
+    let x=14; if(logo){ try{ doc.addImage(logo,'JPEG',12,4,18,18); x=34 }catch(e){} }
+    doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(15); doc.text('Rastreando GPS',x,12);
+    doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.text('Relatório de paradas',x,18.5);
+    doc.setTextColor(20,24,31); doc.setFont('helvetica','bold'); doc.setFontSize(13);
+    doc.text(String(v.nome||'Veículo')+(v.placa?'  ·  '+v.placa:''),14,36);
+    doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(80,88,100);
+    doc.text('Período: '+$('hPerTxt').textContent,14,42.5);
+    doc.text('Paradas: '+$('hParMin2').options[$('hParMin2').selectedIndex].text,14,48);
+    doc.text('Gerado em '+hhData(Date.now())+'/'+new Date().getFullYear()+' às '+hhmm(Date.now()),W-14,42.5,{align:'right'});
+    /* resumo */
+    const res=[['Percorridos',$('hDist').textContent],['Em movimento',$('hMov').textContent],['Velocidade máxima',$('hMax').textContent],['Paradas',String(lst.length)]];
+    const cw=(W-28-9)/4;
+    res.forEach((r,i)=>{ const cx=14+i*(cw+3); doc.setFillColor(238,241,245); doc.roundedRect(cx,53,cw,15,2,2,'F');
+      doc.setTextColor(20,24,31); doc.setFont('helvetica','bold'); doc.setFontSize(11.5); doc.text(r[1],cx+cw/2,60,{align:'center'});
+      doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(93,102,117); doc.text(r[0],cx+cw/2,65,{align:'center'}) });
+    const dataHora=ms=>(hist.varios?hhData(ms)+' ':'')+hhmm(ms);
+    const linhas=lst.map((s,i)=>[String(i+1),dataHora(s.ini),dataHora(s.fim),durCurta(s.dur),enderecoGuardado(s.ll)||(s.ll[0].toFixed(5)+', '+s.ll[1].toFixed(5))]);
+    doc.autoTable({
+      startY:74, head:[['#','Chegada','Saída','Tempo parado','Endereço']],
+      body:linhas.length?linhas:[['','','','','Nenhuma parada desse tamanho no período.']],
+      theme:'striped', styles:{font:'helvetica',fontSize:9,cellPadding:2.2,textColor:[20,24,31],valign:'middle'},
+      headStyles:{fillColor:[37,99,235],textColor:255,fontStyle:'bold'},
+      alternateRowStyles:{fillColor:[246,248,251]},
+      columnStyles:{0:{cellWidth:9,halign:'center',fontStyle:'bold'},1:{cellWidth:hist.varios?26:18},2:{cellWidth:hist.varios?26:18},3:{cellWidth:27},4:{cellWidth:'auto'}},
+      margin:{left:14,right:14,bottom:16}
+    });
+    const n=doc.internal.getNumberOfPages();
+    for(let i=1;i<=n;i++){ doc.setPage(i); doc.setFontSize(8); doc.setTextColor(140,148,160);
+      doc.text('Rastreando GPS · Endereços aproximados (OpenStreetMap)',14,doc.internal.pageSize.getHeight()-8);
+      doc.text('Página '+i+' de '+n,W-14,doc.internal.pageSize.getHeight()-8,{align:'right'}) }
+    const nomeArq=('paradas-'+String(v.nome||'veiculo')+'-'+$('hData').value).normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^A-Za-z0-9-]+/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'').toLowerCase()+'.pdf';
+    doc.save(nomeArq);
+    toast('PDF gerado.');
+  }catch(e){ toast(e.message||'Não consegui gerar o PDF.',5000) }
+  b.disabled=false; b.innerHTML=t0;
+};
 function histMostrar(pos,id){
   /* só posições com GPS válido, em ordem, sem repetir o mesmo ponto parado */
   const pts=[];
