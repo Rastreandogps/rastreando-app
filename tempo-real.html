@@ -661,6 +661,8 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
     <h3 id="eTitulo">Novo equipamento</h3>
     <label class="flbl" for="eNome">Nome do veículo ou equipamento</label>
     <input class="fld" id="eNome" autocomplete="off">
+    <label class="flbl" for="ePlaca">Placa do veículo (opcional)</label>
+    <input class="fld" id="ePlaca" maxlength="8" placeholder="ABC1D23 ou ABC-1234" autocomplete="off" autocapitalize="characters" style="text-transform:uppercase">
     <label class="flbl" for="eImei">IMEI (15 números)</label>
     <input class="fld" id="eImei" inputmode="numeric" autocomplete="off">
     <label class="flbl" for="eFone">Número do chip (com DDD)</label>
@@ -2002,7 +2004,7 @@ function desenharAdmin(){
   $('aNovo').textContent = abaAdmin==='equip' ? '+ Novo equipamento' : '+ Novo cliente';
   $('aNovo').classList.toggle('verde',abaAdmin==='equip'); $('aNovo').classList.toggle('azul',abaAdmin!=='equip');
   $('aSearch').style.display = '';
-  const ph = abaAdmin==='equip' ? 'Buscar por nome, IMEI, chip ou cliente' : 'Buscar cliente por nome, login ou CPF';
+  const ph = abaAdmin==='equip' ? 'Buscar por nome, placa, IMEI, chip ou cliente' : 'Buscar cliente por nome, login ou CPF';
   if($('aSearch').placeholder!==ph){ buscaAdmin[abaAnt||'equip']=$('aSearch').value; $('aSearch').value=buscaAdmin[abaAdmin]||''; $('aSearch').placeholder=ph }
   abaAnt=abaAdmin;
   $('aFinAtualizar').style.display = abaAdmin==='cli' ? '' : 'none';
@@ -2044,7 +2046,7 @@ function cartaoEquip(v,userId){
   return '<details class="eq" data-id="'+v.id+'"'+(abertosEq[v.id]?' open':'')+'><summary>'+
     '<span class="eav">'+ICO_EQ+'</span>'+
     '<div class="einfo"><div class="t">'+esc(v.nome)+'</div>'+
-    '<div class="s">Chip: '+(v.fone?'<b>'+esc(fmtFone(v.fone))+'</b>':'não cadastrado')+'</div>'+
+    '<div class="s">'+(v.placa?'Placa: <b>'+esc(v.placa)+'</b> · ':'')+'Chip: '+(v.fone?'<b>'+esc(fmtFone(v.fone))+'</b>':'não cadastrado')+'</div>'+
     (cli?'<div class="ecli" title="'+esc(cli)+'">'+ICO_USR+'<span>'+esc(cli)+'</span></div>':'<div class="ecli sem">'+ICO_USR+'<span>Sem cliente</span></div>')+'</div>'+
     '<span class="eacoes">'+
       (v.fone?'<button class="ico cop" data-a="copiar" aria-label="Copiar número do chip" title="Copiar número">'+ICO_COP+'</button>':'')+
@@ -2065,7 +2067,7 @@ function cartaoEquip(v,userId){
 }
 function desenharEquip(){
   const q=$('aSearch').value.trim().toLowerCase(), qn=soNum(q);
-  const lista=veiculos.filter(v=>!q||[v.nome,v.contato,rotuloCliente(v)].join(' ').toLowerCase().includes(q)||(qn.length>=3&&(soNum(v.imei).includes(qn)||soNum(v.fone).includes(qn))))
+  const lista=veiculos.filter(v=>!q||[v.nome,v.placa,v.contato,rotuloCliente(v)].join(' ').toLowerCase().includes(q)||(qn.length>=3&&(soNum(v.imei).includes(qn)||soNum(v.fone).includes(qn))))
     .sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
   $('aCount').textContent=(q?lista.length+' de ':'')+veiculos.length+' equipamentos';
   $('aList').innerHTML = lista.map(v=>cartaoEquip(v,null)).join('') || '<div class="vempty">Nenhum equipamento encontrado.</div>';
@@ -2323,6 +2325,7 @@ function abrirEquip(id){
   const v=id?veiculos.find(x=>x.id===id):null;
   $('eTitulo').textContent = v ? 'Editar equipamento' : 'Novo equipamento';
   $('eNome').value = v ? v.nome : '';
+  $('ePlaca').value = v ? ((v.raw && v.raw.attributes && v.raw.attributes.placa) || '') : '';
   $('eImei').value = v ? v.imei : ''; $('eImei').disabled = !!v;
   $('eFone').value = v ? fmtFone(v.fone) : '';
   $('eBuscaCli').value='';
@@ -2365,6 +2368,9 @@ $('eSalvar').onclick=async ()=>{
   if(!nome) return erro('Informe o nome do veículo ou equipamento.');
   if(!editandoId && imei.length!==15) return erro('O IMEI precisa ter 15 números.');
   if(fone && fone.length<10) return erro('O número do chip precisa ter DDD e o número.');
+  /* placa: só letras e números, maiúsculas (padrão antigo ABC1234 ou Mercosul ABC1D23) */
+  const placa=$('ePlaca').value.toUpperCase().replace(/[^A-Z0-9]/g,'');
+  if(placa && !/^[A-Z]{3}[0-9][A-Z0-9][0-9]{2}$/.test(placa)) return erro('Placa inválida. Use o formato ABC1234 ou ABC1D23.');
   erro(''); $('eSalvar').disabled=true;
   try{
     await carregarUsuarios();
@@ -2373,9 +2379,11 @@ $('eSalvar').onclick=async ()=>{
     let r;
     if(editandoId){
       const v=veiculos.find(x=>x.id===editandoId);
-      r=await api('/api/devices/'+editandoId,{method:'PUT',headers:JSONH,body:JSON.stringify(Object.assign({},v.raw,{name:nome,phone:fone,contact:email}))});
+      const at=Object.assign({},(v.raw&&v.raw.attributes)||{});
+      if(placa) at.placa=placa; else delete at.placa;
+      r=await api('/api/devices/'+editandoId,{method:'PUT',headers:JSONH,body:JSON.stringify(Object.assign({},v.raw,{name:nome,phone:fone,contact:email,attributes:at}))});
     } else {
-      r=await api('/api/devices',{method:'POST',headers:JSONH,body:JSON.stringify({name:nome,uniqueId:imei,phone:fone,contact:email})});
+      r=await api('/api/devices',{method:'POST',headers:JSONH,body:JSON.stringify({name:nome,uniqueId:imei,phone:fone,contact:email,attributes:placa?{placa:placa}:{}})});
     }
     if(!r.ok) throw new Error(await msgErro(r,'Não foi possível salvar o equipamento'));
     const d=await r.json();
