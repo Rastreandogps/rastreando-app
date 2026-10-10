@@ -101,7 +101,7 @@ main{width:100%;max-width:440px;display:flex;flex-direction:column;gap:16px}
     <div id="videoIos" hidden style="margin-bottom:12px"></div>
     <div class="carrossel" id="carrossel">
       <div class="passo">
-        <div class="t" data-n="1"><span>Toque em <b>Abrir o aplicativo</b> (botão aqui embaixo). Depois faça os passos 2 a 4 na tela do app.</span></div>
+        <div class="t" data-n="1"><span>Toque em <b>Instalar o aplicativo</b> (botão aqui embaixo). Na tela que abrir, faça os passos 2 a 4.</span></div>
       </div>
       <div class="passo">
         <div class="t" data-n="2"><span>Toque nos <b>três pontinhos ⋯</b> da barra de baixo do Safari (canto direito) e depois em <b>Compartilhar</b>.</span></div>
@@ -143,7 +143,7 @@ main{width:100%;max-width:440px;display:flex;flex-direction:column;gap:16px}
     <p style="font-size:15px;line-height:1.45;color:var(--mut)">Para instalar, abra este mesmo endereço no navegador do seu celular (Chrome no Android, Safari no iPhone).</p>
   </section>
 
-  <a class="btn out" id="abrir" href="tempo-real.html">Abrir o aplicativo</a>
+  <a class="btn" id="abrir" href="tempo-real.html" hidden>Instalar o aplicativo</a>
   <p class="peq">Dúvidas? Fale com a Rastreando GPS.</p>
 </main>
 
@@ -160,9 +160,10 @@ main{width:100%;max-width:440px;display:flex;flex-direction:column;gap:16px}
 
   if (standalone) {
     $('jaInstalado').hidden = false;
-    $('abrir').className = 'btn';
+    $('abrir').textContent = 'Abrir o aplicativo'; $('abrir').hidden = false;
   } else if (ios) {
     $('ios').hidden = false;
+    $('abrir').hidden = false; /* no iPhone a instalação continua na tela do app */
     if (navegadorInterno) $('avisoIosWeb').hidden = false;
   } else if (android) {
     $('android').hidden = false;
@@ -205,7 +206,7 @@ main{width:100%;max-width:440px;display:flex;flex-direction:column;gap:16px}
     if (!promptAdiado) { $('manualAndroid').hidden = false; return }
     promptAdiado.prompt();
     promptAdiado.userChoice.then(function(r){
-      if (r && r.outcome === 'accepted') { $('android').hidden = true; $('instaladoAgora').hidden = false; $('abrir').className = 'btn' }
+      if (r && r.outcome === 'accepted') { $('android').hidden = true; $('instaladoAgora').hidden = false }
       promptAdiado = null; $('btnInstalar').disabled = true;
     }).catch(function(){});
   });
