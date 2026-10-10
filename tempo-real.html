@@ -562,7 +562,16 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
 .pickhead{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
 #pickCount{font-size:12.5px;color:var(--mut)}
 .picklist{max-height:min(55vh,460px);overflow-y:auto;margin:0 -6px 10px;padding:0 6px;-webkit-overflow-scrolling:touch}
-.pitem{display:flex;align-items:center;gap:10px;width:100%;padding:10px 10px;margin:0 0 4px;border:0;border-radius:12px;background:none;color:inherit;font:inherit;text-align:left;cursor:pointer}
+.pitem{display:flex;align-items:center;gap:2px;width:100%;padding:0 8px 0 0;margin:0 0 4px;border:0;border-radius:12px;background:none;color:inherit;font:inherit;text-align:left}
+.pitem .chk{width:46px;height:54px}
+.pitem .pbtn{flex:1;min-width:0;display:flex;align-items:center;gap:10px;padding:10px 0;border:0;background:none;color:inherit;font:inherit;text-align:left;cursor:pointer}
+/* caixinha "mostrar todos no mapa" no topo da lista */
+.pickall{display:flex;align-items:center;gap:2px;margin:0 0 8px;padding-right:12px;border-radius:12px;background:var(--card2);cursor:pointer}
+.pickall .chk{width:46px;height:48px}
+.pickall .pickalltx{flex:1;min-width:0;font-weight:650;font-size:14px}
+.pickall .pickmapa{flex:none;font-size:12.5px;color:var(--mut)}
+.chk input:indeterminate + .box{background:var(--cyan);border-color:var(--cyan)}
+.chk input:indeterminate + .box::after{content:"";width:10px;height:0;border:solid #0f1115;border-width:0 0 2.5px 0;transform:none}
 .pitem:hover{background:var(--card2)}
 .pitem.on{background:rgba(37,99,235,.10);box-shadow:inset 0 0 0 1.5px rgba(37,99,235,.45)}
 .pitem .pi{flex:1;min-width:0}
@@ -838,6 +847,7 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
   <div class="box2 pickbox">
     <div class="pickhead"><h3>Escolher veículo</h3><span id="pickCount"></span></div>
     <input class="fld" id="pickBusca" type="search" placeholder="Buscar nome ou placa" autocomplete="off" enterkeyhint="search">
+    <label class="pickall" id="pickAllRow"><span class="chk"><input type="checkbox" id="pickAll" aria-label="Mostrar todos no mapa"><span class="box"></span></span><span class="pickalltx" id="pickAllTx"></span><span class="pickmapa" id="pickNoMapa"></span></label>
     <div class="picklist" id="pickList"></div>
     <div class="actions2" style="grid-template-columns:1fr"><button class="btn btn-out" data-close>Fechar</button></div>
   </div>
@@ -1332,10 +1342,11 @@ function mesclar(ds,ps){
   const ids = new Set(ds.map(d=>d.id));
   veiculos.filter(v=>!ids.has(v.id)).forEach(v=>{ if(v.marker&&map.hasLayer(v.marker)) map.removeLayer(v.marker) });
   veiculos = veiculos.filter(v=>ids.has(v.id));
+  const ocultos = ocultosSalvos();
   ds.forEach(d=>{
     let v = veiculos.find(x=>x.id===d.id);
     if(!v){
-      v = {id:d.id,visivel:true,marker:null,pos:null,de:null,para:null,t0:0,rumo:0,vel:0,
+      v = {id:d.id,visivel:!ocultos.has(d.id),marker:null,pos:null,de:null,para:null,t0:0,rumo:0,vel:0,
            ign:null,bat:null,igEm:0,batEm:0,volt:null,voltEm:0,bloq:false,online:false,fix:null,ultimo:null,real:null,geo:null,geoPos:null,addr:null,posId:null,result:null,placa:'',nome:''};
       lerUltimos(v);
       veiculos.push(v);
@@ -1516,6 +1527,18 @@ function atualizarContagem(){
   const n=visiveis().length;
   $('vCount').textContent=n+' de '+veiculos.length+' no mapa';
   $('vAll').textContent = (n===veiculos.length && n>0) ? 'Desmarcar todos' : 'Selecionar todos';
+  salvarVisibilidade();
+}
+/* o app lembra, neste aparelho, quais veículos você escolheu esconder do mapa (aparelho novo aparece por padrão) */
+const chaveVis = () => 'rg_vis_'+(lsGet('rg_email')||'');
+let visSalvo = '';
+function ocultosSalvos(){
+  try{ return new Set(String(lsGet(chaveVis())||'').split(',').filter(Boolean).map(Number)) }catch(e){ return new Set() }
+}
+function salvarVisibilidade(){
+  if(!veiculos.length) return;
+  const oc=veiculos.filter(v=>!v.visivel).map(v=>v.id).sort((a,b)=>a-b).join(','), k=chaveVis(), marca=k+'|'+oc;
+  if(marca!==visSalvo){ visSalvo=marca; lsSet(k,oc) }
 }
 function sincronizarChecks(){
   document.querySelectorAll('#vList .vrow').forEach(r=>{
@@ -1582,27 +1605,58 @@ function abrirPick(){
   const on=$('pickList').querySelector('.pitem.on'); if(on) try{ on.scrollIntoView({block:'nearest'}) }catch(e){}
   if(window.matchMedia && matchMedia('(pointer:fine)').matches) setTimeout(()=>{ try{ $('pickBusca').focus() }catch(e){} },60);
 }
-function desenharPick(){
+/* aparelhos da lista (já filtrados pela busca) */
+function listaPick(){
   const q=$('pickBusca').value.trim().toLowerCase(), qa=q.replace(/[^a-z0-9]/g,''), qd=soDigitos(q);
-  const lista=veiculos.slice().sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR')).filter(v=>{
+  return veiculos.slice().sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR')).filter(v=>{
     if(!q) return true;
     if(String(v.nome||'').toLowerCase().includes(q)) return true;
     if(qa && String(v.placa||'').toLowerCase().replace(/[^a-z0-9]/g,'').includes(qa)) return true;
     if(ehAdmin && qd.length>=3 && (soDigitos(v.imei).includes(qd) || soDigitos(v.fone).includes(qd))) return true;
     return false;
   });
+}
+function desenharPick(){
+  const q=$('pickBusca').value.trim(), lista=listaPick();
   $('pickCount').textContent=(q?lista.length+' de ':'')+veiculos.length+' veículos';
   $('pickList').innerHTML = lista.map(v=>{
     const st=status(v);
     const sub=[v.placa?esc(v.placa):'', (ehAdmin&&v.fone)?'Chip '+esc(fmtFone(v.fone)):'', (ehAdmin&&v.imei)?'IMEI '+esc(v.imei):''].filter(Boolean).join(' · ');
-    return '<button type="button" class="pitem'+(v.id===selId?' on':'')+'" data-id="'+v.id+'"><div class="pi"><div class="pn">'+esc(v.nome)+'</div>'+(sub?'<div class="ps">'+sub+'</div>':'')+'</div><span class="status sm '+st[1]+'">'+esc(st[0])+'</span></button>';
+    return '<div class="pitem'+(v.id===selId?' on':'')+'" data-id="'+v.id+'">'+
+      '<label class="chk"><input type="checkbox"'+(v.visivel?' checked':'')+' aria-label="Mostrar '+esc(v.nome)+' no mapa"><span class="box"></span></label>'+
+      '<button type="button" class="pbtn"><div class="pi"><div class="pn">'+esc(v.nome)+'</div>'+(sub?'<div class="ps">'+sub+'</div>':'')+'</div><span class="status sm '+st[1]+'">'+esc(st[0])+'</span></button></div>';
   }).join('') || '<div class="pvz">Nenhum veículo encontrado.</div>';
+  sincronizarPick();
+}
+/* caixinhas da lista: quais aparelhos aparecem no mapa (a mesma escolha da aba Veículos) */
+function sincronizarPick(){
+  const lista=listaPick(), n=lista.filter(v=>v.visivel).length, q=$('pickBusca').value.trim(), all=$('pickAll');
+  all.checked = lista.length>0 && n===lista.length;
+  all.indeterminate = n>0 && n<lista.length;
+  all.disabled = !lista.length;
+  $('pickAllTx').textContent = q ? 'Marcar os '+lista.length+' da busca' : 'Marcar todos no mapa';
+  $('pickNoMapa').textContent = visiveis().length+' de '+veiculos.length+' no mapa';
+  document.querySelectorAll('#pickList .pitem').forEach(r=>{
+    const v=veiculos.find(x=>x.id===+r.dataset.id); if(!v) return;
+    r.querySelector('input').checked=v.visivel; r.classList.toggle('on',v.id===selId);
+  });
 }
 $('pickBusca').addEventListener('input',desenharPick);
-$('pickBusca').addEventListener('keydown',e=>{ if(e.key==='Enter'){ const b=$('pickList').querySelector('.pitem'); if(b){ e.preventDefault(); b.click() } } });
+$('pickBusca').addEventListener('keydown',e=>{ if(e.key==='Enter'){ const b=$('pickList').querySelector('.pbtn'); if(b){ e.preventDefault(); b.click() } } });
+$('pickList').addEventListener('change',e=>{
+  const r=e.target.closest('.pitem'); if(!r) return;
+  const v=veiculos.find(x=>x.id===+r.dataset.id); if(!v) return;
+  v.visivel=e.target.checked;
+  sincronizarChecks(); mudouSelecao(); sincronizarPick();
+});
+$('pickAll').addEventListener('change',e=>{
+  const marcar=e.target.checked;
+  listaPick().forEach(v=>{ v.visivel=marcar });
+  sincronizarChecks(); mudouSelecao(); sincronizarPick();
+});
 $('pickList').addEventListener('click',e=>{
-  const b=e.target.closest('.pitem'); if(!b) return;
-  const v=veiculos.find(x=>x.id===+b.dataset.id); if(!v) return;
+  const b=e.target.closest('.pbtn'); if(!b) return;
+  const v=veiculos.find(x=>x.id===+b.closest('.pitem').dataset.id); if(!v) return;
   fechar();
   escolherVeiculo(v,false);
 });
@@ -2786,6 +2840,20 @@ $('eSalvar').onclick=async ()=>{
   if(editandoId && !eqPronto) return erro('Aguarde: carregando os clientes deste equipamento.');
   erro(''); $('eSalvar').disabled=true;
   try{
+    /* NUNCA pode haver IMEI nem chip repetido: confere na lista atual do servidor (todos os aparelhos) */
+    const rl=await api('/api/devices');
+    if(!rl.ok) throw new Error('Não consegui conferir se o IMEI e o chip já existem. Tente de novo.');
+    const todos=await rl.json();
+    if(!editandoId){
+      const igI=todos.find(x=>soDigitos(x.uniqueId)===imei);
+      if(igI){ erro('Este IMEI já está cadastrado em "'+(igI.name||'outro equipamento')+'". Não pode repetir.'); $('eSalvar').disabled=false; return }
+    }
+    if(fone){
+      const chave=n=>{ let t=soDigitos(n); if(t.length>11 && t.indexOf('55')===0) t=t.slice(2); return t.length>=10 ? t.slice(0,2)+t.slice(-8) : t };
+      const kf=chave(fone);
+      const igF=todos.find(x=>x.id!==editandoId && x.phone && chave(x.phone)===kf);
+      if(igF){ erro('Este número de chip já está em "'+(igF.name||'outro equipamento')+'". Não pode repetir.'); $('eSalvar').disabled=false; return }
+    }
     await carregarUsuarios();
     const marcados=usuarios.filter(u=>!u.administrator && eqSel.has(u.id));
     /* "contato" do aparelho = cliente principal (recebe o WhatsApp do desbloqueio): mantém o atual se continuar marcado */
