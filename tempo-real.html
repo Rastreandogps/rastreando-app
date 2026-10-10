@@ -434,7 +434,6 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
 #aview .vtop{padding:18px 20px 6px}
 #aview .vlist{padding:8px 20px 24px}
 #aview .anovo{margin-top:14px}
-#aview #aFinAtualizar{display:block;margin-top:8px}
 #aview .search{margin-top:12px}
 #aList{display:flex;flex-direction:column;gap:12px}
 #aList > details{margin:0;flex:none}
@@ -477,6 +476,22 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
 #aview .eclis2{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
 #aview .eclis2 .ecli{margin-top:0}
 @media (max-width:420px){#aview details.eq summary{display:flex;flex-wrap:wrap;align-items:flex-end;gap:0 8px}#aview details.eq .etopo{width:100%;padding-right:20px}#aview details.eq .eclis2{flex:1;min-width:0}#aview details.eq .eacoes{position:static;margin-top:10px}}
+/* barra compacta do painel (10/10/2026) */
+#aview .abar{display:flex;align-items:center;gap:8px}
+#aview .abar .atabs{display:flex;flex:none;margin:0;padding:3px;gap:3px;border-radius:13px}
+#aview .abar .atab{width:42px;height:38px;padding:0;display:flex;align-items:center;justify-content:center;border-radius:10px}
+#aview .abar .atab svg{width:20px;height:20px}
+#aview .abar .search{flex:1;min-width:0;margin:0;height:44px}
+#aview .aico{flex:none;width:44px;height:44px;border-radius:13px;border:1px solid var(--line);background:var(--card);color:var(--mut);display:flex;align-items:center;justify-content:center;cursor:pointer}
+#aview .aico svg{width:20px;height:20px}
+#aview .aico.anovo{width:46px;height:46px;margin:0;border:0;color:#fff;border-radius:50%}
+#aview .aico.anovo.verde{background:linear-gradient(135deg,#22b35e,#16a34a);box-shadow:0 6px 14px rgba(22,163,74,.3)}
+#aview .aico.anovo.azul{background:linear-gradient(135deg,#3b82f6,#2563eb);box-shadow:0 6px 14px rgba(37,99,235,.3)}
+#aview .aico.girando svg{animation:giraFin 1s linear infinite}
+@keyframes giraFin{to{transform:rotate(360deg)}}
+#aview .ameta{font-size:12.5px;color:var(--mut);margin:10px 2px 0}
+#aview .ameta b{color:var(--txt);font-weight:650}
+#aview .vtop{padding-top:14px;padding-bottom:4px}
 /* vínculo de vários clientes no equipamento */
 .eclis{max-height:220px;overflow-y:auto;border:1px solid var(--line);border-radius:12px;background:var(--card2);margin-bottom:6px}
 .eclis label{display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid var(--line);cursor:pointer;font-size:14px}
@@ -583,15 +598,17 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
   </section>
   <section class="aview" id="aview">
     <div class="vtop">
-      <div class="vtitle"><h2>Administração</h2><span class="vcount" id="aCount"></span></div>
-      <div class="atabs">
-        <button class="atab on" id="aTabEquip">Equipamentos</button>
-        <button class="atab" id="aTabCli">Clientes</button>
+      <div class="abar">
+        <div class="atabs">
+          <button class="atab on" id="aTabEquip" title="Equipamentos" aria-label="Equipamentos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="10" r="3"/><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/></svg></button>
+          <button class="atab" id="aTabCli" title="Clientes" aria-label="Clientes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 3-5.5 6.5-5.5s6.5 1.9 6.5 5.5"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18.5 14.8c2 .8 3 2.5 3 5.2"/></svg></button>
+        </div>
+        <input class="search" id="aSearch" type="search" placeholder="Buscar" autocomplete="off">
+        <button class="aico" id="aFinAtualizar" style="display:none" title="Atualizar situação financeira" aria-label="Atualizar situação financeira"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg></button>
+        <button class="aico anovo" id="aNovo" title="Novo equipamento" aria-label="Novo equipamento"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
       </div>
-      <button class="btn btn-red anovo" id="aNovo">+ Novo equipamento</button>
-      <button class="linkbtn" id="aFinAtualizar" style="display:none">Atualizar situação financeira</button>
+      <div class="ameta"><b id="aCount"></b><span id="aFinTxt"></span><span id="aTabNome" hidden></span></div>
       <button class="linkbtn" id="aProteger" style="display:none">Proteger comandos dos clientes</button>
-      <input class="search" id="aSearch" type="search" placeholder="Buscar nome, IMEI, chip ou e-mail" autocomplete="off">
     </div>
     <div class="vlist" id="aList"></div>
   </section>
@@ -2017,12 +2034,13 @@ function rotuloFin(){
   return 'Atualizar situação financeira (última: '+h+')';
 }
 async function carregarFin(forcar){
-  try{ const r=await fn('situacao',{forcar:!!forcar}); finMapa=r.clientes||{}; finEm=Date.now(); $('aFinAtualizar').textContent=rotuloFin(); if(abaAdmin==='cli' && $('aview').classList.contains('show')) desenharClientes(); return true }
+  try{ const r=await fn('situacao',{forcar:!!forcar}); finMapa=r.clientes||{}; finEm=Date.now(); rotularFin(); if(abaAdmin==='cli' && $('aview').classList.contains('show')) desenharClientes(); return true }
   catch(e){ if(forcar) toast('Não consegui atualizar o financeiro: '+e.message); return false }
 }
 /* ao abrir o painel ou a aba Clientes, atualiza se a informação tiver mais de 30 segundos */
 const finVelho = () => Date.now()-finEm>30000;
-$('aFinAtualizar').onclick=async ()=>{ const b=$('aFinAtualizar'); b.disabled=true; b.textContent='Atualizando...'; const ok=await carregarFin(true); if(ok) toast('Situação financeira atualizada.'); b.disabled=false; b.textContent=rotuloFin() };
+function rotularFin(){ const t=rotuloFin(); $('aFinAtualizar').title=t; $('aFinTxt').textContent=(abaAdmin==='cli'&&finEm)?' · financeiro às '+new Date(finEm).toLocaleTimeString('pt-BR',{timeZone:'America/Sao_Paulo',hour:'2-digit',minute:'2-digit'}):'' }
+$('aFinAtualizar').onclick=async ()=>{ const b=$('aFinAtualizar'); b.disabled=true; b.classList.add('girando'); const ok=await carregarFin(true); if(ok) toast('Situação financeira atualizada.'); b.disabled=false; b.classList.remove('girando'); rotularFin() };
 /* ===== COMANDOS FIXOS =====
    O cliente só pode enviar Bloquear/Desbloquear (comandos salvos no Traccar). Comando livre fica barrado pelo servidor
    (campo limitCommands do usuário). Quem cria/ajusta isso é o administrador. */
@@ -2114,10 +2132,12 @@ async function abrirAdmin(){
 function desenharAdmin(){
   $('aTabEquip').classList.toggle('on',abaAdmin==='equip');
   $('aTabCli').classList.toggle('on',abaAdmin==='cli');
-  $('aNovo').textContent = abaAdmin==='equip' ? '+ Novo equipamento' : '+ Novo cliente';
+  $('aNovo').title = $('aNovo').ariaLabel = abaAdmin==='equip' ? 'Novo equipamento' : 'Novo cliente'; $('aNovo').setAttribute('aria-label',$('aNovo').title);
+  $('aTabNome').textContent = abaAdmin==='equip' ? 'Equipamentos' : 'Clientes'; rotularFin();
   $('aNovo').classList.toggle('verde',abaAdmin==='equip'); $('aNovo').classList.toggle('azul',abaAdmin!=='equip');
   $('aSearch').style.display = '';
-  const ph = abaAdmin==='equip' ? 'Buscar por nome, placa, IMEI, chip ou cliente' : 'Buscar cliente por nome, login ou CPF';
+  const ph = abaAdmin==='equip' ? 'Buscar equipamento' : 'Buscar cliente';
+  $('aSearch').title = abaAdmin==='equip' ? 'Busca por nome, placa, IMEI, chip ou cliente' : 'Busca por nome, login ou CPF';
   if($('aSearch').placeholder!==ph){ buscaAdmin[abaAnt||'equip']=$('aSearch').value; $('aSearch').value=buscaAdmin[abaAdmin]||''; $('aSearch').placeholder=ph }
   abaAnt=abaAdmin;
   $('aFinAtualizar').style.display = abaAdmin==='cli' ? '' : 'none';
