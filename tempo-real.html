@@ -307,6 +307,10 @@ nav button{position:relative}
 .ccor.on{box-shadow:0 0 0 3px var(--card),0 0 0 5px var(--txt)}
 .ccor.pad{background:conic-gradient(#e3262f 0 50%,#f5b83d 50% 100%)}
 .ccor.pad::after{content:'A';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.6)}
+.copac{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:2px 0 14px}
+.copc{height:38px;border-radius:11px;border:1px solid var(--line);background:var(--card2);color:var(--txt);font-size:12.5px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer}
+.copc i{width:14px;height:14px;border-radius:4px;border:2px solid currentColor;display:inline-block}
+.copc.on{border-color:var(--txt);box-shadow:0 0 0 1px var(--txt)}
 .cdot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:7px;vertical-align:1px}
 #cpanel .falta{border-color:#e3262f!important;background:rgba(227,38,47,.08)!important;box-shadow:0 0 0 3px rgba(227,38,47,.15)}
 #cpanel .falta-lbl{color:#e3262f!important}
@@ -568,6 +572,8 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
     <input type="range" id="cpRaio" min="0" max="100" step="1" value="30">
     <label class="flbl">Cor da cerca: <b id="cpCorTxt">Padrão</b></label>
     <div class="ccores" id="cpCores"></div>
+    <label class="flbl">Preenchimento: <b id="cpOpacTxt">Padrão</b></label>
+    <div class="copac" id="cpOpac"></div>
     <label class="flbl" for="cpQuando">Avisar quando o veículo</label>
     <select class="fld" id="cpQuando">
       <option value="">Escolha: entrar, sair ou os dois</option>
@@ -2529,12 +2535,25 @@ function raioDe(v){ const r=50*Math.pow(100,v/100); return r<500 ? Math.round(r/
 /* cores da cerca: "Padrão" = vermelha se bloqueia, amarela se só avisa (como sempre foi) */
 const CORES_CERCA=[['','Padrão'],['#2563eb','Azul'],['#16a34a','Verde'],['#8b5cf6','Roxo'],['#ec4899','Rosa'],['#f97316','Laranja'],['#0891b2','Ciano'],['#64748b','Cinza']];
 const corValida=c=>CORES_CERCA.some(x=>x[0] && x[0]===c);
+const OPAC_CERCA=[['','Padrão',0.08],['0.2','Média',0.2],['0.35','Forte',0.35],['0.5','Bem forte',0.5]];
+const opacValida=o=>OPAC_CERCA.some(x=>x[0] && x[0]===String(o));
+const opacDaCerca=a=>{ a=a||{}; const x=OPAC_CERCA.find(y=>y[0] && y[0]===String(a.opac)); return x ? x[2] : 0.08 };
+let opacEscolhida='';
+function desenharOpac(){
+  const cor=corEscolhida || ($('cpBloq').checked ? '#e3262f' : '#f5b83d');
+  $('cpOpac').innerHTML=OPAC_CERCA.map(x=>'<button type="button" class="copc'+(x[0]===opacEscolhida?' on':'')+'" data-op="'+x[0]+'"><i style="color:'+cor+';background:'+cor+';opacity:1;background-color:rgba(0,0,0,0)"></i>'+x[1]+'</button>').join('');
+  $('cpOpac').querySelectorAll('i').forEach((el,i)=>{ el.style.background='color-mix(in srgb, '+cor+' '+Math.round(OPAC_CERCA[i][2]*100)+'%, transparent)' });
+  $('cpOpacTxt').textContent=(OPAC_CERCA.find(x=>x[0]===opacEscolhida)||OPAC_CERCA[0])[1];
+  if(desenho && desenho.circulo) desenho.circulo.setStyle({fillOpacity:opacEscolhida?+opacEscolhida:0.12});
+}
+$('cpOpac').addEventListener('click',e=>{ const b=e.target.closest('[data-op]'); if(!b) return; opacEscolhida=b.dataset.op; desenharOpac() });
 const corDaCerca=a=>{ a=a||{}; return corValida(a.cor) ? a.cor : (a.acao==='bloquear' ? '#e3262f' : '#f5b83d') };
 let corEscolhida='';
 function desenharCores(){
   $('cpCores').innerHTML=CORES_CERCA.map(x=>'<button type="button" class="ccor'+(x[0]?'':' pad')+(x[0]===corEscolhida?' on':'')+'" data-cor="'+x[0]+'" title="'+x[1]+'" aria-label="Cor '+x[1]+'"'+(x[0]?' style="background:'+x[0]+'"':'')+'></button>').join('');
   $('cpCorTxt').textContent=(CORES_CERCA.find(x=>x[0]===corEscolhida)||CORES_CERCA[0])[1];
   if(desenho && desenho.circulo) desenho.circulo.setStyle({color:corEscolhida || ($('cpBloq').checked ? '#e3262f' : '#f5b83d')});
+  desenharOpac();
 }
 $('cpCores').addEventListener('click',e=>{ const b=e.target.closest('[data-cor]'); if(!b) return; corEscolhida=b.dataset.cor; desenharCores() });
 async function carregarCercas(){
@@ -2546,7 +2565,7 @@ async function carregarCercas(){
     cercas=lista.map(g=>({g:g,c:lerCirculo(g.area)})).filter(x=>x.c);
     camadaCercas.clearLayers();
     cercas.forEach(x=>{
-      L.circle([x.c.lat,x.c.lon],{radius:x.c.raio,color:corDaCerca(x.g.attributes),weight:2,dashArray:'6 6',fillOpacity:.08})
+      L.circle([x.c.lat,x.c.lon],{radius:x.c.raio,color:corDaCerca(x.g.attributes),weight:2,dashArray:'6 6',fillOpacity:opacDaCerca(x.g.attributes)})
         .bindTooltip(x.g.name||'Cerca').addTo(camadaCercas);
     });
     desenharCercasLista();
@@ -2604,6 +2623,7 @@ function abrirDesenho(edit){
   $('cpNome').value=edit?(edit.g.name||''):''; $('cpRaio').value=edit?valorDoRaio(edit.c.raio):30; $('cpRaioTxt').textContent=fmtRaio(desenho.raio);
   $('cpQuando').value=edit?(a.quando||'ambos'):''; $('cpErro').textContent=''; limparFaltas();
   corEscolhida=(edit && corValida(a.cor)) ? a.cor : '';
+  opacEscolhida=(edit && opacValida(a.opac)) ? String(a.opac) : '';
   $('cpBusca').value=''; $('cpRes').classList.remove('show'); $('cpRes').innerHTML='';
   const eraBloq=!!(edit && a.acao==='bloquear');
   $('cpBloq').checked=eraBloq; bloqConfirmado=eraBloq; $('cpBloqRow').style.display=CERCA_BLOQUEIO?'':'none';
@@ -2749,6 +2769,7 @@ $('cpSalvar').onclick=async()=>{
       const corpo=Object.assign({},g,{name:nome,area:'CIRCLE ('+c.lat.toFixed(6)+' '+c.lng.toFixed(6)+', '+raio+')',
         attributes:Object.assign({},a0,{acao:bloq?'bloquear':'notificar',quando:quandoSel,veiculos:todos.join(','),editada:new Date().toISOString(),jaDentro:jaDentro.join(','),lados:ladosTodos.join(',')})});
       if(corEscolhida) corpo.attributes.cor=corEscolhida; else delete corpo.attributes.cor;
+      if(opacEscolhida) corpo.attributes.opac=opacEscolhida; else delete corpo.attributes.opac;
       const r=await api('/api/geofences/'+g.id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(corpo)});
       if(!r.ok) throw new Error('O servidor não aceitou salvar a cerca (erro '+r.status+').');
       const falhas=[];
@@ -2779,6 +2800,7 @@ $('cpSalvar').onclick=async()=>{
     const corpo={name:nome,description:'',area:'CIRCLE ('+c.lat.toFixed(6)+' '+c.lng.toFixed(6)+', '+raio+')',
       attributes:{acao:bloq?'bloquear':'notificar',quando:$('cpQuando').value,veiculos:ids.join(','),criada:new Date().toISOString(),jaDentro:jaDentro.join(','),lados:lados.join(','),dono:(lsGet('rg_email')||'').toLowerCase()}};
     if(corEscolhida) corpo.attributes.cor=corEscolhida;
+    if(opacEscolhida) corpo.attributes.opac=opacEscolhida;
     const r=await api('/api/geofences',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(corpo)});
     if(!r.ok) throw new Error('O servidor não aceitou criar a cerca (erro '+r.status+').');
     criada=await r.json();
