@@ -507,6 +507,25 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
 .vlist{min-height:0;-webkit-overflow-scrolling:touch}
 #aview .ficha2{margin-top:8px;grid-template-columns:repeat(2,minmax(0,1fr))!important}
 #aview .fi.todo{grid-column:1/-1}
+/* trocar de veículo pelo nome no cartão (10/10/2026) */
+.vpick{display:inline-flex;align-items:center;gap:6px;min-width:0;max-width:100%;padding:3px 8px 3px 0;margin:-3px 0;border:0;border-radius:10px;background:none;color:inherit;font:inherit;text-align:left;cursor:default}
+.vpick #vName{overflow-wrap:anywhere}
+.vpick .pickseta{display:none;flex:none;width:22px;height:22px;padding:3px;border-radius:7px;background:var(--card2);border:1px solid var(--line);color:var(--mut)}
+.vpick.multi{cursor:pointer}
+.vpick.multi .pickseta{display:block}
+.vpick.multi:active{opacity:.7}
+.pickhead{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+#pickCount{font-size:12.5px;color:var(--mut)}
+.picklist{max-height:min(55vh,460px);overflow-y:auto;margin:0 -6px 10px;padding:0 6px;-webkit-overflow-scrolling:touch}
+.pitem{display:flex;align-items:center;gap:10px;width:100%;padding:10px 10px;margin:0 0 4px;border:0;border-radius:12px;background:none;color:inherit;font:inherit;text-align:left;cursor:pointer}
+.pitem:hover{background:var(--card2)}
+.pitem.on{background:rgba(37,99,235,.10);box-shadow:inset 0 0 0 1.5px rgba(37,99,235,.45)}
+.pitem .pi{flex:1;min-width:0}
+.pitem .pn{font-weight:650;font-size:15px;overflow-wrap:anywhere}
+.pitem .ps{font-size:12px;color:var(--mut);margin-top:2px;overflow-wrap:anywhere}
+.pitem .status{flex:none}
+.pvz{padding:18px 8px;text-align:center;color:var(--mut);font-size:14px}
+@media (min-width:900px){#mPick{align-items:center}#mPick .box2{border-radius:18px}}
 /* vínculo de vários clientes no equipamento */
 .eclis{max-height:220px;overflow-y:auto;border:1px solid var(--line);border-radius:12px;background:var(--card2);margin-bottom:6px}
 .eclis label{display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid var(--line);cursor:pointer;font-size:14px}
@@ -559,7 +578,7 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
       <div class="handlewrap"><span class="handle"></span></div>
       <div class="row">
         <div>
-          <div class="vname"><span id="vName"></span><button id="btnRenome" aria-label="Editar nome do veículo" title="Editar nome"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></button><button id="btnAncora" aria-label="Cerca rápida (âncora)" title="Cerca rápida (âncora)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="2.2"/><path d="M12 7.2V21"/><path d="M8 11h8"/><path d="M5 14c0 4 3 7 7 7s7-3 7-7"/></svg></button></div>
+          <div class="vname"><button id="vPick" class="vpick" type="button" aria-label="Trocar de veículo" title="Trocar de veículo"><span id="vName"></span><svg class="pickseta" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button><button id="btnRenome" aria-label="Editar nome do veículo" title="Editar nome"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></button><button id="btnAncora" aria-label="Cerca rápida (âncora)" title="Cerca rápida (âncora)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="2.2"/><path d="M12 7.2V21"/><path d="M8 11h8"/><path d="M5 14c0 4 3 7 7 7s7-3 7-7"/></svg></button></div>
           <div class="plate" id="vPlate"></div>
         </div>
         <div class="stwrap"><span class="status" id="vStatus"></span><div class="upd" id="vUpd"></div></div>
@@ -765,6 +784,16 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
       <button class="btn btn-out" data-close>Cancelar</button>
       <button class="btn btn-red" id="eSalvar">Salvar</button>
     </div>
+  </div>
+</div>
+
+<!-- Escolher veículo (toque no nome do veículo no cartão) -->
+<div class="modal" id="mPick">
+  <div class="box2 pickbox">
+    <div class="pickhead"><h3>Escolher veículo</h3><span id="pickCount"></span></div>
+    <input class="fld" id="pickBusca" type="search" placeholder="Buscar nome ou placa" autocomplete="off" enterkeyhint="search">
+    <div class="picklist" id="pickList"></div>
+    <div class="actions2" style="grid-template-columns:1fr"><button class="btn btn-out" data-close>Fechar</button></div>
   </div>
 </div>
 
@@ -1371,7 +1400,7 @@ function atualizar(){
   $('vazio').style.display = (v || !veiculos.length) ? 'none' : 'block';
   if(v){
     const [txt,cls]=status(v);
-    $('vName').textContent=v.nome;
+    $('vName').textContent=v.nome; $('vPick').classList.toggle('multi',veiculos.length>1);
     $('vPlate').textContent=v.placa;
     $('vStatus').textContent=txt; $('vStatus').className='status '+cls;
     $('sSpeed').textContent=v.vel+' km/h';
@@ -1462,6 +1491,45 @@ $('vAll').onclick=()=>{
   sincronizarChecks(); mudouSelecao();
 };
 $('vSearch').addEventListener('input',desenharLista);
+/* ===== trocar de veículo direto no cartão (toque no nome) ===== */
+function abrirPick(){
+  if(veiculos.length<2) return;
+  $('pickBusca').value='';
+  $('pickBusca').placeholder = ehAdmin ? 'Buscar nome, placa, IMEI ou chip' : 'Buscar nome ou placa';
+  desenharPick(); abrir('mPick');
+  const on=$('pickList').querySelector('.pitem.on'); if(on) try{ on.scrollIntoView({block:'nearest'}) }catch(e){}
+  if(window.matchMedia && matchMedia('(pointer:fine)').matches) setTimeout(()=>{ try{ $('pickBusca').focus() }catch(e){} },60);
+}
+function desenharPick(){
+  const q=$('pickBusca').value.trim().toLowerCase(), qa=q.replace(/[^a-z0-9]/g,''), qd=soDigitos(q);
+  const lista=veiculos.slice().sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR')).filter(v=>{
+    if(!q) return true;
+    if(String(v.nome||'').toLowerCase().includes(q)) return true;
+    if(qa && String(v.placa||'').toLowerCase().replace(/[^a-z0-9]/g,'').includes(qa)) return true;
+    if(ehAdmin && qd.length>=3 && (soDigitos(v.imei).includes(qd) || soDigitos(v.fone).includes(qd))) return true;
+    return false;
+  });
+  $('pickCount').textContent=(q?lista.length+' de ':'')+veiculos.length+' veículos';
+  $('pickList').innerHTML = lista.map(v=>{
+    const st=status(v);
+    const sub=[v.placa?esc(v.placa):'', (ehAdmin&&v.fone)?'Chip '+esc(fmtFone(v.fone)):'', (ehAdmin&&v.imei)?'IMEI '+esc(v.imei):''].filter(Boolean).join(' · ');
+    return '<button type="button" class="pitem'+(v.id===selId?' on':'')+'" data-id="'+v.id+'"><div class="pi"><div class="pn">'+esc(v.nome)+'</div>'+(sub?'<div class="ps">'+sub+'</div>':'')+'</div><span class="status sm '+st[1]+'">'+esc(st[0])+'</span></button>';
+  }).join('') || '<div class="pvz">Nenhum veículo encontrado.</div>';
+}
+$('pickBusca').addEventListener('input',desenharPick);
+$('pickBusca').addEventListener('keydown',e=>{ if(e.key==='Enter'){ const b=$('pickList').querySelector('.pitem'); if(b){ e.preventDefault(); b.click() } } });
+$('pickList').addEventListener('click',e=>{
+  const b=e.target.closest('.pitem'); if(!b) return;
+  const v=veiculos.find(x=>x.id===+b.dataset.id); if(!v) return;
+  fechar();
+  if(!v.pos){ toast('Este aparelho ainda não enviou posição'); return }
+  v.visivel=true; aplicarVisibilidade(); selId=v.id; recolhido=false;
+  sincronizarChecks(); atualizarContagem();
+  setSeguir(true); atualizar();
+});
+$('mPick').addEventListener('click',e=>{ if(e.target===$('mPick')) fechar() });
+$('vPick').addEventListener('pointerdown',e=>{ if(veiculos.length>1) e.stopPropagation() });
+$('vPick').onclick=e=>{ e.stopPropagation(); abrirPick() };
 
 /* ===== BLOQUEIO / DESBLOQUEIO (comando real) ===== */
 function abrir(id){$(id).classList.add('show')}
