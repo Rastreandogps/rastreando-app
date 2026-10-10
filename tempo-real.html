@@ -505,6 +505,8 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
 .login,.modal{top:0;right:0;bottom:0;left:0}
 .aview,.fview,.vview,.cview,.alview,#map{top:0;right:0;bottom:0;left:0}
 .vlist{min-height:0;-webkit-overflow-scrolling:touch}
+#aview .ficha2{margin-top:8px;grid-template-columns:repeat(2,minmax(0,1fr))!important}
+#aview .fi.todo{grid-column:1/-1}
 /* vínculo de vários clientes no equipamento */
 .eclis{max-height:220px;overflow-y:auto;border:1px solid var(--line);border-radius:12px;background:var(--card2);margin-bottom:6px}
 .eclis label{display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid var(--line);cursor:pointer;font-size:14px}
@@ -2035,13 +2037,35 @@ function valorAcesso(u){
   const disp=NOME_DISP[a.disp]||'';
   return esc(fmtHora(a.ultimoMs))+' <span class="fmut">('+haQuanto(a.ultimoMs)+(disp?' · '+disp:'')+')</span>';
 }
-function valorBloqueio(u){
+function valorEvento(u,pre){
   if(!acessosMapa) return '<span class="fmut">carregando...</span>';
   const a=acessosMapa[u.id];
-  if(!a || !a.ultBloqMs) return '<span class="fmut">nenhum registrado</span>';
-  const v=veiculos.find(x=>x.id===a.ultBloqDev);
-  const nome=(v&&v.nome)||a.ultBloqNome||'';
-  return esc(fmtHora(a.ultBloqMs))+' <span class="fmut">('+haQuanto(a.ultBloqMs)+(nome?' · '+esc(nome):'')+(a.ultBloqVia==='sms'?' · por SMS':'')+')</span>';
+  if(!a || !a[pre+'Ms']) return '<span class="fmut">nenhum registrado</span>';
+  const v=veiculos.find(x=>x.id===a[pre+'Dev']);
+  const nome=(v&&v.nome)||a[pre+'Nome']||'';
+  return esc(fmtHora(a[pre+'Ms']))+' <span class="fmut">('+haQuanto(a[pre+'Ms'])+(nome?' · '+esc(nome):'')+(a[pre+'Via']==='sms'?' · por SMS':'')+')</span>';
+}
+const valorBloqueio = u => valorEvento(u,'ultBloq');
+const valorDesbloqueio = u => valorEvento(u,'ultDesb');
+function durTxt(ms){
+  const m=Math.round(ms/60000); if(m<60) return m+' min';
+  const h=Math.floor(m/60), d=Math.floor(h/24);
+  if(d>=1) return d+(d===1?' dia':' dias')+(h%24?' e '+(h%24)+' h':'');
+  return h+' h'+(m%60?' '+(m%60)+' min':'');
+}
+/* quanto tempo o veículo ficou bloqueado nos últimos 30 dias (pelos bloqueios/desbloqueios que o cliente pediu) */
+function usoBloqueio(u){
+  if(!acessosMapa) return '<span class="fmut">carregando...</span>';
+  const a=acessosMapa[u.id], agora=Date.now(), ini=agora-30*86400000;
+  const evs=((a&&a.eventos)||[]).filter(e=>e&&e.t>=ini).sort((x,y)=>x.t-y.t);
+  const nBloq=evs.filter(e=>e.tipo==='bloq').length;
+  if(!nBloq) return '<span class="fmut">nenhum bloqueio</span>';
+  const aberto={}; let total=0;
+  evs.forEach(e=>{ if(e.tipo==='bloq'){ if(aberto[e.dev]==null) aberto[e.dev]=e.t } else if(aberto[e.dev]!=null){ total+=e.t-aberto[e.dev]; delete aberto[e.dev] } });
+  const abertos=Object.values(aberto); let agoraTxt='';
+  if(abertos.length){ const desde=Math.min(...abertos); total+=abertos.reduce((s,t)=>s+(agora-t),0); agoraTxt=' · <span class="bd-mal">bloqueado agora há '+durTxt(agora-desde)+'</span>' }
+  const alto=total>3*86400000;
+  return nBloq+(nBloq===1?' bloqueio':' bloqueios')+' · <span class="'+(alto?'bd-am':'')+'">'+durTxt(total)+' bloqueado no total</span>'+agoraTxt;
 }
 function linhaAcesso(u){
   if(!acessosMapa) return '<div class="s">Último acesso: carregando...</div>';
@@ -2286,7 +2310,11 @@ function desenharClientes(){
           '<div class="fi"><span class="fl">Acesso</span><span class="fv"><span class="pill '+(u.disabled?'bd-mal':'bd-ok')+'">'+(u.disabled?'Desativado':'Ativo')+'</span></span></div>'+
           '<div class="fi"><span class="fl">Financeiro</span><span class="fv"><span class="pill '+(fin.c||'neutro')+'">'+esc(fin.t)+'</span></span></div>'+
           '<div class="fi largo"><span class="fl">Último acesso</span><span class="fv">'+valorAcesso(u)+'</span></div>'+
-          '<div class="fi largo"><span class="fl">Último bloqueio enviado</span><span class="fv">'+valorBloqueio(u)+'</span></div>'+
+        '</div>'+
+        '<div class="ficha ficha2">'+
+          '<div class="fi"><span class="fl">Último bloqueio</span><span class="fv">'+valorBloqueio(u)+'</span></div>'+
+          '<div class="fi"><span class="fl">Último desbloqueio</span><span class="fv">'+valorDesbloqueio(u)+'</span></div>'+
+          '<div class="fi todo"><span class="fl">Bloqueios nos últimos 30 dias</span><span class="fv">'+usoBloqueio(u)+'</span></div>'+
         '</div>'+
         '<div class="vchips"><span class="qtd">'+ap.length+(ap.length===1?' veículo':' veículos')+' <span class="qseta">▾</span></span>'+
           ap.map(v=>'<span class="vchip qnomes">'+esc(v.nome)+(v.placa?' <small>'+esc(v.placa)+'</small>':'')+'</span>').join('')+'</div>'+
