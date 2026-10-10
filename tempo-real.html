@@ -1504,6 +1504,7 @@ $('cmdOk').onclick=async ()=>{
   const acao=acaoCmd, bloquear=acao==='bloquear', btn=bloquear?$('btnBlock'):$('btnUnblock');
   const rotulo=bloquear?'Bloquear':'Desbloquear';
   fechar(); cmdAndamento=true;
+  if(bloquear) registrarBloqueio(v); // registra o envio do bloqueio (mesmo que o rastreador não confirme)
   btn.innerHTML='<span class="spin"></span>Enviando...';
   const posAntes=v.posId;
   try{
@@ -1999,6 +2000,11 @@ function registrarAcesso(){
   fetch(DESB_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',
     body:JSON.stringify({acao:'acesso',token:t,disp:dispAtual()})}).catch(()=>{});
 }
+function registrarBloqueio(v){
+  const t=lsGet('rg_token'); if(!t||!v) return;
+  fetch(DESB_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',
+    body:JSON.stringify({acao:'bloqueioEnviado',token:t,deviceId:v.id,disp:dispAtual()})}).catch(()=>{});
+}
 let saiuEm=0;
 document.addEventListener('visibilitychange',()=>{
   if(document.visibilityState==='hidden') saiuEm=Date.now();
@@ -2028,6 +2034,14 @@ function valorAcesso(u){
   if(!a || !a.ultimoMs) return '<span class="bd-am">sem registro ainda</span>';
   const disp=NOME_DISP[a.disp]||'';
   return esc(fmtHora(a.ultimoMs))+' <span class="fmut">('+haQuanto(a.ultimoMs)+(disp?' · '+disp:'')+')</span>';
+}
+function valorBloqueio(u){
+  if(!acessosMapa) return '<span class="fmut">carregando...</span>';
+  const a=acessosMapa[u.id];
+  if(!a || !a.ultBloqMs) return '<span class="fmut">nenhum registrado</span>';
+  const v=veiculos.find(x=>x.id===a.ultBloqDev);
+  const nome=(v&&v.nome)||a.ultBloqNome||'';
+  return esc(fmtHora(a.ultBloqMs))+' <span class="fmut">('+haQuanto(a.ultBloqMs)+(nome?' · '+esc(nome):'')+(a.ultBloqVia==='sms'?' · por SMS':'')+')</span>';
 }
 function linhaAcesso(u){
   if(!acessosMapa) return '<div class="s">Último acesso: carregando...</div>';
@@ -2272,6 +2286,7 @@ function desenharClientes(){
           '<div class="fi"><span class="fl">Acesso</span><span class="fv"><span class="pill '+(u.disabled?'bd-mal':'bd-ok')+'">'+(u.disabled?'Desativado':'Ativo')+'</span></span></div>'+
           '<div class="fi"><span class="fl">Financeiro</span><span class="fv"><span class="pill '+(fin.c||'neutro')+'">'+esc(fin.t)+'</span></span></div>'+
           '<div class="fi largo"><span class="fl">Último acesso</span><span class="fv">'+valorAcesso(u)+'</span></div>'+
+          '<div class="fi largo"><span class="fl">Último bloqueio enviado</span><span class="fv">'+valorBloqueio(u)+'</span></div>'+
         '</div>'+
         '<div class="vchips"><span class="qtd">'+ap.length+(ap.length===1?' veículo':' veículos')+' <span class="qseta">▾</span></span>'+
           ap.map(v=>'<span class="vchip qnomes">'+esc(v.nome)+(v.placa?' <small>'+esc(v.placa)+'</small>':'')+'</span>').join('')+'</div>'+
