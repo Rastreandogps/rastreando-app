@@ -225,6 +225,9 @@ main{position:relative;flex:1;min-height:0;overflow:hidden}
 #btnCopiaChip{width:24px;height:24px;border-radius:7px;border:1px solid var(--line);background:var(--card2);color:var(--mut);display:inline-flex;align-items:center;justify-content:center;padding:0;cursor:pointer}
 #btnCopiaChip svg{width:13px;height:13px}
 #btnCopiaChip:active{opacity:.6}
+#btnWppCli{height:24px;border-radius:7px;border:1px solid rgba(37,211,102,.45);background:rgba(37,211,102,.14);color:#1faa52;display:inline-flex;align-items:center;gap:5px;padding:0 8px;margin-left:4px;font-size:12px;font-weight:700;cursor:pointer}
+#btnWppCli svg{width:14px;height:14px}
+#btnWppCli:active{opacity:.6}
 .chiprow.sem #btnCopiaChip{display:none}
 .status{font-size:12px;font-weight:700;padding:5px 10px;border-radius:20px;white-space:nowrap}
 .status.sm{font-size:11px;padding:4px 8px}
@@ -634,7 +637,7 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
         <div>
           <div class="vname"><button id="vPick" class="vpick" type="button" aria-label="Trocar de veículo" title="Trocar de veículo"><span id="vName"></span><svg class="pickseta" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button><button id="btnRenome" aria-label="Editar nome do veículo" title="Editar nome"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></button><button id="btnAncora" aria-label="Cerca rápida (âncora)" title="Cerca rápida (âncora)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="2.2"/><path d="M12 7.2V21"/><path d="M8 11h8"/><path d="M5 14c0 4 3 7 7 7s7-3 7-7"/></svg></button></div>
           <div class="plate" id="vPlate"></div>
-          <div class="chiprow" id="chipRow"><span>Chip</span><b id="vChip"></b><button type="button" id="btnCopiaChip" aria-label="Copiar número do chip" title="Copiar número do chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg></button></div>
+          <div class="chiprow" id="chipRow"><span>Chip</span><b id="vChip"></b><button type="button" id="btnCopiaChip" aria-label="Copiar número do chip" title="Copiar número do chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg></button><button type="button" id="btnWppCli" aria-label="Abrir WhatsApp do cliente" title="Abrir WhatsApp do cliente"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2a9.9 9.9 0 0 0-8.47 15.03L2 22l5.1-1.34A9.9 9.9 0 1 0 12.04 2zm0 1.8a8.1 8.1 0 1 1-4.13 15.07l-.3-.18-3.02.8.81-2.95-.2-.31A8.1 8.1 0 0 1 12.04 3.8zM8.6 7.4c-.17 0-.45.06-.69.32-.24.26-.9.88-.9 2.14s.92 2.48 1.05 2.65c.13.17 1.8 2.86 4.45 3.9 2.2.87 2.65.7 3.12.65.48-.04 1.55-.63 1.77-1.24.22-.6.22-1.13.15-1.24-.06-.1-.24-.17-.5-.3-.27-.13-1.55-.77-1.79-.86-.24-.09-.41-.13-.59.13-.17.26-.68.86-.83 1.03-.15.18-.3.2-.56.07-.27-.13-1.1-.4-2.1-1.3-.78-.69-1.3-1.55-1.45-1.8-.15-.27-.02-.4.11-.53.12-.12.27-.3.4-.45.13-.15.17-.26.26-.43.09-.18.04-.33-.02-.46-.07-.13-.6-1.44-.82-1.97-.22-.52-.44-.45-.6-.46h-.5z"/></svg>WhatsApp</button></div>
         </div>
         <div class="stwrap"><span class="status" id="vStatus"></span><div class="upd" id="vUpd"></div></div>
       </div>
@@ -1104,11 +1107,21 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
 
 const carSvg = '<svg viewBox="0 0 44 44" width="44" height="44"><circle class="anel" cx="22" cy="22" r="18" stroke-width="1.5"/><path class="seta" d="M22 8 L31 32 L22 27 L13 32 Z" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></svg>';
 
+/* troca o nome escrito no mapa na hora (sem F5) */
+function rotularMarcador(v){
+  try{
+    const ic=v.marker.options && v.marker.options.icon;
+    if(ic && ic.options) ic.options.html='<div class="car">'+carSvg+'</div><div class="carlabel">'+esc(v.nome)+'</div>';
+    const el=v.marker.getElement && v.marker.getElement();
+    const l=el && el.querySelector('.carlabel'); if(l) l.textContent=v.nome;
+  }catch(e){}
+}
 function criarMarcador(v){
   v.marker = L.marker(v.pos,{icon:L.divIcon({
     className:'',iconSize:[44,44],iconAnchor:[22,22],
     html:'<div class="car">'+carSvg+'</div><div class="carlabel">'+esc(v.nome)+'</div>'
   })});
+  v.rotuloNome=v.nome;
   v.marker.on('click',()=>{ selId = v.id; recolhido = false; atualizar(); });
   if(v.visivel) v.marker.addTo(map);
 }
@@ -1352,6 +1365,7 @@ function mesclar(ds,ps){
       veiculos.push(v);
     }
     v.nome = d.name || ('Aparelho '+d.id);
+    if(v.marker && v.rotuloNome!==v.nome){ v.rotuloNome=v.nome; rotularMarcador(v) }
     v.placa = (d.attributes&&d.attributes.placa) || d.model || '';
     v.online = d.status==='online';
     v.imei = d.uniqueId || ''; v.fone = d.phone || ''; v.contato = d.contact || ''; v.raw = d;
@@ -1952,6 +1966,19 @@ $('btnCopiaChip').onclick=e=>{
   const v=cartao(); if(!v || !ehAdmin) return;
   const n=soDigitos(v.fone); if(!n){ toast('Este equipamento não tem número de chip cadastrado.'); return }
   copiar(n).then(()=>toast('Número do chip copiado: '+fmtFone(v.fone))).catch(()=>toast('Não foi possível copiar'));
+};
+/* abrir o WhatsApp do cliente (administrador): só abre a conversa, sem mensagem */
+$('btnWppCli').addEventListener('pointerdown',e=>e.stopPropagation());
+$('btnWppCli').onclick=async e=>{
+  e.stopPropagation();
+  const v=cartao(); if(!v || !ehAdmin) return;
+  if(!usuarios.length) await carregarUsuarios();
+  let cl=usuarios.find(u=>!u.administrator && casaUsuario(u,v.contato));
+  if(!cl && Object.keys(vinculos).length){ const l=clientesDoEquip(v); cl=l[0] }
+  if(!cl){ toast('Este equipamento não tem cliente vinculado.'); return }
+  let n=soDigitos(cl.phone||''); if(n.length<10){ toast('Este cliente não tem WhatsApp cadastrado.'); return }
+  if(n.length<=11) n='55'+n;
+  window.open('https://wa.me/'+n,'_blank','noopener');
 };
 /* Renomear veículo */
 $('btnRenome').addEventListener('pointerdown',e=>e.stopPropagation());
