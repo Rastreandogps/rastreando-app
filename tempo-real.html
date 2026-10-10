@@ -754,6 +754,7 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
     <label class="fchk"><input type="checkbox" id="pmReset"> Botão de reset (RESET#), pela plataforma (R$ 0,10) ou pelo celular dele (grátis)</label>
     <label class="fchk"><input type="checkbox" id="pmNome"> Editar o nome do veículo</label>
     <label class="fchk"><input type="checkbox" id="pmAncora"> Cerca rápida (botão da âncora no veículo)</label>
+    <label class="fchk"><input type="checkbox" id="pmEu"> Ver a posição do próprio celular no mapa (botão Minha posição)</label>
     <div id="pmCob" style="background:var(--card2);border-radius:12px;padding:10px 12px;font-size:13.5px;margin:4px 0 10px"></div>
     <div class="ferr" id="pmErro"></div>
     <div class="actions2">
@@ -1557,15 +1558,15 @@ async function smsBloquear(v,bloquear){
 }
 
 /* ===== PERMISSÕES DO CLIENTE (o administrador escolhe) ===== */
-let permCli={smsBloqueio:false,reset:false,editarNome:false,cercaRapida:false}, cobrCli=null;
+let permCli={smsBloqueio:false,reset:false,editarNome:false,cercaRapida:false,minhaPosicao:false}, cobrCli=null;
 const brl2 = n => 'R$ '+Number(n||0).toFixed(2).replace('.',',');
 async function carregarPermissoes(){
-  if(ehAdmin){ permCli={smsBloqueio:true,reset:true,editarNome:true,cercaRapida:true}; cobrCli=null; mostrarBotoesSms(); return }
+  if(ehAdmin){ permCli={smsBloqueio:true,reset:true,editarNome:true,cercaRapida:true,minhaPosicao:true}; cobrCli=null; mostrarBotoesSms(); return }
   if(!lsGet('rg_token')) return;
   try{
     const r=await fetch(DESB_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',body:JSON.stringify({acao:'minhas',token:lsGet('rg_token')})});
     if(!r.ok) return;
-    const j=await r.json(); permCli=Object.assign({smsBloqueio:false,reset:false,editarNome:false,cercaRapida:false},j.perm||{}); cobrCli=j.cobranca||null;
+    const j=await r.json(); permCli=Object.assign({smsBloqueio:false,reset:false,editarNome:false,cercaRapida:false,minhaPosicao:false},j.perm||{}); cobrCli=j.cobranca||null;
     mostrarBotoesSms();
   }catch(e){}
 }
@@ -1585,6 +1586,9 @@ function mostrarBotoesSms(){
   if(!ehAdmin && cobrCli && (sms||rs)){ c.textContent='SMS pela plataforma: '+cobrCli.pendentes+' ('+brl2(cobrCli.valor)+' na próxima fatura)'; c.style.display='' } else c.style.display='none';
   $('btnRenome').style.display=(ehAdmin||permCli.editarNome)?'inline-flex':'none';
   $('btnAncora').style.display=(ehAdmin||permCli.cercaRapida)?'inline-flex':'none';
+  const verEu=ehAdmin||permCli.minhaPosicao;
+  $('btnEu').style.display=verEu?'flex':'none';
+  if(!verEu && eu.on) euDesligar();
 }
 /* Reset: pela plataforma (cobrado) ou pelo celular do cliente (grátis) */
 function linkSmsTexto(f,txt){
@@ -1649,7 +1653,7 @@ async function chamarPerm(acao,extra){
 }
 function mostrarPerm(j){
   const p=j.perm||{}, c=j.cobranca||{pendentes:0,valor:0};
-  $('pmSms').checked=!!p.smsBloqueio; $('pmReset').checked=!!p.reset; $('pmNome').checked=!!p.editarNome; $('pmAncora').checked=!!p.cercaRapida;
+  $('pmSms').checked=!!p.smsBloqueio; $('pmReset').checked=!!p.reset; $('pmNome').checked=!!p.editarNome; $('pmAncora').checked=!!p.cercaRapida; $('pmEu').checked=!!p.minhaPosicao;
   $('pmCob').innerHTML='SMS pela plataforma a cobrar: <b>'+c.pendentes+'</b> = <b>'+brl2(c.valor)+'</b>'+
     (c.faturadoEm?'<br><span style="color:var(--mut);font-size:12px">Último zerado em '+fmtHora(c.faturadoEm)+' · total já faturado: '+(c.totalFaturado||0)+' SMS</span>':'');
   $('pmZerar').disabled=!c.pendentes;
@@ -1662,7 +1666,7 @@ async function abrirPermissoes(userId){
 }
 $('pmSalvar').onclick=async()=>{
   $('pmSalvar').disabled=true; $('pmErro').textContent='';
-  try{ mostrarPerm(await chamarPerm('permSalvar',{perm:{smsBloqueio:$('pmSms').checked,reset:$('pmReset').checked,editarNome:$('pmNome').checked,cercaRapida:$('pmAncora').checked}})); toast('Permissões salvas.') }
+  try{ mostrarPerm(await chamarPerm('permSalvar',{perm:{smsBloqueio:$('pmSms').checked,reset:$('pmReset').checked,editarNome:$('pmNome').checked,cercaRapida:$('pmAncora').checked,minhaPosicao:$('pmEu').checked}})); toast('Permissões salvas.') }
   catch(e){ $('pmErro').textContent=e.message }
   $('pmSalvar').disabled=false;
 };
@@ -1894,6 +1898,49 @@ async function descobrirAdmin(){
   document.querySelector('nav button[data-tab="Faturas"]').style.display = ehAdmin ? 'none' : '';
   $('btnEu').style.display = ehAdmin ? 'flex' : 'none';
 }
+/* ===== último acesso do cliente ===== */
+function dispAtual(){
+  const ua=navigator.userAgent||'';
+  if(/iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints>1)) return 'iphone';
+  if(/Android/i.test(ua)) return 'android';
+  if(/Windows|Macintosh|Linux|CrOS/.test(ua)) return 'computador';
+  return 'outro';
+}
+function registrarAcesso(){
+  const t=lsGet('rg_token'); if(!t) return;
+  fetch(DESB_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',
+    body:JSON.stringify({acao:'acesso',token:t,disp:dispAtual()})}).catch(()=>{});
+}
+let saiuEm=0;
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='hidden') saiuEm=Date.now();
+  else if(saiuEm && Date.now()-saiuEm>=5*60000 && auth){ saiuEm=0; registrarAcesso() }
+});
+let acessosMapa=null, acessosEm=0;
+async function carregarAcessos(forcar){
+  if(!forcar && acessosMapa && Date.now()-acessosEm<60000) return;
+  try{
+    const r=await fetch(DESB_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',body:JSON.stringify({acao:'acessos',token:lsGet('rg_token')})});
+    const j=await r.json().catch(()=>({}));
+    if(!r.ok) return;
+    acessosMapa=j.mapa||{}; acessosEm=Date.now();
+    if(abaAdmin==='cli' && $('aview').classList.contains('show')) desenharClientes();
+  }catch(e){}
+}
+const NOME_DISP={android:'Android',iphone:'iPhone',computador:'computador',outro:''};
+function haQuanto(ms){
+  const m=Math.max(0,Math.round((Date.now()-ms)/60000));
+  if(m<1) return 'agora'; if(m<60) return 'há '+m+' min';
+  const h=Math.round(m/60); if(h<24) return 'há '+h+' h';
+  const d=Math.round(h/24); return 'há '+d+(d===1?' dia':' dias');
+}
+function linhaAcesso(u){
+  if(!acessosMapa) return '<div class="s">Último acesso: carregando...</div>';
+  const a=acessosMapa[u.id];
+  if(!a || !a.ultimoMs) return '<div class="s">Último acesso: <span class="bd-am">sem registro ainda</span></div>';
+  const disp=NOME_DISP[a.disp]||'';
+  return '<div class="s">Último acesso: <b>'+esc(fmtHora(a.ultimoMs))+'</b> ('+haQuanto(a.ultimoMs)+')'+(disp?' · '+disp:'')+'</div>';
+}
 async function carregarCpfs(){
   try{ const r=await fn('cpfs'); cpfsMapa=r.mapa||{}; if(abaAdmin==='cli' && $('aview').classList.contains('show')) desenharClientes() }
   catch(e){}
@@ -1997,6 +2044,7 @@ async function abrirAdmin(){
   carregarVinculos();
   carregarCpfs();
   carregarFin(finVelho());
+  carregarAcessos(true);
 }
 function desenharAdmin(){
   $('aTabEquip').classList.toggle('on',abaAdmin==='equip');
@@ -2106,6 +2154,7 @@ function desenharClientes(){
       '<div class="s">WhatsApp: '+(u.phone&&normWpp(u.phone)?'<b>'+esc(fmtWpp(u.phone))+'</b>':'<span class="bd-mal">não cadastrado</span>')+'</div>'+
       '<div class="s">Acesso: '+(u.disabled?'<b class="bd-mal">DESATIVADO</b>':'<b class="bd-ok">Ativo</b>')+'</div>'+
       '<div class="s">Financeiro: <b class="'+fin.c+'">'+esc(fin.t)+'</b></div>'+
+      linhaAcesso(u)+
       '<div class="s" style="margin-top:6px"><span class="qtd">'+ap.length+(ap.length===1?' veículo':' veículos')+' <span class="qseta">▾</span></span></div>'+
       (ap.length?'<div class="s qnomes">'+esc(ap.map(v=>v.nome).join(' · '))+'</div>':'')+'</div>'+
       '<span class="cacoes"><button class="ico" data-a="edcli" data-u="'+u.id+'" aria-label="Editar cliente" title="Editar cliente">'+ICO_PEN+'</button>'+
@@ -2125,7 +2174,7 @@ function desenharClientes(){
 }
 $('aList').addEventListener('toggle',e=>{ const d=e.target; if(d.dataset && d.dataset.u) abertos[d.dataset.u]=d.open; if(d.classList && d.classList.contains('eq')) abertosEq[d.dataset.id]=d.open },true);
 $('aTabEquip').onclick=()=>{abaAdmin='equip';desenharAdmin()};
-$('aTabCli').onclick=()=>{abaAdmin='cli';desenharAdmin(); if(finVelho()) carregarFin(true)};
+$('aTabCli').onclick=()=>{abaAdmin='cli';desenharAdmin(); if(finVelho()) carregarFin(true); carregarAcessos()};
 $('aSearch').addEventListener('input',()=>{ buscaAdmin[abaAdmin]=$('aSearch').value; if(abaAdmin==='equip') desenharEquip(); else desenharClientes() });
 $('aNovo').onclick=()=>{ if(abaAdmin==='equip') abrirEquip(null); else abrirCliente() };
 
@@ -3057,7 +3106,7 @@ function mostrarLogin(msg){
 function sair(msg){
   lsDel('rg_token'); lsDel('rg_email'); try{sessionStorage.removeItem('rg_basic')}catch(e){}
   cercasReset();
-  permCli={smsBloqueio:false,reset:false,editarNome:false,cercaRapida:false}; cobrCli=null;
+  permCli={smsBloqueio:false,reset:false,editarNome:false,cercaRapida:false,minhaPosicao:false}; cobrCli=null;
   ehAdmin=false; usuarios=[]; $('aview').classList.remove('show');
   document.querySelector('nav button[data-tab="Admin"]').style.display='none'; document.querySelector('nav button[data-tab="Faturas"]').style.display='none'; cpfsMapa={}; faturasDados=null; aplicarBloqueio(null); euDesligar(); $('btnEu').style.display='none'; irPara('Mapa');
   auth=null;
@@ -3101,6 +3150,7 @@ $('lform').addEventListener('submit',async e=>{
     await descobrirAdmin();
     carregarPermissoes();
     verificarBloqueio();
+    registrarAcesso();
     await buscarSeguro();
   }catch(err){
     $('lErr').textContent = (err instanceof TypeError)
@@ -3121,6 +3171,7 @@ $('btnSair').onclick=()=>sair('');
     await descobrirAdmin();
     carregarPermissoes();
     verificarBloqueio();
+    registrarAcesso();
     await buscarSeguro();
   } else mostrarLogin('');
 })();
