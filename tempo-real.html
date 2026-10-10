@@ -218,6 +218,14 @@ main{position:relative;flex:1;min-height:0;overflow:hidden}
 .row{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .vname{font-size:18px;font-weight:700}
 .plate{font-size:12px;color:var(--mut);letter-spacing:.08em;margin-top:2px}
+/* número do chip do rastreador: só administrador (10/10/2026) */
+.chiprow{display:none;align-items:center;gap:6px;margin-top:3px;font-size:12px;color:var(--mut)}
+.chiprow b{color:var(--txt);font-weight:650;letter-spacing:.2px}
+.chiprow.sem b{color:var(--amber);font-weight:600}
+#btnCopiaChip{width:24px;height:24px;border-radius:7px;border:1px solid var(--line);background:var(--card2);color:var(--mut);display:inline-flex;align-items:center;justify-content:center;padding:0;cursor:pointer}
+#btnCopiaChip svg{width:13px;height:13px}
+#btnCopiaChip:active{opacity:.6}
+.chiprow.sem #btnCopiaChip{display:none}
 .status{font-size:12px;font-weight:700;padding:5px 10px;border-radius:20px;white-space:nowrap}
 .status.sm{font-size:11px;padding:4px 8px}
 .st-move{background:rgba(51,209,122,.14);color:var(--green)}
@@ -617,6 +625,7 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
         <div>
           <div class="vname"><button id="vPick" class="vpick" type="button" aria-label="Trocar de veículo" title="Trocar de veículo"><span id="vName"></span><svg class="pickseta" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button><button id="btnRenome" aria-label="Editar nome do veículo" title="Editar nome"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></button><button id="btnAncora" aria-label="Cerca rápida (âncora)" title="Cerca rápida (âncora)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="2.2"/><path d="M12 7.2V21"/><path d="M8 11h8"/><path d="M5 14c0 4 3 7 7 7s7-3 7-7"/></svg></button></div>
           <div class="plate" id="vPlate"></div>
+          <div class="chiprow" id="chipRow"><span>Chip</span><b id="vChip"></b><button type="button" id="btnCopiaChip" aria-label="Copiar número do chip" title="Copiar número do chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg></button></div>
         </div>
         <div class="stwrap"><span class="status" id="vStatus"></span><div class="upd" id="vUpd"></div></div>
       </div>
@@ -1452,6 +1461,13 @@ function atualizar(){
     const [txt,cls]=status(v);
     $('vName').textContent=v.nome; $('vPick').classList.toggle('multi',veiculos.length>1);
     $('vPlate').textContent=v.placa;
+    /* número do chip: só o administrador vê (o cliente nunca vê) */
+    const cr=$('chipRow');
+    if(ehAdmin){
+      const tem=!!soDigitos(v.fone);
+      cr.style.display='flex'; cr.classList.toggle('sem',!tem);
+      $('vChip').textContent = tem ? fmtFone(v.fone) : 'não cadastrado';
+    } else cr.style.display='none';
     $('vStatus').textContent=txt; $('vStatus').className='status '+cls;
     $('sSpeed').textContent=sp?'—':v.vel+' km/h';
     $('sIgn').textContent=v.ign===null?'—':(v.ign?'Ligada':'Desligada');
@@ -1874,6 +1890,14 @@ $('rsOk').onclick=async()=>{
     fechar(); toast('Reset enviado para '+v.nome+'.',5000);
     if(!ehAdmin) carregarPermissoes();
   }catch(e){ $('rsErro').textContent=e.message||'Não consegui enviar.'; $('rsOk').disabled=false }
+};
+/* copiar o número do chip (administrador) */
+$('btnCopiaChip').addEventListener('pointerdown',e=>e.stopPropagation());
+$('btnCopiaChip').onclick=e=>{
+  e.stopPropagation();
+  const v=cartao(); if(!v || !ehAdmin) return;
+  const n=soDigitos(v.fone); if(!n){ toast('Este equipamento não tem número de chip cadastrado.'); return }
+  copiar(n).then(()=>toast('Número do chip copiado: '+fmtFone(v.fone))).catch(()=>toast('Não foi possível copiar'));
 };
 /* Renomear veículo */
 $('btnRenome').addEventListener('pointerdown',e=>e.stopPropagation());
