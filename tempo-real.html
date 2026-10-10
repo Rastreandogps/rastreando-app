@@ -578,6 +578,13 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
 #aview .fi.todo{grid-column:1/-1}
 /* cartão do cliente: data de cadastro e uso do bloqueio na gaveta (10/10/2026) */
 #aview .cdesde{color:var(--mut);opacity:.8}
+#aview .cstar{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;margin-left:4px;padding:0;border:0;background:none;cursor:pointer;vertical-align:-4px;border-radius:7px}
+#aview .cstar svg{width:18px;height:18px;fill:none;stroke:var(--mut);stroke-width:1.8;stroke-linejoin:round;opacity:.55}
+#aview .cstar:hover svg{opacity:1}
+#aview .cstar.on svg{fill:#f5b83d;stroke:#e0a020;opacity:1}
+#aview .flink{display:flex;align-items:center;gap:4px;margin-top:6px;padding:0;border:0;background:none;font:inherit;font-size:12px;font-weight:600;color:#3b82f6;cursor:pointer;text-align:left}
+#aview .flink svg{width:13px;height:13px;flex:none}
+#aview .flink:hover{text-decoration:underline}
 #aview .cbloqagora{display:inline-block;margin-left:6px;padding:1px 8px;border-radius:999px;font-size:11px;font-weight:700;vertical-align:2px;background:rgba(227,38,47,.10);color:var(--red2)}
 #aview .uso{padding:12px;border-radius:14px;background:var(--card2)}
 #aview details.cli[open] .uso{background:var(--card)}
@@ -2666,6 +2673,14 @@ function blocoUso(u){
     '<div class="unota">Conta o que o cliente apertou no app (ou por SMS). Bloqueio da cerca não entra.</div>'+
   '</div>';
 }
+/* estrela de cliente especial ao lado do nome (10/10/2026): cheia = especial; vazia = normal; toque marca/tira */
+const ICO_ESTRELA='<svg viewBox="0 0 24 24"><path d="M12 3.2l2.7 5.6 6.1.8-4.5 4.2 1.1 6.1L12 17l-5.4 2.9 1.1-6.1-4.5-4.2 6.1-.8z"/></svg>';
+const ICO_ENGR='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>';
+function icoEstrela(u,fm){
+  const on=!!(fm&&fm.especial);
+  const tit=on?'Cliente especial: nunca tem o acesso suspenso por falta de pagamento. Toque para tirar.':'Cliente normal. Toque para marcar como especial (nunca tem o acesso suspenso por falta de pagamento).';
+  return '<button type="button" class="cstar'+(on?' on':'')+'" data-a="espec" data-u="'+u.id+'" title="'+tit+'" aria-label="'+(on?'Cliente especial':'Marcar como cliente especial')+'">'+ICO_ESTRELA+'</button>';
+}
 function desenharClientes(){
   const todos=usuarios.filter(u=>!u.administrator);
   const q=$('aSearch').value.trim().toLowerCase(), qn=soNum(q);
@@ -2679,12 +2694,12 @@ function desenharClientes(){
     const temWpp=u.phone&&normWpp(u.phone);
     return '<details class="cli" data-u="'+u.id+'"'+(abertos[u.id]?' open':'')+'><summary>'+
       '<div class="cinfo">'+
-        '<div class="ctopo"><span class="cav">'+esc(iniciais)+'</span><div class="cnome"><div class="t">'+esc(u.name)+(acessosMapa&&usoDados(u).desde?'<span class="cbloqagora">bloqueado</span>':'')+'</div><div class="clog">'+esc(loginDe(u).replace(EMAIL_FALSO,''))+' <span class="cdesde">· '+(fmtDesde(u)?'cliente desde '+fmtDesde(u):'sem data de cadastro')+'</span></div></div></div>'+
+        '<div class="ctopo"><span class="cav">'+esc(iniciais)+'</span><div class="cnome"><div class="t">'+esc(u.name)+icoEstrela(u,fm)+(acessosMapa&&usoDados(u).desde?'<span class="cbloqagora">bloqueado</span>':'')+'</div><div class="clog">'+esc(loginDe(u).replace(EMAIL_FALSO,''))+' <span class="cdesde">· '+(fmtDesde(u)?'cliente desde '+fmtDesde(u):'sem data de cadastro')+'</span></div></div></div>'+
         '<div class="ficha">'+
           '<div class="fi"><span class="fl">CPF</span><span class="fv">'+(cpf?esc(fmtCpf(cpf)):'<span class="fmut">não cadastrado</span>')+'</span></div>'+
           '<div class="fi"><span class="fl">WhatsApp</span><span class="fv">'+(temWpp?esc(fmtWpp(u.phone)):'<span class="bd-mal">não cadastrado</span>')+'</span></div>'+
-          '<div class="fi"><span class="fl">Acesso</span><span class="fv"><button type="button" class="pill pbtn '+(u.disabled?'bd-mal':'bd-ok')+'" data-a="bloq" data-u="'+u.id+'" title="'+(u.disabled?'Toque para reativar o acesso':'Toque para desativar o acesso')+'">'+(u.disabled?'Desativado':'Ativo')+' <span class="ptroca">⇄</span></button></span></div>'+
-          '<div class="fi"><span class="fl">Financeiro</span><span class="fv"><span class="pill '+(fin.c||'neutro')+'">'+esc(fin.t)+'</span></span></div>'+
+          '<div class="fi"><span class="fl">Acesso</span><span class="fv"><button type="button" class="pill pbtn '+(u.disabled?'bd-mal':'bd-ok')+'" data-a="bloq" data-u="'+u.id+'" title="'+(u.disabled?'Toque para reativar o acesso':'Toque para desativar o acesso')+'">'+(u.disabled?'Desativado':'Ativo')+' <span class="ptroca">⇄</span></button><button type="button" class="flink" data-a="perm" data-u="'+u.id+'" title="O que este cliente pode usar no app">'+ICO_ENGR+'Permissões</button></span></div>'+
+          '<div class="fi"><span class="fl">Financeiro</span><span class="fv"><span class="pill '+(fin.c||'neutro')+'">'+esc(fin.t)+'</span>'+(fm&&(fm.confiancaUsada||fm.nivel==='confianca')?'<button type="button" class="flink" data-a="zerar" data-u="'+u.id+'" title="Devolve ao cliente o direito de usar o Já paguei de novo">Zerar confiança</button>':'')+'</span></div>'+
           '<div class="fi largo"><span class="fl">Último acesso</span><span class="fv">'+valorAcesso(u)+'</span></div>'+
         '</div>'+
         '<div class="vchips"><span class="qtd">'+ap.length+(ap.length===1?' veículo':' veículos')+' <span class="qseta">▾</span></span>'+
@@ -2694,16 +2709,9 @@ function desenharClientes(){
       '<button class="ico" data-a="edcli" data-u="'+u.id+'" aria-label="Editar cliente" title="Editar cliente">'+ICO_PEN+'</button>'+
       '<button class="ico lix" data-a="delcli" data-u="'+u.id+'" aria-label="Excluir cliente" title="Excluir cliente">'+ICO_LIX+'</button></span><span class="seta">›</span></summary>'+
       '<div class="gav">'+
-      '<div class="gsec"><span>USO DO BLOQUEIO</span></div>'+blocoUso(u)+
-      '<div class="gsec"><span>DADOS DO CLIENTE</span></div>'+
-      '<div class="cbox"><div class="bts">'+
-        (u.disabled?'<button class="mini verde" data-a="bloq" data-u="'+u.id+'">Reativar acesso</button>':'<button class="mini verm" data-a="bloq" data-u="'+u.id+'">Bloquear acesso</button>')+
-        '<button class="mini" data-a="espec" data-u="'+u.id+'">'+(fm&&fm.especial?'Tirar de cliente especial':'Marcar como cliente especial')+'</button>'+
-        '<button class="mini" data-a="perm" data-u="'+u.id+'">Permissões do app</button>'+
-        (fm&&(fm.confiancaUsada||fm.nivel==='confianca')?'<button class="mini" data-a="zerar" data-u="'+u.id+'">Zerar desbloqueio de confiança</button>':'')+
-      '</div></div>'+
       '<div class="gsec"><span>APARELHOS DO CLIENTE ('+ap.length+')</span><button class="mini" data-a="vinc" data-u="'+u.id+'">+ Vincular aparelho</button></div>'+
       (ap.map(v=>cartaoEquip(v,u.id)).join('') || '<div style="padding:4px 0 8px;font-size:13px;color:var(--mut)">Nenhum aparelho vinculado.</div>')+
+      '<div class="gsec"><span>USO DO BLOQUEIO</span></div>'+blocoUso(u)+
       '</div></details>';
   }).join('') || '<div class="vempty">Nenhum cliente ainda.</div>';
 }
@@ -2773,6 +2781,7 @@ $('aList').addEventListener('click',e=>{
     const u=usuarios.find(x=>x.id===+b.dataset.u); if(!u) return;
     const fm=finMapa&&finMapa[u.id];
     if(b.dataset.a==='espec'){
+      if(!finMapa){ toast('Aguarde a situação financeira carregar (ícone de atualizar) e tente de novo.',4500); return }
       const marcar=!(fm&&fm.especial);
       pedirConfirmacao(marcar?'Cliente especial':'Tirar de cliente especial',
         marcar?(u.name+' nunca será bloqueado por falta de pagamento, mesmo com fatura vencida. A situação financeira continua aparecendo para você.'):(u.name+' volta a seguir a regra normal: bloqueio a partir de 5 dias de atraso.'),
