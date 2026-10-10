@@ -256,6 +256,7 @@ body.hist-on #follow,body.hist-on #btnEu{display:none!important}
 .hpanel .hstop .n{flex:none;width:22px;height:22px;border-radius:50%;background:#3b82f6;color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center}
 .hpanel .hstop small{color:var(--mut)}
 .hpin{width:24px;height:24px;border-radius:50%;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.5);color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.hpinarea{width:44px;height:44px;display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .hpin.ini{background:#16a34a}.hpin.fim{background:#dc2626}.hpin.par{background:#3b82f6;width:22px;height:22px}
 .hmk .car{transition:none}
 .hpop .leaflet-popup-content-wrapper{background:var(--card);color:var(--txt);border-radius:14px;box-shadow:0 6px 20px rgba(0,0,0,.4)}
@@ -2451,7 +2452,7 @@ function popParada(s,i){
 function histDesenharParadas(){
   const min=(+$('hParMin2').value||5)*60000, lst=(hist.todasParadas||[]).filter(s=>s.dur>=min);
   if(hist.camPar) hist.camPar.clearLayers();
-  hist.mkPar=lst.map((s,i)=>L.marker(s.ll,{icon:L.divIcon({className:'hmk',html:'<div class="hpin par">'+(i+1)+'</div>',iconSize:[22,22],iconAnchor:[11,11]}),zIndexOffset:500})
+  hist.mkPar=lst.map((s,i)=>L.marker(s.ll,{icon:L.divIcon({className:'hmk',html:'<div class="hpinarea"><div class="hpin par">'+(i+1)+'</div></div>',iconSize:[44,44],iconAnchor:[22,22]}),zIndexOffset:600,bubblingMouseEvents:false})
     .bindPopup(popParada(s,i),{className:'hpop',closeButton:true,autoPanPaddingBottomRight:[20,($('hpanel').offsetHeight||0)+20]}).addTo(hist.camPar));
   $('hNPar').textContent=String(lst.length);
   $('hParLista').innerHTML=lst.length?lst.map((s,i)=>'<div class="hstop" data-i="'+i+'"><span class="n">'+(i+1)+'</span><span>'+(hist.varios?hhData(s.ini)+' ':'')+hhmm(s.ini)+' às '+hhmm(s.fim)+' <small>· '+durCurta(s.dur)+'</small></span></div>').join(''):'<div class="hstop"><small>Nenhuma parada desse tamanho no período.</small></div>';
