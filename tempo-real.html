@@ -953,6 +953,15 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
 #mImport .imli.er .imst{color:#e11d48}
 #mImport .imacoes{flex:none;display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
 #mImport .imacoes.um{grid-template-columns:1fr}
+/* importações salvas para terminar depois (11/10/2026) */
+#aImportar{position:relative}
+#aImportar .imbadge{position:absolute;top:-6px;right:-6px;min-width:19px;height:19px;padding:0 5px;border-radius:10px;background:#e11d48;color:#fff;font-size:11px;font-weight:800;line-height:1;display:none;align-items:center;justify-content:center;border:2px solid var(--card)}
+#aImportar .imbadge.show{display:flex}
+#mImport .imsalvo{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--txt);font:inherit;cursor:pointer;margin-bottom:8px}
+#mImport .imsalvo b{display:block;font-size:14.5px}
+#mImport .imsalvo small{display:block;font-size:12.5px;color:var(--mut);margin-top:2px;line-height:1.4}
+#mImport .imsalvo .imsseta{margin-left:auto;flex:none;color:var(--mut);font-size:20px}
+#mImport .imsalvo .imsnum{flex:none;width:34px;height:34px;border-radius:50%;background:rgba(225,29,72,.1);color:#e11d48;font-weight:800;display:flex;align-items:center;justify-content:center}
 #mImport .improg{font-size:14px;font-weight:700;margin:10px 0}
 #mImport .imsms{margin-top:14px;padding:12px;border-radius:14px;background:var(--card2);border:1px solid var(--line)}
 #mImport .imsms h4{font-size:15px;margin-bottom:6px}
@@ -1230,7 +1239,7 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
         </div>
         <input class="search" id="aSearch" type="search" placeholder="Buscar" autocomplete="off">
         <button class="aico" id="aFinAtualizar" style="display:none" title="Atualizar situação financeira" aria-label="Atualizar situação financeira"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg></button>
-        <button class="aico" id="aImportar" title="Importar equipamentos em lista" aria-label="Importar equipamentos em lista"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 9v12M15 9v12"/></svg></button>
+        <button class="aico" id="aImportar" title="Importar equipamentos em lista" aria-label="Importar equipamentos em lista"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 9v12M15 9v12"/></svg><b class="imbadge" id="imBadge"></b></button>
         <button class="aico anovo" id="aNovo" title="Novo equipamento" aria-label="Novo equipamento"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
       </div>
       <div class="ameta"><b id="aCount"></b><span id="aFinTxt"></span><span id="aTabNome" hidden></span></div>
@@ -1480,6 +1489,10 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
           <div class="imclinfo" id="imCliInfo"></div>
         </div>
         <div class="imaviso" id="imAviso"></div>
+      </div>
+      <div id="imP0" style="display:none">
+        <p>Estas importações já foram cadastradas, mas falta enviar a configuração por SMS. Toque para terminar.</p>
+        <div id="imSalvosLista"></div>
       </div>
       <div id="imP2" style="display:none">
         <div class="imres" id="imRes"></div>
@@ -4476,22 +4489,88 @@ function imAbas(){
   $('imDica').textContent=IM_COLS[imCol].d; $('imTexto').placeholder=IM_COLS[imCol].ex;
   const ni=imItens('imei').length, dif=imDesencontro(ni);
   $('imAviso').textContent = !ni ? '' : dif.length ? 'As listas não batem: '+ni+' IMEI(s), mas '+dif.map(c=>imItens(c).length+' em '+IM_COLS[c].t).join(', ')+'. O Chip precisa ter a mesma quantidade de linhas dos IMEIs (use linha em branco para quem não tem); Placa e Nome não podem ter mais linhas que os IMEIs.' : '';
+  imRascGravar();
 }
 $('imAbas').addEventListener('click',e=>{ const b=e.target.closest('[data-col]'); if(!b) return; if(imCol!=='cliente') imListas[imCol]=$('imTexto').value; imCol=b.dataset.col; $('imTexto').value=imCol==='cliente'?'':imListas[imCol]; imAbas(); if(imCol!=='cliente') $('imTexto').focus() });
 $('imTexto').addEventListener('input',imAbas);
-function imAbrir(){
-  imLinhas=[]; imCriados=[]; imFase='colar'; imOcupado=false;
-  imListas={imei:'',chip:'',placa:'',cliente:'',nome:''}; imCol='nome'; $('imTexto').value='';
-  imCliId=imPrefLer(); imCliPreencher(); imAbas();
+/* --- Salvar para terminar depois (11/10/2026) ---
+   1) Rascunho das listas: o que foi colado nas abas fica guardado até cadastrar (ou tocar em Cancelar).
+   2) Importação cadastrada com SMS pendente fica salva sozinha assim que chega na tela do SMS;
+      o número vermelho no ícone de importar mostra quantas faltam terminar. Some quando o SMS é enviado ou cancelado.
+   Fica guardado só neste aparelho/navegador. */
+const IM_SALVOS='imSalvos', IM_RASC='imRascunho';
+let imLoteAtual=null, imReaberto=false, imCancelArm=false;
+function imSalvosLer(){ try{ const a=JSON.parse(localStorage.getItem(IM_SALVOS)||'[]'); return Array.isArray(a)?a:[] }catch(e){ return [] } }
+function imSalvosGravar(a){ try{ a.length ? localStorage.setItem(IM_SALVOS,JSON.stringify(a)) : localStorage.removeItem(IM_SALVOS) }catch(e){} imBadge() }
+function imBadge(){ const n=imSalvosLer().length, b=$('imBadge'); if(!b) return; b.textContent=n; b.classList.toggle('show',n>0); $('aImportar').title=n?'Importar equipamentos ('+n+(n===1?' salva para terminar)':' salvas para terminar)'):'Importar equipamentos em lista' }
+function imRascGravar(){ if(imFase!=='colar') return; try{ const tem=Object.keys(imListas).some(k=>String(imListas[k]||'').trim()); tem ? localStorage.setItem(IM_RASC,JSON.stringify({listas:imListas,cliId:imCliId})) : localStorage.removeItem(IM_RASC) }catch(e){} }
+function imRascLer(){ try{ const r=JSON.parse(localStorage.getItem(IM_RASC)||'null'); return r&&r.listas?r:null }catch(e){ return null } }
+function imRascApagar(){ try{ localStorage.removeItem(IM_RASC) }catch(e){} }
+/* guarda (ou atualiza) a importação atual na lista de salvas */
+function imSalvarLote(){
+  const alvos=imCriados.filter(x=>x.chip); if(!alvos.length) return false;
+  const a=imSalvosLer(), id=imLoteAtual||('L'+Date.now()), velho=a.find(x=>x.id===id);
+  const lote={id, quando:velho?velho.quando:Date.now(), criados:imCriados,
+    linhas:imLinhas.filter(l=>l.estado==='feito').map(l=>({n:l.n,nome:l.nome,imeiTxt:l.imeiTxt,chip:l.chip,placa:l.placa,devId:l.devId,vincFalhou:!!l.vincFalhou,user:l.user?{name:l.user.name||'',login:loginDe(l.user)}:null,estado:'feito',erros:[]})),
+    tipos:IM_TIPOS.filter(x=>$(x[0]).checked).map(x=>x[1])};
+  const i=a.findIndex(x=>x.id===id); if(i>=0) a[i]=lote; else a.push(lote);
+  imSalvosGravar(a); imLoteAtual=id; return true;
+}
+function imRemoverLote(id){ imSalvosGravar(imSalvosLer().filter(x=>x.id!==id)) }
+function imQuando(ms){ const d=new Date(ms), p=n=>String(n).padStart(2,'0'); return p(d.getDate())+'/'+p(d.getMonth()+1)+' às '+p(d.getHours())+':'+p(d.getMinutes()) }
+function imPrepararModal(){
+  imOcupado=false; imCancelArm=false; imConfirmouImed=false;
+  IM_TIPOS.forEach(x=>{ $(x[0]).disabled=false });
+  $('imVoltar').disabled=false; $('imOk').disabled=false; $('imOk').style.display=''; $('imAcoes').classList.remove('um');
+  $('imP0').style.display='none'; $('imP1').style.display='none'; $('imP2').style.display='none'; $('imSms').style.display='none'; $('imProg').textContent='';
+}
+function imAbrir(){ if(imSalvosLer().length) imMostrarSalvos(); else imNova() }
+function imMostrarSalvos(){
+  const a=imSalvosLer(); if(!a.length){ imNova(); return }
+  imPrepararModal(); imFase='salvos'; imLoteAtual=null; imReaberto=false;
+  $('imTit').textContent='Importações para terminar';
+  $('imSalvosLista').innerHTML=a.map(l=>{ const n=l.criados.filter(x=>x.chip).length;
+    return '<button type="button" class="imsalvo" data-lote="'+esc(l.id)+'"><span class="imsnum">'+n+'</span><span><b>'+n+(n===1?' equipamento':' equipamentos')+' · salvo em '+esc(imQuando(l.quando))+'</b><small>'+esc(l.criados.map(x=>x.nome).join(', '))+'</small></span><span class="imsseta">›</span></button>' }).join('');
+  $('imP0').style.display='';
+  $('imVoltar').textContent='Fechar'; $('imOk').textContent='Nova importação';
+  if(!$('mImport').classList.contains('show')) abrir('mImport');
+}
+$('imSalvosLista').addEventListener('click',e=>{ const b=e.target.closest('[data-lote]'); if(b) imAbrirLote(b.dataset.lote) });
+function imAbrirLote(id){
+  const l=imSalvosLer().find(x=>x.id===id); if(!l){ imMostrarSalvos(); return }
+  imPrepararModal(); imFase='feito'; imLoteAtual=id; imReaberto=true;
+  imLinhas=l.linhas||[]; imCriados=l.criados||[];
+  IM_TIPOS.forEach(x=>{ $(x[0]).checked=!l.tipos || l.tipos.indexOf(x[1])>=0 });
+  $('imTit').textContent='Terminar configuração';
+  $('imP2').style.display=''; $('imSms').style.display='';
+  $('imProg').textContent='Salvo em '+imQuando(l.quando)+'. Os equipamentos já estão cadastrados; falta enviar o SMS.';
+  imDesenhar(); imContar();
+  $('imVoltar').textContent='Cancelar'; $('imOk').textContent='Enviar SMS';
+  $('imRola').scrollTop=0;
+}
+function imNova(){
+  imPrepararModal();
+  imLinhas=[]; imCriados=[]; imFase='colar'; imLoteAtual=null; imReaberto=false;
+  imListas={imei:'',chip:'',placa:'',cliente:'',nome:''}; imCol='nome'; imCliId=imPrefLer();
+  const r=imRascLer();
+  if(r){ Object.keys(imListas).forEach(k=>{ imListas[k]=String(r.listas[k]||'') }); imCliId=r.cliId||'' }
+  $('imTexto').value=imListas[imCol];
+  imCliPreencher(); imAbas();
   carregarUsuarios().then(()=>{ imCliPreencher(); imAbas() }).catch(()=>{});
   $('imTit').textContent='Importar equipamentos';
-  $('imP1').style.display=''; $('imP2').style.display='none'; $('imSms').style.display='none'; $('imProg').textContent='';
-  $('imVoltar').textContent='Cancelar'; $('imOk').textContent='Conferir'; $('imOk').disabled=false; $('imOk').style.display='';
-  $('imAcoes').classList.remove('um');
-  abrir('mImport'); setTimeout(()=>$('imTexto').focus(),60);
+  $('imP1').style.display='';
+  $('imVoltar').textContent='Cancelar'; $('imOk').textContent='Conferir';
+  if(r) setTimeout(()=>toast('Voltei com o que você tinha colado antes.'),200);
+  if(!$('mImport').classList.contains('show')) abrir('mImport');
+  setTimeout(()=>$('imTexto').focus(),60);
 }
-function imFechar(){ if(imOcupado){ toast('Aguarde terminar.'); return } $('mImport').classList.remove('show') }
+function imFechar(){
+  if(imOcupado){ toast('Aguarde terminar.'); return }
+  if(imFase==='feito' && imLoteAtual && imSalvarLote()) toast('Salvo. Para terminar, toque no ícone de importar (número vermelho).',5000);
+  $('mImport').classList.remove('show');
+}
 $('imX').onclick=imFechar;
+imBadge();
 $('aImportar').onclick=imAbrir;
 /* monta as linhas juntando as listas pela posição (1º IMEI com o 1º chip, a 1ª placa...) */
 function imLer(){
@@ -4574,12 +4653,15 @@ async function imCadastrar(){
   }
   imFase='feito'; imOcupado=false; $('imVoltar').disabled=false;
   const ok=imCriados.length, comChip=imCriados.filter(x=>x.chip).length;
+  if(ok) imRascApagar(); /* já cadastrou: o rascunho das listas não serve mais */
+  imLoteAtual=null; imReaberto=false; imConfirmouImed=false;
+  if(comChip) imSalvarLote(); /* fica salvo sozinho até o SMS ser enviado */
   $('imProg').textContent=ok?'Pronto: '+ok+(ok===1?' equipamento cadastrado.':' equipamentos cadastrados.'):'Nenhum equipamento foi cadastrado.';
   imDesenhar();
   buscando=false; try{ await buscarSeguro() }catch(e){} vinculos={}; desenharAdmin(); carregarVinculos();
   if(comChip){
     $('imSms').style.display=''; imContar();
-    $('imVoltar').textContent='Fechar'; $('imOk').disabled=false; $('imOk').textContent='Enviar SMS';
+    $('imVoltar').textContent='Salvar'; $('imOk').disabled=false; $('imOk').textContent='Enviar SMS';
   } else { $('imOk').style.display='none'; $('imAcoes').classList.add('um'); $('imVoltar').textContent='Fechar' }
 }
 const IM_TIPOS=[['imSApn','apn','APN'],['imSIp','ip','IP e Porta'],['imSImed','imediato','Bloqueio imediato']];
@@ -4595,7 +4677,7 @@ async function imEnviarSms(){
   if(!tipos.length||!alvos.length) return;
   if(!confirmarImediato()) return;
   imOcupado=true; $('imOk').disabled=true; $('imVoltar').disabled=true; IM_TIPOS.forEach(x=>$(x[0]).disabled=true);
-  const total=tipos.length*alvos.length; let n=0, ok=0; const falhas=[];
+  const total=tipos.length*alvos.length; let n=0, ok=0; const falhas=[], falhouId=new Set();
   for(const a of alvos){
     for(const t of tipos){
       n++; $('imProg').textContent='Enviando SMS '+n+' de '+total+' ('+t[2]+' para '+a.nome+')...';
@@ -4604,14 +4686,22 @@ async function imEnviarSms(){
         let j={}; try{ j=await r.json() }catch(e){}
         if(!r.ok) throw new Error(j.erro||('erro '+r.status));
         ok++;
-      }catch(e){ falhas.push(a.nome+' ('+t[2]+'): '+(e.message||'erro')) }
+      }catch(e){ falhas.push(a.nome+' ('+t[2]+'): '+(e.message||'erro')); falhouId.add(a.id) }
       await new Promise(res=>setTimeout(res,400));
     }
   }
   imOcupado=false; $('imVoltar').disabled=false; $('imVoltar').textContent='Fechar';
+  /* salvo: some quando tudo foi enviado; se algum aparelho falhou, fica salvo só com ele, para tentar de novo depois */
+  let ficou=0;
+  if(imLoteAtual){
+    if(falhouId.size){ imCriados=imCriados.filter(x=>falhouId.has(x.id)); imLinhas=imLinhas.filter(l=>falhouId.has(l.devId)); imSalvarLote(); ficou=imCriados.length }
+    else imRemoverLote(imLoteAtual);
+  }
+  imFase='enviado'; imLoteAtual=null;
   $('imConta').textContent=ok?'Configuração enviada. Os rastreadores aplicam quando recebem o SMS (pode levar alguns minutos).':'';
   $('imOk').style.display='none'; $('imAcoes').classList.add('um');
-  $('imProg').innerHTML=esc(ok+' de '+total+' SMS enviados.')+(falhas.length?'<br><span style="color:#e11d48;font-weight:600;font-size:13px">Não enviados: '+esc(falhas.join(' · '))+'</span>':'');
+  $('imProg').innerHTML=esc(ok+' de '+total+' SMS enviados.')+(falhas.length?'<br><span style="color:#e11d48;font-weight:600;font-size:13px">Não enviados: '+esc(falhas.join(' · '))+'</span>':'')+
+    (ficou?'<br><span style="font-size:13px">'+esc(ficou+(ficou===1?' equipamento ficou salvo':' equipamentos ficaram salvos')+' para tentar de novo (ícone de importar).')+'</span>':'');
   $('imRola').scrollTop=$('imRola').scrollHeight;
 }
 let imConfirmouImed=false;
@@ -4621,9 +4711,16 @@ function confirmarImediato(){
   $('imConta').innerHTML='<b class="perigo">Bloqueio imediato marcado: estes rastreadores vão cortar o motor assim que receberem um bloqueio, em qualquer velocidade. Toque em "Enviar SMS" de novo para confirmar.</b>';
   return false;
 }
-$('imOk').onclick=()=>{ if(imFase==='colar') imConferir(); else if(imFase==='previa') imCadastrar(); else if(imFase==='feito') imEnviarSms() };
+$('imOk').onclick=()=>{ if(imFase==='colar') imConferir(); else if(imFase==='previa') imCadastrar(); else if(imFase==='feito') imEnviarSms(); else if(imFase==='salvos') imNova() };
+IM_TIPOS.forEach(x=>$(x[0]).addEventListener('change',()=>{ if(imFase==='feito' && imLoteAtual) imSalvarLote() }));
 $('imVoltar').onclick=()=>{
   if(imOcupado) return;
+  if(imFase==='colar'){ imRascApagar(); imFechar(); return } /* Cancelar de propósito: descarta o que foi colado */
+  if(imFase==='feito' && imLoteAtual && !imReaberto){ imSalvarLote(); $('mImport').classList.remove('show'); toast('Salvo. Para terminar, toque no ícone de importar (número vermelho).',5000); return }
+  if(imFase==='feito' && imLoteAtual && imReaberto){
+    if(!imCancelArm){ imCancelArm=true; $('imVoltar').textContent='Toque de novo para cancelar'; $('imConta').innerHTML='<b class="perigo">Cancelar tira esta importação da lista de salvas. Os equipamentos continuam cadastrados; só a configuração por SMS não será enviada.</b>'; return }
+    imRemoverLote(imLoteAtual); imLoteAtual=null; $('mImport').classList.remove('show'); toast('Importação salva cancelada. Os equipamentos continuam cadastrados.',5000); return
+  }
   if(imFase==='previa'){ imFase='colar'; $('imTexto').value=imListas[imCol]; imAbas(); $('imP1').style.display=''; $('imP2').style.display='none'; $('imVoltar').textContent='Cancelar'; $('imOk').textContent='Conferir'; $('imOk').disabled=false; return }
   imFechar();
 };
