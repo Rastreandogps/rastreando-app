@@ -827,6 +827,11 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
 #aview details.eq .seta{font-size:16px;opacity:.6}
 #aview details.eq .corpo{padding:2px 12px 14px;border-top:1px solid var(--line)}
 #aview details.eq .corpo .s{margin-top:10px}
+#aview details.eq .ecad{white-space:nowrap;opacity:.85}
+#aview .estat{display:inline-block;vertical-align:2px;margin-left:4px;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.01em;white-space:nowrap}
+#aview .estat.on{background:rgba(22,163,74,.12);color:#16a34a}
+#aview .estat.off{background:rgba(225,29,72,.10);color:#e11d48}
+#aview .estat.nunca{background:rgba(217,119,6,.13);color:#b45309}
 #aview .cmds{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
 #aview .cmd{height:42px;padding:0 6px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--txt);font-size:12.5px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:6px;text-decoration:none;white-space:nowrap;transition:background .15s}
 #aview .cmd svg{width:15px;height:15px;flex:none;color:var(--mut)}
@@ -957,6 +962,8 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
 #aImportar{position:relative}
 #aImportar .imbadge{position:absolute;top:-6px;right:-6px;min-width:19px;height:19px;padding:0 5px;border-radius:10px;background:#e11d48;color:#fff;font-size:11px;font-weight:800;line-height:1;display:none;align-items:center;justify-content:center;border:2px solid var(--card)}
 #aImportar .imbadge.show{display:flex}
+#aImportar .imbadge.env{background:#2563eb;animation:imPulsa 1.4s ease-in-out infinite}
+@keyframes imPulsa{0%,100%{transform:scale(1)}50%{transform:scale(1.18)}}
 #mImport .imsalvo{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--txt);font:inherit;cursor:pointer;margin-bottom:8px}
 #mImport .imsalvo b{display:block;font-size:14.5px}
 #mImport .imsalvo small{display:block;font-size:12.5px;color:var(--mut);margin-top:2px;line-height:1.4}
@@ -1521,6 +1528,7 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
     <div class="pickhead"><h3>Escolher veículo</h3><span id="pickCount"></span></div>
     <input class="fld" id="pickBusca" type="search" placeholder="Buscar nome ou placa" autocomplete="off" enterkeyhint="search">
     <label class="pickall" id="pickAllRow"><span class="chk"><input type="checkbox" id="pickAll" aria-label="Mostrar todos no mapa"><span class="box"></span></span><span class="pickalltx" id="pickAllTx"></span><span class="pickmapa" id="pickNoMapa"></span></label>
+    <label class="pickall" id="pickHojeRow" style="display:none"><span class="chk"><input type="checkbox" id="pickHoje" aria-label="Mostrar no mapa só os cadastrados hoje"><span class="box"></span></span><span class="pickalltx">Só os cadastrados hoje</span><span class="pickmapa" id="pickHojeN"></span></label>
     <div class="picklist" id="pickList"></div>
     <div class="actions2" style="grid-template-columns:1fr"><button class="btn btn-out" data-close>Fechar</button></div>
   </div>
@@ -2306,6 +2314,8 @@ function mesclar(ds,ps){
   if(sig!==assinaturaLista){ assinaturaLista=sig; desenharLista(); if(ehAdmin && $('aview').classList.contains('show') && abaAdmin==='equip') desenharEquip() }
   if(primeiraCarga){ primeiraCarga=false; mudouSelecao() }
   atualizarContagem(); atualizar();
+  if(ehAdmin && $('aview').classList.contains('show') && abaAdmin==='equip') equipStatusAtualizar();
+  if($('mPick').classList.contains('show')) sincronizarPick();
 }
 
 async function buscarSeguro(){
@@ -2555,12 +2565,26 @@ function sincronizarPick(){
   all.disabled = !lista.length;
   $('pickAllTx').textContent = q ? 'Marcar os '+lista.length+' da busca' : 'Marcar todos no mapa';
   $('pickNoMapa').textContent = visiveis().length+' de '+veiculos.length+' no mapa';
+  const hj=veicHoje();
+  $('pickHojeRow').style.display = (ehAdmin && hj.length) ? '' : 'none';
+  if(hj.length){ $('pickHojeN').textContent=hj.length+' hoje'; $('pickHoje').checked = veiculos.every(v=>v.visivel===hj.includes(v)) }
   document.querySelectorAll('#pickList .pitem').forEach(r=>{
     const v=veiculos.find(x=>x.id===+r.dataset.id); if(!v) return;
     r.querySelector('input').checked=v.visivel; r.classList.toggle('on',v.id===selId);
   });
 }
 $('pickBusca').addEventListener('input',desenharPick);
+/* "Só os cadastrados hoje" (11/10/2026): mostra no mapa só o que foi cadastrado hoje (data gravada no cadastro).
+   Desmarcar volta a seleção que estava antes. */
+function veicHoje(){ const h=hojeIso(); return veiculos.filter(v=>String((v.raw&&v.raw.attributes&&v.raw.attributes.cadastradoEm)||'').slice(0,10)===h) }
+let pickAntesHoje=null;
+$('pickHoje').addEventListener('change',e=>{
+  const hj=veicHoje();
+  if(e.target.checked){ pickAntesHoje=veiculos.map(v=>[v.id,v.visivel]); veiculos.forEach(v=>{ v.visivel=hj.includes(v) }) }
+  else if(pickAntesHoje){ const m=new Map(pickAntesHoje); veiculos.forEach(v=>{ v.visivel=m.has(v.id)?m.get(v.id):false }); pickAntesHoje=null }
+  else veiculos.forEach(v=>{ if(hj.includes(v)) v.visivel=false });
+  sincronizarChecks(); mudouSelecao(); sincronizarPick(); desenharPick();
+});
 $('pickBusca').addEventListener('keydown',e=>{ if(e.key==='Enter'){ const b=$('pickList').querySelector('.pbtn'); if(b){ e.preventDefault(); b.click() } } });
 $('pickList').addEventListener('change',e=>{
   const r=e.target.closest('.pitem'); if(!r) return;
@@ -3945,6 +3969,22 @@ function rotuloCliente(v){
 }
 let abertosEq={};
 /* cartão de equipamento: fechado mostra nome, chip e cliente; aberto mostra os comandos. Copiar, lápis e lixeira sempre visíveis. */
+/* data de cadastro do equipamento (11/10/2026): o Traccar não guarda, então o app grava em attributes.cadastradoEm
+   ao cadastrar (um por um ou importação). Equipamentos cadastrados antes disso ficam sem data. */
+function hojeIso(){ const d=new Date(), p=n=>String(n).padStart(2,'0'); return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate()) }
+function dataCadastro(v){ const s=String((v&&v.raw&&v.raw.attributes&&v.raw.attributes.cadastradoEm)||''), m=s.match(/^(\d{4})-(\d{2})-(\d{2})/); return m?m[3]+'/'+m[2]+'/'+m[1]:'' }
+/* situação do aparelho no cartão de Equipamentos (11/10/2026): usa os mesmos dados que o app já busca a cada 5 s,
+   então não pesa nada a mais no servidor. Atualiza sozinho com a tela aberta. */
+function estEquip(v){
+  if(!v || !v.pos) return ['Nunca pontuou','nunca'];
+  if(v.online) return ['Online','on'];
+  return ['Offline'+(v.ultimo?' · '+haQuantoCurto(v.ultimo):''),'off'];
+}
+function haQuantoCurto(ms){ const m=Math.max(0,Math.round((Date.now()-ms)/60000)); if(m<60) return m+' min'; const h=Math.round(m/60); if(h<48) return h+' h'; return Math.round(h/24)+' dias' }
+function estEquipHtml(v){ const e=estEquip(v); return '<span class="estat '+e[1]+'" data-est="'+v.id+'">'+esc(e[0])+'</span>' }
+function equipStatusAtualizar(){
+  document.querySelectorAll('#aview .estat[data-est]').forEach(el=>{ const v=veiculos.find(x=>x.id===+el.dataset.est); if(!v) return; const e=estEquip(v); if(el.textContent!==e[0]) el.textContent=e[0]; el.className='estat '+e[1] });
+}
 function cartaoEquip(v,userId){
   const cs=clientesDoEquip(v);
   /* selo de cada cliente; o "×" tira só o vínculo (o cliente continua existindo) */
@@ -3953,7 +3993,7 @@ function cartaoEquip(v,userId){
     : (v.contato ? '<div class="ecli">'+ICO_USR+'<span>'+esc(String(v.contato).replace(EMAIL_FALSO,''))+'</span></div>' : '<div class="ecli sem">'+ICO_USR+'<span>Sem cliente</span></div>');
   return '<details class="eq" data-id="'+v.id+'"'+(abertosEq[v.id]?' open':'')+'><summary>'+
     '<div class="etopo"><span class="eav">'+ICO_EQ+'</span>'+
-    '<div class="einfo"><div class="t">'+esc(v.nome)+'</div>'+
+    '<div class="einfo"><div class="t">'+esc(v.nome)+' '+estEquipHtml(v)+'</div>'+
     '<div class="s">'+(v.placa?'Placa: <b>'+esc(v.placa)+'</b> · ':'')+'Chip: '+(v.fone?'<b>'+esc(fmtFone(v.fone))+'</b>':'não cadastrado')+'</div>'+
     '</div></div><div class="eclis2">'+pills+'</div>'+
     '<span class="eacoes">'+
@@ -3963,7 +4003,7 @@ function cartaoEquip(v,userId){
         ? '<button class="ico lix" data-a="desv" data-u="'+userId+'" aria-label="Desvincular deste cliente" title="Desvincular deste cliente (o equipamento continua cadastrado)">'+ICO_UNLINK+'</button>'
         : '<button class="ico lix" data-a="deleq" aria-label="Excluir equipamento" title="Excluir equipamento do sistema">'+ICO_LIX+'</button>')+
     '</span><span class="seta">›</span></summary>'+
-    '<div class="corpo"><div class="s">IMEI '+esc(v.imei)+'</div>'+
+    '<div class="corpo"><div class="s">IMEI '+esc(v.imei)+(dataCadastro(v)?'<span class="ecad"> · cadastrado em '+esc(dataCadastro(v))+'</span>':'')+'</div>'+
     (v.fone?'<div class="cmds">'+
       '<a class="cmd" data-a="sms" href="'+esc(linkSms(v.fone))+'">'+IC.sms+'SMS</a>'+
       '<button class="cmd" data-a="cfgip">'+IC.ip+'IP/Porta</button>'+
@@ -4421,7 +4461,7 @@ $('eSalvar').onclick=async ()=>{
       if(placa) at.placa=placa; else delete at.placa;
       r=await api('/api/devices/'+editandoId,{method:'PUT',headers:JSONH,body:JSON.stringify(Object.assign({},v.raw,{name:nome,phone:fone,contact:email,attributes:at}))});
     } else {
-      r=await api('/api/devices',{method:'POST',headers:JSONH,body:JSON.stringify({name:nome,uniqueId:imei,phone:fone,contact:email,attributes:placa?{placa:placa}:{}})});
+      r=await api('/api/devices',{method:'POST',headers:JSONH,body:JSON.stringify({name:nome,uniqueId:imei,phone:fone,contact:email,attributes:Object.assign(placa?{placa:placa}:{},{cadastradoEm:hojeIso()})})});
     }
     if(!r.ok) throw new Error(await msgErro(r,'Não foi possível salvar o equipamento'));
     const d=await r.json();
@@ -4502,7 +4542,7 @@ const IM_SALVOS='imSalvos', IM_RASC='imRascunho';
 let imLoteAtual=null, imReaberto=false, imCancelArm=false;
 function imSalvosLer(){ try{ const a=JSON.parse(localStorage.getItem(IM_SALVOS)||'[]'); return Array.isArray(a)?a:[] }catch(e){ return [] } }
 function imSalvosGravar(a){ try{ a.length ? localStorage.setItem(IM_SALVOS,JSON.stringify(a)) : localStorage.removeItem(IM_SALVOS) }catch(e){} imBadge() }
-function imBadge(){ const n=imSalvosLer().length, b=$('imBadge'); if(!b) return; b.textContent=n; b.classList.toggle('show',n>0); $('aImportar').title=n?'Importar equipamentos ('+n+(n===1?' salva para terminar)':' salvas para terminar)'):'Importar equipamentos em lista' }
+function imBadge(){ const n=imSalvosLer().length, b=$('imBadge'); if(!b) return; let env=false; try{ env=!!imEnv }catch(e){} b.textContent=n; b.classList.toggle('show',n>0); b.classList.toggle('env',env); $('aImportar').title=n?'Importar equipamentos ('+n+(n===1?' salva para terminar)':' salvas para terminar)'):'Importar equipamentos em lista' }
 function imRascGravar(){ if(imFase!=='colar') return; try{ const tem=Object.keys(imListas).some(k=>String(imListas[k]||'').trim()); tem ? localStorage.setItem(IM_RASC,JSON.stringify({listas:imListas,cliId:imCliId})) : localStorage.removeItem(IM_RASC) }catch(e){} }
 function imRascLer(){ try{ const r=JSON.parse(localStorage.getItem(IM_RASC)||'null'); return r&&r.listas?r:null }catch(e){ return null } }
 function imRascApagar(){ try{ localStorage.removeItem(IM_RASC) }catch(e){} }
@@ -4513,13 +4553,14 @@ function imSalvarLote(){
   const lote={id, quando:velho?velho.quando:Date.now(), criados:imCriados,
     linhas:imLinhas.filter(l=>l.estado==='feito').map(l=>({n:l.n,nome:l.nome,imeiTxt:l.imeiTxt,chip:l.chip,placa:l.placa,devId:l.devId,vincFalhou:!!l.vincFalhou,user:l.user?{name:l.user.name||'',login:loginDe(l.user)}:null,estado:'feito',erros:[]})),
     tipos:IM_TIPOS.filter(x=>$(x[0]).checked).map(x=>x[1])};
+  if(velho && velho.envio){ lote.envio=velho.envio; lote.tipos=velho.tipos||lote.tipos } /* não perde o andamento do envio */
   const i=a.findIndex(x=>x.id===id); if(i>=0) a[i]=lote; else a.push(lote);
   imSalvosGravar(a); imLoteAtual=id; return true;
 }
 function imRemoverLote(id){ imSalvosGravar(imSalvosLer().filter(x=>x.id!==id)) }
 function imQuando(ms){ const d=new Date(ms), p=n=>String(n).padStart(2,'0'); return p(d.getDate())+'/'+p(d.getMonth()+1)+' às '+p(d.getHours())+':'+p(d.getMinutes()) }
 function imPrepararModal(){
-  imOcupado=false; imCancelArm=false; imConfirmouImed=false;
+  imOcupado=false; imCancelArm=false; imConfirmouImed=false; imRetomar=false;
   IM_TIPOS.forEach(x=>{ $(x[0]).disabled=false });
   $('imVoltar').disabled=false; $('imOk').disabled=false; $('imOk').style.display=''; $('imAcoes').classList.remove('um');
   $('imP0').style.display='none'; $('imP1').style.display='none'; $('imP2').style.display='none'; $('imSms').style.display='none'; $('imProg').textContent='';
@@ -4530,12 +4571,17 @@ function imMostrarSalvos(){
   imPrepararModal(); imFase='salvos'; imLoteAtual=null; imReaberto=false;
   $('imTit').textContent='Importações para terminar';
   $('imSalvosLista').innerHTML=a.map(l=>{ const n=l.criados.filter(x=>x.chip).length;
-    return '<button type="button" class="imsalvo" data-lote="'+esc(l.id)+'"><span class="imsnum">'+n+'</span><span><b>'+n+(n===1?' equipamento':' equipamentos')+' · salvo em '+esc(imQuando(l.quando))+'</b><small>'+esc(l.criados.map(x=>x.nome).join(', '))+'</small></span><span class="imsseta">›</span></button>' }).join('');
+    return '<button type="button" class="imsalvo" data-lote="'+esc(l.id)+'"><span class="imsnum">'+n+'</span><span><b>'+n+(n===1?' equipamento':' equipamentos')+' · salvo em '+esc(imQuando(l.quando))+'</b><small>'+esc(l.criados.map(x=>x.nome).join(', '))+'</small>'+imStatusLote(l)+'</span><span class="imsseta">›</span></button>' }).join('');
   $('imP0').style.display='';
   $('imVoltar').textContent='Fechar'; $('imOk').textContent='Nova importação';
   if(!$('mImport').classList.contains('show')) abrir('mImport');
 }
 $('imSalvosLista').addEventListener('click',e=>{ const b=e.target.closest('[data-lote]'); if(b) imAbrirLote(b.dataset.lote) });
+function imStatusLote(l){
+  if(imEnv && imEnv.loteId===l.id) return '<small style="color:#2563eb;font-weight:700">Enviando agora...</small>';
+  if(l.envio){ const f=l.envio.tipos.filter(t=>l.envio.feitos.indexOf(t)<0).map(imTipoNome); return '<small style="color:#d97706;font-weight:700">Envio interrompido'+(f.length?': falta '+esc(f.join(', ')):'')+'</small>' }
+  return '';
+}
 function imAbrirLote(id){
   const l=imSalvosLer().find(x=>x.id===id); if(!l){ imMostrarSalvos(); return }
   imPrepararModal(); imFase='feito'; imLoteAtual=id; imReaberto=true;
@@ -4546,6 +4592,14 @@ function imAbrirLote(id){
   $('imProg').textContent='Salvo em '+imQuando(l.quando)+'. Os equipamentos já estão cadastrados; falta enviar o SMS.';
   imDesenhar(); imContar();
   $('imVoltar').textContent='Cancelar'; $('imOk').textContent='Enviar SMS';
+  if(imEnv && imEnv.loteId===id){ imTelaEnviando() }
+  else if(l.envio){
+    const ja=l.envio.feitos.map(imTipoNome), falta=l.envio.tipos.filter(t=>l.envio.feitos.indexOf(t)<0);
+    imRetomar=true; IM_TIPOS.forEach(x=>{ $(x[0]).checked=l.envio.tipos.indexOf(x[1])>=0; $(x[0]).disabled=true });
+    $('imProg').textContent='O envio foi interrompido (a página fechou ou recarregou). '+(ja.length?'Já enviado: '+ja.join(', ')+'. ':'')+'Falta: '+falta.map(imTipoNome).join(', ')+'.';
+    $('imConta').textContent='Toque em "Continuar envio" para mandar o que falta, nas mesmas etapas.';
+    $('imOk').textContent='Continuar envio';
+  }
   $('imRola').scrollTop=0;
 }
 function imNova(){
@@ -4566,6 +4620,7 @@ function imNova(){
 }
 function imFechar(){
   if(imOcupado){ toast('Aguarde terminar.'); return }
+  if(imFase==='enviando' && imEnv){ $('mImport').classList.remove('show'); toast('O envio continua. O número azul no ícone de importar some quando terminar.',5000); return }
   if(imFase==='feito' && imLoteAtual && imSalvarLote()) toast('Salvo. Para terminar, toque no ícone de importar (número vermelho).',5000);
   $('mImport').classList.remove('show');
 }
@@ -4642,7 +4697,7 @@ async function imCadastrar(){
   for(const l of fila){
     i++; $('imProg').textContent='Cadastrando '+i+' de '+fila.length+'...'; l.estado='indo'; imDesenhar();
     try{
-      const at=l.placa?{placa:l.placa}:{};
+      const at=Object.assign(l.placa?{placa:l.placa}:{},{cadastradoEm:hojeIso()});
       const r=await api('/api/devices',{method:'POST',headers:JSONH,body:JSON.stringify({name:l.nome,uniqueId:l.imei,phone:l.chip,contact:l.user?loginDe(l.user).toLowerCase():'',attributes:at})});
       if(!r.ok) throw new Error(await msgErro(r,'o servidor recusou'));
       const d=await r.json();
@@ -4668,53 +4723,134 @@ const IM_TIPOS=[['imSApn','apn','APN'],['imSIp','ip','IP e Porta'],['imSImed','i
 function imContar(){
   const n=imCriados.filter(x=>x.chip).length, t=IM_TIPOS.filter(x=>$(x[0]).checked).length, total=n*t;
   $('imConta').innerHTML=total?(n+(n===1?' equipamento':' equipamentos')+' × '+t+' SMS = <b>'+total+' SMS</b> (cerca de R$ '+(total*0.10).toFixed(2).replace('.',',')+').'+
-    (total>100?' <b class="perigo">Passa do limite de 100 SMS do administrador por dia: o que passar será recusado; mande o resto amanhã.</b>':'')+' A ordem de envio é APN, IP e Porta, Bloqueio imediato, um aparelho de cada vez.'):'Marque pelo menos um SMS.';
+    (total>100?' <b class="perigo">Passa do limite de 100 SMS do administrador por dia: o que passar será recusado; mande o resto amanhã.</b>':'')+' Envio em etapas: primeiro APN para todos, espera 30 s, IP e Porta, espera 30 s, Bloqueio imediato. Pode fechar a tela que continua.'):'Marque pelo menos um SMS.';
   if(imFase==='feito') $('imOk').disabled=!total;
 }
 IM_TIPOS.forEach(x=>$(x[0]).addEventListener('change',imContar));
-async function imEnviarSms(){
-  const tipos=IM_TIPOS.filter(x=>$(x[0]).checked); const alvos=imCriados.filter(x=>x.chip);
+/* --- Envio da configuração em etapas (11/10/2026) ---
+   APN para todos -> espera 30 s -> IP e Porta para todos -> espera 30 s -> Bloqueio imediato para todos.
+   Roda por trás: dá para fechar a tela e fazer outras coisas; o número vermelho fica até terminar.
+   "Cancelar envio" para o que ainda não saiu. O andamento fica gravado na importação salva: se a página
+   for recarregada no meio, a importação mostra o que já foi e um botão para continuar. */
+const IM_ESPERA=30000;
+let imEnv=null, imRetomar=false;
+const imTipoNome=k=>(IM_TIPOS.find(x=>x[1]===k)||[0,0,k])[2];
+const imDorme=ms=>new Promise(res=>setTimeout(res,ms));
+function imLoteAtualizar(id,fn){ const a=imSalvosLer(), l=a.find(x=>x.id===id); if(!l) return null; fn(l); imSalvosGravar(a); return l }
+function imLote(id){ return imSalvosLer().find(x=>x.id===id)||null }
+function imEnviarSms(){
+  if(imEnv){ toast('Já tem um envio em andamento. Espere terminar ou cancele.',5000); return }
+  const tipos=IM_TIPOS.filter(x=>$(x[0]).checked).map(x=>x[1]), alvos=imCriados.filter(x=>x.chip);
   if(!tipos.length||!alvos.length) return;
-  if(!confirmarImediato()) return;
-  imOcupado=true; $('imOk').disabled=true; $('imVoltar').disabled=true; IM_TIPOS.forEach(x=>$(x[0]).disabled=true);
-  const total=tipos.length*alvos.length; let n=0, ok=0; const falhas=[], falhouId=new Set();
-  for(const a of alvos){
-    for(const t of tipos){
-      n++; $('imProg').textContent='Enviando SMS '+n+' de '+total+' ('+t[2]+' para '+a.nome+')...';
-      try{
-        const r=await fetch(DESB_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',body:JSON.stringify({acao:'smsConfig',tipo:t[1],token:lsGet('rg_token'),deviceId:a.id})});
-        let j={}; try{ j=await r.json() }catch(e){}
-        if(!r.ok) throw new Error(j.erro||('erro '+r.status));
-        ok++;
-      }catch(e){ falhas.push(a.nome+' ('+t[2]+'): '+(e.message||'erro')); falhouId.add(a.id) }
-      await new Promise(res=>setTimeout(res,400));
-    }
+  imSalvarLote();
+  const id=imLoteAtual; if(!id) return;
+  imLoteAtualizar(id,l=>{ l.tipos=tipos; l.envio={tipos:tipos,feitos:[],ultimoMs:0,ok:0,falhas:[],falhouIds:[]} });
+  imIniciarEnvio(id);
+}
+function imIniciarEnvio(id){
+  if(imEnv && imEnv.loteId!==id){ toast('Já tem um envio em andamento. Espere terminar ou cancele.',5000); return }
+  const l=imLote(id); if(!l||!l.envio) return;
+  const e=l.envio;
+  if(!e.tipos.some(t=>e.feitos.indexOf(t)<0)){ imConcluirEnvio(id); return }
+  imEnv={loteId:id, alvos:(l.criados||[]).filter(x=>x.chip), proxEm:e.ultimoMs?Math.max(Date.now(),e.ultimoMs+IM_ESPERA):Date.now(), enviando:false, cancelar:false, n:0, tipo:''};
+  imEnv.tick=setInterval(imEnvTick,1000);
+  if(imLoteAtual===id && $('mImport').classList.contains('show')) imTelaEnviando();
+  imBadge(); imEnvTick();
+}
+async function imEnvTick(){
+  const E=imEnv; if(!E) return;
+  if(E.enviando || Date.now()<E.proxEm){ imEnvPintar(); return }
+  const l=imLote(E.loteId); if(!l||!l.envio){ imEnvParar(); return }
+  const t=l.envio.tipos.find(x=>l.envio.feitos.indexOf(x)<0);
+  if(!t){ imConcluirEnvio(E.loteId); return }
+  E.enviando=true; E.tipo=t; E.n=0; imEnvPintar();
+  let ok=0; const falhas=[], fids=[];
+  for(const a of E.alvos){
+    if(E.cancelar) break;
+    E.n++; imEnvPintar();
+    try{
+      const r=await fetch(DESB_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',body:JSON.stringify({acao:'smsConfig',tipo:t,token:lsGet('rg_token'),deviceId:a.id})});
+      let j={}; try{ j=await r.json() }catch(e){}
+      if(!r.ok) throw new Error(j.erro||('erro '+r.status));
+      ok++;
+    }catch(e){ falhas.push(a.nome+' ('+imTipoNome(t)+'): '+(e.message||'erro')); fids.push(a.id) }
+    await imDorme(400);
   }
-  imOcupado=false; $('imVoltar').disabled=false; $('imVoltar').textContent='Fechar';
-  /* salvo: some quando tudo foi enviado; se algum aparelho falhou, fica salvo só com ele, para tentar de novo depois */
+  imLoteAtualizar(E.loteId,x=>{ const v=x.envio; if(!v) return; v.feitos.push(t); v.ultimoMs=Date.now(); v.ok+=ok; v.falhas=v.falhas.concat(falhas); v.falhouIds=Array.from(new Set(v.falhouIds.concat(fids))); if(E.cancelar && E.n<E.alvos.length) v.parcial=t });
+  E.enviando=false;
+  if(E.cancelar){ imEnvCancelado(); return }
+  const l2=imLote(E.loteId);
+  if(!l2 || !l2.envio.tipos.some(x=>l2.envio.feitos.indexOf(x)<0)){ imConcluirEnvio(E.loteId); return }
+  E.proxEm=Date.now()+IM_ESPERA; imEnvPintar();
+}
+function imEnvParar(){ if(imEnv) clearInterval(imEnv.tick); imEnv=null; imBadge() }
+function imEnvCancelar(){
+  const E=imEnv; if(!E) return;
+  E.cancelar=true;
+  if(!E.enviando) imEnvCancelado();
+  else { $('imOk').disabled=true; $('imOk').textContent='Cancelando...' }
+}
+function imEnvCancelado(){
+  const E=imEnv; if(!E) return;
+  const l=imLote(E.loteId), v=l&&l.envio, id=E.loteId;
+  const ja=v?v.feitos.map(t=>imTipoNome(t)+(v.parcial===t?' (só parte)':'')):[];
+  imEnvParar(); imRemoverLote(id);
+  const msg='Envio cancelado. '+(ja.length?'Já tinha saído: '+ja.join(', ')+'.':'Nada foi enviado.')+' O resto não será enviado.';
+  if(imLoteAtual===id && $('mImport').classList.contains('show')) imTelaFim(msg,'');
+  else toast(msg,6000);
+  if(imLoteAtual===id) imLoteAtual=null;
+}
+function imConcluirEnvio(id){
+  const l=imLote(id); const v=(l&&l.envio)||{ok:0,falhas:[],falhouIds:[]};
+  if(imEnv && imEnv.loteId===id) imEnvParar();
   let ficou=0;
-  if(imLoteAtual){
-    if(falhouId.size){ imCriados=imCriados.filter(x=>falhouId.has(x.id)); imLinhas=imLinhas.filter(l=>falhouId.has(l.devId)); imSalvarLote(); ficou=imCriados.length }
-    else imRemoverLote(imLoteAtual);
-  }
-  imFase='enviado'; imLoteAtual=null;
-  $('imConta').textContent=ok?'Configuração enviada. Os rastreadores aplicam quando recebem o SMS (pode levar alguns minutos).':'';
+  if(v.falhouIds.length){
+    const f=new Set(v.falhouIds);
+    imLoteAtualizar(id,x=>{ x.criados=x.criados.filter(c=>f.has(c.id)); x.linhas=(x.linhas||[]).filter(c=>f.has(c.devId)); delete x.envio });
+    ficou=f.size;
+  } else imRemoverLote(id);
+  const msg=v.ok?'Configuração enviada ('+v.ok+' SMS). Os rastreadores aplicam quando recebem (pode levar alguns minutos).':'Nenhum SMS foi enviado.';
+  const extra=(v.falhas.length?'Não enviados: '+v.falhas.join(' · ')+'.':'')+(ficou?' '+ficou+(ficou===1?' equipamento ficou salvo':' equipamentos ficaram salvos')+' para tentar de novo (ícone de importar).':'');
+  if(imLoteAtual===id && $('mImport').classList.contains('show')) imTelaFim(msg,extra);
+  else toast(msg+(extra?' '+extra:''),7000);
+  if(imLoteAtual===id) imLoteAtual=null;
+  imBadge();
+}
+/* telas do modal durante e depois do envio */
+function imTelaEnviando(){
+  imFase='enviando'; imRetomar=false;
+  IM_TIPOS.forEach(x=>{ $(x[0]).disabled=true });
+  $('imVoltar').disabled=false; $('imVoltar').textContent='Fechar';
+  $('imOk').style.display=''; $('imOk').disabled=false; $('imOk').textContent='Cancelar envio';
+  $('imAcoes').classList.remove('um');
+  imEnvPintar();
+}
+function imTelaFim(msg,extra){
+  imFase='enviado';
+  $('imConta').textContent=msg;
+  $('imProg').innerHTML=extra?'<span style="color:#e11d48;font-weight:600;font-size:13px">'+esc(extra)+'</span>':'';
   $('imOk').style.display='none'; $('imAcoes').classList.add('um');
-  $('imProg').innerHTML=esc(ok+' de '+total+' SMS enviados.')+(falhas.length?'<br><span style="color:#e11d48;font-weight:600;font-size:13px">Não enviados: '+esc(falhas.join(' · '))+'</span>':'')+
-    (ficou?'<br><span style="font-size:13px">'+esc(ficou+(ficou===1?' equipamento ficou salvo':' equipamentos ficaram salvos')+' para tentar de novo (ícone de importar).')+'</span>':'');
+  $('imVoltar').disabled=false; $('imVoltar').textContent='Fechar';
   $('imRola').scrollTop=$('imRola').scrollHeight;
 }
-let imConfirmouImed=false;
-function confirmarImediato(){
-  if(!$('imSImed').checked || imConfirmouImed) return true;
-  imConfirmouImed=true;
-  $('imConta').innerHTML='<b class="perigo">Bloqueio imediato marcado: estes rastreadores vão cortar o motor assim que receberem um bloqueio, em qualquer velocidade. Toque em "Enviar SMS" de novo para confirmar.</b>';
-  return false;
+function imEnvPintar(){
+  const E=imEnv; if(!E || imFase!=='enviando' || imLoteAtual!==E.loteId) return;
+  const l=imLote(E.loteId); if(!l||!l.envio) return;
+  const v=l.envio, tot=v.tipos.length, k=v.feitos.length;
+  let txt;
+  if(E.enviando) txt='Etapa '+(k+1)+' de '+tot+': enviando '+imTipoNome(E.tipo)+' ('+E.n+' de '+E.alvos.length+')...';
+  else { const prox=v.tipos.find(x=>v.feitos.indexOf(x)<0), s=Math.max(0,Math.ceil((E.proxEm-Date.now())/1000));
+    txt=(k?v.feitos.map(imTipoNome).join(', ')+' enviado. ':'')+(prox?'Próximo: '+imTipoNome(prox)+' em '+s+' s.':''); }
+  $('imProg').textContent=txt;
+  $('imConta').textContent='Pode fechar esta tela: o envio continua sozinho; o número no ícone de importar fica azul piscando e some quando terminar. Não feche o aplicativo até lá.';
+  if(!E.cancelar){ $('imOk').disabled=false; $('imOk').textContent='Cancelar envio' }
 }
-$('imOk').onclick=()=>{ if(imFase==='colar') imConferir(); else if(imFase==='previa') imCadastrar(); else if(imFase==='feito') imEnviarSms(); else if(imFase==='salvos') imNova() };
+let imConfirmouImed=false; /* (não usado mais: o aviso extra do bloqueio imediato foi retirado em 11/10/2026) */
+$('imOk').onclick=()=>{ if(imFase==='colar') imConferir(); else if(imFase==='previa') imCadastrar(); else if(imFase==='feito'){ if(imRetomar) imIniciarEnvio(imLoteAtual); else imEnviarSms() } else if(imFase==='salvos') imNova(); else if(imFase==='enviando') imEnvCancelar() };
 IM_TIPOS.forEach(x=>$(x[0]).addEventListener('change',()=>{ if(imFase==='feito' && imLoteAtual) imSalvarLote() }));
 $('imVoltar').onclick=()=>{
   if(imOcupado) return;
+  if(imFase==='enviando'){ imFechar(); return }
   if(imFase==='colar'){ imRascApagar(); imFechar(); return } /* Cancelar de propósito: descarta o que foi colado */
   if(imFase==='feito' && imLoteAtual && !imReaberto){ imSalvarLote(); $('mImport').classList.remove('show'); toast('Salvo. Para terminar, toque no ícone de importar (número vermelho).',5000); return }
   if(imFase==='feito' && imLoteAtual && imReaberto){
