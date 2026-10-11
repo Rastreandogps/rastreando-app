@@ -2171,7 +2171,8 @@ $('cmdOk').onclick=async ()=>{
         if(/success/i.test(v.result)){
           v.bloq=bloquear; lsSet('rg_bloq_'+v.id,bloquear?'1':'0');
           toast(bloquear?'Bloqueio confirmado pelo aparelho':'Desbloqueio confirmado pelo aparelho');
-        } else if(bloquear) toast('O equipamento rastreador está sem sinal. Pode ser que não seja possível bloquear no momento.',7000);
+        } else if(bloquear && /will stop/i.test(v.result)) toast('Bloqueio programado: o rastreador recebeu o comando e vai cortar o motor assim que o veículo reduzir a velocidade ou for desligado.',8000); /* resposta "OK,engine will stop after..." do J16 (check-up 10/10) */
+        else if(bloquear) toast('O equipamento rastreador está sem sinal. Pode ser que não seja possível bloquear no momento.',7000);
         else toast('O aparelho respondeu: '+v.result);
       }
     }
