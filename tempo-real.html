@@ -1251,6 +1251,7 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
       </div>
       <div class="ameta"><b id="aCount"></b><span id="aFinTxt"></span><span id="aTabNome" hidden></span></div>
       <div class="afiltros" id="aFiltros" hidden></div>
+      <div class="afiltros" id="aFiltrosEq" hidden></div>
       <button class="linkbtn" id="aProteger" style="display:none">Proteger comandos dos clientes</button>
     </div>
     <div class="vlist" id="aList"></div>
@@ -3927,6 +3928,7 @@ function desenharAdmin(){
   $('aImportar').style.display = abaAdmin==='equip' ? '' : 'none';
   $('aProteger').style.display = 'none'; /* botão aposentado: cliente novo já nasce com os comandos liberados */
   if($('aFiltros')) $('aFiltros').hidden = abaAdmin!=='cli';
+  if($('aFiltrosEq')) $('aFiltrosEq').hidden = abaAdmin!=='equip';
   if(abaAdmin==='equip') desenharEquip(); else desenharClientes();
 }
 let buscaAdmin={equip:'',cli:''}, abaAnt=null;
@@ -3983,6 +3985,9 @@ function estEquip(v){
 function haQuantoCurto(ms){ const m=Math.max(0,Math.round((Date.now()-ms)/60000)); if(m<60) return m+' min'; const h=Math.round(m/60); if(h<48) return h+' h'; return Math.round(h/24)+' dias' }
 function estEquipHtml(v){ const e=estEquip(v); return '<span class="estat '+e[1]+'" data-est="'+v.id+'">'+esc(e[0])+'</span>' }
 function equipStatusAtualizar(){
+  /* com filtro de situação: se algum aparelho entrou ou saiu do filtro, redesenha a lista; senão só troca os selos e as contagens */
+  if(filtroEq!=='todos'){ const f=FILTROS_EQ.find(x=>x.id===filtroEq); if(f){ const sig=listaEquipBusca().filter(f.ok).sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR')).map(v=>v.id).join(','); if(sig!==assinaturaEq){ desenharEquip(); return } } }
+  desenharFiltrosEq(listaEquipBusca());
   document.querySelectorAll('#aview .estat[data-est]').forEach(el=>{ const v=veiculos.find(x=>x.id===+el.dataset.est); if(!v) return; const e=estEquip(v); if(el.textContent!==e[0]) el.textContent=e[0]; el.className='estat '+e[1] });
 }
 function cartaoEquip(v,userId){
@@ -4015,13 +4020,42 @@ function cartaoEquip(v,userId){
 
     '</div></details>';
 }
-function desenharEquip(){
+/* filtros da lista de equipamentos (11/10/2026). A escolha fica lembrada neste aparelho; as contagens e a lista
+   acompanham a situação ao vivo (mesmos dados do mapa, sem consulta a mais). */
+const FILTROS_EQ=[
+  {id:'todos', t:'Todos',            ok:()=>true},
+  {id:'on',    t:'Online',           ok:v=>estEquip(v)[1]==='on'},
+  {id:'off',   t:'Offline',          ok:v=>estEquip(v)[1]==='off', alerta:1},
+  {id:'nunca', t:'Nunca pontuou',    ok:v=>estEquip(v)[1]==='nunca', alerta:1},
+  {id:'hoje',  t:'Cadastrados hoje', ok:v=>String((v.raw&&v.raw.attributes&&v.raw.attributes.cadastradoEm)||'').slice(0,10)===hojeIso()},
+  {id:'semcli',t:'Sem cliente',      ok:v=>!clientesDoEquip(v).length && !v.contato},
+  {id:'semchip',t:'Sem chip',        ok:v=>!v.fone}
+];
+let filtroEq='todos', assinaturaEq='';
+try{ filtroEq=localStorage.getItem('rg_eq_filtro')||'todos' }catch(e){}
+if(!FILTROS_EQ.some(f=>f.id===filtroEq)) filtroEq='todos';
+function listaEquipBusca(){
   const q=$('aSearch').value.trim().toLowerCase(), qn=soNum(q);
-  const lista=veiculos.filter(v=>!q||[v.nome,v.placa,v.contato,rotuloCliente(v)].join(' ').toLowerCase().includes(q)||(qn.length>=3&&(soNum(v.imei).includes(qn)||soNum(v.fone).includes(qn))))
-    .sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
-  $('aCount').textContent=(q?lista.length+' de ':'')+veiculos.length+' equipamentos';
-  $('aList').innerHTML = lista.map(v=>cartaoEquip(v,null)).join('') || '<div class="vempty">Nenhum equipamento encontrado.</div>';
+  return veiculos.filter(v=>!q||[v.nome,v.placa,v.contato,rotuloCliente(v)].join(' ').toLowerCase().includes(q)||(qn.length>=3&&(soNum(v.imei).includes(qn)||soNum(v.fone).includes(qn))));
 }
+function desenharFiltrosEq(base){
+  const box=$('aFiltrosEq'); if(!box) return;
+  box.hidden=false;
+  const chips=FILTROS_EQ.map(f=>{ const n=base.filter(f.ok).length;
+    return '<button type="button" class="fchip'+(f.id===filtroEq?' on':'')+(f.alerta&&n>0?' alerta':'')+'" data-fe="'+f.id+'">'+esc(f.t)+' <span>'+n+'</span></button>' }).join('');
+  const sl=box.querySelector('.fchips'), x=sl?sl.scrollLeft:0;
+  box.innerHTML='<div class="fchips">'+chips+'</div>';
+  const novo=box.querySelector('.fchips'); if(novo) novo.scrollLeft=x;
+}
+function desenharEquip(){
+  const q=$('aSearch').value.trim(), base=listaEquipBusca(), f=FILTROS_EQ.find(x=>x.id===filtroEq)||FILTROS_EQ[0];
+  const lista=base.filter(f.ok).sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
+  assinaturaEq=lista.map(v=>v.id).join(',');
+  desenharFiltrosEq(base);
+  $('aCount').textContent=((q||filtroEq!=='todos')?lista.length+' de ':'')+veiculos.length+' equipamentos';
+  $('aList').innerHTML = lista.map(v=>cartaoEquip(v,null)).join('') || '<div class="vempty">'+(filtroEq!=='todos'?'Nenhum equipamento neste filtro.':'Nenhum equipamento encontrado.')+'</div>';
+}
+$('aFiltrosEq').addEventListener('click',e=>{ const c=e.target.closest('[data-fe]'); if(!c) return; filtroEq=c.dataset.fe; try{localStorage.setItem('rg_eq_filtro',filtroEq)}catch(er){} desenharEquip() });
 let vinculos={}, abertos={};
 function aparelhosDe(u){
   /* vínculo real do Traccar (quando já carregado); senão, pelo e-mail gravado no equipamento */
