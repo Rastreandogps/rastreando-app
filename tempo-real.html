@@ -119,6 +119,28 @@ try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'){document.do
 .ljwpp:active,.ljcomprar:active{transform:scale(.95)}
 .ljcomprar{margin-top:10px;height:40px;padding:0 18px;border-radius:10px;background:#2563eb;color:#fff;font-weight:700;font-size:14px;display:inline-flex;align-items:center;gap:6px}
 .ljcomprar:disabled{opacity:.6}
+/* coluna da foto + botão "Ver detalhes" */
+.ljitem .ljfoto{flex:none;width:84px;display:flex;flex-direction:column;align-items:stretch;gap:8px}
+.ljitem .ljfoto .ljimg{width:84px;height:84px}
+.ljdet{height:30px;border-radius:9px;background:linear-gradient(135deg,#f59e0b,#f97316);color:#fff;font-size:11.5px;font-weight:800;letter-spacing:.2px;box-shadow:0 2px 8px rgba(249,115,22,.35);display:flex;align-items:center;justify-content:center;gap:4px;padding:0 4px;white-space:nowrap}
+.ljdet:active{transform:scale(.95)}
+/* modal de detalhes do produto (centralizado) */
+#mLojaDet{align-items:center;padding:16px}
+#mLojaDet .box2{border-radius:20px;max-width:440px;width:100%;max-height:88vh;display:flex;flex-direction:column;overflow:hidden;position:relative}
+#mLojaDet .ldrola{flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+#mLojaDet .ldx{position:absolute;top:12px;right:12px;z-index:2;width:38px;height:38px;border-radius:50%;background:var(--card2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;cursor:pointer}
+#mLojaDet .ldx svg{width:18px;height:18px;fill:none;stroke:var(--txt);stroke-width:2.4;stroke-linecap:round}
+#mLojaDet .ldimg{width:100%;height:200px;object-fit:contain;background:#fff;border-radius:14px;border:1px solid var(--line);cursor:zoom-in}
+#mLojaDet h3{margin:14px 0 2px}
+#mLojaDet .ldpreco{font-size:17px;font-weight:800;margin-bottom:8px}
+#mLojaDet .ldpreco i{font-style:normal;font-size:13px;font-weight:600;color:var(--mut)}
+#mLojaDet .ldint{font-size:14.5px;line-height:1.55;margin-bottom:10px}
+#mLojaDet ul{list-style:none;padding:0;margin:0}
+#mLojaDet li{position:relative;padding:7px 0 7px 30px;font-size:14px;line-height:1.5;border-top:1px solid var(--line)}
+#mLojaDet li:before{content:"";position:absolute;left:4px;top:11px;width:16px;height:16px;border-radius:50%;background:rgba(22,163,74,.18) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 12.5l4 4L18 8' fill='none' stroke='%2316a34a' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/12px no-repeat}
+#mLojaDet .ldacoes{flex:none;display:flex;gap:8px;margin-top:12px}
+#mLojaDet .ldacoes .ljcomprar{flex:1;height:48px;margin:0;justify-content:center;font-size:15px}
+#mLojaDet .ldacoes .ljwpp{position:static;width:48px;height:48px;flex:none}
 /* resumo do pedido (antes de gerar o PIX) */
 #mLojaRes .ljrtopo{display:flex;gap:12px;align-items:center;margin:8px 0 14px}
 #mLojaRes .ljrtopo img{width:64px;height:64px;border-radius:12px;object-fit:cover;background:#fff;border:1px solid var(--line);flex:none}
@@ -1556,6 +1578,20 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
       <button id="lcPagar" type="button">Pagar agora com PIX</button>
       <button class="btn btn-out" id="lcEntendi" type="button" style="width:100%;margin-top:8px;height:46px">Entendi</button>
     </div>
+  </div>
+</div>
+<!-- Detalhes do produto da loja (modal central) -->
+<div class="modal" id="mLojaDet">
+  <div class="box2">
+    <button class="almx ldx" id="ldX" type="button" aria-label="Fechar" title="Fechar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    <div class="ldrola">
+      <img class="ldimg" id="ldImg" alt="">
+      <h3 id="ldNome"></h3>
+      <div class="ldpreco" id="ldPreco"></div>
+      <p class="ldint" id="ldInt"></p>
+      <ul id="ldLista"></ul>
+    </div>
+    <div class="ldacoes"><button class="ljcomprar" id="ldComprar" type="button">Comprar</button><button class="ljwpp" id="ldWpp" type="button" aria-label="Perguntar pelo WhatsApp" title="Perguntar pelo WhatsApp"></button></div>
   </div>
 </div>
 <!-- Foto ampliada da loja -->
@@ -5234,9 +5270,26 @@ const LOJA_FOTO='https://rastreandogps.github.io/rastreando-app/loja/';
 const LOJA_QTD_MAX=10;
 /* v = preço da unidade; de2 = preço de cada unidade comprando 2 ou mais (cartão NFC). Os valores que valem são os do servidor (LOJA_PRODUTOS). */
 const LOJA_ITENS=[
-  {k:'nfc', img:'nfc.jpg', n:'Cartão de emergência (NFC)', d:'Encoste no celular e abra o app na hora, sem procurar nada. Ideal para roubo ou emergência.', v:29.90, de2:24.95},
-  {k:'ktag', img:'ktag.jpg', n:'K-tag', d:'Localizador auxiliar do rastreador. Bateria com duração de até 1 ano e meio.', v:99.00},
-  {k:'portatil', img:'portatil.jpg', n:'Rastreador portátil', d:'Com bateria própria. Para moto, bicicleta, carga, bolsa ou qualquer coisa que você queira acompanhar.', v:320.00},
+  {k:'nfc', img:'nfc.jpg', n:'Cartão de emergência (NFC)', d:'Encoste no celular e abra o app na hora, sem procurar nada. Ideal para roubo ou emergência.', v:29.90, de2:24.95,
+   det:{int:'Um adesivo inteligente que abre o app da Rastreando GPS na hora, só de encostar o celular nele. Feito para os momentos em que cada segundo conta.',
+        itens:['Encoste o celular (iPhone ou Android com NFC) e o app abre sozinho, sem procurar ícone nem digitar endereço.',
+               'Ideal em caso de roubo ou emergência: abriu, entrou e já pode agir pelo app.',
+               'Funciona até no celular de outra pessoa: é só entrar com o seu login e senha.',
+               'Não usa bateria e não precisa carregar.',
+               'Pequeno e discreto: cole na carteira, na capinha do celular ou do documento.',
+               'Comprando 2 ou mais, sai por R$ 24,95 cada. Dá para deixar um com alguém da família.']}},
+  {k:'ktag', img:'ktag.jpg', n:'K-tag', d:'Localizador auxiliar do rastreador. Bateria com duração de até 1 ano e meio.', v:99.00,
+   det:{int:'Um localizador extra, pequeno e discreto, que trabalha como reforço do seu rastreador principal.',
+        itens:['Mais uma forma de encontrar o veículo, além do rastreador já instalado.',
+               'Pequeno: pode ficar escondido em outro ponto do veículo.',
+               'Bateria com duração de até 1 ano e meio.',
+               'Dúvidas sobre o uso e a instalação? Fale com a gente pelo WhatsApp.']}},
+  {k:'portatil', img:'portatil.jpg', n:'Rastreador portátil', d:'Com bateria própria. Para moto, bicicleta, carga, bolsa ou qualquer coisa que você queira acompanhar.', v:320.00,
+   det:{int:'Um rastreador com bateria própria, que não depende da instalação no veículo. Você leva para onde quiser acompanhar.',
+        itens:['Sem fios: funciona com a bateria dele.',
+               'Para moto, bicicleta, carga, bolsa, mala ou qualquer objeto de valor.',
+               'Você acompanha a localização pelo mesmo app da Rastreando GPS.',
+               'Dúvidas sobre ativação e uso? Fale com a gente pelo WhatsApp.']}},
 ];
 function lojaPreco(it,q){ return q*Math.round((it.de2&&q>=2?it.de2:it.v)*100)/100 }
 function maisAtualizar(){
@@ -5252,7 +5305,7 @@ function lojaLogin(){ return (lsGet('rg_email')||'').split('@')[0] }
 function lojaDesenhar(){
   $('lojaLista').innerHTML=LOJA_ITENS.map((it,i)=>'<div class="ljitem">'+
     '<button class="ljwpp" type="button" data-lw="'+i+'" aria-label="Perguntar pelo WhatsApp" title="Perguntar pelo WhatsApp">'+LOJA_SVG_WPP+'</button>'+
-    '<img class="ljimg" src="'+LOJA_FOTO+it.img+'" alt="'+esc(it.n)+'" loading="lazy" data-zoom="'+i+'">'+
+    '<div class="ljfoto"><img class="ljimg" src="'+LOJA_FOTO+it.img+'" alt="'+esc(it.n)+'" loading="lazy" data-zoom="'+i+'"><button class="ljdet" type="button" data-det="'+i+'">Ver detalhes</button></div>'+
     '<div class="ljt"><b>'+esc(it.n)+'</b><small>'+esc(it.d)+'</small>'+
     '<span class="ljp">'+brl(it.v)+(it.de2?' <i>· 2 ou mais: '+brl(it.de2)+' cada</i>':'')+'</span>'+
     '<button class="ljcomprar" type="button" data-compra="'+i+'">Comprar</button></div></div>').join('');
@@ -5261,6 +5314,8 @@ function lojaDesenhar(){
   $('lojaRola').onclick=e=>{
     const bz=e.target.closest('[data-zoom]');
     if(bz){ lojaZoom(LOJA_FOTO+LOJA_ITENS[+bz.dataset.zoom].img); return }
+    const bd=e.target.closest('[data-det]');
+    if(bd){ lojaDetalhe(+bd.dataset.det); return }
     const bc=e.target.closest('[data-compra]');
     if(bc){ lojaResumo(+bc.dataset.compra); return }
     const bp=e.target.closest('[data-k]'); /* "Pagar" de um pedido aguardando: reabre o mesmo PIX (o servidor devolve o mesmo em até 30 min) */
@@ -5277,6 +5332,26 @@ function lojaDesenhar(){
     if(bm){ lojaManter(bm.dataset.lmant,bm); return }
   };
 }
+/* ----- detalhes do produto (modal central) ----- */
+let lojaDetI=-1;
+function lojaDetalhe(i){
+  const it=LOJA_ITENS[i]; if(!it||!it.det) return; lojaDetI=i;
+  $('ldImg').src=LOJA_FOTO+it.img; $('ldImg').alt=it.n; $('ldNome').textContent=it.n;
+  $('ldPreco').innerHTML=brl(it.v)+(it.de2?' <i>· 2 ou mais: '+brl(it.de2)+' cada</i>':'');
+  $('ldInt').textContent=it.det.int;
+  $('ldLista').innerHTML=it.det.itens.map(x=>'<li>'+esc(x)+'</li>').join('');
+  $('ldWpp').innerHTML=LOJA_SVG_WPP;
+  $('mLojaDet').querySelector('.ldrola').scrollTop=0;
+  $('mLojaDet').classList.add('show');
+}
+function lojaDetFechar(){ $('mLojaDet').classList.remove('show') }
+$('ldX').onclick=lojaDetFechar;
+$('mLojaDet').addEventListener('click',e=>{ if(e.target.id==='mLojaDet') lojaDetFechar() });
+$('ldImg').onclick=()=>{ const it=LOJA_ITENS[lojaDetI]; if(it) lojaZoom(LOJA_FOTO+it.img) };
+$('ldComprar').onclick=()=>{ const i=lojaDetI; lojaDetFechar(); lojaResumo(i) };
+$('ldWpp').onclick=()=>{ const it=LOJA_ITENS[lojaDetI]; if(!it) return; const quem=lojaLogin();
+  const msg='Olá! Vim pelo app da Rastreando GPS e quero saber sobre: *'+it.n+'*.'+(quem?'\nMeu login no app: '+quem:'');
+  window.open('https://wa.me/'+LOJA_WPP+'?text='+encodeURIComponent(msg),'_blank') };
 /* ----- resumo do pedido: 2 etapas, o PIX só é gerado no botão "Gerar PIX de pagamento" ----- */
 let lojaResItem=null, lojaResQ=1;
 function lojaResumo(i){
