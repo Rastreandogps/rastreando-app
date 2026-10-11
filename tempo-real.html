@@ -69,6 +69,35 @@ try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'){document.do
 .aview.show{display:flex}
 .fview{position:absolute;inset:0;z-index:600;background:var(--bg);display:none;flex-direction:column}
 .fview.show{display:flex}
+/* aba "Mais" (cliente): Faturas, Loja, Indique, Sua conta (11/10/2026) */
+.maisview{position:absolute;inset:0;z-index:600;background:var(--bg);display:none;flex-direction:column}
+.maisview.show{display:flex}
+.maisgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.maiscard{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:10px;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px 14px;min-height:124px;color:var(--txt);transition:transform .12s ease,border-color .15s ease}
+.maiscard:active{transform:scale(.97)}
+.maiscard .mic{width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center}
+.maiscard .mic svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.maiscard .mic.f{background:rgba(56,225,230,.14);color:var(--cyan)}
+.maiscard .mic.l{background:rgba(227,38,47,.14);color:var(--red2)}
+.maiscard .mic.g{background:rgba(245,184,61,.16);color:var(--amber)}
+.maiscard .mic.c{background:rgba(139,147,161,.18);color:var(--txt)}
+.maiscard b{font-size:15px;line-height:1.2}
+.maiscard small{font-size:12px;color:var(--mut);line-height:1.35}
+.maiscard .mdot{position:absolute;top:12px;right:12px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--red);color:#fff;font-size:11px;font-weight:800;line-height:18px;text-align:center;display:none}
+.maiscard .mdot.show{display:block}
+.maisrodape{margin-top:18px;text-align:center;font-size:12px;color:var(--mut);line-height:1.5}
+.voltar{width:34px;height:34px;border-radius:50%;background:var(--card2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;flex:none}
+.voltar svg{width:18px;height:18px;fill:none;stroke:var(--txt);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+/* loja (lista de produtos; o pedido vai pelo WhatsApp) */
+.ljitem{display:flex;gap:12px;align-items:flex-start;padding:14px;background:var(--card);border:1px solid var(--line);border-radius:16px;margin-bottom:10px}
+.ljitem .lje{font-size:28px;line-height:1;width:44px;height:44px;flex:none;display:flex;align-items:center;justify-content:center;border-radius:14px;background:var(--card2)}
+.ljitem .ljt{flex:1;min-width:0}
+.ljitem .ljt b{display:block;font-size:15px;line-height:1.2}
+.ljitem .ljt small{display:block;font-size:12.5px;color:var(--mut);line-height:1.4;margin-top:3px}
+.ljitem .ljp{display:inline-block;margin-top:6px;font-size:12px;font-weight:700;color:var(--cyan)}
+.ljitem .ljbtn{margin-top:10px;height:38px;padding:0 14px;border-radius:10px;background:#16a34a;color:#fff;font-weight:700;font-size:13px;display:inline-flex;align-items:center;gap:6px}
+.ljitem .ljbtn svg{width:16px;height:16px;fill:currentColor}
+@media (min-width:900px){.maisview .vlist,.maisview .vtop{max-width:760px;width:100%;margin:0 auto}}
 .fres{border-radius:12px;padding:12px 14px;font-size:14px;font-weight:600;margin-top:12px;line-height:1.4}
 .fres.mal{background:rgba(227,38,47,.12);border:1px solid rgba(227,38,47,.35);color:var(--red2)}
 .fres.bem{background:rgba(51,209,122,.12);border:1px solid rgba(51,209,122,.35);color:var(--green)}
@@ -1009,9 +1038,24 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
     </div>
     <div class="vlist" id="aList"></div>
   </section>
+  <section class="maisview" id="maisview">
+    <div class="vtop">
+      <div class="vtitle"><h2>Mais</h2></div>
+      <div class="vcount" id="maisSub">Faturas, loja, indicação e sua conta</div>
+    </div>
+    <div class="vlist">
+      <div class="maisgrid">
+        <button class="maiscard" id="maisFat" type="button"><span class="mdot" id="maisFatDot">!</span><span class="mic f"><svg viewBox="0 0 24 24"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6M9 13h8M9 17h8"/></svg></span><b>Faturas</b><small id="maisFatTxt">Mensalidades, PIX e segunda via</small></button>
+        <button class="maiscard" id="maisLoja" type="button"><span class="mic l"><svg viewBox="0 0 24 24"><path d="M6 6h15l-1.5 9h-12z"/><path d="M6 6L5 3H2"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/></svg></span><b>Loja</b><small>Tag de emergência, rastreador portátil e mais</small></button>
+        <button class="maiscard" id="maisIndique" type="button"><span class="mic g"><svg viewBox="0 0 24 24"><path d="M20 12v9H4v-9"/><path d="M2 7h20v5H2z"/><path d="M12 22V7"/><path d="M12 7H7.5a2.5 2.5 0 010-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 000-5C13 2 12 7 12 7z"/></svg></span><b>Indique um amigo</b><small>Compartilhe a Rastreando GPS</small></button>
+        <button class="maiscard" id="maisConta" type="button"><span class="mic c"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0116 0"/></svg></span><b>Sua conta</b><small>Trocar senha e sair do app</small></button>
+      </div>
+      <div class="maisrodape">Precisa de ajuda? Fale com a gente no WhatsApp<br><a id="maisWpp" href="#" style="color:var(--cyan);font-weight:700;text-decoration:none">(21) 98088-6087</a></div>
+    </div>
+  </section>
   <section class="fview" id="fview">
     <div class="vtop">
-      <div class="vtitle"><h2>Faturas</h2><button class="linkbtn" id="fAtualizar">Atualizar</button></div>
+      <div class="vtitle"><div style="display:flex;align-items:center;gap:10px"><button class="voltar" id="fVoltar" type="button" aria-label="Voltar"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg></button><h2>Faturas</h2></div><button class="linkbtn" id="fAtualizar">Atualizar</button></div>
       <div id="fResumo"></div>
     </div>
     <div class="vlist" id="fList"></div>
@@ -1077,6 +1121,7 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
   <button data-tab="Cercas"><svg viewBox="0 0 24 24"><path d="M12 3l8 4v6c0 4-3.5 7-8 8-4.5-1-8-4-8-8V7l8-4z"/></svg>Cercas</button>
   <button data-tab="Alertas"><svg viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 1112 0v5l2 2H4l2-2z"/><path d="M10 21h4"/></svg>Alertas<span class="nbadge" id="alBadge"></span></button>
   <button data-tab="Faturas" style="display:none"><svg viewBox="0 0 24 24"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6M9 13h8M9 17h8"/></svg>Faturas</button>
+  <button data-tab="Mais" style="display:none"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg>Mais<span class="nbadge" id="maisBadge">!</span></button>
   <button data-tab="Admin" style="display:none"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1.1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1.1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.8.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8V9a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"/></svg>Admin</button>
 </nav>
 
@@ -1345,6 +1390,28 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
 
 <!-- Confirmação genérica -->
 <!-- Sua conta: trocar senha (opcional) e sair -->
+<!-- Loja (11/10/2026): v1, o pedido vai pelo WhatsApp da empresa -->
+<div class="modal alsheet" id="mLoja">
+  <div class="box2">
+    <h3>Loja</h3>
+    <p style="margin-bottom:12px">Escolha o que precisa e peça pelo WhatsApp. A gente confirma valor, entrega ou instalação com você.</p>
+    <div id="lojaLista"></div>
+    <button class="btn btn-out alfechar" data-close type="button">Fechar</button>
+  </div>
+</div>
+<!-- Indique um amigo (11/10/2026) -->
+<div class="modal alsheet" id="mIndique">
+  <div class="box2">
+    <h3>Indique um amigo</h3>
+    <p style="margin-bottom:12px">Conhece alguém que precisa proteger o carro ou a moto? Mande a mensagem abaixo. Seu nome vai junto, para a gente saber que a indicação foi sua.</p>
+    <div class="link" id="indiqueTexto"></div>
+    <div class="actions2">
+      <button class="btn btn-out" id="indiqueCopiar" type="button">Copiar</button>
+      <button class="btn" id="indiqueWpp" type="button" style="background:#16a34a;color:#fff">WhatsApp</button>
+    </div>
+    <button class="btn btn-out alfechar" data-close type="button">Fechar</button>
+  </div>
+</div>
 <div class="modal alsheet" id="mConta">
   <div class="box2">
     <h3>Sua conta</h3>
@@ -2739,6 +2806,8 @@ function irPara(tab){
   $('vview').classList.toggle('show',tab==='Veículos');
   $('aview').classList.toggle('show',tab==='Admin');
   $('fview').classList.toggle('show',tab==='Faturas');
+  $('maisview').classList.toggle('show',tab==='Mais');
+  if(tab==='Faturas' && !ehAdmin) document.querySelector('nav button[data-tab="Mais"]').classList.add('on'); /* Faturas mora dentro de "Mais" */
   $('cview').classList.toggle('show',tab==='Cercas');
   $('alview').classList.toggle('show',tab==='Alertas');
   if(desenho && tab!=='Mapa') cancelarDesenho();
@@ -2746,13 +2815,14 @@ function irPara(tab){
   if(tab==='Histórico') histEntrar(); else histSair();
   if(tab==='Admin') abrirAdmin();
   if(tab==='Faturas') abrirFaturas(false);
+  if(tab==='Mais') maisAtualizar();
   if(tab==='Cercas'){ desenharCercasLista(); carregarCercas() }
   if(tab==='Alertas'){ desenharAlertas(); carregarAlertas(true); desenharPush(); carregarCfgAlertas() }
 }
 document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
   const t=b.dataset.tab;
   if(bloqueioNivel==='bloqueado' && !ehAdmin && t!=='Faturas'){ toast('Acesso ao aplicativo suspenso. Regularize suas faturas para voltar a usar.'); irPara('Faturas'); return }
-  if(t==='Mapa'||t==='Veículos'||t==='Histórico'||(t==='Admin'&&ehAdmin)||(t==='Faturas'&&!ehAdmin)||t==='Cercas'||t==='Alertas') irPara(t);
+  if(t==='Mapa'||t==='Veículos'||t==='Histórico'||(t==='Admin'&&ehAdmin)||(t==='Faturas'&&!ehAdmin)||(t==='Mais'&&!ehAdmin)||t==='Cercas'||t==='Alertas') irPara(t);
   else toast(t+': em construção');
 });
 
@@ -3105,7 +3175,9 @@ let faturasDados=null, faturasCarregando=false, bloqueioNivel='ok', bloqueioDado
 function aplicarBloqueio(b){
   bloqueioDados=b||null; bloqueioNivel=(b&&b.nivel)||'ok';
   const trav = bloqueioNivel==='bloqueado' && !ehAdmin;
-  document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('trav', trav && x.dataset.tab!=='Faturas'));
+  document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('trav', trav && x.dataset.tab!=='Faturas' && x.dataset.tab!=='Mais'));
+  const fv=$('fVoltar'); if(fv) fv.style.display = trav ? 'none' : '';
+  maisAtualizar();
   const bar=$('avisoPag');
   if(bloqueioNivel==='aviso'){
     const n=b.diasRestantes;
@@ -3242,7 +3314,8 @@ async function descobrirAdmin(){
   }catch(e){}
   if(ehAdmin) setTimeout(()=>{ travarClientes().catch(()=>{}) },4000); /* check-up 10/10: corrige clientes antigos sem trava */
   document.querySelector('nav button[data-tab="Admin"]').style.display = ehAdmin ? '' : 'none';
-  document.querySelector('nav button[data-tab="Faturas"]').style.display = ehAdmin ? 'none' : '';
+  document.querySelector('nav button[data-tab="Faturas"]').style.display = 'none';
+  document.querySelector('nav button[data-tab="Mais"]').style.display = ehAdmin ? 'none' : '';
   $('btnEu').style.display = ehAdmin ? 'flex' : 'none';
 }
 /* ===== último acesso do cliente ===== */
@@ -4918,7 +4991,7 @@ function sair(msg){
   cercasReset();
   permCli={smsBloqueio:false,reset:false,editarNome:false,cercaRapida:false,minhaPosicao:false}; cobrCli=null;
   ehAdmin=false; usuarios=[]; $('aview').classList.remove('show');
-  document.querySelector('nav button[data-tab="Admin"]').style.display='none'; document.querySelector('nav button[data-tab="Faturas"]').style.display='none'; cpfsMapa={}; faturasDados=null; aplicarBloqueio(null); euDesligar(); $('btnEu').style.display='none'; irPara('Mapa');
+  document.querySelector('nav button[data-tab="Admin"]').style.display='none'; document.querySelector('nav button[data-tab="Faturas"]').style.display='none'; document.querySelector('nav button[data-tab="Mais"]').style.display='none'; cpfsMapa={}; faturasDados=null; aplicarBloqueio(null); euDesligar(); $('btnEu').style.display='none'; irPara('Mapa');
   auth=null;
   veiculos.forEach(v=>{ if(v.marker&&map.hasLayer(v.marker)) map.removeLayer(v.marker) });
   veiculos=[]; selId=null; primeiraCarga=true; assinaturaLista='';
@@ -4972,6 +5045,44 @@ $('lform').addEventListener('submit',async e=>{
   btn.disabled=false; btn.textContent='Entrar';
 });
 /* o botão de sair abre "Sua conta" (trocar senha, opcional, ou sair) — pedido do dono em 10/10/2026 */
+/* ===== ABA "MAIS" (cliente, 11/10/2026): Faturas, Loja, Indique um amigo, Sua conta =====
+   A barra de baixo fica com 6 abas; o que vier depois entra aqui. Admin não vê (tem a aba Admin). */
+const LOJA_WPP='5521980886087'; /* WhatsApp de atendimento da Rastreando GPS (pedidos da loja e indicações) */
+/* Produtos da loja (v1): o pedido vai pelo WhatsApp. Valores a definir pelo dono: enquanto não houver, mostra "consulte o valor". */
+const LOJA_ITENS=[
+  {e:'\u{1F4B3}', n:'Cartão de emergência (NFC)', d:'Encoste no celular e abra o app na hora, sem procurar nada. Ideal para roubo ou emergência.', p:''},
+  {e:'\u{1F4E1}', n:'Rastreador portátil', d:'Com bateria própria. Para moto, bicicleta, carga, bolsa ou qualquer coisa que você queira acompanhar.', p:''},
+  {e:'\u{1F697}', n:'Rastreador para outro veículo', d:'Instalação com bloqueio pelo app, igual ao que você já tem.', p:''},
+  {e:'\u{1F527}', n:'Manutenção ou troca de lugar', d:'Rastreador parou de comunicar, trocou de carro ou quer mudar a instalação.', p:''},
+];
+function maisAtualizar(){
+  const nivel=bloqueioNivel||'ok', dot=$('maisFatDot'), nb=$('maisBadge'), tx=$('maisFatTxt');
+  const alerta = nivel==='aviso'||nivel==='bloqueado'||nivel==='confianca';
+  if(dot) dot.classList.toggle('show',alerta);
+  if(nb) nb.classList.toggle('show',alerta);
+  if(tx) tx.textContent = nivel==='bloqueado' ? 'Acesso suspenso: pague para liberar' : nivel==='aviso' ? 'Fatura vencida: toque para pagar' : nivel==='confianca' ? 'Pague a fatura em aberto' : 'Mensalidades, PIX e segunda via';
+  const w=$('maisWpp'); if(w) w.href='https://wa.me/'+LOJA_WPP;
+}
+function lojaDesenhar(){
+  const quem=(lsGet('rg_email')||'').split('@')[0];
+  $('lojaLista').innerHTML=LOJA_ITENS.map((it,i)=>'<div class="ljitem"><div class="lje">'+it.e+'</div><div class="ljt"><b>'+esc(it.n)+'</b><small>'+esc(it.d)+'</small>'+
+    '<span class="ljp">'+(it.p?esc(it.p):'Consulte o valor')+'</span><br>'+
+    '<button class="ljbtn" type="button" data-lj="'+i+'"><svg viewBox="0 0 24 24"><path d="M17.5 14.4c-.3-.1-1.8-.9-2-1-.3-.1-.5-.1-.7.1-.2.3-.8 1-.9 1.2-.2.2-.3.2-.6.1-.3-.1-1.3-.5-2.4-1.5-.9-.8-1.5-1.8-1.7-2.1-.2-.3 0-.5.1-.6l.4-.5c.1-.2.2-.3.3-.5.1-.2 0-.4 0-.5l-.9-2.2c-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.1c.1.2 2.1 3.2 5.1 4.5 1.9.8 2.6.7 3.1.6.6-.1 1.8-.7 2-1.4.2-.7.2-1.3.2-1.4-.1-.1-.3-.2-.6-.3zM12 2a10 10 0 00-8.6 15.1L2 22l5-1.3A10 10 0 1012 2z"/></svg>Pedir pelo WhatsApp</button></div></div>').join('');
+  $('lojaLista').onclick=e=>{ const b=e.target.closest('[data-lj]'); if(!b) return; const it=LOJA_ITENS[+b.dataset.lj]; if(!it) return;
+    const msg='Olá! Vim pelo app da Rastreando GPS e quero saber sobre: *'+it.n+'*.'+(quem?'\nMeu login no app: '+quem:'');
+    window.open('https://wa.me/'+LOJA_WPP+'?text='+encodeURIComponent(msg),'_blank') };
+}
+function indiqueTexto(){
+  const quem=(lsGet('rg_email')||'').split('@')[0];
+  return 'Oi! Eu uso a Rastreando GPS para cuidar do meu veículo: vejo onde ele está em tempo real, recebo alertas no celular e consigo bloquear pelo app se precisar. Recomendo! Fala com eles no WhatsApp: https://wa.me/'+LOJA_WPP+(quem?'\n(Indicação de '+quem+')':'');
+}
+$('maisFat').onclick=()=>irPara('Faturas');
+$('maisLoja').onclick=()=>{ lojaDesenhar(); abrir('mLoja') };
+$('maisIndique').onclick=()=>{ $('indiqueTexto').textContent=indiqueTexto(); abrir('mIndique') };
+$('maisConta').onclick=()=>$('btnSair').onclick();
+$('indiqueCopiar').onclick=async()=>{ toast(await copiarTexto(indiqueTexto())?'Mensagem copiada. Cole no WhatsApp de quem você quer indicar.':'Não consegui copiar. Toque e segure no texto para copiar.') };
+$('indiqueWpp').onclick=()=>{ window.open('https://wa.me/?text='+encodeURIComponent(indiqueTexto()),'_blank') };
+$('fVoltar').onclick=()=>irPara('Mais');
 $('btnSair').onclick=()=>{ $('contaLogin').textContent='Você entrou como '+(lsGet('rg_email')||'—')+'.'; abrir('mConta') };
 $('contaSair').onclick=()=>{ fechar(); sair('') };
 $('contaSenha').onclick=()=>{ fechar(); ['sAtual','sNova','sNova2'].forEach(i=>{ $(i).value=''; $(i).type='password' }); $('sVer').checked=false; $('sErro').textContent=''; $('sSalvar').disabled=false; abrir('mSenha'); setTimeout(()=>$('sAtual').focus(),50) };
