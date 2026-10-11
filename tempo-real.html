@@ -1792,6 +1792,7 @@ function mesclar(ds,ps){
       v.posId = p.id;
       v.real = [p.latitude,p.longitude];
       v.result = a.result || null;
+      v.bloqDoRastreador = typeof a.blocked==='boolean'; /* item 1.3: o que o rastreador informa vence */
       v.bloq = typeof a.blocked==='boolean' ? a.blocked : lsGet('rg_bloq_'+v.id)==='1';
       const nova = [p.latitude,p.longitude];
       if(!v.pos){ v.pos = nova.slice(); criarMarcador(v) }
@@ -2169,7 +2170,7 @@ $('cmdOk').onclick=async ()=>{
       if(v.posId!==posAntes && v.result){
         respondeu=true;
         if(/success/i.test(v.result)){
-          v.bloq=bloquear; lsSet('rg_bloq_'+v.id,bloquear?'1':'0');
+          v.bloq=bloquear; marcarBloq(v.id,bloquear,true);
           toast(bloquear?'Bloqueio confirmado pelo aparelho':'Desbloqueio confirmado pelo aparelho');
         } else if(bloquear && /will stop/i.test(v.result)) toast('Bloqueio programado: o rastreador recebeu o comando e vai cortar o motor assim que o veículo reduzir a velocidade ou for desligado.',8000); /* resposta "OK,engine will stop after..." do J16 (check-up 10/10) */
         else if(bloquear) toast('O equipamento rastreador está sem sinal. Pode ser que não seja possível bloquear no momento.',7000);
@@ -2237,13 +2238,47 @@ async function desbVerificar(){
       const j=await fnDesb('status',v.id);
       if(j.estado==='pendente'){ desbPendente[v.id]=j; continue }
       delete desbPendente[v.id]; lsDel('rg_desb_'+v.id);
-      if(j.estado==='confirmado'){ v.bloq=false; lsSet('rg_bloq_'+v.id,'0'); toast('Desbloqueio de '+v.nome+' confirmado pelo rastreador.',6000) }
+      if(j.estado==='confirmado'){ v.bloq=false; marcarBloq(v.id,false,false); toast('Desbloqueio de '+v.nome+' confirmado pelo rastreador.',6000) }
       else if(j.estado==='expirado') toast('Não conseguimos confirmar o desbloqueio de '+v.nome+'. Fale com a Rastreando GPS.',8000);
     }catch(e){}
   }
   desbMostrar();
 }
 setInterval(desbVerificar,20000);
+/* ===== SITUAÇÃO DE BLOQUEIO NO SERVIDOR (check-up de 10/10/2026, item 1.3) =====
+   Quando a posição do rastreador não diz se está bloqueado, o app usava uma anotação só deste celular.
+   Agora a última situação CONFIRMADA fica no servidor (rastreamento_bloq_estado) e todos os celulares leem igual.
+   O que o próprio rastreador informa continua valendo acima de tudo. Vale o mais novo (servidor ou este celular). */
+function marcarBloq(id,bloq,avisarServidor){
+  lsSet('rg_bloq_'+id,bloq?'1':'0'); lsSet('rg_bloqT_'+id,String(Date.now()));
+  if(avisarServidor && lsGet('rg_token')){
+    fetch(DESB_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',
+      body:JSON.stringify({acao:'bloqEstado',token:lsGet('rg_token'),deviceId:id,bloq:!!bloq})}).catch(()=>{});
+  }
+}
+async function bloqSincronizar(){
+  if(document.visibilityState!=='visible' || !auth || !lsGet('rg_token') || !veiculos.length) return;
+  /* administrador: só o veículo selecionado (não pesa com a frota inteira); cliente: os veículos dele */
+  const ids=(ehAdmin ? [selId] : veiculos.map(v=>v.id)).filter(Boolean).slice(0,20);
+  if(!ids.length) return;
+  try{
+    const r=await fetch(DESB_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',
+      body:JSON.stringify({acao:'bloqEstados',token:lsGet('rg_token'),ids:ids})});
+    if(!r.ok) return;
+    const mapa=(await r.json()).mapa||{};
+    let mudou=false;
+    for(const id of Object.keys(mapa)){
+      const x=mapa[id], localT=+(lsGet('rg_bloqT_'+id)||0);
+      if(!(x.em>localT)) continue; /* o que este celular sabe é mais novo */
+      lsSet('rg_bloq_'+id,x.bloq?'1':'0'); lsSet('rg_bloqT_'+id,String(x.em));
+      const v=veiculos.find(y=>String(y.id)===String(id));
+      if(v && v.bloqDoRastreador!==true && v.bloq!==x.bloq){ v.bloq=x.bloq; mudou=true }
+    }
+    if(mudou){ try{ desenharLista() }catch(e){} try{ atualizar() }catch(e){} }
+  }catch(e){}
+}
+setInterval(bloqSincronizar,60000);
+setTimeout(bloqSincronizar,4000);
 setInterval(desbMostrar,1000);
 setTimeout(desbVerificar,3000);
 
