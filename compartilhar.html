@@ -1,962 +1,398 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="theme-color" content="#0f1115">
+<title>Localização compartilhada · Rastreando GPS</title>
+<link rel="icon" href="icon-192.png">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<!--
+  Página pública de COMPARTILHAR LOCALIZAÇÃO (Rastreando GPS, 11/10/2026).
+  Abre com ?c=CÓDIGO (gerado no app pelo botão de compartilhar do cartão do veículo).
+  Mostra só a posição de UM veículo, enquanto o link vale. Não tem login, não mostra chip, IMEI nem dados da conta.
+  Os dados vêm da função rastreamentoDesbloqueio (ação "compVer"), que confere o código, a validade e se quem
+  compartilhou ainda tem o veículo.
+  Modo "técnico a caminho" (tipo "tec", gerado pelo APP Técnico): mostra o nome e a foto do técnico (nunca o nome nem a
+  placa do veículo dele), o endereço do cliente, a rota pelas ruas e a previsão de chegada (serviço público OSRM; estimativa).
+-->
+<style>
+:root{
+  --bg:#0f1115;--card:#171a20;--card2:#1f232b;--line:#2a2f39;
+  --txt:#f2f4f7;--mut:#9aa3b2;--red:#e3262f;--red2:#ff4a52;
+  --cyan:#38e1e6;--green:#33d17a;--amber:#f5b83d;--gray:#8b93a1;
+  --sombra:0 -8px 28px rgba(0,0,0,.45);
+}
+@media (prefers-color-scheme: light){
+  :root{
+    --bg:#f4f6f9;--card:#ffffff;--card2:#eef1f5;--line:#d9dee6;
+    --txt:#14181f;--mut:#5d6675;--red:#d81f28;--red2:#d81f28;
+    --cyan:#0a8f95;--green:#1a9e57;--amber:#b87800;--gray:#6b7280;
+    --sombra:0 -8px 24px rgba(0,0,0,.14);
+  }
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--txt);font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;-webkit-tap-highlight-color:transparent}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+#map{position:fixed;top:0;right:0;bottom:0;left:0;background:#e8ecf0}
+.topo{position:fixed;top:0;left:0;right:0;z-index:500;display:flex;align-items:center;gap:10px;padding:calc(10px + env(safe-area-inset-top)) 14px 10px;background:linear-gradient(var(--bg) 55%,transparent);pointer-events:none}
+.topo img{width:34px;height:34px;border-radius:50%;object-fit:cover;pointer-events:auto}
+.topo .marca{font-weight:800;letter-spacing:.06em;font-size:15px;line-height:1.05}
+.topo .marca small{display:block;font-weight:600;font-size:10.5px;letter-spacing:.32em;color:var(--mut)}
+.topo .vivo{margin-left:auto;display:flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;letter-spacing:.06em;color:var(--green);border:1px solid currentColor;border-radius:999px;padding:4px 10px;background:var(--card);pointer-events:auto}
+.topo .vivo i{width:7px;height:7px;border-radius:50%;background:currentColor;animation:pisca 1.6s ease-in-out infinite}
+.topo .vivo.parado{color:var(--mut)}
+.topo .vivo.parado i{animation:none}
+@keyframes pisca{50%{opacity:.25}}
+.centro{position:fixed;right:14px;z-index:500;width:46px;height:46px;border-radius:50%;background:var(--card);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 10px rgba(0,0,0,.25);bottom:calc(var(--h,260px) + 14px);transition:bottom .2s}
+.centro svg{width:22px;height:22px;fill:none;stroke:var(--txt);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.centro.on{background:var(--cyan);border-color:var(--cyan)}
+.centro.on svg{stroke:#0f1115}
+.cartao{position:fixed;left:0;right:0;bottom:0;z-index:600;background:var(--card);border-top:1px solid var(--line);border-radius:20px 20px 0 0;box-shadow:var(--sombra);padding:16px 16px calc(16px + env(safe-area-inset-bottom))}
+@media (min-width:900px){.cartao{left:16px;right:auto;bottom:16px;width:420px;border:1px solid var(--line);border-radius:20px}.centro{bottom:auto;top:76px}}
+.nome{font-size:19px;font-weight:750;line-height:1.2}
+.placa{font-size:12.5px;color:var(--mut);letter-spacing:.12em;margin-top:2px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 10px}
+.chip{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 11px;border-radius:999px;background:var(--card2);border:1px solid var(--line);font-size:13px;font-weight:650}
+.chip i{width:8px;height:8px;border-radius:50%;background:var(--gray)}
+.chip.mov i{background:var(--green)} .chip.par i{background:var(--amber)} .chip.on i{background:var(--green)}
+.end{font-size:14px;line-height:1.4;min-height:20px}
+.hora{font-size:12.5px;color:var(--mut);margin-top:4px}
+.hora.velho{color:var(--amber)}
+.botoes{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+.btn{height:46px;border-radius:14px;font-weight:700;font-size:14.5px;display:flex;align-items:center;justify-content:center;gap:8px;text-decoration:none}
+.btn svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.btn.pri{background:var(--red);color:#fff}
+.btn.sec{background:var(--card2);border:1px solid var(--line);color:var(--txt)}
+.valid{display:flex;align-items:center;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line);font-size:12.5px;color:var(--mut)}
+.valid svg{width:15px;height:15px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.tela{position:fixed;inset:0;z-index:900;background:var(--bg);display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;gap:14px}
+.tela.show{display:flex}
+.tela img{width:64px;height:64px;border-radius:50%;object-fit:cover}
+.tela h1{font-size:20px}
+.tela p{font-size:15px;color:var(--mut);max-width:340px;line-height:1.45}
+.spin{width:28px;height:28px;border-radius:50%;border:3px solid var(--line);border-top-color:var(--cyan);animation:gira .8s linear infinite}
+@keyframes gira{to{transform:rotate(360deg)}}
+.seta{width:44px;height:44px;display:flex;align-items:center;justify-content:center}
+.seta .disco{width:38px;height:38px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.35);border:3px solid var(--cor,#f5b83d)}
+.seta svg{width:22px;height:22px}
+.rotulo{background:rgba(15,17,21,.86);color:#fff;font-size:12px;font-weight:700;padding:3px 8px;border-radius:8px;white-space:nowrap;transform:translate(-50%,-34px);position:absolute;left:50%;top:0}
+@media (prefers-color-scheme: light){.rotulo{background:rgba(255,255,255,.95);color:#14181f;box-shadow:0 1px 4px rgba(0,0,0,.2)}}
+/* modo "técnico a caminho" */
+.tec{display:none;align-items:center;gap:12px}
+.tec.show{display:flex}
+.tec .foto{width:52px;height:52px;flex:none;border-radius:50%;background:var(--red);color:#fff;font-weight:800;font-size:22px;display:flex;align-items:center;justify-content:center;overflow:hidden;border:2px solid var(--card2)}
+.tec .foto img{width:100%;height:100%;object-fit:cover}
+.tec .t1{font-size:19px;font-weight:750;line-height:1.2}
+.tec .t2{font-size:12.5px;color:var(--mut);margin-top:2px}
+.eta{display:none;align-items:center;gap:14px;margin:14px 0 4px;padding:12px 14px;border-radius:16px;background:var(--card2);border:1px solid var(--line)}
+.eta.show{display:flex}
+.eta .min{font-size:28px;font-weight:800;line-height:1;color:var(--txt);white-space:nowrap}
+.eta .min small{font-size:14px;font-weight:700;color:var(--mut);margin-left:3px}
+.eta .info{font-size:13px;color:var(--mut);line-height:1.35}
+.eta .info b{color:var(--txt);font-weight:700}
+.eta.chegou{background:rgba(51,209,122,.14);border-color:var(--green)}
+.eta.chegou .min{font-size:18px;color:var(--green)}
+.casa{width:40px;height:40px;display:flex;align-items:center;justify-content:center}
+.casa div{width:34px;height:34px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:var(--red);border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center}
+.casa svg{width:17px;height:17px;transform:rotate(45deg);fill:none;stroke:#fff;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.leaflet-control-attribution{font-size:10px}
+.leaflet-top{top:calc(58px + env(safe-area-inset-top))}
+</style>
+</head>
+<body>
+<div id="map"></div>
+
+<header class="topo">
+  <img src="logo.jpeg" alt="" onerror="this.style.display='none'">
+  <div class="marca">RASTREANDO<small>GPS</small></div>
+  <div class="vivo" id="vivo"><i></i><span>AO VIVO</span></div>
+</header>
+
+<button class="centro on" id="btnCentro" type="button" aria-label="Centralizar no veículo" title="Centralizar no veículo">
+  <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="8"/></svg>
+</button>
+
+<section class="cartao" id="cartao" style="display:none">
+  <div class="tec" id="tec"><div class="foto" id="tecFoto"></div><div><div class="t1" id="tecTit"></div><div class="t2">Técnico da Rastreando GPS</div></div></div>
+  <div class="eta" id="eta"><div class="min" id="etaMin"></div><div class="info" id="etaInfo"></div></div>
+  <div class="nome" id="nome"></div>
+  <div class="placa" id="placa"></div>
+  <div class="chips" id="chips"></div>
+  <div class="end" id="end"></div>
+  <div class="hora" id="hora"></div>
+  <div class="botoes">
+    <a class="btn pri" id="btnRota" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M3 11l18-8-8 18-2-8-8-2z"/></svg>Traçar rota</a>
+    <a class="btn sec" id="btnMaps" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M12 22s7-6.1 7-12a7 7 0 10-14 0c0 5.9 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg>Google Maps</a>
+  </div>
+  <div class="valid"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span id="valid"></span></div>
+</section>
+
+<div class="tela show" id="telaCarrega"><div class="spin"></div><p>Carregando a localização…</p></div>
+<div class="tela" id="telaErro">
+  <img src="logo.jpeg" alt="" onerror="this.style.display='none'">
+  <h1 id="erroTit">Link indisponível</h1>
+  <p id="erroTxt"></p>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
 "use strict";
-/* =====================================================================
-   RASTREAMENTO PRÓPRIO — DESBLOQUEIO GARANTIDO (arquivo separado)
-   Fica na pasta "functions", ao lado do index.js. Não altera nada do que já existe.
-   Para ligar: acrescentar UMA linha no FINAL do index.js:
-       Object.assign(exports, require("./rastreamento-desbloqueio"));
+const FN = 'https://southamerica-east1-rastreando-assinaturas.cloudfunctions.net/rastreamentoDesbloqueio';
+const TZ = 'America/Sao_Paulo';
+const $ = (id) => document.getElementById(id);
+const codigo = (new URLSearchParams(location.search).get('c') || '').trim();
+const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const hora = (ms) => new Date(ms).toLocaleTimeString('pt-BR', { timeZone: TZ, hour: '2-digit', minute: '2-digit' });
+const diaHora = (ms) => new Date(ms).toLocaleString('pt-BR', { timeZone: TZ, day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }).replace(',', ' às');
+function tempo(ms) {
+  const m = Math.max(1, Math.round(ms / 60000));
+  if (m < 60) return m + ' min';
+  const h = Math.floor(m / 60);
+  if (h < 48) return h + ' h' + (m % 60 ? ' ' + (m % 60) + ' min' : '');
+  return Math.round(h / 24) + ' dias';
+}
 
-   Como funciona:
-   - Quando o cliente aperta "Desbloquear", o app manda o comando pela internet do chip (como antes)
-     e registra aqui um "desbloqueio pendente" daquele veículo.
-   - A cada 1 minuto o motor olha SÓ os desbloqueios pendentes (se não houver nenhum, não faz nada):
-       * se o rastreador confirmou (resposta "success" ou status desbloqueado) -> encerra;
-       * se o rastreador está online e não confirmou -> reenvia pela internet (a cada 2 min, até 10 vezes);
-       * se passaram 3 minutos sem confirmação -> manda 1 SMS "RELAY,0#" para o chip, pelo SMS Market;
-       * depois de 2 horas sem confirmação -> desiste (expirado).
-   - A última ordem vence: se o cliente apertar "Bloquear", o desbloqueio pendente é cancelado.
-   - SMS só para DESBLOQUEAR (nunca para bloquear). Travas: 1 SMS por pedido, 3 por veículo por dia,
-     50 no sistema todo por dia. O número do chip nunca vai para o app do cliente.
-   - ADMINISTRADOR: "smsBloquear" / "smsDesbloquear" mandam "RELAY,1#" / "RELAY,0#" por SMS para o chip de qualquer
-     veículo (só pelos botões manuais do administrador; nunca é automático). A última ordem vence: o bloqueio cancela
-     o desbloqueio pendente; o desbloqueio cancela o bloqueio pendente da cerca. Trava (os dois somados): 10 por
-     veículo e 100 no total por dia. Registro em rastreamento_sms_log.
-   - ADMINISTRADOR: "smsConfig" manda os SMS de configuração do rastreador (botões "IP/Porta", "APN", "Reset",
-     "Bloq. imediato" e "Fábrica"). Os textos ficam fixos AQUI (o app só escolhe qual), para ninguém conseguir
-     mandar outro texto pelo app. Contam na mesma trava do administrador. "Bloq. imediato" e "Fábrica" são só do
-     administrador (versão de 10/10/2026).
-   - PERMISSÕES DO CLIENTE (o administrador escolhe, por cliente; coleção rastreamento_permissoes, documento = id do
-     usuário no Traccar): smsBloqueio (botões Bloquear/Desbloquear SMS), reset (botão Reset, texto "RESET#"),
-     editarNome (renomear o veículo), minhaPosicao (botão "Minha posição": o cliente vê o próprio celular no mapa; só mostra/esconde o botão), cercaRapida (botão da âncora no app: só mostra/esconde o botão; a cerca é criada pelo app com o acesso do próprio cliente). O servidor confere a permissão a cada pedido, exceto cercaRapida.
-   - SMS PAGOS DO CLIENTE: cada SMS que o cliente manda pela plataforma (reset, bloquear/desbloquear SMS) custa
-     R$ 0,10 e soma no contador rastreamento_sms_cobranca/{id do usuário}. O administrador vê, fatura e zera.
-     Trava: 10 SMS pagos por veículo por dia. O SMS automático do desbloqueio garantido NÃO é cobrado.
-   - ALERTAS (o trabalho fica em rastreamento-alertas.js; aqui só as ações do app): alertasChave, alertasInscrever,
-     alertasCancelar, alertasEstado, alertasIgnicao, alertasVolta (aviso "voltou a transmitir"), alertasLista, alertasTeste.
-   - LEMBRETE DE QUILOMETRAGEM (10/10/2026; o trabalho fica em rastreamento-manutencao.js; aqui só as ações do app):
-     manutLista, manutCriar, manutApagar.
-   - AVISO PELO WHATSAPP (para o CLIENTE, não para o chip): se o desbloqueio passar de 3 minutos sem confirmação,
-     o cliente recebe 1 mensagem no WhatsApp cadastrado no cadastro dele (campo "telefone" do usuário no Traccar)
-     pedindo para aguardar e não apertar o botão de novo. 1 por pedido. Custo do SMS Market (R$ 0,10), pago por nós.
-     Travas: 5 por veículo e 100 no sistema por dia. Registro no próprio pedido (wppEnviado, wppResp).
-   - ÚLTIMO ACESSO (10/10/2026): o app avisa "acesso" quando abre (e quando volta para a tela depois de 5 min fora);
-     guardado em rastreamento_acessos/{id do usuário no Traccar} (ultimoMs, anteriorMs, total, disp). Grava no
-     máximo 1 vez por minuto por usuário. "acessos" (só administrador) devolve a lista para o painel.
-     "bloqueioEnviado": o app avisa quando a pessoa confirma "Bloquear" (mesmo sem confirmação do rastreador);
-     grava ultBloqMs/ultBloqDev/ultBloqNome/ultBloqVia/totalBloq no mesmo documento. Bloquear por SMS também grava.
-     O desbloqueio pedido ("pedir") e o desbloqueio por SMS gravam ultDesb...; "eventos" guarda os 60 últimos
-     bloqueios/desbloqueios para o painel calcular quanto tempo o veículo ficou bloqueado.
-   - SITUAÇÃO DE BLOQUEIO NO SERVIDOR (check-up de 10/10/2026, item 1.3): rastreamento_bloq_estado/{id do veículo}
-     = { bloq, em, via }. Gravada quando o rastreador confirma (app, motor de desbloqueio e cerca). O app lê com
-     "bloqEstados" quando a posição não informa se está bloqueado, para todos os celulares verem igual.
-   - COMPARTILHAR LOCALIZAÇÃO (11/10/2026): "compCriar" (link de 1 h, 24 h ou 7 dias para um veículo que a pessoa
-     enxerga), "compLista" (links ativos da pessoa), "compEncerrar" (corta antes do prazo) e "compVer" (PÚBLICA, sem
-     login: usada pela página compartilhar.html; devolve só nome, placa e posição; nunca chip, IMEI ou dados da conta).
-     Coleção rastreamento_compartilhar/{código}. O link para de valer se quem criou perder o acesso ao veículo.
-   - CONFIRMAÇÃO COM GPS SEM SINAL (check-up de 10/10/2026): se o último GPS do rastreador é mais antigo que o pedido,
-     o motor também procura a resposta a partir desse último GPS (a resposta do J16 vem com a hora do GPS antigo).
-   - Chaves de emergência (Firestore, documento rastreamento_cercas_config/geral):
-       desbloqueioPausado: true  -> para o motor inteiro
-       smsPausado: true          -> para só os SMS
-       whatsappPausado: true     -> para só o aviso pelo WhatsApp
-   ===================================================================== */
-const { onRequest } = require("firebase-functions/v2/https");
-const { onSchedule } = require("firebase-functions/v2/scheduler");
-const { defineSecret } = require("firebase-functions/params");
-const { initializeApp, getApps } = require("firebase-admin/app");
-const { getFirestore } = require("firebase-admin/firestore");
-const crypto = require("crypto");
+let mapa = null, marcador = null, seguir = true, ultimo = null, dados = null, falhas = 0, encerrado = false;
+let endPos = null, endMs = 0, endBusca = false;
+let casa = null, linhaRota = null, rotaDe = null, rotaMs = 0, rotaBusca = false, rota = null;
+const FOTOS = 'https://rastreandogps.github.io/rastreando-scanner/fotos/';
 
-if (!getApps().length) initializeApp();
-const db = () => getFirestore();
+function erro(titulo, texto) {
+  encerrado = true;
+  $('telaCarrega').classList.remove('show');
+  $('erroTit').textContent = titulo;
+  $('erroTxt').textContent = texto;
+  $('telaErro').classList.add('show');
+}
 
-const TRACCAR_ADMIN_TOKEN = defineSecret("TRACCAR_ADMIN_TOKEN");
-const SMSMARKET_USUARIO = defineSecret("SMSMARKET_USUARIO");
-const SMSMARKET_SENHA = defineSecret("SMSMARKET_SENHA");
+function iniciarMapa(lat, lon) {
+  mapa = L.map('map', { zoomControl: false, attributionControl: true }).setView([lat, lon], 16);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' }).addTo(mapa);
+  mapa.on('dragstart', () => { seguir = false; $('btnCentro').classList.remove('on'); });
+}
 
-const REGIAO = "southamerica-east1";
-const TRACCAR_URL = "https://api.rastreandogpsbr.com.br";
-const SMS_URL = "https://api.smsmarket.com.br/webservice-rest/send-single";
-const ORIGENS = ["https://rastreandogps.github.io"];
-const COL = "rastreamento_desbloqueios";        // documento = id do veículo no Traccar
-const COL_SMS = "rastreamento_desbloqueios_sms"; // contadores de SMS por dia
-const COL_LIM = "rastreamento_limites";
-const COL_CFG = "rastreamento_cercas_config";
-const CMD_DESBLOQUEAR = "RELAY,0#";
-const CMD_BLOQUEAR = "RELAY,1#";
-const COL_SMS_LOG = "rastreamento_sms_log";
-const SMS_ADMIN_DIA_VEICULO = 10;
-const SMS_ADMIN_DIA_TOTAL = 100;
-const COL_PERM = "rastreamento_permissoes";
-const COL_COB = "rastreamento_sms_cobranca";
-const COL_ACESSOS = "rastreamento_acessos";
-const COL_BLOQ = "rastreamento_bloq_estado"; // última situação confirmada de cada veículo (documento = id do veículo)
-const COL_COMP = "rastreamento_compartilhar"; // links de compartilhar localização (documento = código do link)
-const COMP_MIN_MINUTOS = 5, COMP_MAX_MINUTOS = 7 * 24 * 60;   // validade do link: de 5 minutos até 7 dias
-const COMP_MAX_ATIVOS = 10;                    // links ativos por pessoa
-const COMP_REVERIFICA_MS = 5 * 60000;          // reconfere se quem criou ainda tem o veículo a cada 5 min
-/* "Técnico a caminho" (11/10/2026): o administrador do APP Técnico (outro projeto Firebase, "rastreando-gps")
-   gera um link de 1 hora com a posição do rastreador do veículo do técnico, para mandar ao cliente. */
-const COL_TEC = "rastreamento_tecnicos";       // documento = nome do técnico; { deviceId, nomeVeiculo, em }
-const TEC_MINUTOS = 60;                        // validade do link do técnico
-const TEC_PROJETO = "rastreando-gps";          // projeto Firebase do APP Técnico (login do administrador)
-const TEC_ADMIN_EMAIL = "admin@rastreandogpsbr.com.br";
-const TEC_LOGIN = "tecnicos";                  // "cliente" do Traccar que guarda SÓ os rastreadores dos veículos dos técnicos
-const TEC_CERTS_URL = "https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com";
-const PRECO_SMS = 0.10;          // R$ por SMS pago pelo cliente
-const SMS_CLI_DIA_VEICULO = 10;  // SMS pagos por veículo por dia (cliente)
-const SMS_CLI_DIA_TOTAL = 300;
-/* SMS de configuração (só administrador; o cliente com permissão só manda o "reset").
-   Se o servidor mudar de IP ou porta, troque aqui e publique. */
-const SMS_CONFIG = {
-  ip: "SERVER,0,179.199.150.156,5023,0#",
-  apn: "APN,ss.vivo.com.br,vivo,vivo#",
-  reset: "RESET#",
-  imediato: "SZCS#SOURCE_OFF_TYPE=1", // ativa o bloqueio imediato do J16 (corta em qualquer velocidade)
-  fabrica: "FACTORYALL#",             // volta o J16 ao padrão de fábrica (pode apagar IP/Porta e APN)
-};
+/* mesma regra de cor do app (11/10/2026): cinza só se o rastreador não falar com o servidor há mais de 3 min;
+   verde = andando com GPS atual; amarelo = comunicando, parado ou com o GPS sem atualizar */
+function contatoMs(d) { return Math.max((d && d.contatoMs) || 0, (d && d.pos && d.pos.chegouMs) || 0) || null; }
+function corDe(p) {
+  const c = contatoMs(dados);
+  if (!c || Date.now() - c > 180000) return '#8b93a1';
+  const gpsAtual = p.gpsOk && p.gpsMs && Date.now() - p.gpsMs <= 600000;
+  return p.kmh > 3 && gpsAtual ? '#33d17a' : '#f5b83d';
+}
+function iconeSeta(p, nome) {
+  const cor = corDe(p);
+  const html = '<div class="seta"><div class="disco" style="--cor:' + cor + '">' +
+    '<svg viewBox="0 0 24 24" style="transform:rotate(' + (p.curso || 0) + 'deg)"><path d="M12 2l7 18-7-4-7 4z" fill="' + cor + '" stroke="#14181f" stroke-width="1.2" stroke-linejoin="round"/></svg>' +
+    '</div><div class="rotulo">' + esc(nome) + '</div></div>';
+  return L.divIcon({ html, className: '', iconSize: [44, 44], iconAnchor: [22, 22] });
+}
 
-const VALIDADE_MS = 2 * 3600000;   // desiste depois de 2 horas
-const REENVIO_MS = 2 * 60000;      // reenvio pela internet a cada 2 min (só com o aparelho online)
-const MAX_NET = 10;                // envios pela internet por pedido
-const SMS_APOS_MS = 3 * 60000;     // sem confirmação em 3 min -> SMS
-const WPP_APOS_MS = 3 * 60000;     // sem confirmação em 3 min -> aviso ao cliente pelo WhatsApp
-const WPP_SENDER = "103888109342779"; // número de envio do WhatsApp no SMS Market (phone_number_id). CONFIRMAR no painel
-const WPP_TIPO = "5";              // 5 = texto livre
-const WPP_DIA_VEICULO = 5;
-const WPP_DIA_TOTAL = 100;
-const MAX_SMS_TENT = 2;            // tentativas de chamar o SMS Market se ele der erro
-const SMS_DIA_VEICULO = 3;
-const SMS_DIA_TOTAL = 50;
-const PEDIDOS_HORA = 30;           // pedidos por cliente por hora (trava contra abuso)
-const FOLGA_MS = 10000;
-const VOLTA_LACUNA_MS = 30 * 60000; // igual ao rastreamento-alertas.js: o aviso de volta vale para 30 min ou mais sem posição
+function ajustarAltura() {
+  const h = window.innerWidth >= 900 ? 0 : $('cartao').offsetHeight;
+  document.documentElement.style.setProperty('--h', h + 'px');
+}
 
-class Erro extends Error { constructor(status, msg) { super(msg); this.status = status; } }
-const soDig = (s) => String(s == null ? "" : s).replace(/\D/g, "");
-const hojeSP = () => new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo" }).format(new Date());
-
-/* ---------- Traccar ---------- */
-async function traccar(auth, caminho, opcoes) {
-  const o = opcoes || {};
-  const ctl = new AbortController();
-  const tm = setTimeout(() => ctl.abort(), 15000);
+function distM(a, b) {
+  const R = 6371000, r = (x) => x * Math.PI / 180;
+  const dLa = r(b[0] - a[0]), dLo = r(b[1] - a[1]);
+  const h = Math.sin(dLa / 2) ** 2 + Math.cos(r(a[0])) * Math.cos(r(b[0])) * Math.sin(dLo / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
+/* endereço por extenso: serviço público do OpenStreetMap, no máximo 1 consulta a cada 30 s e só se andou mais de ~60 m */
+async function endereco(lat, lon) {
+  if (endBusca) return;
+  if (endPos && distM(endPos, [lat, lon]) < 60) return;
+  if (Date.now() - endMs < 30000) return;
+  endBusca = true; endMs = Date.now();
   try {
-    return await fetch(TRACCAR_URL + caminho, {
-      method: o.method || "GET",
-      headers: Object.assign({ Authorization: "Bearer " + auth, Accept: "application/json" }, o.headers || {}),
-      body: o.body,
-      signal: ctl.signal,
-    });
-  } finally { clearTimeout(tm); }
-}
-async function json(auth, caminho) {
-  const r = await traccar(auth, caminho);
-  if (!r.ok) throw new Error(caminho.split("?")[0] + ": " + r.status);
-  return r.json();
+    const r = await fetch('https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=18&accept-language=pt-BR&lat=' + lat + '&lon=' + lon);
+    const j = await r.json(), a = j.address || {};
+    const rua = [a.road || a.pedestrian || a.footway, a.house_number].filter(Boolean).join(', ');
+    const bairro = a.suburb || a.neighbourhood || a.quarter || '';
+    const cidade = a.city || a.town || a.village || a.municipality || '';
+    const txt = [rua, bairro, cidade].filter(Boolean).join(' - ');
+    if (txt) { $('end').textContent = txt; endPos = [lat, lon]; }
+  } catch (e) { /* sem endereço: segue só com o mapa */ }
+  endBusca = false;
 }
 
-/* quem é a pessoa (sem conferir veículo) */
-async function usuarioDaSessao(token) {
-  const t = String(token || "");
-  if (!/^[A-Za-z0-9._~+\/=-]{20,3000}$/.test(t)) throw new Erro(401, "Sessão inválida. Saia e entre de novo.");
-  let r;
-  try { r = await traccar(t, "/api/session?token=" + encodeURIComponent(t)); } catch (e) { throw new Erro(502, "Não consegui falar com o servidor de rastreamento."); }
-  if (r.status === 401 || r.status === 403 || r.status === 404) throw new Erro(401, "Sessão expirada. Saia e entre de novo.");
-  if (!r.ok) throw new Erro(502, "Servidor de rastreamento indisponível.");
-  const u = await r.json();
-  if (!u || !u.id || u.disabled) throw new Erro(401, "Sessão inválida. Saia e entre de novo.");
-  return { userId: Number(u.id), admin: !!u.administrator, email: String(u.email || "") };
+/* ===== técnico a caminho: foto, destino (endereço do cliente), rota e tempo estimado ===== */
+const ehTec = () => !!(dados && dados.tipo === 'tec');
+function prepararTec(d) {
+  if ($('tec').classList.contains('show')) return;
+  document.title = d.tecnico + ' está a caminho · Rastreando GPS';
+  $('tec').classList.add('show');
+  $('nome').style.display = 'none'; $('placa').style.display = 'none';
+  $('tecTit').textContent = d.tecnico + ' está a caminho';
+  const foto = $('tecFoto');
+  foto.textContent = (d.tecnico || '?').charAt(0).toUpperCase();
+  const img = new Image();
+  img.alt = '';
+  img.onload = () => { foto.textContent = ''; foto.appendChild(img); };
+  img.src = FOTOS + String(d.tecnico || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '') + '.jpg';
+  document.querySelector('.botoes').style.display = 'none';
+  $('btnCentro').setAttribute('aria-label', 'Mostrar o técnico'); $('btnCentro').title = 'Mostrar o técnico';
 }
-const PERM_PADRAO = { smsBloqueio: false, reset: false, editarNome: false, cercaRapida: false, minhaPosicao: false };
-async function lerPerm(userId) {
-  const s = await db().collection(COL_PERM).doc(String(userId)).get();
-  return Object.assign({}, PERM_PADRAO, s.exists ? s.data() : {});
+function iconeCasa() {
+  return L.divIcon({ html: '<div class="casa"><div><svg viewBox="0 0 24 24"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/></svg></div></div>', className: '', iconSize: [40, 40], iconAnchor: [20, 38] });
 }
-async function lerCobranca(userId) {
-  const s = await db().collection(COL_COB).doc(String(userId)).get();
-  const d = s.exists ? s.data() : {};
-  const n = Number(d.pendentes || 0);
-  return { pendentes: n, valor: Math.round(n * PRECO_SMS * 100) / 100, preco: PRECO_SMS, faturadoEm: d.faturadoEm || null, totalFaturado: Number(d.totalFaturado || 0) };
-}
-async function cobrarSms(userId, deviceId, tipo) {
-  const ref = db().collection(COL_COB).doc(String(userId));
-  await db().runTransaction(async (t) => {
-    const s = await t.get(ref);
-    const n = s.exists ? Number(s.data().pendentes || 0) : 0;
-    t.set(ref, { pendentes: n + 1, ultimoEm: Date.now(), ultimoTipo: tipo, ultimoVeiculo: Number(deviceId) }, { merge: true });
-  });
-}
-/* trava do dia: administrador usa a dele; cliente usa a dos SMS pagos */
-async function reservarDoUsuario(u) {
-  return u.admin ? reservarSms(u.deviceId, "admin_", SMS_ADMIN_DIA_VEICULO, SMS_ADMIN_DIA_TOTAL)
-    : reservarSms(u.deviceId, "cli_", SMS_CLI_DIA_VEICULO, SMS_CLI_DIA_TOTAL);
-}
-
-/* quem é a pessoa e se ela tem acesso a este veículo (o Traccar responde com o login dela) */
-async function usuarioComVeiculo(token, deviceId) {
-  const t = String(token || "");
-  if (!/^[A-Za-z0-9._~+\/=-]{20,3000}$/.test(t)) throw new Erro(401, "Sessão inválida. Saia e entre de novo.");
-  const id = Number(deviceId);
-  if (!Number.isInteger(id) || id <= 0) throw new Erro(400, "Veículo inválido.");
-  let r;
-  try { r = await traccar(t, "/api/session?token=" + encodeURIComponent(t)); } catch (e) { throw new Erro(502, "Não consegui falar com o servidor de rastreamento."); }
-  if (r.status === 401 || r.status === 403 || r.status === 404) throw new Erro(401, "Sessão expirada. Saia e entre de novo.");
-  if (!r.ok) throw new Erro(502, "Servidor de rastreamento indisponível.");
-  const u = await r.json();
-  if (!u || !u.id || u.disabled) throw new Erro(401, "Sessão inválida. Saia e entre de novo.");
-  const d = await traccar(t, "/api/devices?id=" + id);
-  const lista = d.ok ? await d.json() : [];
-  if (!lista.length) throw new Erro(403, "Você não tem acesso a este veículo.");
-  return { userId: Number(u.id), admin: !!u.administrator, deviceId: id, device: lista[0], email: String(u.email || "") };
-}
-
-async function limitar(chave, max) {
-  const janela = 3600000, bucket = Math.floor(Date.now() / janela);
-  const ref = db().collection(COL_LIM).doc(("desb_" + chave + "_" + bucket).slice(0, 60));
-  await db().runTransaction(async (t) => {
-    const s = await t.get(ref);
-    const n = s.exists ? s.data().n || 0 : 0;
-    if (n >= max) throw new Erro(429, "Muitas tentativas. Aguarde um pouco.");
-    t.set(ref, { n: n + 1, tipo: "desbloqueio", expiraEm: new Date((bucket + 1) * janela + 86400000) }, { merge: true });
-  });
-}
-
-const resumo = (d) => d ? {
-  estado: d.estado, criadoMs: d.criadoMs || null, smsEnviado: !!d.smsEnviado, smsEmMs: d.smsEmMs || null,
-  fimMs: d.fimMs || null, motivo: d.motivo || "",
-} : { estado: "nenhum" };
-
-/* ---------- ações do app ---------- */
-async function acaoPedir(d) {
-  const u = await usuarioComVeiculo(d.token, d.deviceId);
-  await limitar(u.userId, PEDIDOS_HORA);
-  await registrarEventoUsuario(u, "desb", "app"); // registra o desbloqueio pedido (mesmo que o rastreador demore a obedecer)
-  const ref = db().collection(COL).doc(String(u.deviceId));
-  const agora = Date.now();
-  let out;
-  await db().runTransaction(async (t) => {
-    const s = await t.get(ref);
-    const a = s.exists ? s.data() : null;
-    if (a && a.estado === "pendente" && agora - (a.criadoMs || 0) < VALIDADE_MS) { out = Object.assign(resumo(a), { jaPendente: true }); return; }
-    const novo = {
-      estado: "pendente", criadoMs: agora, userId: u.userId, deviceId: u.deviceId,
-      netTent: 1, netUltMs: agora, // o app acabou de mandar pela internet
-      smsEnviado: false, smsTent: 0, smsEmMs: null, fimMs: null, motivo: "",
-    };
-    t.set(ref, novo);
-    out = resumo(novo);
-  });
-  return out;
-}
-
-async function acaoCancelar(d) {
-  const u = await usuarioComVeiculo(d.token, d.deviceId);
-  const ref = db().collection(COL).doc(String(u.deviceId));
-  let out = { estado: "nenhum" };
-  await db().runTransaction(async (t) => {
-    const s = await t.get(ref);
-    if (!s.exists) return;
-    const a = s.data();
-    if (a.estado === "pendente") {
-      const upd = { estado: "cancelado", fimMs: Date.now(), motivo: "cliente mandou bloquear" };
-      t.set(ref, upd, { merge: true });
-      out = resumo(Object.assign({}, a, upd));
-    } else out = resumo(a);
-  });
-  return out;
-}
-
-async function acaoStatus(d) {
-  const u = await usuarioComVeiculo(d.token, d.deviceId);
-  const s = await db().collection(COL).doc(String(u.deviceId)).get();
-  return resumo(s.exists ? s.data() : null);
-}
-
-/* ---------- administrador: bloqueio / desbloqueio por SMS (manual) ---------- */
-async function acaoSmsAdmin(d, bloquear) {
-  const u = await usuarioComVeiculo(d.token, d.deviceId);
-  if (!u.admin && !(await lerPerm(u.userId)).smsBloqueio) throw new Erro(403, "Este acesso não pode " + (bloquear ? "bloquear" : "desbloquear") + " por SMS. Fale com a Rastreando GPS.");
-  const cfgS = await db().collection(COL_CFG).doc("geral").get();
-  if (cfgS.exists && (cfgS.data() || {}).smsPausado) throw new Erro(503, "Os SMS estão pausados (smsPausado no Firestore).");
-  const numero = numeroChip(u.device.phone);
-  if (!numero) throw new Erro(400, "Este veículo não tem número de chip válido no cadastro.");
-  if (!(await reservarDoUsuario(u))) throw new Erro(429, "Limite diário de SMS atingido para este veículo.");
-  // a última ordem vence
-  const ref = db().collection(COL).doc(String(u.deviceId));
-  const ds = await ref.get();
-  const agora = Date.now();
-  if (bloquear) {
-    if (ds.exists && ds.data().estado === "pendente") await ref.set({ estado: "cancelado", fimMs: agora, motivo: "administrador bloqueou por SMS" }, { merge: true });
-  } else if (!ds.exists || ds.data().estado !== "pendente") {
-    // marca a ordem de desbloqueio (o motor da cerca cancela bloqueio pendente anterior a ela); o motor de desbloqueio ignora este estado
-    await ref.set({ estado: "admin_sms", criadoMs: agora, deviceId: u.deviceId, fimMs: agora, motivo: "administrador desbloqueou por SMS" }, { merge: true });
-  }
-  const s = await enviarSms(numero, bloquear ? CMD_BLOQUEAR : CMD_DESBLOQUEAR, (bloquear ? "adm-blq-" : "adm-desb-") + u.deviceId + "-" + agora);
-  await db().collection(COL_SMS_LOG).doc((bloquear ? "blq_" : "desb_") + u.deviceId + "_" + agora).set({
-    tipo: bloquear ? "bloquear" : "desbloquear", deviceId: u.deviceId, por: u.email || String(u.userId), em: agora, ok: s.ok, http: s.http, resp: s.resp,
-  });
-  if (!s.ok) throw new Erro(502, "O SMS Market não aceitou o envio (erro " + s.http + ").");
-  if (!u.admin) await cobrarSms(u.userId, u.deviceId, bloquear ? "bloquear" : "desbloquear");
-  await registrarEventoUsuario(u, bloquear ? "bloq" : "desb", "sms");
-  return { ok: true, cobrado: !u.admin };
-}
-
-/* ---------- administrador: SMS de configuração (IP/Porta, APN, Reset, Bloq. imediato, Fábrica) ---------- */
-async function acaoSmsConfig(d) {
-  const u = await usuarioComVeiculo(d.token, d.deviceId);
-  if (!u.admin && !(d.tipo === "reset" && (await lerPerm(u.userId)).reset)) throw new Erro(403, "Este acesso não pode enviar este SMS.");
-  const texto = Object.prototype.hasOwnProperty.call(SMS_CONFIG, String(d.tipo || "")) ? SMS_CONFIG[String(d.tipo)] : "";
-  if (!texto) throw new Erro(400, "Tipo de configuração inválido.");
-  const cfgS = await db().collection(COL_CFG).doc("geral").get();
-  if (cfgS.exists && (cfgS.data() || {}).smsPausado) throw new Erro(503, "Os SMS estão pausados (smsPausado no Firestore).");
-  const numero = numeroChip(u.device.phone);
-  if (!numero) throw new Erro(400, "Este equipamento não tem número de chip válido no cadastro.");
-  if (!(await reservarDoUsuario(u))) throw new Erro(429, "Limite diário de SMS atingido para este equipamento.");
-  const agora = Date.now();
-  const s = await enviarSms(numero, texto, (u.admin ? "adm-cfg-" : "cli-cfg-") + d.tipo + "-" + u.deviceId + "-" + agora);
-  await db().collection(COL_SMS_LOG).doc("cfg_" + d.tipo + "_" + u.deviceId + "_" + agora).set({
-    tipo: "config_" + d.tipo, texto, deviceId: u.deviceId, por: u.email || String(u.userId), em: agora, ok: s.ok, http: s.http, resp: s.resp,
-  });
-  if (!s.ok) throw new Erro(502, "O SMS Market não aceitou o envio (erro " + s.http + ").");
-  if (!u.admin) await cobrarSms(u.userId, u.deviceId, d.tipo);
-  return { ok: true, texto, cobrado: !u.admin };
-}
-
-/* ---------- alertas (ações do app) ---------- */
-const AL = () => require("./rastreamento-alertas")._alertas;
-const MANUT = () => require("./rastreamento-manutencao")._manut; // lembrete de quilometragem
-async function acaoAlertas(d) {
-  if (d.acao === "alertasIgnicao") {
-    const u = await usuarioComVeiculo(d.token, d.deviceId);
-    return { cfg: await AL().salvarIgnicao(u.userId, u.deviceId, d.ligado === true) };
-  }
-  if (d.acao === "alertasVolta") { // liga/desliga o aviso "voltou a transmitir" deste veículo
-    const u = await usuarioComVeiculo(d.token, d.deviceId);
-    const ligar = d.ligado === true;
-    let base = null;
-    if (ligar) {
-      if (u.device.positionId) {
-        try {
-          const [p] = await json(TRACCAR_ADMIN_TOKEN.value(), "/api/positions?id=" + encodeURIComponent(u.device.positionId));
-          const fixMs = p ? Date.parse(p.fixTime) : NaN;
-          if (p && isFinite(fixMs) && isFinite(p.latitude) && isFinite(p.longitude)) base = { fixMs, lat: p.latitude, lon: p.longitude };
-        } catch (e) { /* cai no erro abaixo */ }
-      }
-      if (!base) throw new Erro(400, "Este veículo ainda não mandou nenhuma posição. Não dá para ligar o aviso agora.");
-    }
-    const cfg = await AL().salvarVolta(u.userId, u.deviceId, ligar, base);
-    return { cfg, transmitindo: ligar ? Date.now() - base.fixMs < VOLTA_LACUNA_MS : null, ultimaPosicaoMs: ligar ? base.fixMs : null };
-  }
-  if (d.acao === "manutCriar") { // lembrete de quilometragem: o servidor lê o odômetro do veículo (o app não manda)
-    const u = await usuarioComVeiculo(d.token, d.deviceId);
-    const km = Number(d.km);
-    if (!Number.isInteger(km) || km < 1 || km > 100000) throw new Erro(400, "Digite uma quilometragem inteira entre 1 e 100.000 km.");
-    let odo = null;
-    if (u.device.positionId) {
-      try {
-        const [p] = await json(TRACCAR_ADMIN_TOKEN.value(), "/api/positions?id=" + encodeURIComponent(u.device.positionId));
-        odo = MANUT().odometroDe(p);
-      } catch (e) { /* cai no erro abaixo */ }
-    }
-    if (odo === null) throw new Erro(400, "Este veículo ainda não informou o odômetro. Não dá para programar o lembrete agora.");
-    try { return { lista: await MANUT().criar(u.userId, u.deviceId, d.nome, km * 1000, d.repetir === true, odo) }; }
-    catch (e) { throw new Erro(400, e.message); }
-  }
-  const u = await usuarioDaSessao(d.token);
-  switch (d.acao) {
-    case "alertasChave": return { publica: await AL().chavePublica() };
-    case "alertasInscrever":
-      try { await AL().inscrever(u.userId, d.sub, d.ua); } catch (e) { throw new Erro(400, e.message); }
-      await AL().enviarAlerta([u.userId], { tipo: "teste", titulo: "Rastreando GPS", texto: "Pronto! Os alertas vão chegar neste celular.", semHistorico: true });
-      return { ok: true };
-    case "alertasCancelar": await AL().cancelarInscricao(u.userId, d.endpoint); return { ok: true };
-    case "alertasEstado": return { cfg: await AL().lerCfg(u.userId), inscricoes: await AL().temInscricao(u.userId) };
-    case "alertasLista": return { lista: await AL().listar(u.userId) };
-    case "alertasTeste": return await AL().enviarAlerta([u.userId], { tipo: "teste", titulo: "Rastreando GPS", texto: "Teste de notificação: está funcionando.", semHistorico: true });
-    case "manutLista": return { lista: await MANUT().listar(u.userId) };
-    case "manutApagar":
-      try { return { lista: await MANUT().apagar(u.userId, d.id) }; }
-      catch (e) { throw new Erro(400, e.message); }
-    default: throw new Erro(400, "Ação inválida.");
-  }
-}
-
-/* ---------- permissões e cobrança ---------- */
-async function acaoMinhas(d) { // o próprio cliente: o que ele pode usar e quanto já gastou
-  const u = await usuarioDaSessao(d.token);
-  if (u.admin) return { admin: true, perm: { smsBloqueio: true, reset: true, editarNome: true, cercaRapida: true, minhaPosicao: true }, cobranca: null };
-  return { admin: false, perm: await lerPerm(u.userId), cobranca: await lerCobranca(u.userId) };
-}
-async function exigirAdminSessao(d) {
-  const u = await usuarioDaSessao(d.token);
-  if (!u.admin) throw new Erro(403, "Só o administrador pode fazer isso.");
-  const alvo = Number(d.userId);
-  if (!Number.isInteger(alvo) || alvo <= 0) throw new Erro(400, "Cliente inválido.");
-  return { u, alvo };
-}
-async function acaoPermLer(d) {
-  const { alvo } = await exigirAdminSessao(d);
-  return { perm: await lerPerm(alvo), cobranca: await lerCobranca(alvo) };
-}
-async function acaoPermSalvar(d) {
-  const { u, alvo } = await exigirAdminSessao(d);
-  const p = d.perm || {};
-  const novo = { smsBloqueio: p.smsBloqueio === true, reset: p.reset === true, editarNome: p.editarNome === true, cercaRapida: p.cercaRapida === true, minhaPosicao: p.minhaPosicao === true, alteradoPor: u.email, alteradoEm: Date.now() };
-  await db().collection(COL_PERM).doc(String(alvo)).set(novo, { merge: true });
-  return { perm: await lerPerm(alvo), cobranca: await lerCobranca(alvo) };
-}
-async function acaoCobrancaZerar(d) { // depois de gerar a fatura dos SMS
-  const { u, alvo } = await exigirAdminSessao(d);
-  const ref = db().collection(COL_COB).doc(String(alvo));
-  await db().runTransaction(async (t) => {
-    const s = await t.get(ref);
-    const a = s.exists ? s.data() : {};
-    const n = Number(a.pendentes || 0);
-    t.set(ref, { pendentes: 0, faturadoEm: Date.now(), faturadoPor: u.email, ultimoFaturado: n, totalFaturado: Number(a.totalFaturado || 0) + n }, { merge: true });
-  });
-  return { cobranca: await lerCobranca(alvo) };
-}
-
-/* ---------- último acesso ao app ---------- */
-const DISPOSITIVOS = ["android", "iphone", "computador", "outro"];
-async function acaoAcesso(d) {
-  const u = await usuarioDaSessao(d.token);
-  const ref = db().collection(COL_ACESSOS).doc(String(u.userId));
-  const agora = Date.now();
-  const disp = DISPOSITIVOS.includes(String(d.disp || "")) ? String(d.disp) : "outro";
-  await db().runTransaction(async (t) => {
-    const s = await t.get(ref);
-    const a = s.exists ? s.data() : {};
-    if (a.ultimoMs && agora - a.ultimoMs < 60000) return; // no máximo 1 registro por minuto
-    t.set(ref, { ultimoMs: agora, anteriorMs: a.ultimoMs || null, total: Number(a.total || 0) + 1, disp, admin: u.admin, primeiroMs: a.primeiroMs || agora }, { merge: true });
-  });
-  return { ok: true };
-}
-/* o cliente apertou "Bloquear" no app (registra o envio, mesmo que o rastreador não confirme) */
-async function acaoBloqueioEnviado(d) {
-  const u = await usuarioComVeiculo(d.token, d.deviceId);
-  await registrarBloqueioUsuario(u, "app");
-  return { ok: true };
-}
-/* registra bloqueio/desbloqueio pedido pelo cliente: último de cada e um histórico curto (60 eventos) */
-async function registrarEventoUsuario(u, tipo, via) {
+function fmtKm(m) { return m < 1000 ? Math.round(m / 10) * 10 + ' m' : (m / 1000).toFixed(m < 10000 ? 1 : 0).replace('.', ',') + ' km'; }
+/* rota pelas ruas: serviço público OSRM (sem trânsito), no máximo 1 consulta por minuto ou quando o técnico anda mais de 150 m */
+async function buscarRota(p, dest) {
+  if (rotaBusca) return;
+  if (rota && rotaDe && distM(rotaDe, [p.lat, p.lon]) < 150 && Date.now() - rotaMs < 60000) return;
+  if (Date.now() - rotaMs < 20000) return;
+  rotaBusca = true; rotaMs = Date.now();
   try {
-    const ref = db().collection(COL_ACESSOS).doc(String(u.userId));
-    const agora = Date.now(), nome = String((u.device && u.device.name) || "").slice(0, 60);
-    await db().runTransaction(async (t) => {
-      const sn = await t.get(ref);
-      const a = sn.exists ? sn.data() : {};
-      const evs = Array.isArray(a.eventos) ? a.eventos.slice(-59) : [];
-      evs.push({ t: agora, tipo, dev: u.deviceId, via });
-      const upd = { eventos: evs };
-      if (tipo === "bloq") Object.assign(upd, { ultBloqMs: agora, ultBloqDev: u.deviceId, ultBloqNome: nome, ultBloqVia: via, totalBloq: Number(a.totalBloq || 0) + 1 });
-      else Object.assign(upd, { ultDesbMs: agora, ultDesbDev: u.deviceId, ultDesbNome: nome, ultDesbVia: via, totalDesb: Number(a.totalDesb || 0) + 1 });
-      t.set(ref, upd, { merge: true });
+    const r = await fetch('https://router.project-osrm.org/route/v1/driving/' + p.lon + ',' + p.lat + ';' + dest.lon + ',' + dest.lat + '?overview=simplified&geometries=geojson');
+    const j = await r.json();
+    const rt = j && j.routes && j.routes[0];
+    if (rt) {
+      rota = { m: rt.distance, s: rt.duration, ll: rt.geometry.coordinates.map((c) => [c[1], c[0]]) };
+      rotaDe = [p.lat, p.lon];
+      if (!linhaRota) linhaRota = L.polyline(rota.ll, { color: '#2f6bff', weight: 5, opacity: .85 }).addTo(mapa);
+      else linhaRota.setLatLngs(rota.ll);
+      if (linhaRota.bringToBack) linhaRota.bringToBack();
+      mostrarEta();
+    }
+  } catch (e) { /* sem rota: mostra só a distância em linha reta */ }
+  rotaBusca = false;
+}
+function mostrarEta() {
+  const d = dados, p = d && d.pos, dest = d && d.destino, box = $('eta');
+  if (!p || !dest) { box.classList.remove('show'); return; }
+  box.classList.add('show');
+  const reta = distM([p.lat, p.lon], [dest.lat, dest.lon]);
+  if (reta < 150) {
+    box.classList.add('chegou');
+    $('etaMin').textContent = 'Chegou';
+    $('etaInfo').innerHTML = '<b>O técnico chegou ao local.</b><br>Se ainda não te encontrou, ele deve chamar em instantes.';
+    if (linhaRota) { linhaRota.remove(); linhaRota = null; }
+    return;
+  }
+  box.classList.remove('chegou');
+  if (p.gpsMs && Date.now() - p.gpsMs > 15 * 60000) { /* posição velha: previsão seria enganosa */
+    $('etaMin').innerHTML = '—';
+    $('etaInfo').innerHTML = '<b>Aguardando a posição atual do técnico.</b><br>A previsão de chegada aparece assim que o rastreador atualizar.';
+    return;
+  }
+  if (rota && rotaDe && distM(rotaDe, [p.lat, p.lon]) < 400) {
+    /* rota recalculada a cada minuto ou quando o técnico anda 150 m */
+    const min = Math.max(1, Math.round(rota.s * 1.25 / 60)); /* +25% por causa do trânsito (estimativa) */
+    $('etaMin').innerHTML = (min < 60 ? min + '<small>min</small>' : Math.floor(min / 60) + '<small>h</small>' + (min % 60 ? ' ' + (min % 60) + '<small>min</small>' : ''));
+    $('etaInfo').innerHTML = 'Previsão de chegada <b>' + hora(Date.now() + min * 60000) + '</b><br>' + fmtKm(rota.m) + ' pelas ruas · estimativa, pode variar com o trânsito';
+  } else {
+    $('etaMin').innerHTML = fmtKm(reta).replace(/ (k?m)$/, '<small>$1</small>');
+    $('etaInfo').innerHTML = '<b>de distância</b> em linha reta até o seu endereço';
+  }
+}
+
+function desenhar(d) {
+  dados = d;
+  $('telaCarrega').classList.remove('show');
+  $('cartao').style.display = '';
+  if (d.tipo === 'tec') prepararTec(d);
+  $('nome').textContent = d.nome;
+  $('placa').textContent = d.placa ? d.placa.replace(/^([A-Z]{3})(\d)/, '$1-$2') : '';
+  $('placa').style.display = d.placa && d.tipo !== 'tec' ? '' : 'none';
+  const p = d.pos;
+  const chips = [];
+  if (!p) {
+    $('end').textContent = d.tipo === 'tec' ? 'Aguardando a posição do técnico.' : 'O rastreador ainda não enviou nenhuma posição.';
+    $('hora').textContent = '';
+    $('chips').innerHTML = '';
+    $('btnRota').style.visibility = $('btnMaps').style.visibility = 'hidden';
+  } else {
+    const anda = p.kmh > 3 && p.gpsOk && p.gpsMs && Date.now() - p.gpsMs <= 600000; /* velocidade de GPS antigo não conta */
+    chips.push('<span class="chip ' + (anda ? 'mov' : 'par') + '"><i></i>' + (anda ? 'Em movimento · ' + p.kmh + ' km/h' : 'Parado') + '</span>');
+    if (p.ignicao !== null && d.tipo !== 'tec') chips.push('<span class="chip ' + (p.ignicao ? 'on' : '') + '"><i></i>Ignição ' + (p.ignicao ? 'ligada' : 'desligada') + '</span>');
+    $('chips').innerHTML = chips.join('');
+    const velho = p.gpsMs && Date.now() - p.gpsMs > 600000;
+    $('hora').textContent = p.gpsMs ? (velho ? 'Posição de ' + diaHora(p.gpsMs) + ' (há ' + tempo(Date.now() - p.gpsMs) + ')' : 'Posição atualizada às ' + hora(p.gpsMs)) : '';
+    $('hora').classList.toggle('velho', !!velho);
+    const ll = [p.lat, p.lon];
+    $('btnRota').style.visibility = $('btnMaps').style.visibility = 'visible';
+    $('btnRota').href = 'https://www.google.com/maps/dir/?api=1&destination=' + p.lat + ',' + p.lon;
+    $('btnMaps').href = 'https://www.google.com/maps/search/?api=1&query=' + p.lat + ',' + p.lon;
+    if (!mapa) iniciarMapa(p.lat, p.lon);
+    if (!marcador) marcador = L.marker(ll, { icon: iconeSeta(p, d.nome) }).addTo(mapa);
+    else { marcador.setLatLng(ll); marcador.setIcon(iconeSeta(p, d.nome)); }
+    if (d.tipo === 'tec' && d.destino) {
+      const dl = [d.destino.lat, d.destino.lon];
+      if (!casa) casa = L.marker(dl, { icon: iconeCasa(), zIndexOffset: -100, title: 'Seu endereço' }).addTo(mapa);
+      else casa.setLatLng(dl);
+      mostrarEta();
+      buscarRota(p, d.destino);
+    }
+    if (seguir) centralizar(false);
+    endereco(p.lat, p.lon);
+    if (!$('end').textContent) $('end').textContent = 'Buscando endereço…';
+  }
+  const vivo = $('vivo');
+  const ct = contatoMs(d), recente = !!(ct && Date.now() - ct <= 180000);
+  vivo.classList.toggle('parado', !recente);
+  vivo.querySelector('span').textContent = recente ? 'AO VIVO' : 'SEM SINAL';
+  atualizarValidade();
+  ajustarAltura();
+}
+
+function centralizar(animar) {
+  if (!mapa || !dados || !dados.pos) return;
+  const ll = [dados.pos.lat, dados.pos.lon];
+  const h = window.innerWidth >= 900 ? 0 : $('cartao').offsetHeight;
+  if (ehTec() && dados.destino && distM(ll, [dados.destino.lat, dados.destino.lon]) > 150) {
+    /* técnico e endereço do cliente juntos na tela, acima do cartão */
+    const larg = window.innerWidth >= 900 ? 460 : 0;
+    mapa.fitBounds(L.latLngBounds([ll, [dados.destino.lat, dados.destino.lon]]), {
+      paddingTopLeft: [40 + larg, 80], paddingBottomRight: [40, h + 40], maxZoom: 16, animate: !!animar,
     });
-  } catch (e) { console.error("registrar " + tipo, e && e.message); }
-}
-const registrarBloqueioUsuario = (u, via) => registrarEventoUsuario(u, "bloq", via);
-async function acaoAcessos(d) {
-  const u = await usuarioDaSessao(d.token);
-  if (!u.admin) throw new Erro(403, "Só o administrador pode fazer isso.");
-  const snap = await db().collection(COL_ACESSOS).get();
-  const mapa = {};
-  snap.docs.forEach((x) => { const a = x.data() || {}; mapa[x.id] = { ultimoMs: a.ultimoMs || null, anteriorMs: a.anteriorMs || null, total: Number(a.total || 0), disp: a.disp || "", primeiroMs: a.primeiroMs || null,
-        ultBloqMs: a.ultBloqMs || null, ultBloqDev: a.ultBloqDev || null, ultBloqNome: a.ultBloqNome || "", ultBloqVia: a.ultBloqVia || "", totalBloq: Number(a.totalBloq || 0),
-        ultDesbMs: a.ultDesbMs || null, ultDesbDev: a.ultDesbDev || null, ultDesbNome: a.ultDesbNome || "", ultDesbVia: a.ultDesbVia || "", totalDesb: Number(a.totalDesb || 0),
-        eventos: Array.isArray(a.eventos) ? a.eventos : [] }; });
-  return { mapa };
-}
-
-/* ---------- situação de bloqueio guardada no servidor (item 1.3 do check-up) ---------- */
-async function gravarBloq(deviceId, bloq, via) {
-  try { await db().collection(COL_BLOQ).doc(String(Number(deviceId))).set({ bloq: bloq === true, em: Date.now(), via: String(via || "").slice(0, 40) }); }
-  catch (e) { console.error("gravarBloq", deviceId, e && e.message); }
-}
-async function acaoBloqEstado(d) { // o app avisa que o rastreador confirmou o bloqueio/desbloqueio
-  const u = await usuarioComVeiculo(d.token, d.deviceId);
-  if (typeof d.bloq !== "boolean") throw new Erro(400, "Situação inválida.");
-  await gravarBloq(u.deviceId, d.bloq, "app");
-  return { ok: true };
-}
-async function acaoBloqEstados(d) { // situação dos veículos pedidos (só os que a pessoa enxerga; no máximo 20)
-  const t = String(d.token || "");
-  const ids = [...new Set((Array.isArray(d.ids) ? d.ids : []).map(Number).filter((x) => Number.isInteger(x) && x > 0))].slice(0, 20);
-  if (!ids.length) return { mapa: {} };
-  await usuarioDaSessao(t);
-  const r = await traccar(t, "/api/devices?" + ids.map((i) => "id=" + i).join("&"));
-  const meus = r.ok ? (await r.json()).map((x) => Number(x.id)) : [];
-  if (!meus.length) return { mapa: {} };
-  const snaps = await db().getAll(...meus.map((i) => db().collection(COL_BLOQ).doc(String(i))));
-  const mapa = {};
-  snaps.forEach((s) => { if (s.exists) { const x = s.data(); mapa[s.id] = { bloq: x.bloq === true, em: x.em || 0 }; } });
-  return { mapa };
-}
-
-/* ---------- compartilhar localização (link com validade, só posição) ---------- */
-async function acaoCompCriar(d) {
-  const u = await usuarioComVeiculo(d.token, d.deviceId);
-  // aceita "minutos" (app novo) ou "horas" (app antigo), sempre número inteiro de minutos entre 5 min e 7 dias
-  const minutos = d.minutos != null ? Number(d.minutos) : Number(d.horas) * 60;
-  if (!Number.isInteger(minutos) || minutos < COMP_MIN_MINUTOS || minutos > COMP_MAX_MINUTOS) throw new Erro(400, "Escolha um tempo entre 5 minutos e 7 dias.");
-  const horas = minutos / 60;
-  await limitar("comp" + u.userId, 20);
-  const agora = Date.now();
-  const q = await db().collection(COL_COMP).where("userId", "==", u.userId).get();
-  const ativos = q.docs.filter((x) => { const a = x.data(); return a.ativo && a.expiraMs > agora; });
-  if (ativos.length >= COMP_MAX_ATIVOS) throw new Erro(429, "Você já tem " + COMP_MAX_ATIVOS + " links ativos. Encerre um para criar outro.");
-  const codigo = crypto.randomBytes(16).toString("base64url");
-  const expiraMs = agora + minutos * 60000;
-  await db().collection(COL_COMP).doc(codigo).set({ userId: u.userId, deviceId: u.deviceId, criadoMs: agora, expiraMs, minutos, horas, ativo: true, verificadoMs: agora, por: u.email || String(u.userId) });
-  return { codigo, expiraMs };
-}
-async function acaoCompLista(d) {
-  const u = await usuarioDaSessao(d.token);
-  const agora = Date.now(), dev = Number(d.deviceId) || 0;
-  const q = await db().collection(COL_COMP).where("userId", "==", u.userId).get();
-  const lista = q.docs.map((x) => Object.assign({ codigo: x.id }, x.data()))
-    .filter((a) => a.ativo && a.expiraMs > agora && (!dev || a.deviceId === dev))
-    .sort((a, b) => b.criadoMs - a.criadoMs)
-    .map((a) => ({ codigo: a.codigo, deviceId: a.deviceId, criadoMs: a.criadoMs, expiraMs: a.expiraMs, horas: a.horas }));
-  return { lista };
-}
-async function acaoCompEncerrar(d) {
-  const u = await usuarioDaSessao(d.token);
-  const codigo = String(d.codigo || "");
-  if (!/^[A-Za-z0-9_-]{16,40}$/.test(codigo)) throw new Erro(400, "Link inválido.");
-  const ref = db().collection(COL_COMP).doc(codigo), s = await ref.get();
-  if (!s.exists || s.data().userId !== u.userId) throw new Erro(404, "Link não encontrado.");
-  await ref.set({ ativo: false, encerradoMs: Date.now() }, { merge: true });
-  return { ok: true };
-}
-/* ---------- técnico a caminho (chamado pelo APP Técnico, só o administrador) ---------- */
-let _tecCerts = null, _tecCertsAte = 0;
-async function certsGoogle() {
-  if (_tecCerts && Date.now() < _tecCertsAte) return _tecCerts;
-  let r;
-  try { r = await fetch(TEC_CERTS_URL); } catch (e) { throw new Erro(502, "Não consegui conferir o login (Google)."); }
-  if (!r.ok) throw new Erro(502, "Não consegui conferir o login (Google).");
-  const m = /max-age=(\d+)/.exec(r.headers.get("cache-control") || "");
-  _tecCerts = await r.json();
-  _tecCertsAte = Date.now() + Math.min(Number(m ? m[1] : 3600), 21600) * 1000;
-  return _tecCerts;
-}
-const b64url = (x) => Buffer.from(String(x).replace(/-/g, "+").replace(/_/g, "/"), "base64");
-/* confere o login do Firebase do APP Técnico (assinatura do Google, projeto e validade) e se é o administrador */
-async function adminTecnico(idToken) {
-  const t = String(idToken || "");
-  const partes = t.split(".");
-  const ruim = "Login do administrador inválido. Saia e entre de novo no APP Técnico.";
-  if (partes.length !== 3 || t.length > 4000) throw new Erro(401, ruim);
-  let cab, carga;
-  try { cab = JSON.parse(b64url(partes[0]).toString("utf8")); carga = JSON.parse(b64url(partes[1]).toString("utf8")); }
-  catch (e) { throw new Erro(401, ruim); }
-  if (!cab || cab.alg !== "RS256" || !cab.kid) throw new Erro(401, ruim);
-  const certs = await certsGoogle();
-  const pem = certs[cab.kid];
-  if (!pem) throw new Erro(401, ruim);
-  let ok = false;
-  try { ok = crypto.verify("RSA-SHA256", Buffer.from(partes[0] + "." + partes[1]), crypto.createPublicKey(pem), b64url(partes[2])); } catch (e) { ok = false; }
-  const agoraS = Math.floor(Date.now() / 1000);
-  if (!ok || carga.aud !== TEC_PROJETO || carga.iss !== "https://securetoken.google.com/" + TEC_PROJETO || !carga.sub ||
-      !(carga.exp > agoraS) || !(carga.iat <= agoraS + 300)) throw new Erro(401, ruim);
-  if (String(carga.email || "").toLowerCase() !== TEC_ADMIN_EMAIL) throw new Erro(403, "Só o administrador pode compartilhar a localização do técnico.");
-  return { uid: String(carga.sub) };
-}
-function nomeTecnico(x) {
-  const n = String(x || "").trim();
-  if (!/^[A-Za-zÀ-ÿ][A-Za-zÀ-ÿ .'-]{1,29}$/.test(n)) throw new Erro(400, "Nome do técnico inválido.");
-  return n;
-}
-/* rastreadores da base dos técnicos: os aparelhos vinculados ao usuário de login "tecnicos" no Traccar.
-   Só eles podem virar link "técnico a caminho" (nunca o veículo de um cliente). */
-async function tecDispositivos() {
-  const token = TRACCAR_ADMIN_TOKEN.value();
-  const users = await json(token, "/api/users");
-  const u = users.find((x) => String(x.login || "").toLowerCase() === TEC_LOGIN || String(x.email || "").toLowerCase().split("@")[0] === TEC_LOGIN);
-  if (!u) throw new Erro(404, "Ainda não existe o cliente \"" + TEC_LOGIN + "\" no rastreamento. Crie esse cliente no painel Admin e vincule a ele os rastreadores dos veículos dos técnicos.");
-  return json(token, "/api/devices?userId=" + u.id);
-}
-/* lista de veículos da base dos técnicos (para escolher qual é o de cada técnico) + os vínculos já feitos */
-async function acaoTecVeiculos(d) {
-  await adminTecnico(d.idToken);
-  await limitar("tecv", 200);
-  const devs = await tecDispositivos();
-  const q = await db().collection(COL_TEC).get();
-  const vinculos = {};
-  q.docs.forEach((x) => { vinculos[x.id] = Number(x.data().deviceId) || 0; });
-  return {
-    vinculos,
-    veiculos: devs.map((v) => ({ id: Number(v.id), nome: String(v.name || ""), placa: String(((v.attributes || {}).placa) || ""), online: v.status === "online" }))
-      .sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR")),
-  };
-}
-/* liga o técnico ao rastreador do veículo dele (deviceId 0 = desliga) */
-async function acaoTecVincular(d) {
-  await adminTecnico(d.idToken);
-  const tec = nomeTecnico(d.tecnico);
-  const id = Number(d.deviceId);
-  const ref = db().collection(COL_TEC).doc(tec);
-  if (id === 0) { await ref.delete(); return { ok: true, deviceId: 0 }; }
-  if (!Number.isInteger(id) || id <= 0) throw new Erro(400, "Veículo inválido.");
-  const dev = (await tecDispositivos()).find((x) => Number(x.id) === id);
-  if (!dev) throw new Erro(404, "Este rastreador não está na base dos técnicos (cliente \"" + TEC_LOGIN + "\").");
-  await ref.set({ deviceId: id, nomeVeiculo: String(dev.name || ""), em: Date.now() });
-  return { ok: true, deviceId: id, nome: String(dev.name || "") };
-}
-/* cria o link "técnico a caminho" (1 hora); destino = endereço da OS, se o app conseguiu achar no mapa */
-async function acaoTecCriar(d) {
-  const adm = await adminTecnico(d.idToken);
-  const tec = nomeTecnico(d.tecnico);
-  const v = await db().collection(COL_TEC).doc(tec).get();
-  if (!v.exists || !v.data().deviceId) throw new Erro(409, "SEM_VEICULO");
-  const deviceId = Number(v.data().deviceId);
-  let dLat = null, dLon = null;
-  if (d.destino && isFinite(d.destino.lat) && isFinite(d.destino.lon) && d.destino.lat !== null && d.destino.lon !== null) {
-    dLat = Math.round(Number(d.destino.lat) * 1e6) / 1e6; dLon = Math.round(Number(d.destino.lon) * 1e6) / 1e6;
-    if (Math.abs(dLat) > 90 || Math.abs(dLon) > 180 || (dLat === 0 && dLon === 0)) { dLat = null; dLon = null; }
+    return;
   }
-  const os = String(d.os || "").slice(0, 60);
-  const agora = Date.now();
-  // mesmo técnico e mesma OS, com o link valendo ainda por 15 min ou mais: devolve o mesmo link (não cria vários)
-  if (os) {
-    const q = await db().collection(COL_COMP).where("tecnico", "==", tec).get();
-    const ja = q.docs.map((x) => Object.assign({ codigo: x.id }, x.data()))
-      .filter((a) => a.tipo === "tec" && a.ativo && a.os === os && a.deviceId === deviceId && a.expiraMs - agora > 15 * 60000)
-      .sort((a, b) => b.expiraMs - a.expiraMs)[0];
-    if (ja) {
-      if (dLat !== null && (ja.destLat !== dLat || ja.destLon !== dLon)) await db().collection(COL_COMP).doc(ja.codigo).set({ destLat: dLat, destLon: dLon }, { merge: true });
-      return { codigo: ja.codigo, expiraMs: ja.expiraMs, reaproveitado: true };
-    }
-  }
-  await limitar("tecc", 60);
-  const dev = (await tecDispositivos()).find((x) => Number(x.id) === deviceId);
-  if (!dev) throw new Erro(409, "SEM_VEICULO"); // saiu da base dos técnicos: escolher de novo
-  const codigo = crypto.randomBytes(16).toString("base64url");
-  const expiraMs = agora + TEC_MINUTOS * 60000;
-  await db().collection(COL_COMP).doc(codigo).set({
-    tipo: "tec", userId: 0, tecnico: tec, deviceId, os, destLat: dLat, destLon: dLon,
-    criadoMs: agora, expiraMs, minutos: TEC_MINUTOS, horas: TEC_MINUTOS / 60, ativo: true, verificadoMs: agora, por: "app-tecnico:" + adm.uid,
-  });
-  return { codigo, expiraMs, online: dev.status === "online" };
-}
-async function acaoTecEncerrar(d) {
-  await adminTecnico(d.idToken);
-  const codigo = String(d.codigo || "");
-  if (!/^[A-Za-z0-9_-]{16,40}$/.test(codigo)) throw new Erro(400, "Link inválido.");
-  const ref = db().collection(COL_COMP).doc(codigo), s = await ref.get();
-  if (!s.exists || s.data().tipo !== "tec") throw new Erro(404, "Link não encontrado.");
-  await ref.set({ ativo: false, encerradoMs: Date.now() }, { merge: true });
-  return { ok: true };
-}
-async function acaoCompVer(d) { // PÚBLICA (sem login): só para quem tem o código do link
-  const codigo = String(d.codigo || "");
-  if (!/^[A-Za-z0-9_-]{16,40}$/.test(codigo)) throw new Erro(404, "Link inválido.");
-  const ref = db().collection(COL_COMP).doc(codigo), s = await ref.get();
-  const agora = Date.now();
-  if (!s.exists) throw new Erro(404, "Link inválido.");
-  const a = s.data();
-  if (!a.ativo || a.expiraMs <= agora) throw new Erro(410, "Este link expirou ou foi encerrado por quem compartilhou.");
-  await limitar("cv" + codigo.slice(0, 20), 1500); // trava contra abuso (a página consulta a cada 10 s)
-  const token = TRACCAR_ADMIN_TOKEN.value();
-  if (a.tipo === "tec" && agora - (a.verificadoMs || 0) > COMP_REVERIFICA_MS) { // o rastreador ainda é da base dos técnicos?
-    let ok = true;
-    try { ok = (await tecDispositivos()).some((x) => Number(x.id) === a.deviceId); } catch (e) { ok = !(e instanceof Erro); /* falha de rede não derruba */ }
-    if (!ok) { await ref.set({ ativo: false, encerradoMs: agora, motivo: "rastreador saiu da base dos técnicos" }, { merge: true }); throw new Erro(410, "Este link não está mais disponível."); }
-    await ref.set({ verificadoMs: agora }, { merge: true });
-  }
-  if (a.tipo !== "tec" && agora - (a.verificadoMs || 0) > COMP_REVERIFICA_MS) { // quem criou ainda está ativo e ainda tem o veículo?
-    let ok = false;
-    try {
-      const usr = await json(token, "/api/users/" + a.userId);
-      if (usr && !usr.disabled && !(usr.expirationTime && Date.parse(usr.expirationTime) < agora)) {
-        if (usr.administrator) ok = true;
-        else ok = (await json(token, "/api/devices?userId=" + a.userId)).some((x) => Number(x.id) === a.deviceId);
-      }
-    } catch (e) { ok = true; /* falha de rede: não derruba o link por isso; tenta de novo na próxima */ }
-    if (!ok) { await ref.set({ ativo: false, encerradoMs: agora, motivo: "acesso do dono ao veículo acabou" }, { merge: true }); throw new Erro(410, "Este link não está mais disponível."); }
-    await ref.set({ verificadoMs: agora }, { merge: true });
-  }
-  const [dev] = await json(token, "/api/devices?id=" + a.deviceId);
-  if (!dev) throw new Erro(410, "Este veículo não está mais disponível.");
-  let p = null;
-  if (dev.positionId) { try { [p] = await json(token, "/api/positions?id=" + dev.positionId); } catch (e) { p = null; } }
-  const at = (p && p.attributes) || {};
-  const ehTec = a.tipo === "tec"; // link "técnico a caminho": mostra o nome do técnico, nunca o nome nem a placa do veículo dele
-  const r = {
-    nome: ehTec ? a.tecnico : String(dev.name || "Veículo"), placa: ehTec ? "" : String(((dev.attributes || {}).placa) || ""),
-    online: dev.status === "online", expiraMs: a.expiraMs, contatoMs: Date.parse(dev.lastUpdate) || null,
-    pos: p && isFinite(p.latitude) && isFinite(p.longitude) ? {
-      lat: p.latitude, lon: p.longitude, curso: Number(p.course) || 0,
-      kmh: Math.round((Number(p.speed) || 0) * 1.852),
-      ignicao: typeof at.ignition === "boolean" ? at.ignition : null,
-      gpsMs: Date.parse(p.fixTime) || null, chegouMs: Date.parse(p.serverTime) || null, gpsOk: p.valid !== false,
-    } : null,
-  };
-  if (ehTec) { r.tipo = "tec"; r.tecnico = a.tecnico; r.destino = a.destLat != null ? { lat: a.destLat, lon: a.destLon } : null; }
-  return r;
+  const ponto = mapa.project(ll, mapa.getZoom()).add([0, h / 2]); /* deixa o veículo no meio do espaço livre acima do cartão */
+  mapa.setView(mapa.unproject(ponto, mapa.getZoom()), mapa.getZoom(), { animate: !!animar });
 }
 
-/* ---------- renomear veículo (cliente com permissão ou administrador) ---------- */
-async function acaoRenomear(d) {
-  const u = await usuarioComVeiculo(d.token, d.deviceId);
-  if (!u.admin && !(await lerPerm(u.userId)).editarNome) throw new Erro(403, "Este acesso não pode editar o nome do veículo.");
-  const nome = String(d.nome || "").trim().replace(/\s+/g, " ");
-  if (nome.length < 1 || nome.length > 40) throw new Erro(400, "O nome precisa ter de 1 a 40 caracteres.");
-  const token = TRACCAR_ADMIN_TOKEN.value();
-  const [dev] = await json(token, "/api/devices?id=" + u.deviceId);
-  if (!dev) throw new Erro(404, "Veículo não encontrado.");
-  const r = await traccar(token, "/api/devices/" + u.deviceId, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(Object.assign({}, dev, { name: nome })) });
-  if (!r.ok) throw new Erro(502, "Não consegui salvar o nome (erro " + r.status + ").");
-  return { ok: true, nome };
-}
-
-function cors(req, res) {
-  const o = String(req.get("origin") || "");
-  if (ORIGENS.includes(o)) res.set("Access-Control-Allow-Origin", o);
-  res.set("Vary", "Origin");
-  res.set("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.set("Access-Control-Allow-Headers", "Content-Type");
-  res.set("Access-Control-Max-Age", "3600");
-}
-
-exports.rastreamentoDesbloqueio = onRequest(
-  { region: REGIAO, maxInstances: 5, timeoutSeconds: 30, secrets: [TRACCAR_ADMIN_TOKEN, SMSMARKET_USUARIO, SMSMARKET_SENHA] },
-  async (req, res) => {
-    cors(req, res);
-    if (req.method === "OPTIONS") { res.status(204).send(""); return; }
-    if (req.method !== "POST") { res.status(405).json({ erro: "Use POST." }); return; }
-    const o = String(req.get("origin") || "");
-    if (o && !ORIGENS.includes(o)) { res.status(403).json({ erro: "Origem não permitida." }); return; }
-    try {
-      const d = req.body && typeof req.body === "object" ? req.body : {};
-      let out;
-      switch (d.acao) {
-        case "pedir": out = await acaoPedir(d); break;
-        case "cancelar": out = await acaoCancelar(d); break;
-        case "status": out = await acaoStatus(d); break;
-        case "smsBloquear": out = await acaoSmsAdmin(d, true); break;
-        case "smsDesbloquear": out = await acaoSmsAdmin(d, false); break;
-        case "smsConfig": out = await acaoSmsConfig(d); break;
-        case "minhas": out = await acaoMinhas(d); break;
-        case "permLer": out = await acaoPermLer(d); break;
-        case "permSalvar": out = await acaoPermSalvar(d); break;
-        case "cobrancaZerar": out = await acaoCobrancaZerar(d); break;
-        case "renomear": out = await acaoRenomear(d); break;
-        case "acesso": out = await acaoAcesso(d); break;
-        case "acessos": out = await acaoAcessos(d); break;
-        case "bloqueioEnviado": out = await acaoBloqueioEnviado(d); break;
-        case "bloqEstado": out = await acaoBloqEstado(d); break;
-        case "bloqEstados": out = await acaoBloqEstados(d); break;
-        case "compCriar": out = await acaoCompCriar(d); break;
-        case "compLista": out = await acaoCompLista(d); break;
-        case "compEncerrar": out = await acaoCompEncerrar(d); break;
-        case "compVer": out = await acaoCompVer(d); break;
-        case "tecVeiculos": out = await acaoTecVeiculos(d); break;
-        case "tecVincular": out = await acaoTecVincular(d); break;
-        case "tecCriar": out = await acaoTecCriar(d); break;
-        case "tecEncerrar": out = await acaoTecEncerrar(d); break;
-        case "alertasChave": case "alertasInscrever": case "alertasCancelar": case "alertasEstado":
-        case "alertasIgnicao": case "alertasVolta": case "alertasLista": case "alertasTeste":
-        case "manutLista": case "manutCriar": case "manutApagar": out = await acaoAlertas(d); break;
-        default: throw new Erro(400, "Ação inválida.");
-      }
-      res.status(200).json(out);
-    } catch (e) {
-      if (e instanceof Erro) res.status(e.status).json({ erro: e.message });
-      else { console.error("rastreamentoDesbloqueio", e); res.status(500).json({ erro: "Erro inesperado. Tente novamente." }); }
-    }
+function atualizarValidade() {
+  if (!dados) return;
+  const falta = dados.expiraMs - Date.now();
+  if (falta <= 0) {
+    if (ehTec()) erro('Acompanhamento encerrado', 'O link para acompanhar o técnico venceu. Se precisar, fale com a Rastreando GPS.');
+    else erro('Link expirado', 'O prazo deste compartilhamento acabou. Peça um novo link para quem te enviou.');
+    return;
   }
-);
-
-/* ---------- SMS (SMS Market) ---------- */
-function numeroChip(phone) {
-  let n = soDig(phone);
-  if ((n.length === 12 || n.length === 13) && n.startsWith("55")) n = n.slice(2);
-  return n.length === 10 || n.length === 11 ? n : "";
+  $('valid').textContent = 'Link válido até ' + diaHora(dados.expiraMs) + ' (faltam ' + tempo(falta) + ')';
 }
-async function enviarSms(numero, texto, campanha) {
-  const basic = Buffer.from(SMSMARKET_USUARIO.value() + ":" + SMSMARKET_SENHA.value()).toString("base64");
-  const corpo = new URLSearchParams({ type: "2", country_code: "55", number: numero, content: texto, campaign_id: campanha });
-  const ctl = new AbortController();
-  const tm = setTimeout(() => ctl.abort(), 15000);
+
+async function buscar() {
+  if (encerrado) return;
   try {
-    const r = await fetch(SMS_URL, {
-      method: "POST",
-      headers: { Authorization: "Basic " + basic, "Content-Type": "application/x-www-form-urlencoded" },
-      body: corpo.toString(), signal: ctl.signal,
-    });
-    const txt = await r.text();
-    return { ok: r.ok, http: r.status, resp: txt.slice(0, 300) };
+    const r = await fetch(FN, { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'omit', body: JSON.stringify({ acao: 'compVer', codigo }) });
+    let j = {}; try { j = await r.json(); } catch (e) {}
+    if (r.status === 404 || r.status === 410) { erro('Link indisponível', j.erro || 'Este link não existe ou já foi encerrado.'); return; }
+    if (!r.ok) throw new Error(j.erro || ('erro ' + r.status));
+    falhas = 0;
+    desenhar(j);
   } catch (e) {
-    return { ok: false, http: 0, resp: String(e && e.message || e).slice(0, 300) };
-  } finally { clearTimeout(tm); }
-}
-/* ---------- WhatsApp (SMS Market) ---------- */
-function textoWpp(nomeCliente, nomeVeiculo, online) {
-  const primeiro = String(nomeCliente || "").trim().split(/\s+/)[0] || "";
-  const ola = primeiro ? "Olá, " + primeiro + "!" : "Olá!";
-  const veic = String(nomeVeiculo || "").trim() || "seu veículo";
-  const motivo = online
-    ? "O rastreador ainda não confirmou o desbloqueio, mas o sistema continua tentando sozinho."
-    : "O rastreador está sem sinal neste momento (pode ser um local fechado, como garagem ou subsolo), por isso o desbloqueio ainda não chegou.";
-  return ola + " Recebemos seu pedido de desbloqueio de " + veic + ". " + motivo +
-    " Não precisa apertar o botão de novo: assim que o aparelho voltar a se comunicar, o desbloqueio será feito automaticamente. " +
-    "Se for urgente, fale com a gente. Rastreando GPS";
-}
-async function enviarWpp(numero, nome, texto, campanha) {
-  const basic = Buffer.from(SMSMARKET_USUARIO.value() + ":" + SMSMARKET_SENHA.value()).toString("base64");
-  const corpo = new URLSearchParams({ type: WPP_TIPO, sender: WPP_SENDER, country_code: "55", number: numero, contact_name: nome || "", content: texto, campaign_id: campanha });
-  const ctl = new AbortController();
-  const tm = setTimeout(() => ctl.abort(), 15000);
-  try {
-    const r = await fetch(SMS_URL, {
-      method: "POST",
-      headers: { Authorization: "Basic " + basic, "Content-Type": "application/x-www-form-urlencoded" },
-      body: corpo.toString(), signal: ctl.signal,
-    });
-    const txt = await r.text();
-    let ok = r.ok;
-    try { const j = JSON.parse(txt); if (j && j.success === false) ok = false; } catch (e) { /* resposta não é JSON: vale o http */ }
-    return { ok, http: r.status, resp: txt.slice(0, 300) };
-  } catch (e) {
-    return { ok: false, http: 0, resp: String(e && e.message || e).slice(0, 300) };
-  } finally { clearTimeout(tm); }
-}
-
-/* reserva 1 SMS nos limites do dia (veículo e sistema). true = pode mandar */
-async function reservarSms(deviceId, prefixo, maxVeiculo, maxTotal) {
-  const dia = hojeSP(), pre = prefixo || "";
-  const MAXV = maxVeiculo || SMS_DIA_VEICULO, MAXT = maxTotal || SMS_DIA_TOTAL;
-  const refV = db().collection(COL_SMS).doc(dia + "_" + pre + deviceId), refT = db().collection(COL_SMS).doc(dia + "_" + pre + "total");
-  let pode = false;
-  await db().runTransaction(async (t) => {
-    const [sv, st] = [await t.get(refV), await t.get(refT)];
-    const nv = sv.exists ? sv.data().n || 0 : 0, nt = st.exists ? st.data().n || 0 : 0;
-    if (nv >= MAXV || nt >= MAXT) return;
-    t.set(refV, { n: nv + 1, dia }, { merge: true });
-    t.set(refT, { n: nt + 1, dia }, { merge: true });
-    pode = true;
-  });
-  return pode;
-}
-
-/* o rastreador confirmou o desbloqueio depois do pedido? */
-function confirmou(posicoes, desde) {
-  return posicoes.some((p) => {
-    const srv = new Date(p.serverTime || p.deviceTime || p.fixTime).getTime();
-    const a = p.attributes || {};
-    return srv >= desde - FOLGA_MS && ((typeof a.result === "string" && /success/i.test(a.result)) || a.blocked === false);
-  });
-}
-
-/* ---------- motor: a cada 1 minuto, só os pendentes ---------- */
-async function processar(agora) {
-  agora = agora || Date.now();
-  const cfgS = await db().collection(COL_CFG).doc("geral").get();
-  const cfg = cfgS.exists ? cfgS.data() || {} : {};
-  if (cfg.desbloqueioPausado) return { pausado: true };
-  const pend = await db().collection(COL).where("estado", "==", "pendente").get();
-  if (pend.empty) return { pendentes: 0 };
-
-  const token = TRACCAR_ADMIN_TOKEN.value();
-  const r = { pendentes: pend.size, confirmados: 0, reenvios: 0, sms: 0, expirados: 0, erros: 0 };
-  for (const doc of pend.docs) {
-    const ref = doc.ref, a = doc.data(), devId = String(a.deviceId || doc.id);
-    try {
-      if (agora - (a.criadoMs || 0) > VALIDADE_MS) {
-        await ref.set({ estado: "expirado", fimMs: agora, motivo: "sem confirmação em 2 horas" }, { merge: true }); r.expirados++; continue;
-      }
-      const [dev] = await json(token, "/api/devices?id=" + encodeURIComponent(devId));
-      if (!dev) { await ref.set({ estado: "cancelado", fimMs: agora, motivo: "veículo não existe mais" }, { merge: true }); continue; }
-      const de = new Date((a.criadoMs || agora) - FOLGA_MS).toISOString(), ate = new Date(agora + 60000).toISOString();
-      const pos = await json(token, "/api/positions?deviceId=" + encodeURIComponent(devId) + "&from=" + encodeURIComponent(de) + "&to=" + encodeURIComponent(ate));
-      if (dev.positionId && !pos.some((p) => p.id === dev.positionId)) {
-        try { (await json(token, "/api/positions?id=" + dev.positionId)).forEach((p) => pos.push(p)); } catch (e) { /* segue sem a última */ }
-      }
-      /* GPS sem sinal (check-up 10/10/2026, item 1.1): o J16 manda a resposta do comando com a hora do ÚLTIMO GPS,
-         que é antiga, e a busca por período do Traccar filtra pela hora do GPS. Então, se o último GPS é mais velho
-         que o pedido, faz uma busca extra a partir dele (no máximo 7 dias para trás). Só roda enquanto o pedido está
-         pendente sem confirmação. O filtro pela hora de CHEGADA dentro de confirmou() evita pegar resposta antiga. */
-      if (!confirmou(pos, a.criadoMs || agora)) {
-        const ult = pos.find((p) => p.id === dev.positionId);
-        const fixUlt = ult ? Date.parse(ult.fixTime || ult.deviceTime || "") : NaN;
-        if (isFinite(fixUlt) && fixUlt < (a.criadoMs || agora) - FOLGA_MS) {
-          const de2 = new Date(Math.max(fixUlt - FOLGA_MS, (a.criadoMs || agora) - 7 * 86400000)).toISOString();
-          try { (await json(token, "/api/positions?deviceId=" + encodeURIComponent(devId) + "&from=" + encodeURIComponent(de2) + "&to=" + encodeURIComponent(ate))).forEach((p) => { if (!pos.some((x) => x.id === p.id)) pos.push(p); }); }
-          catch (e) { console.error("Desbloqueio: busca extra", devId, e && e.message); }
-        }
-      }
-      if (confirmou(pos, a.criadoMs || agora)) {
-        await ref.set({ estado: "confirmado", fimMs: agora, motivo: a.smsEnviado ? "confirmado (SMS enviado antes)" : "confirmado pela internet" }, { merge: true });
-        await gravarBloq(devId, false, "desbloqueio confirmado");
-        r.confirmados++; continue;
-      }
-      // reenvio pela internet (só com o aparelho online, para não encher a fila do servidor)
-      if (dev.status === "online" && (a.netTent || 0) < MAX_NET && agora - (a.netUltMs || 0) >= REENVIO_MS) {
-        const resp = await traccar(token, "/api/commands/send", {
-          method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ deviceId: Number(devId), type: "custom", attributes: { data: CMD_DESBLOQUEAR } }),
-        });
-        await ref.set({ netTent: (a.netTent || 0) + 1, netUltMs: agora, netHttp: resp.status }, { merge: true });
-        r.reenvios++;
-      }
-      // WhatsApp para o cliente: 1 por pedido, depois de 3 min sem confirmação (nunca derruba o resto do motor)
-      if (!a.wppTratado && !cfg.whatsappPausado && agora - (a.criadoMs || 0) >= WPP_APOS_MS) {
-        try {
-          const atual0 = await ref.get();
-          if (atual0.exists && atual0.data().estado === "pendente" && !atual0.data().wppTratado) {
-            await ref.set({ wppTratado: true }, { merge: true }); // marca antes: nunca manda 2 vezes
-            // quem recebe: o dono do veículo (contato do aparelho = login do cliente); se não tiver WhatsApp, quem apertou o botão
-            let cli = null, numWpp = "";
-            const contato = String(dev.contact || "").trim().toLowerCase();
-            if (contato) {
-              const todos = await json(token, "/api/users");
-              const dono = todos.find((x) => !x.administrator && (String(x.login || "").toLowerCase() === contato || String(x.email || "").toLowerCase() === contato));
-              if (dono && numeroChip(dono.phone)) { cli = dono; numWpp = numeroChip(dono.phone); }
-            }
-            if (!numWpp) {
-              const quem = await json(token, "/api/users/" + encodeURIComponent(a.userId));
-              if (quem && numeroChip(quem.phone)) { cli = quem; numWpp = numeroChip(quem.phone); }
-            }
-            if (!numWpp) await ref.set({ wppEnviado: false, wppErro: "cliente sem WhatsApp cadastrado" + (contato ? " (dono do aparelho: " + contato + ")" : " (aparelho sem dono no campo contato)") }, { merge: true });
-            else if (!(await reservarSms(devId, "wpp-", WPP_DIA_VEICULO, WPP_DIA_TOTAL))) await ref.set({ wppEnviado: false, wppErro: "limite diário de WhatsApp" }, { merge: true });
-            else {
-              const w = await enviarWpp(numWpp, cli.name, textoWpp(cli.name, dev.name, dev.status === "online"), "desb-wpp-" + devId + "-" + agora);
-              await ref.set({ wppEnviado: w.ok, wppEmMs: w.ok ? agora : null, wppHttp: w.http, wppResp: w.resp }, { merge: true });
-              if (w.ok) r.wpp = (r.wpp || 0) + 1; else console.error("Desbloqueio: WhatsApp falhou", devId, w.http, w.resp);
-            }
-          }
-        } catch (e) { console.error("Desbloqueio: WhatsApp erro", devId, e && e.message); }
-      }
-      // SMS: 1 por pedido, depois de 3 min sem confirmação
-      if (!a.smsEnviado && !cfg.smsPausado && (a.smsTent || 0) < MAX_SMS_TENT && agora - (a.criadoMs || 0) >= SMS_APOS_MS) {
-        const numero = numeroChip(dev.phone);
-        if (!numero) { await ref.set({ smsTent: MAX_SMS_TENT, smsErro: "veículo sem número de chip válido" }, { merge: true }); continue; }
-        // confere de novo, na hora, se ninguém cancelou (o cliente pode ter apertado Bloquear)
-        const atual = await ref.get();
-        if (!atual.exists || atual.data().estado !== "pendente") continue;
-        if (!(await reservarSms(devId))) { await ref.set({ smsTent: MAX_SMS_TENT, smsErro: "limite diário de SMS" }, { merge: true }); continue; }
-        const s = await enviarSms(numero, CMD_DESBLOQUEAR, "desb-" + devId + "-" + agora);
-        await ref.set({ smsTent: (a.smsTent || 0) + 1, smsEnviado: s.ok, smsEmMs: s.ok ? agora : null, smsHttp: s.http, smsResp: s.resp }, { merge: true });
-        if (s.ok) r.sms++; else console.error("Desbloqueio: SMS falhou", devId, s.http, s.resp);
-      }
-    } catch (e) { r.erros++; console.error("Desbloqueio: erro no veículo", devId, e && e.message); }
+    falhas++;
+    if (!dados && falhas >= 3) erro('Sem conexão', 'Não consegui carregar a localização. Confira a internet e abra o link de novo.');
   }
-  return r;
 }
 
-exports.rastreamentoDesbloqueioMotor = onSchedule(
-  { schedule: "every 1 minutes", region: REGIAO, timeZone: "America/Sao_Paulo", maxInstances: 1, timeoutSeconds: 120, secrets: [TRACCAR_ADMIN_TOKEN, SMSMARKET_USUARIO, SMSMARKET_SENHA] },
-  async () => {
-    try {
-      const r = await processar();
-      if (r.confirmados || r.reenvios || r.sms || r.wpp || r.expirados || r.erros) console.log("Desbloqueio:", JSON.stringify(r));
-    } catch (e) { console.error("Desbloqueio: erro", e && e.message); }
-  }
-);
-exports._desb = { processar, textoWpp, enviarWpp };
+$('btnCentro').onclick = () => { seguir = true; $('btnCentro').classList.add('on'); centralizar(true); };
+window.addEventListener('resize', () => { ajustarAltura(); if (seguir) centralizar(false); });
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') buscar(); });
 
-/* LEMBRETE DE QUILOMETRAGEM (arquivo novo, 10/10/2026): liga o motor rastreamentoManutencaoMotor.
-   Sem esta linha o lembrete não dispara (as ações do app acima funcionam, mas ninguém avisa). */
-Object.assign(exports, require("./rastreamento-manutencao"));
+if (!/^[A-Za-z0-9_-]{16,40}$/.test(codigo)) {
+  erro('Link incompleto', 'Este link está incompleto. Peça para quem te enviou mandar de novo.');
+} else {
+  buscar();
+  setInterval(() => { if (document.visibilityState === 'visible') buscar(); }, 10000);
+  setInterval(atualizarValidade, 30000);
+}
+</script>
+</body>
+</html>
