@@ -368,7 +368,7 @@ main{position:relative;flex:1;min-height:0;overflow:hidden}
 
 /* ===== HISTÓRICO DE ROTAS (10/10/2026) ===== */
 #map.hist-on .leaflet-marker-icon:not(.hmk){visibility:hidden;pointer-events:none}
-body.hist-on #follow,body.hist-on #btnEu{display:none!important}
+body.hist-on #follow,body.hist-on #btnEu,body.hist-on #btnTodos{display:none!important}
 /* carrinho no topo do mapa: aparece quando o cliente tem pedido da loja esperando pagamento (11/10/2026) */
 #mapCar{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:420;width:52px;height:52px;border-radius:50%;background:#ffe600;border:none;display:none;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(0,0,0,.4);cursor:pointer;animation:mapCarPulso 1.8s ease-in-out infinite}
 #mapCar.show{display:flex}
@@ -453,6 +453,23 @@ body.hist-on #mapCar{display:none!important}
 .follow svg{width:21px;height:21px}
 .follow .lbl{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 #btnEu{top:66px}
+#btnTodos{top:66px;display:none}
+/* scanner do IMEI */
+.fldscan{position:relative}
+.fldscan .fld{padding-right:56px}
+#eScan{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:42px;height:42px;border-radius:10px;border:0;background:rgba(37,99,235,.10);color:#2563eb;display:flex;align-items:center;justify-content:center;cursor:pointer}
+#eScan svg{width:24px;height:24px}
+#eScan[hidden]{display:none}
+#mScan{z-index:1100;align-items:center}
+#mScan .scanbox{max-width:440px;width:calc(100% - 24px);border-radius:20px}
+#mScan .scanvid{position:relative;width:100%;aspect-ratio:4/3;background:#000;border-radius:14px;overflow:hidden;margin-top:6px}
+#mScan video{width:100%;height:100%;object-fit:cover;display:block}
+#mScan .scanmira{position:absolute;left:8%;right:8%;top:32%;bottom:32%;border:3px solid #22c55e;border-radius:10px;box-shadow:0 0 0 999px rgba(0,0,0,.25)}
+#mScan .scanmira::after{content:"";position:absolute;left:4%;right:4%;top:50%;height:2px;background:#ef4444;animation:scanLinha 1.6s ease-in-out infinite}
+@keyframes scanLinha{0%,100%{transform:translateY(-18px)}50%{transform:translateY(18px)}}
+#mScan .scanmsg{font-size:13.5px;color:var(--mut);margin:10px 0 4px;line-height:1.45}
+#mScan .scanmsg.er{color:#e11d48;font-weight:600}
+#btnTodos.abaixo{top:118px}
 #btnEu.buscando svg{animation:euPulsa 1s ease-in-out infinite}
 @keyframes euPulsa{0%,100%{opacity:1}50%{opacity:.35}}
 @media (prefers-reduced-motion:reduce){#btnEu.buscando svg{animation:none}}
@@ -1124,6 +1141,10 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8"/><path d="M12 1v3M12 20v3M1 12h3M20 12h3"/></svg>
     <span class="lbl" id="euTxt">Minha posição</span>
   </button>
+  <button class="follow" id="btnTodos" title="Mostrar todos os veículos marcados" aria-label="Mostrar todos os veículos marcados">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V5a1 1 0 0 1 1-1h4M15 4h4a1 1 0 0 1 1 1v4M20 15v4a1 1 0 0 1-1 1h-4M9 20H5a1 1 0 0 1-1-1v-4"/><circle cx="12" cy="12" r="2.5"/></svg>
+    <span class="lbl">Mostrar todos</span>
+  </button>
 
   <button id="mapCar" type="button" aria-label="Você tem pedido aguardando pagamento" title="Pedido aguardando pagamento"><svg viewBox="0 0 24 24"><path d="M6 6h15l-1.5 9h-12z"/><path d="M6 6L5 3H2"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/></svg><span class="mcn" id="mapCarN">1</span></button>
   <div class="vazio" id="vazio">Nenhum veículo selecionado<small>Abra a aba Veículos para escolher.</small></div>
@@ -1345,6 +1366,15 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
 </nav>
 
 <!-- Confirmar comando -->
+<!-- scanner do IMEI pela câmera (11/10/2026) -->
+<div class="modal" id="mScan">
+  <div class="box2 scanbox">
+    <h3>Escanear IMEI</h3>
+    <div class="scanvid"><video id="scanVid" playsinline muted autoplay></video><div class="scanmira"></div></div>
+    <p class="scanmsg" id="scanMsg">Aponte a câmera para o código de barras do IMEI, na etiqueta do rastreador.</p>
+    <div class="actions2" style="grid-template-columns:1fr"><button class="btn btn-out" id="scanFechar" type="button">Fechar</button></div>
+  </div>
+</div>
 <div class="modal" id="mCmd">
   <div class="box2">
     <h3 id="cmdTitle"></h3>
@@ -1460,7 +1490,7 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
     <label class="flbl" for="ePlaca">Placa do veículo (opcional)</label>
     <input class="fld" id="ePlaca" maxlength="8" placeholder="ABC1D23 ou ABC-1234" autocomplete="off" autocapitalize="characters" style="text-transform:uppercase">
     <label class="flbl" for="eImei">IMEI (15 números)</label>
-    <input class="fld" id="eImei" inputmode="numeric" autocomplete="off">
+    <div class="fldscan"><input class="fld" id="eImei" inputmode="numeric" autocomplete="off"><button type="button" id="eScan" aria-label="Escanear o código do IMEI com a câmera" title="Escanear com a câmera"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3"/><path d="M7 8v8M10 8v8M13 8v8M16.5 8v8"/></svg></button></div>
     <label class="flbl" for="eFone">Número do chip (com DDD)</label>
     <input class="fld" id="eFone" inputmode="tel" placeholder="(11) 99999-9999" autocomplete="off">
     <label class="flbl" for="eBuscaCli">Clientes que veem este equipamento</label>
@@ -2083,6 +2113,21 @@ function centralizar(pos){
     map.setView(map.unproject(p,z),z,{animate:false});
   }
 }
+/* botão "Mostrar todos" (11/10/2026): enquadra no mapa todos os veículos marcados. Fica abaixo do "Minha posição". */
+function ajBtnTodos(){
+  const b=$('btnTodos'); if(!b) return;
+  const n=visiveis().filter(v=>v.pos).length;
+  b.style.display = n>=1 ? 'flex' : 'none';
+  b.classList.toggle('abaixo', $('btnEu').style.display==='flex');
+}
+$('btnTodos').onclick=()=>{
+  const vs=visiveis().filter(v=>v.pos);
+  if(!vs.length){ toast('Nenhum veículo marcado com posição no mapa.'); return }
+  if(seguir) setSeguir(false);
+  if(vs.length===1){ map.setView(vs[0].pos,16,{animate:true}); return }
+  const c=cobertura();
+  map.fitBounds(L.latLngBounds(vs.map(v=>v.pos)),{paddingTopLeft:[40+coberturaLado(),70],paddingBottomRight:[40,c+30],maxZoom:17,animate:true});
+};
 function ajustarTodos(vs){
   if(!vs.length) return;
   const c = cobertura();
@@ -2458,6 +2503,7 @@ function atualizarContagem(){
   $('vCount').textContent=n+' de '+veiculos.length+' no mapa';
   $('vAll').textContent = (n===veiculos.length && n>0) ? 'Desmarcar todos' : 'Selecionar todos';
   salvarVisibilidade();
+  try{ ajBtnTodos() }catch(e){}
 }
 /* o app lembra, neste aparelho, quais veículos você escolheu esconder do mapa (aparelho novo aparece por padrão) */
 const chaveVis = () => 'rg_vis_'+(lsGet('rg_email')||'');
@@ -2610,7 +2656,7 @@ $('vPick').onclick=e=>{ e.stopPropagation(); abrirPick() };
 
 /* ===== BLOQUEIO / DESBLOQUEIO (comando real) ===== */
 function abrir(id){$(id).classList.add('show')}
-function fechar(){document.querySelectorAll('.modal').forEach(m=>m.classList.remove('show'))}
+function fechar(){ try{ if(scanAtivo) scanParar() }catch(e){} document.querySelectorAll('.modal').forEach(m=>m.classList.remove('show')) }
 document.querySelectorAll('[data-close]').forEach(b=>b.onclick=fechar);
 /* as janelas só fecham pelos botões (Cancelar/Fechar): tocar fora não fecha mais */
 
@@ -4411,7 +4457,7 @@ function abrirEquip(id){
   $('eTitulo').textContent = v ? 'Editar equipamento' : 'Novo equipamento';
   $('eNome').value = v ? v.nome : '';
   $('ePlaca').value = v ? ((v.raw && v.raw.attributes && v.raw.attributes.placa) || '') : '';
-  $('eImei').value = v ? v.imei : ''; $('eImei').disabled = !!v;
+  $('eImei').value = v ? v.imei : ''; $('eImei').disabled = !!v; $('eScan').hidden = !!v;
   $('eFone').value = v ? fmtFone(v.fone) : '';
   $('eBuscaCli').value='';
   eqSel=new Set(); eqAntes=new Set(); eqPronto=!v;
@@ -4456,6 +4502,100 @@ async function vincular(userId,deviceId){
 /* tira o 55 (código do Brasil) da frente do chip: 5511922244628 -> 11922244628.
    Só tira quando sobra DDD + número (12 ou 13 dígitos), então DDD 55 (RS) sem o código do país fica intacto. */
 function sem55(t){ const n=soDigitos(t); return ((n.length===12||n.length===13) && n.indexOf('55')===0) ? n.slice(2) : n }
+/* ===== Scanner do IMEI (11/10/2026) =====
+   Usa o leitor de códigos do próprio navegador (Chrome no Android). Se o aparelho não tiver, carrega um leitor
+   gratuito (ZXing) na hora, só quando o botão é tocado. Aceita código de barras e QR: pega os 15 números do IMEI. */
+let scanStream=null, scanLoop=null, scanZx=null, scanAtivo=false;
+function scanImei(txt){ const t=String(txt||''); const m=t.match(/\d{15}/); if(m) return m[0]; const d=soDigitos(t); return d.length===15?d:'' }
+function scanMsg(t,er){ const e=$('scanMsg'); e.textContent=t; e.classList.toggle('er',!!er) }
+function scanParar(){
+  scanAtivo=false;
+  if(scanLoop){ clearTimeout(scanLoop); scanLoop=null }
+  try{ if(scanZx && scanZx.reset) scanZx.reset() }catch(e){} scanZx=null;
+  if(scanStream){ scanStream.getTracks().forEach(t=>{ try{ t.stop() }catch(e){} }); scanStream=null }
+  try{ $('scanVid').srcObject=null }catch(e){}
+  $('mScan').classList.remove('show');
+}
+function scanAchou(imei){
+  scanParar();
+  $('eImei').value=imei;
+  try{ navigator.vibrate && navigator.vibrate(80) }catch(e){}
+  toast('IMEI lido: '+imei);
+  try{ $('eFone').focus() }catch(e){}
+}
+function scanCarregarZx(){
+  return new Promise((ok,falha)=>{
+    if(window.ZXing) return ok(window.ZXing);
+    const sc=document.createElement('script');
+    sc.src='https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js';
+    sc.onload=()=>window.ZXing?ok(window.ZXing):falha(new Error('x')); sc.onerror=()=>falha(new Error('x'));
+    document.head.appendChild(sc);
+  });
+}
+async function scanAbrir(){
+  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){ toast('Este navegador não deixa usar a câmera aqui. Digite o IMEI.',5000); return }
+  scanMsg('Aponte a câmera para o código de barras do IMEI, na etiqueta do rastreador.');
+  $('mScan').classList.add('show'); scanAtivo=true;
+  const vid=$('scanVid');
+  let nativo=null;
+  try{
+    if('BarcodeDetector' in window){
+      const fmts=await BarcodeDetector.getSupportedFormats();
+      const quero=['code_128','code_39','ean_13','qr_code','data_matrix','itf','upc_a'].filter(f=>fmts.indexOf(f)>=0);
+      if(quero.length) nativo=new BarcodeDetector({formats:quero});
+    }
+  }catch(e){ nativo=null }
+  if(nativo){
+    try{ scanStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}},audio:false}) }
+    catch(e){ scanMsg('Não consegui abrir a câmera. Libere a câmera para este site nas permissões do navegador e tente de novo.',true); return }
+    if(!scanAtivo){ scanParar(); return }
+    vid.srcObject=scanStream; try{ await vid.play() }catch(e){}
+    const passo=async()=>{
+      if(!scanAtivo) return;
+      try{
+        const cods=await nativo.detect(vid);
+        for(const c of cods){ const im=scanImei(c.rawValue); if(im){ scanAchou(im); return } }
+        if(cods.length) scanMsg('Li um código, mas não é um IMEI (15 números). Aponte para o código do IMEI.');
+      }catch(e){}
+      scanLoop=setTimeout(passo,180);
+    };
+    passo();
+    return;
+  }
+  /* sem leitor nativo (ex.: iPhone): ZXing, lendo a faixa do meio da imagem a cada 0,3 s */
+  scanMsg('Carregando o leitor...');
+  let Z;
+  try{ Z=await scanCarregarZx() }catch(e){ scanMsg('Não consegui carregar o leitor (sem internet?). Digite o IMEI.',true); return }
+  if(!scanAtivo) return;
+  try{ scanStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}},audio:false}) }
+  catch(e){ scanMsg('Não consegui abrir a câmera. Libere a câmera para este site nas permissões do navegador e tente de novo.',true); return }
+  if(!scanAtivo){ scanParar(); return }
+  vid.srcObject=scanStream; try{ await vid.play() }catch(e){}
+  scanMsg('Aponte a câmera para o código de barras do IMEI, na etiqueta do rastreador.');
+  const dicas=new Map();
+  dicas.set(Z.DecodeHintType.POSSIBLE_FORMATS,[Z.BarcodeFormat.CODE_128,Z.BarcodeFormat.CODE_39,Z.BarcodeFormat.EAN_13,Z.BarcodeFormat.QR_CODE,Z.BarcodeFormat.DATA_MATRIX,Z.BarcodeFormat.ITF]);
+  dicas.set(Z.DecodeHintType.TRY_HARDER,true);
+  const leitor=new Z.MultiFormatReader(); leitor.setHints(dicas);
+  const cv=document.createElement('canvas'), cx=cv.getContext('2d',{willReadFrequently:true});
+  const passo=()=>{
+    if(!scanAtivo) return;
+    const w=vid.videoWidth, h=vid.videoHeight;
+    if(w && h){
+      const y0=Math.round(h*0.25), hh=Math.round(h*0.5);
+      cv.width=w; cv.height=hh; cx.drawImage(vid,0,y0,w,hh,0,0,w,hh);
+      try{
+        const bm=new Z.BinaryBitmap(new Z.HybridBinarizer(new Z.HTMLCanvasElementLuminanceSource(cv)));
+        const res=leitor.decode(bm), im=scanImei(res.getText());
+        if(im){ scanAchou(im); return }
+        scanMsg('Li um código, mas não é um IMEI (15 números). Aponte para o código do IMEI.');
+      }catch(e){ /* ainda não achou código nesta imagem */ }
+    }
+    scanLoop=setTimeout(passo,300);
+  };
+  passo();
+}
+$('eScan').onclick=scanAbrir;
+$('scanFechar').onclick=scanParar;
 $('eSalvar').onclick=async ()=>{
   const erro=m=>{ $('eErro').textContent=m };
   const nome=$('eNome').value.trim(), imei=soDigitos($('eImei').value), fone=sem55($('eFone').value);
