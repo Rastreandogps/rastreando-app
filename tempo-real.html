@@ -103,15 +103,30 @@ try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'){document.do
 .maisrodape{margin-top:18px;text-align:center;font-size:12px;color:var(--mut);line-height:1.5}
 .voltar{width:34px;height:34px;border-radius:50%;background:var(--card2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;flex:none}
 .voltar svg{width:18px;height:18px;fill:none;stroke:var(--txt);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
-/* loja (lista de produtos; o pedido vai pelo WhatsApp) */
+/* loja (fotos reais, compra por PIX ou pedido pelo WhatsApp; 11/10/2026) */
 .ljitem{display:flex;gap:12px;align-items:flex-start;padding:14px;background:var(--card);border:1px solid var(--line);border-radius:16px;margin-bottom:10px}
 .ljitem .lje{font-size:28px;line-height:1;width:44px;height:44px;flex:none;display:flex;align-items:center;justify-content:center;border-radius:14px;background:var(--card2)}
+.ljitem .ljimg{width:76px;height:76px;flex:none;border-radius:14px;object-fit:cover;background:#fff;border:1px solid var(--line)}
 .ljitem .ljt{flex:1;min-width:0}
 .ljitem .ljt b{display:block;font-size:15px;line-height:1.2}
 .ljitem .ljt small{display:block;font-size:12.5px;color:var(--mut);line-height:1.4;margin-top:3px}
 .ljitem .ljp{display:inline-block;margin-top:6px;font-size:12px;font-weight:700;color:var(--cyan)}
-.ljitem .ljbtn{margin-top:10px;height:38px;padding:0 14px;border-radius:10px;background:#16a34a;color:#fff;font-weight:700;font-size:13px;display:inline-flex;align-items:center;gap:6px}
+.ljitem .ljbtn{margin-top:10px;height:38px;padding:0 12px;border-radius:10px;background:#16a34a;color:#fff;font-weight:700;font-size:13px;display:inline-flex;align-items:center;gap:6px}
 .ljitem .ljbtn svg{width:16px;height:16px;fill:currentColor}
+.ljbtns{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.ljcomprar{margin-top:10px;height:38px;padding:0 12px;border-radius:10px;background:#2563eb;color:#fff;font-weight:700;font-size:13px;display:inline-flex;align-items:center;gap:6px}
+.ljcomprar:disabled{opacity:.6}
+.ljped{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;background:var(--card);border:1px solid var(--line);border-radius:14px;margin-bottom:8px}
+.ljped .ljpt{flex:1;min-width:0}
+.ljped .ljpt b{display:block;font-size:14px;line-height:1.2}
+.ljped .ljpt small{display:block;font-size:12px;color:var(--mut);margin-top:2px}
+.ljped .ljbtn,.ljped .ljcomprar{margin-top:0;flex:none}
+#mLojaPix .box2{display:flex;flex-direction:column;max-height:85vh;overflow:hidden}
+#mLojaPix #ljpRola{flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+#mLojaPix .alfechar{flex:none;margin-top:10px}
+#ljpOk{text-align:center;padding:10px 0}
+#ljpOk .ljok{width:64px;height:64px;margin:6px auto 12px;border-radius:50%;background:rgba(22,163,74,.15);display:flex;align-items:center;justify-content:center}
+#ljpOk .ljok svg{width:34px;height:34px;fill:none;stroke:#16a34a;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
 @media (min-width:900px){.maisview .vlist,.maisview .vtop{max-width:760px;width:100%;margin:0 auto}}
 .fres{border-radius:12px;padding:12px 14px;font-size:14px;font-weight:600;margin-top:12px;line-height:1.4}
 .fres.mal{background:rgba(227,38,47,.12);border:1px solid rgba(227,38,47,.35);color:var(--red2)}
@@ -1420,13 +1435,36 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
     <button class="btn btn-out alfechar" data-close type="button">Fechar</button>
   </div>
 </div>
-<!-- Loja (11/10/2026): v1, o pedido vai pelo WhatsApp da empresa -->
+<!-- Loja (11/10/2026): fotos reais, compra por PIX ou pedido pelo WhatsApp; a entrega é combinada depois -->
 <div class="modal alsheet" id="mLoja">
   <div class="box2">
     <div class="almtopo"><h3>Loja</h3><button class="almx" data-close type="button" aria-label="Fechar" title="Fechar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
     <div id="lojaRola">
-      <p style="margin-bottom:12px">Escolha o que precisa e peça pelo WhatsApp. A gente confirma valor, entrega ou instalação com você.</p>
+      <p style="margin-bottom:12px">Pague com PIX aqui mesmo ou peça pelo WhatsApp. Depois do pagamento, a entrega é combinada com você pelo WhatsApp.</p>
       <div id="lojaLista"></div>
+      <div id="lojaPedidos"></div>
+    </div>
+    <button class="btn btn-out alfechar" data-close type="button">Fechar</button>
+  </div>
+</div>
+<!-- PIX da loja -->
+<div class="modal alsheet" id="mLojaPix">
+  <div class="box2">
+    <div class="almtopo"><h3 id="ljpTit">Pagar com PIX</h3><button class="almx" data-close type="button" aria-label="Fechar" title="Fechar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <div id="ljpRola">
+      <div id="ljpPix">
+        <p id="ljpInfo" style="margin-bottom:10px"></p>
+        <img class="pixqr" id="ljpQr" alt="QR Code do PIX">
+        <div class="pixcode" id="ljpCode"></div>
+        <button class="btn btn-red" id="ljpCopiar" type="button" style="width:100%;margin-top:10px">Copiar código PIX</button>
+        <p id="ljpStatus" style="margin:12px 0 0;font-size:13px">Aguardando o pagamento…</p>
+      </div>
+      <div id="ljpOk" style="display:none">
+        <div class="ljok"><svg viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 7"/></svg></div>
+        <p style="font-size:16px;font-weight:800;margin-bottom:6px">Pagamento confirmado!</p>
+        <p id="ljpOkTxt" style="font-size:13.5px;margin-bottom:14px"></p>
+        <button class="ljbtn" id="ljpOkWpp" type="button" style="width:100%;height:46px;justify-content:center;margin-top:0"><svg viewBox="0 0 24 24"><path d="M17.5 14.4c-.3-.1-1.8-.9-2-1-.3-.1-.5-.1-.7.1-.2.3-.8 1-.9 1.2-.2.2-.3.2-.6.1-.3-.1-1.3-.5-2.4-1.5-.9-.8-1.5-1.8-1.7-2.1-.2-.3 0-.5.1-.6l.4-.5c.1-.2.2-.3.3-.5.1-.2 0-.4 0-.5l-.9-2.2c-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.1c.1.2 2.1 3.2 5.1 4.5 1.9.8 2.6.7 3.1.6.6-.1 1.8-.7 2-1.4.2-.7.2-1.3.2-1.4-.1-.1-.3-.2-.6-.3zM12 2a10 10 0 00-8.6 15.1L2 22l5-1.3A10 10 0 1012 2z"/></svg>Combinar a entrega pelo WhatsApp</button>
+      </div>
     </div>
     <button class="btn btn-out alfechar" data-close type="button">Fechar</button>
   </div>
@@ -5077,10 +5115,16 @@ $('lform').addEventListener('submit',async e=>{
    A barra de baixo fica com 6 abas; o que vier depois entra aqui. Admin não vê (tem a aba Admin). */
 const INDICACAO_URL='https://app.rastreandogpsbr.com.br/indicacao.html';
 const LOJA_WPP='5521980886087'; /* WhatsApp de atendimento da Rastreando GPS (pedidos da loja e indicações) */
-/* Produtos da loja (v1): o pedido vai pelo WhatsApp. Valores a definir pelo dono: enquanto não houver, mostra "consulte o valor". */
+/* Produtos da loja (11/10/2026). As fotos ficam na pasta loja/ do repositório. Os PREÇOS DE VERDADE ficam no
+   servidor (rastreamento-desbloqueio.js, LOJA_PRODUTOS): o app só mostra; mudou o preço, mudar nos dois lugares. */
+const LOJA_FOTO='https://rastreandogps.github.io/rastreando-app/loja/';
 const LOJA_ITENS=[
-  {e:'\u{1F4B3}', n:'Cartão de emergência (NFC)', d:'Encoste no celular e abra o app na hora, sem procurar nada. Ideal para roubo ou emergência.', p:''},
-  {e:'\u{1F4E1}', n:'Rastreador portátil', d:'Com bateria própria. Para moto, bicicleta, carga, bolsa ou qualquer coisa que você queira acompanhar.', p:''},
+  {img:'nfc.jpg', n:'Cartão de emergência (NFC)', d:'Encoste no celular e abra o app na hora, sem procurar nada. Ideal para roubo ou emergência.',
+   compras:[{k:'nfc1',t:'1 un. · R$ 29,90'},{k:'nfc2',t:'2 un. · R$ 49,90'}]},
+  {img:'ktag.jpg', n:'K-tag', d:'Localizador auxiliar do rastreador. Bateria com duração de até 1 ano e meio.',
+   compras:[{k:'ktag',t:'Comprar · R$ 99,00'}]},
+  {img:'portatil.jpg', n:'Rastreador portátil', d:'Com bateria própria. Para moto, bicicleta, carga, bolsa ou qualquer coisa que você queira acompanhar.',
+   compras:[{k:'portatil',t:'Comprar · R$ 320,00'}]},
 ];
 function maisAtualizar(){
   const nivel=bloqueioNivel||'ok', dot=$('maisFatDot'), nb=$('maisBadge'), tx=$('maisFatTxt');
@@ -5090,14 +5134,97 @@ function maisAtualizar(){
   if(tx) tx.textContent = nivel==='bloqueado' ? 'Acesso suspenso: pague para liberar' : nivel==='aviso' ? 'Fatura vencida: toque para pagar' : nivel==='confianca' ? 'Pague a fatura em aberto' : 'Mensalidades, PIX e segunda via';
   const w=$('maisWpp'); if(w) w.href='https://wa.me/'+LOJA_WPP;
 }
+const LOJA_SVG_WPP='<svg viewBox="0 0 24 24"><path d="M17.5 14.4c-.3-.1-1.8-.9-2-1-.3-.1-.5-.1-.7.1-.2.3-.8 1-.9 1.2-.2.2-.3.2-.6.1-.3-.1-1.3-.5-2.4-1.5-.9-.8-1.5-1.8-1.7-2.1-.2-.3 0-.5.1-.6l.4-.5c.1-.2.2-.3.3-.5.1-.2 0-.4 0-.5l-.9-2.2c-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.1c.1.2 2.1 3.2 5.1 4.5 1.9.8 2.6.7 3.1.6.6-.1 1.8-.7 2-1.4.2-.7.2-1.3.2-1.4-.1-.1-.3-.2-.6-.3zM12 2a10 10 0 00-8.6 15.1L2 22l5-1.3A10 10 0 1012 2z"/></svg>';
+function lojaLogin(){ return (lsGet('rg_email')||'').split('@')[0] }
 function lojaDesenhar(){
-  const quem=(lsGet('rg_email')||'').split('@')[0];
-  $('lojaLista').innerHTML=LOJA_ITENS.map((it,i)=>'<div class="ljitem"><div class="lje">'+it.e+'</div><div class="ljt"><b>'+esc(it.n)+'</b><small>'+esc(it.d)+'</small>'+
-    '<span class="ljp">'+(it.p?esc(it.p):'Consulte o valor')+'</span><br>'+
-    '<button class="ljbtn" type="button" data-lj="'+i+'"><svg viewBox="0 0 24 24"><path d="M17.5 14.4c-.3-.1-1.8-.9-2-1-.3-.1-.5-.1-.7.1-.2.3-.8 1-.9 1.2-.2.2-.3.2-.6.1-.3-.1-1.3-.5-2.4-1.5-.9-.8-1.5-1.8-1.7-2.1-.2-.3 0-.5.1-.6l.4-.5c.1-.2.2-.3.3-.5.1-.2 0-.4 0-.5l-.9-2.2c-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.1c.1.2 2.1 3.2 5.1 4.5 1.9.8 2.6.7 3.1.6.6-.1 1.8-.7 2-1.4.2-.7.2-1.3.2-1.4-.1-.1-.3-.2-.6-.3zM12 2a10 10 0 00-8.6 15.1L2 22l5-1.3A10 10 0 1012 2z"/></svg>Pedir pelo WhatsApp</button></div></div>').join('');
-  $('lojaLista').onclick=e=>{ const b=e.target.closest('[data-lj]'); if(!b) return; const it=LOJA_ITENS[+b.dataset.lj]; if(!it) return;
-    const msg='Olá! Vim pelo app da Rastreando GPS e quero saber sobre: *'+it.n+'*.'+(quem?'\nMeu login no app: '+quem:'');
-    window.open('https://wa.me/'+LOJA_WPP+'?text='+encodeURIComponent(msg),'_blank') };
+  $('lojaLista').innerHTML=LOJA_ITENS.map((it,i)=>'<div class="ljitem"><img class="ljimg" src="'+LOJA_FOTO+it.img+'" alt="" loading="lazy"><div class="ljt"><b>'+esc(it.n)+'</b><small>'+esc(it.d)+'</small>'+
+    '<div class="ljbtns">'+it.compras.map(c=>'<button class="ljcomprar" type="button" data-k="'+c.k+'">'+esc(c.t)+'</button>').join('')+
+    '<button class="ljbtn" type="button" data-lw="'+i+'" title="Pedir pelo WhatsApp">'+LOJA_SVG_WPP+'WhatsApp</button></div></div></div>').join('');
+  $('lojaPedidos').innerHTML='';
+  lojaPedidosDesenhar();
+  $('lojaRola').onclick=e=>{
+    const bc=e.target.closest('[data-k]');
+    if(bc){ lojaComprarPix(bc.dataset.k,bc); return }
+    const bw=e.target.closest('[data-lw]');
+    if(bw){ const it=LOJA_ITENS[+bw.dataset.lw]; if(!it) return; const quem=lojaLogin();
+      const msg='Olá! Vim pelo app da Rastreando GPS e quero saber sobre: *'+it.n+'*.'+(quem?'\nMeu login no app: '+quem:'');
+      window.open('https://wa.me/'+LOJA_WPP+'?text='+encodeURIComponent(msg),'_blank'); return }
+    const be=e.target.closest('[data-lent]');
+    if(be){ lojaWppEntrega(be.dataset.ln||'',be.dataset.lent||''); return }
+  };
+}
+/* ----- compra por PIX (as ações lojaComprar/lojaStatus/lojaPedidos ficam no rastreamento-desbloqueio.js) ----- */
+async function fnLoja(acao,extra){
+  const tok=lsGet('rg_token');
+  if(!tok) throw new Error('Para usar a loja, saia do app e entre de novo.');
+  let r;
+  try{
+    r=await fetch(DESB_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',
+      body:JSON.stringify(Object.assign({acao:acao,token:tok},extra||{}))});
+  }catch(e){ throw new Error('Não consegui falar com o servidor. Confira a internet.') }
+  let j={}; try{ j=await r.json() }catch(e){}
+  if(!r.ok) throw new Error(j.erro||('Erro '+r.status));
+  return j;
+}
+let lojaPed=null, lojaPollTimer=null;
+async function lojaComprarPix(k,btn){
+  if(btn.disabled) return;
+  btn.disabled=true; const t0=btn.textContent; btn.textContent='Gerando PIX...';
+  try{
+    const r=await fnLoja('lojaComprar',{produto:k});
+    if(r.semCpf||r.semCadastro) toast('Seu CPF ainda não está vinculado ao financeiro. Peça pelo WhatsApp que a gente resolve na hora.',5000);
+    else lojaAbrirPix(r);
+  }catch(e){ toast(e.message) }
+  btn.disabled=false; btn.textContent=t0;
+}
+function lojaAbrirPix(r){
+  lojaPed=r;
+  $('ljpTit').textContent='Pagar com PIX';
+  $('ljpInfo').textContent=r.nome+' · '+brl(r.valor)+'. Abra o app do seu banco e escaneie o QR Code, ou copie o código.';
+  $('ljpQr').src='data:image/png;base64,'+r.imagem;
+  $('ljpCode').textContent=r.copiaCola;
+  $('ljpCopiar').onclick=()=>copiar(r.copiaCola).then(()=>toast('Código PIX copiado')).catch(()=>toast('Não foi possível copiar'));
+  $('ljpStatus').textContent='Aguardando o pagamento… Assim que o banco confirmar, aparece aqui (pode levar alguns instantes).';
+  $('ljpPix').style.display=''; $('ljpOk').style.display='none';
+  abrir('mLojaPix');
+  lojaPoll();
+}
+function lojaPoll(){ /* pergunta ao servidor a cada 8 s enquanto a janela do PIX está aberta */
+  clearTimeout(lojaPollTimer);
+  if(!lojaPed || !$('mLojaPix').classList.contains('show')) return;
+  lojaPollTimer=setTimeout(async()=>{
+    if(!lojaPed || !$('mLojaPix').classList.contains('show')) return;
+    try{
+      const s=await fnLoja('lojaStatus',{pedido:lojaPed.pedido});
+      if(s.pago){ lojaPagoOk(s); return }
+      if(s.expirado){ $('ljpStatus').textContent='Este PIX não foi pago e expirou. Feche e gere outro.'; return }
+    }catch(e){ /* tenta de novo na próxima */ }
+    lojaPoll();
+  },8000);
+}
+function lojaWppEntrega(nome,rotulo){
+  const quem=lojaLogin();
+  const msg='Olá! Acabei de comprar *'+nome+'* no app da Rastreando GPS (pedido '+rotulo+', pago por PIX). Quero combinar a entrega.'+(quem?'\nMeu login no app: '+quem:'');
+  window.open('https://wa.me/'+LOJA_WPP+'?text='+encodeURIComponent(msg),'_blank');
+}
+function lojaPagoOk(s){
+  $('ljpTit').textContent='Pagamento confirmado';
+  $('ljpPix').style.display='none'; $('ljpOk').style.display='';
+  $('ljpOkTxt').textContent=(s.nome||'')+' · '+brl(s.valor)+' · pedido '+(s.rotulo||'')+'. Agora é só combinar a entrega com a gente.';
+  $('ljpOkWpp').onclick=()=>lojaWppEntrega(s.nome||'',s.rotulo||'');
+  lojaPedidosDesenhar();
+}
+async function lojaPedidosDesenhar(){ /* pedidos dos últimos 7 dias (aguardando ou pago) */
+  const box=$('lojaPedidos'); if(!box) return;
+  try{
+    const r=await fnLoja('lojaPedidos',{});
+    if(!r.lista||!r.lista.length){ box.innerHTML=''; return }
+    box.innerHTML='<p style="margin:14px 0 8px;font-weight:800;font-size:13px">Seus pedidos</p>'+r.lista.map(p=>{
+      const pago=p.estado==='pago';
+      return '<div class="ljped"><div class="ljpt"><b>'+esc(p.nome)+'</b><small>'+esc(p.rotulo||'')+' · '+brl(p.valor)+' · '+(pago?'Pago ✅':'Aguardando pagamento')+'</small></div>'+
+        (pago?'<button class="ljbtn" type="button" data-lent="'+esc(p.rotulo||'')+'" data-ln="'+esc(p.nome)+'">'+LOJA_SVG_WPP+'Entrega</button>'
+             :'<button class="ljcomprar" type="button" data-k="'+esc(p.produto)+'" style="margin-top:0">Pagar</button>')+'</div>'}).join('');
+  }catch(e){ box.innerHTML='' }
 }
 $('maisFat').onclick=()=>irPara('Faturas');
 $('maisServ').onclick=()=>abrir('mServ');
