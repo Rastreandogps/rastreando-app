@@ -535,17 +535,10 @@ body.hist-on #mapCar{display:none!important}
 #mComb .cbin{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:8px 0 4px}
 #mComb .cbin label{font-size:12px;color:var(--mut);display:block}
 #mComb .cbin .fld{margin:4px 0 0}
-#mComb .cbper{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0}
-#mComb .cbbox{background:var(--card2);border-radius:12px;padding:10px 6px;text-align:center}
-#mComb .cbbox span{display:block;font-size:11px;color:var(--mut)}
-#mComb .cbbox b{display:block;font-size:17px;margin-top:3px;color:#f59e0b}
-#mComb .cbbox small{display:block;font-size:11.5px;color:var(--mut);margin-top:2px}
-#mComb h4{font-size:14px;margin:14px 0 2px}
-#mComb .cbrow{display:flex;gap:8px;align-items:center;margin-top:3px}
-#mComb .cblbl{display:block;font-size:12px;color:var(--mut);margin-top:8px}
-#mComb .cbrow .fld{margin:0;flex:1}
-#mComb .cbres{flex:1.2;font-size:13.5px;line-height:1.35}
-#mComb .cbres b{color:#f59e0b}
+#mComb .cbtot{background:var(--card2);border-radius:14px;padding:14px 10px;text-align:center;margin:12px 0 4px}
+#mComb .cbtot span{display:block;font-size:12px;color:var(--mut)}
+#mComb .cbtot b{display:block;font-size:26px;margin-top:4px;color:#f59e0b}
+#mComb .cbtot small{display:block;font-size:12.5px;color:var(--mut);margin-top:3px}
 #mComb .cbnota{font-size:11.5px;color:var(--mut);margin-top:10px;line-height:1.4}
 .addr{font-size:13px;color:var(--mut);display:flex;justify-content:space-between;gap:8px;margin-bottom:12px}
 .addr strong{color:var(--txt);font-weight:600}
@@ -1829,20 +1822,12 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
   <div class="box2">
     <h3 id="cbTit">Combustível</h3>
     <div class="cbin">
-      <div><label for="cbKml">Consumo (km por litro)</label><input class="fld" id="cbKml" type="text" autocomplete="off" inputmode="decimal" min="1" max="100" step="0.1" placeholder="ex.: 12"></div>
-      <div><label for="cbPreco">Preço do litro (R$)</label><input class="fld" id="cbPreco" type="text" autocomplete="off" inputmode="decimal" min="0.5" max="50" step="0.01" placeholder="ex.: 6,29"></div>
+      <div><label for="cbKml">Consumo (km por litro)</label><input class="fld" id="cbKml" type="text" autocomplete="off" inputmode="decimal" placeholder="ex.: 12"></div>
+      <div><label for="cbPreco">Preço do litro (R$)</label><input class="fld" id="cbPreco" type="text" autocomplete="off" inputmode="decimal" placeholder="ex.: 6,29"></div>
     </div>
-    <h4>Gasto pelo rastreador</h4>
-    <div class="cbper">
-      <div class="cbbox"><span>Hoje</span><b id="cbHojeR">—</b><small id="cbHojeK"></small></div>
-      <div class="cbbox"><span>7 dias</span><b id="cbSemR">—</b><small id="cbSemK"></small></div>
-      <div class="cbbox"><span>30 dias</span><b id="cbMesR">—</b><small id="cbMesK"></small></div>
-    </div>
-    <h4>Calcular viagem</h4>
-    <label class="cblbl" for="cbDist">Distância da viagem (km)</label><div class="cbrow"><input class="fld" id="cbDist" type="text" autocomplete="off" inputmode="decimal" min="0" step="1" placeholder="ex.: 100"><div class="cbres" id="cbDistRes"></div></div>
-    <label class="cblbl" for="cbValor">Quanto vai abastecer (R$)</label><div class="cbrow"><input class="fld" id="cbValor" type="text" autocomplete="off" inputmode="decimal" min="0" step="1" placeholder="ex.: 50"><div class="cbres" id="cbValorRes"></div></div>
-    <label class="fchk" id="cbMapaLbl" style="margin-top:12px"><input type="checkbox" id="cbMapa"> Mostrar o gasto de hoje no mapa, ao lado do nome (vai somando conforme o veículo anda)</label>
-    <p class="cbnota" id="cbNota">Estimativa: usa os km medidos pelo rastreador e o consumo que você informar. O consumo real muda com trânsito, ar-condicionado e manutenção. Os valores ficam salvos neste aparelho, por veículo.</p>
+    <div class="cbtot"><span>Gasto pelo odômetro</span><b id="cbValor">—</b><small id="cbDet"></small></div>
+    <label class="fchk" id="cbMapaLbl" style="margin-top:12px"><input type="checkbox" id="cbMapa"> Mostrar o valor no mapa, ao lado do nome do veículo</label>
+    <p class="cbnota">O valor acompanha o odômetro: quando o veículo anda, sobe; se o odômetro for zerado, zera junto. É uma estimativa pelo consumo informado. Fica salvo neste aparelho, por veículo.</p>
     <button class="btn btn-out alfechar" data-close type="button">Fechar</button>
   </div>
 </div>
@@ -3321,96 +3306,55 @@ $('pmZerar').onclick=async()=>{
 };
 
 
-/* ===== CALCULADORA DE COMBUSTÍVEL (11/10/2026) =====
-   Toque no quadro do Odômetro. Consumo (km/l) e preço do litro ficam salvos neste aparelho, por veículo.
-   "Gasto pelo rastreador": km de hoje, 7 e 30 dias pelo resumo do Traccar (/api/reports/summary), só quando a
-   janela abre (3 consultas leves). "Calcular viagem": distância → litros e R$; valor em R$ → litros e km. */
-let cbVeic=null, cbKm={hoje:null,sem:null,mes:null};
+/* ===== CALCULADORA DE COMBUSTÍVEL (11/10/2026, simplificada às 20h43 a pedido do dono) =====
+   Toque no quadro do Odômetro. O cliente informa o consumo (km/l) e o preço do litro; o app mostra quanto o
+   veículo gastou em R$ pelo ODÔMETRO (o mesmo número do quadro): sobe conforme anda e zera se o odômetro for zerado.
+   Caixinha: mostrar o valor no mapa, ao lado do nome. Tudo salvo neste aparelho, por veículo. Sem consulta a mais
+   no servidor (o odômetro já vem com a posição a cada 5 s). */
+let cbVeic=null;
 const cbNum=v=>{ const n=parseFloat(String(v||'').replace(',','.')); return isFinite(n)?n:0 };
 const cbBrl=n=>'R$ '+n.toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.');
-const cbKmTxt=n=>(n<100?n.toFixed(1).replace('.',','):Math.round(n).toLocaleString('pt-BR'))+' km';
 const cbLtTxt=n=>(n<100?n.toFixed(1).replace('.',','):Math.round(n).toLocaleString('pt-BR'))+' L';
 function cbLer(id){ try{ const j=JSON.parse(localStorage.getItem('rg_comb_'+id)||'null'); if(j) return j }catch(e){} try{ return JSON.parse(localStorage.getItem('rg_comb_ultimo')||'null')||{} }catch(e){ return {} } }
 function cbGravar(){ if(!cbVeic) return; const d={kml:$('cbKml').value,preco:$('cbPreco').value}; try{ localStorage.setItem('rg_comb_'+cbVeic.id,JSON.stringify(d)); localStorage.setItem('rg_comb_ultimo',JSON.stringify(d)) }catch(e){} }
-function cbPintar(){
-  const kml=cbNum($('cbKml').value), preco=cbNum($('cbPreco').value), ok=kml>0&&preco>0;
-  [['hoje','cbHoje'],['sem','cbSem'],['mes','cbMes']].forEach(([k,id])=>{
-    const km=cbKm[k];
-    $(id+'K').textContent = km==null ? 'carregando...' : (km<0 ? 'sem dados' : cbKmTxt(km)+(ok?' · '+cbLtTxt(km/kml):''));
-    $(id+'R').textContent = (km!=null && km>=0 && ok) ? cbBrl(km/kml*preco) : '—';
-  });
-  const d=cbNum($('cbDist').value), v=cbNum($('cbValor').value);
-  $('cbDistRes').innerHTML = (d>0&&ok) ? '<b>'+cbBrl(d/kml*preco)+'</b> · '+cbLtTxt(d/kml) : (d>0?'Informe o consumo e o preço.':'');
-  $('cbValorRes').innerHTML = (v>0&&ok) ? '<b>'+cbLtTxt(v/preco)+'</b> · roda uns '+cbKmTxt(v/preco*kml) : (v>0?'Informe o consumo e o preço.':'');
-}
-async function cbDistancia(id,ini,fim){
-  try{
-    const q='deviceId='+id+'&from='+encodeURIComponent(new Date(ini).toISOString())+'&to='+encodeURIComponent(new Date(fim).toISOString());
-    const r=await api('/api/reports/summary?'+q);
-    if(!r.ok) return -1;
-    const j=await r.json(); const it=Array.isArray(j)?j[0]:j;
-    const m=it&&Number(it.distance); return isFinite(m)&&m>=0 ? m/1000 : -1;
-  }catch(e){ if(e.sessao) throw e; return -1 }
-}
-async function abrirComb(){
-  const v=cartao(); if(!v){ toast('Escolha um veículo.'); return }
-  cbVeic=v; $('cbTit').textContent='Combustível · '+v.nome;
-  const s=cbLer(v.id); $('cbKml').value=s.kml||''; $('cbPreco').value=s.preco||''; $('cbDist').value=''; $('cbValor').value='';
-  cbKm={hoje:null,sem:null,mes:null}; cbPintar(); cbMapaChk(); abrir('mComb');
-  if(!$('cbKml').value) setTimeout(()=>{ try{ $('cbKml').focus() }catch(e){} },80);
-  const agora=Date.now(), hoje0=Date.parse(new Date(agora-3*3600000).toISOString().slice(0,10)+'T00:00:00-03:00');
-  const id=v.id;
-  const [a,b,c]=await Promise.all([cbDistancia(id,hoje0,agora),cbDistancia(id,agora-7*86400000,agora),cbDistancia(id,agora-30*86400000,agora)]).catch(()=>[-1,-1,-1]);
-  if(!cbVeic || cbVeic.id!==id) return;
-  cbKm={hoje:a,sem:b,mes:c}; cbPintar();
-}
-$('sOdoBtn').onclick=abrirComb;
-/* --- gasto de hoje ao lado do nome no mapa ---
-   Base do dia = odômetro do servidor no começo do dia (startOdometer do resumo de hoje, 1 consulta por veículo por dia).
-   Depois, só conta: km de hoje = odômetro atual − base (o odômetro já vem a cada 5 s com a posição; nada a mais no servidor). */
-const cbBase={}; const cbBuscando={};
-const cbHojeIso=()=>new Date(Date.now()-3*3600000).toISOString().slice(0,10);
 const cbMapaLigado=id=>{ try{ return localStorage.getItem('rg_comb_mapa_'+id)==='1' }catch(e){ return false } };
-async function cbBaseBuscar(v){
-  const dia=cbHojeIso(); if(cbBuscando[v.id]===dia) return; cbBuscando[v.id]=dia;
-  try{
-    const ini=Date.parse(dia+'T00:00:00-03:00');
-    const q='deviceId='+v.id+'&from='+encodeURIComponent(new Date(ini).toISOString())+'&to='+encodeURIComponent(new Date().toISOString());
-    const r=await api('/api/reports/summary?'+q); if(!r.ok) throw new Error('x');
-    const j=await r.json(), it=Array.isArray(j)?j[0]:j;
-    let odo0=it&&Number(it.startOdometer);
-    if(!(isFinite(odo0)&&odo0>0)){ const d=it&&Number(it.distance); odo0=(v.odo!=null&&isFinite(d))?v.odo-d:(v.odo!=null?v.odo:NaN) }
-    if(isFinite(odo0)) cbBase[v.id]={dia,odo0};
-  }catch(e){ cbBuscando[v.id]=''; if(e&&e.sessao) throw e }
-  rotularMarcador(v);
+/* valor em R$ pelo odômetro do veículo (null = falta consumo/preço ou odômetro) */
+function cbGasto(v){
+  if(!v || v.odo==null) return null;
+  const c=(cbVeic&&cbVeic.id===v.id&&$('mComb').classList.contains('show'))?{kml:$('cbKml').value,preco:$('cbPreco').value}:cbLer(v.id);
+  const kml=cbNum(c.kml), preco=cbNum(c.preco); if(!(kml>0&&preco>0)) return null;
+  const km=Math.max(0,v.odo/1000), lt=km/kml;
+  return {km,lt,rs:lt*preco};
 }
-function cbMapaTxt(v){
-  if(!v || !cbMapaLigado(v.id)) return '';
-  const c=cbLer(v.id), kml=cbNum(c.kml), preco=cbNum(c.preco); if(!(kml>0&&preco>0)) return '';
-  const b=cbBase[v.id];
-  if(!b || b.dia!==cbHojeIso()){ cbBaseBuscar(v).catch(()=>{}); return '...' }
-  if(v.odo==null) return '...';
-  let km=(v.odo-b.odo0)/1000; if(km<0){ cbBase[v.id]={dia:b.dia,odo0:v.odo}; km=0 }
-  return cbBrl(km/kml*preco);
-}
-/* chamado a cada atualização do mapa: troca o rótulo só se o valor mudou */
-function cbMapaAtualizar(){
-  veiculos.forEach(v=>{ if(!v.marker) return; const h=rotuloHtml(v); if(h!==v.rotuloHtml) rotularMarcador(v) });
-}
-function cbMapaChk(){
+function cbMapaTxt(v){ if(!v || !cbMapaLigado(v.id)) return ''; const g=cbGasto(v); return g?cbBrl(g.rs):'' }
+function cbPintar(){
+  const v=cbVeic&&veiculos.find(x=>x.id===cbVeic.id), g=cbGasto(v);
   const ok=cbNum($('cbKml').value)>0&&cbNum($('cbPreco').value)>0;
+  $('cbValor').textContent = g ? cbBrl(g.rs) : '—';
+  $('cbDet').textContent = g ? fmtOdo(v.odo)+' · '+cbLtTxt(g.lt) : (!ok ? 'Informe o consumo e o preço do litro.' : 'Odômetro ainda sem valor.');
   $('cbMapa').disabled=!ok; $('cbMapaLbl').style.opacity=ok?'1':'.5';
   $('cbMapa').checked=!!(cbVeic&&cbMapaLigado(cbVeic.id));
 }
+function abrirComb(){
+  const v=cartao(); if(!v){ toast('Escolha um veículo.'); return }
+  cbVeic=v; $('cbTit').textContent='Combustível · '+v.nome;
+  const s=cbLer(v.id); $('cbKml').value=s.kml||''; $('cbPreco').value=s.preco||'';
+  cbPintar(); abrir('mComb');
+  if(!$('cbKml').value) setTimeout(()=>{ try{ $('cbKml').focus() }catch(e){} },80);
+}
+$('sOdoBtn').onclick=abrirComb;
+['cbKml','cbPreco'].forEach(k=>$(k).addEventListener('input',()=>{ cbGravar(); cbPintar(); if(cbVeic){ const v=veiculos.find(x=>x.id===cbVeic.id); if(v) rotularMarcador(v) } }));
 $('cbMapa').addEventListener('change',()=>{
   if(!cbVeic) return;
   try{ $('cbMapa').checked?localStorage.setItem('rg_comb_mapa_'+cbVeic.id,'1'):localStorage.removeItem('rg_comb_mapa_'+cbVeic.id) }catch(e){}
   const v=veiculos.find(x=>x.id===cbVeic.id); if(v) rotularMarcador(v);
-  toast($('cbMapa').checked?'O gasto de hoje vai aparecer ao lado do nome no mapa.':'Gasto tirado do mapa.');
+  toast($('cbMapa').checked?'O valor vai aparecer ao lado do nome no mapa.':'Valor tirado do mapa.');
 });
-['cbKml','cbPreco'].forEach(k=>$(k).addEventListener('input',()=>{ cbGravar(); cbPintar(); cbMapaChk(); if(cbVeic){ const v=veiculos.find(x=>x.id===cbVeic.id); if(v) rotularMarcador(v) } }));
-['cbDist','cbValor'].forEach(k=>$(k).addEventListener('input',cbPintar));
-
+/* chamado a cada atualização: troca o rótulo do mapa só se o valor mudou; com a janela aberta, atualiza o valor */
+function cbMapaAtualizar(){
+  veiculos.forEach(v=>{ if(!v.marker) return; const h=rotuloHtml(v); if(h!==v.rotuloHtml) rotularMarcador(v) });
+  if($('mComb').classList.contains('show')) cbPintar();
+}
 /* ===== NAVEGAR / VER A RUA / COMPARTILHAR ===== */
 $('btnNav').onclick=()=>{
   const v=ativo(); if(!v) return;
