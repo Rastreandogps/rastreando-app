@@ -30,8 +30,9 @@ try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'){document.do
 :root[data-tema="claro"] .leaflet-tile-pane{filter:none}
 /* mapa do Google (4.49): sem o filtro escuro (o Google tem o próprio tema) e logo/créditos do Google acima do cartão */
 body.mapa-google .leaflet-tile-pane{filter:none!important}
-#map .leaflet-bottom{bottom:var(--mapa-pe,0px)}
-#map .leaflet-bottom.leaflet-left{left:var(--mapa-lado,0px)}
+body.mapa-google #map .leaflet-top.leaflet-left{left:var(--mapa-lado,0px)}
+body.mapa-google #map .leaflet-top.leaflet-left .gmlogo{margin:6px 0 0 8px}
+body.mapa-google #map .leaflet-top.leaflet-left .leaflet-control-attribution{margin:2px 0 0 6px!important;height:auto!important;font-size:10px}
 .contamapa{display:none;align-items:center;gap:10px;margin:0 0 14px;font-size:14px}
 .contamapa select{flex:1;height:42px;border-radius:10px;border:1px solid var(--line);background:var(--card2);color:var(--txt);font:inherit;padding:0 10px}
 .pmmapa select{height:42px}
@@ -371,6 +372,7 @@ main{position:relative;flex:1;min-height:0;overflow:hidden}
 .car.c-sem .seta{fill:#64748b}
 /* setinha mais visível no mapa claro/bege (10/10/2026): disco branco, contorno colorido e sombra */
 .car svg{overflow:visible;filter:drop-shadow(0 1px 3px rgba(0,0,0,.45))}
+.carlabel .cbtag{margin-left:6px;padding-left:6px;border-left:1px solid var(--line);color:#f59e0b;font-weight:700}
 .carlabel{position:absolute;bottom:46px;left:50%;transform:translateX(-50%);background:rgba(15,17,21,.85);border:1px solid var(--line);border-radius:6px;padding:2px 6px;font-size:11px;white-space:nowrap;color:var(--txt)}
 
 /* ===== HISTÓRICO DE ROTAS (10/10/2026) ===== */
@@ -1839,6 +1841,7 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
     <h4>Calcular viagem</h4>
     <label class="cblbl" for="cbDist">Distância da viagem (km)</label><div class="cbrow"><input class="fld" id="cbDist" type="text" autocomplete="off" inputmode="decimal" min="0" step="1" placeholder="ex.: 100"><div class="cbres" id="cbDistRes"></div></div>
     <label class="cblbl" for="cbValor">Quanto vai abastecer (R$)</label><div class="cbrow"><input class="fld" id="cbValor" type="text" autocomplete="off" inputmode="decimal" min="0" step="1" placeholder="ex.: 50"><div class="cbres" id="cbValorRes"></div></div>
+    <label class="fchk" id="cbMapaLbl" style="margin-top:12px"><input type="checkbox" id="cbMapa"> Mostrar o gasto de hoje no mapa, ao lado do nome (vai somando conforme o veículo anda)</label>
     <p class="cbnota" id="cbNota">Estimativa: usa os km medidos pelo rastreador e o consumo que você informar. O consumo real muda com trânsito, ar-condicionado e manutenção. Os valores ficam salvos neste aparelho, por veículo.</p>
     <button class="btn btn-out alfechar" data-close type="button">Fechar</button>
   </div>
@@ -2107,8 +2110,22 @@ function gmCarregarApi(){
   return gmCarregando;
 }
 /* logo e créditos do Google acima do cartão de baixo (e à direita do cartão, no computador) */
+/* logo e créditos do Google no canto de CIMA, à esquerda (11/10, 20h39: embaixo eles ficavam no meio do cartão
+   quando o cartão era arrastado). No computador, à direita do cartão. */
 function mapaPe(){
-  try{ const m=$('map'); m.style.setProperty('--mapa-pe',(gmEstado==='google'?cobertura():0)+'px'); m.style.setProperty('--mapa-lado',(gmEstado==='google'?coberturaLado():0)+'px') }catch(e){}
+  try{ $('map').style.setProperty('--mapa-lado',(gmEstado==='google'?coberturaLado():0)+'px') }catch(e){}
+}
+function gmMoverLogo(camada){
+  let n=0;
+  const t=setInterval(()=>{
+    n++;
+    if(!camada || gmCamada!==camada || n>40){ clearInterval(t); return }
+    const lg=camada._logoContainer, at=camada._attributionContainer, canto=map._controlCorners && map._controlCorners.topleft;
+    if(lg && at && canto){
+      lg.classList.add('leaflet-control','gmlogo'); canto.appendChild(lg); canto.appendChild(at);
+      clearInterval(t);
+    }
+  },250);
 }
 function gmFalhou(motivo){
   if(gmCamada){ try{ map.removeLayer(gmCamada) }catch(e){} gmCamada=null }
@@ -2136,7 +2153,7 @@ async function mapaGoogleLigar(){
     if(gmCamada!==nova) return;
     if(antiga){ try{ map.removeLayer(antiga) }catch(e){} }
     if(map.hasLayer(camadaOsm)) map.removeLayer(camadaOsm);
-    document.body.classList.add('mapa-google'); gmEstado='google'; mapaPe(); mapaBotoes();
+    document.body.classList.add('mapa-google'); gmEstado='google'; mapaPe(); mapaBotoes(); gmMoverLogo(nova);
   });
   nova.addTo(map);
 }
@@ -2180,18 +2197,21 @@ window.addEventListener('resize',mapaPe);
 const carSvg = '<svg viewBox="0 0 44 44" width="44" height="44"><circle class="anel" cx="22" cy="22" r="18" stroke-width="1.5"/><path class="seta" d="M22 8 L31 32 L22 27 L13 32 Z" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></svg>';
 
 /* troca o nome escrito no mapa na hora (sem F5) */
+/* rótulo do mapa: nome e, se ligado na calculadora, o gasto de combustível de hoje (11/10/2026) */
+function rotuloHtml(v){ const g=(typeof cbMapaTxt==='function')?cbMapaTxt(v):''; return esc(v.nome)+(g?'<span class="cbtag">⛽ '+esc(g)+'</span>':'') }
 function rotularMarcador(v){
   try{
+    const h=rotuloHtml(v); v.rotuloHtml=h;
     const ic=v.marker.options && v.marker.options.icon;
-    if(ic && ic.options) ic.options.html='<div class="car">'+carSvg+'</div><div class="carlabel">'+esc(v.nome)+'</div>';
+    if(ic && ic.options) ic.options.html='<div class="car">'+carSvg+'</div><div class="carlabel">'+h+'</div>';
     const el=v.marker.getElement && v.marker.getElement();
-    const l=el && el.querySelector('.carlabel'); if(l) l.textContent=v.nome;
+    const l=el && el.querySelector('.carlabel'); if(l) l.innerHTML=h;
   }catch(e){}
 }
 function criarMarcador(v){
   v.marker = L.marker(v.pos,{icon:L.divIcon({
     className:'',iconSize:[44,44],iconAnchor:[22,22],
-    html:'<div class="car">'+carSvg+'</div><div class="carlabel">'+esc(v.nome)+'</div>'
+    html:'<div class="car">'+carSvg+'</div><div class="carlabel">'+rotuloHtml(v)+'</div>'
   })});
   v.rotuloNome=v.nome;
   v.marker.on('click',()=>{ selId = v.id; recolhido = false; atualizar(); });
@@ -2543,6 +2563,7 @@ function mesclar(ds,ps){
   if(sig!==assinaturaLista){ assinaturaLista=sig; desenharLista(); if(ehAdmin && $('aview').classList.contains('show') && abaAdmin==='equip') desenharEquip() }
   if(primeiraCarga){ primeiraCarga=false; mudouSelecao() }
   atualizarContagem(); atualizar();
+  try{ cbMapaAtualizar() }catch(e){}
   if(ehAdmin && $('aview').classList.contains('show') && abaAdmin==='equip') equipStatusAtualizar();
   if($('mPick').classList.contains('show')) sincronizarPick();
 }
@@ -3335,7 +3356,7 @@ async function abrirComb(){
   const v=cartao(); if(!v){ toast('Escolha um veículo.'); return }
   cbVeic=v; $('cbTit').textContent='Combustível · '+v.nome;
   const s=cbLer(v.id); $('cbKml').value=s.kml||''; $('cbPreco').value=s.preco||''; $('cbDist').value=''; $('cbValor').value='';
-  cbKm={hoje:null,sem:null,mes:null}; cbPintar(); abrir('mComb');
+  cbKm={hoje:null,sem:null,mes:null}; cbPintar(); cbMapaChk(); abrir('mComb');
   if(!$('cbKml').value) setTimeout(()=>{ try{ $('cbKml').focus() }catch(e){} },80);
   const agora=Date.now(), hoje0=Date.parse(new Date(agora-3*3600000).toISOString().slice(0,10)+'T00:00:00-03:00');
   const id=v.id;
@@ -3344,7 +3365,50 @@ async function abrirComb(){
   cbKm={hoje:a,sem:b,mes:c}; cbPintar();
 }
 $('sOdoBtn').onclick=abrirComb;
-['cbKml','cbPreco'].forEach(k=>$(k).addEventListener('input',()=>{ cbGravar(); cbPintar() }));
+/* --- gasto de hoje ao lado do nome no mapa ---
+   Base do dia = odômetro do servidor no começo do dia (startOdometer do resumo de hoje, 1 consulta por veículo por dia).
+   Depois, só conta: km de hoje = odômetro atual − base (o odômetro já vem a cada 5 s com a posição; nada a mais no servidor). */
+const cbBase={}; const cbBuscando={};
+const cbHojeIso=()=>new Date(Date.now()-3*3600000).toISOString().slice(0,10);
+const cbMapaLigado=id=>{ try{ return localStorage.getItem('rg_comb_mapa_'+id)==='1' }catch(e){ return false } };
+async function cbBaseBuscar(v){
+  const dia=cbHojeIso(); if(cbBuscando[v.id]===dia) return; cbBuscando[v.id]=dia;
+  try{
+    const ini=Date.parse(dia+'T00:00:00-03:00');
+    const q='deviceId='+v.id+'&from='+encodeURIComponent(new Date(ini).toISOString())+'&to='+encodeURIComponent(new Date().toISOString());
+    const r=await api('/api/reports/summary?'+q); if(!r.ok) throw new Error('x');
+    const j=await r.json(), it=Array.isArray(j)?j[0]:j;
+    let odo0=it&&Number(it.startOdometer);
+    if(!(isFinite(odo0)&&odo0>0)){ const d=it&&Number(it.distance); odo0=(v.odo!=null&&isFinite(d))?v.odo-d:(v.odo!=null?v.odo:NaN) }
+    if(isFinite(odo0)) cbBase[v.id]={dia,odo0};
+  }catch(e){ cbBuscando[v.id]=''; if(e&&e.sessao) throw e }
+  rotularMarcador(v);
+}
+function cbMapaTxt(v){
+  if(!v || !cbMapaLigado(v.id)) return '';
+  const c=cbLer(v.id), kml=cbNum(c.kml), preco=cbNum(c.preco); if(!(kml>0&&preco>0)) return '';
+  const b=cbBase[v.id];
+  if(!b || b.dia!==cbHojeIso()){ cbBaseBuscar(v).catch(()=>{}); return '...' }
+  if(v.odo==null) return '...';
+  let km=(v.odo-b.odo0)/1000; if(km<0){ cbBase[v.id]={dia:b.dia,odo0:v.odo}; km=0 }
+  return cbBrl(km/kml*preco);
+}
+/* chamado a cada atualização do mapa: troca o rótulo só se o valor mudou */
+function cbMapaAtualizar(){
+  veiculos.forEach(v=>{ if(!v.marker) return; const h=rotuloHtml(v); if(h!==v.rotuloHtml) rotularMarcador(v) });
+}
+function cbMapaChk(){
+  const ok=cbNum($('cbKml').value)>0&&cbNum($('cbPreco').value)>0;
+  $('cbMapa').disabled=!ok; $('cbMapaLbl').style.opacity=ok?'1':'.5';
+  $('cbMapa').checked=!!(cbVeic&&cbMapaLigado(cbVeic.id));
+}
+$('cbMapa').addEventListener('change',()=>{
+  if(!cbVeic) return;
+  try{ $('cbMapa').checked?localStorage.setItem('rg_comb_mapa_'+cbVeic.id,'1'):localStorage.removeItem('rg_comb_mapa_'+cbVeic.id) }catch(e){}
+  const v=veiculos.find(x=>x.id===cbVeic.id); if(v) rotularMarcador(v);
+  toast($('cbMapa').checked?'O gasto de hoje vai aparecer ao lado do nome no mapa.':'Gasto tirado do mapa.');
+});
+['cbKml','cbPreco'].forEach(k=>$(k).addEventListener('input',()=>{ cbGravar(); cbPintar(); cbMapaChk(); if(cbVeic){ const v=veiculos.find(x=>x.id===cbVeic.id); if(v) rotularMarcador(v) } }));
 ['cbDist','cbValor'].forEach(k=>$(k).addEventListener('input',cbPintar));
 
 /* ===== NAVEGAR / VER A RUA / COMPARTILHAR ===== */
