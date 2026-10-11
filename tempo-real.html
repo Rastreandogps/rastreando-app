@@ -125,6 +125,13 @@ try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'){document.do
 #mLojaRes .ljrtopo b{display:block;font-size:15px;line-height:1.25}
 #mLojaRes .ljrtopo small{display:block;font-size:12.5px;color:var(--mut);margin-top:2px}
 .ljqtd{display:flex;gap:8px;margin-bottom:12px}
+.ljstep{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px;padding:10px 12px;border-radius:14px;background:var(--card2);border:1px solid var(--line)}
+.ljstep .ljsl b{display:block;font-size:14px}
+.ljstep .ljsl small{display:block;font-size:12px;color:var(--mut);margin-top:2px;line-height:1.35}
+.ljstep .ljsc{display:flex;align-items:center;gap:4px;flex:none}
+.ljstep .ljsc button{width:40px;height:40px;border-radius:50%;background:#2563eb;color:#fff;font-size:22px;font-weight:800;line-height:1;display:flex;align-items:center;justify-content:center}
+.ljstep .ljsc button:disabled{background:var(--line);color:var(--mut)}
+.ljstep .ljsc span{min-width:34px;text-align:center;font-size:18px;font-weight:800}
 .ljqtd button{flex:1;padding:10px 8px;border-radius:12px;border:2px solid var(--line);background:var(--card2);color:var(--txt);font-weight:700;font-size:13.5px;line-height:1.3}
 .ljqtd button small{display:block;font-weight:600;font-size:12px;color:var(--mut)}
 .ljqtd button.on{border-color:#2563eb;background:rgba(37,99,235,.14)}
@@ -1503,7 +1510,7 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
   <div class="box2">
     <div class="almtopo"><h3>Resumo do pedido</h3><button class="almx" id="ljrX" type="button" aria-label="Voltar" title="Voltar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
     <div class="ljrtopo"><img id="ljrImg" alt=""><div><b id="ljrNome"></b><small id="ljrDesc"></small></div></div>
-    <div class="ljqtd" id="ljrQtd"></div>
+    <div class="ljstep"><div class="ljsl"><b>Quantidade</b><small id="ljrUnit"></small></div><div class="ljsc"><button type="button" id="ljrMenos" aria-label="Menos">−</button><span id="ljrN">1</span><button type="button" id="ljrMais" aria-label="Mais">+</button></div></div>
     <div class="ljrlin"><span id="ljrItem"></span><span id="ljrValor"></span></div>
     <div class="ljrlin"><span>Entrega</span><span>Combinada pelo WhatsApp</span></div>
     <div class="ljrlin tot"><span>Total no PIX</span><span id="ljrTotal"></span></div>
@@ -5187,14 +5194,14 @@ const LOJA_WPP='5521980886087'; /* WhatsApp de atendimento da Rastreando GPS (pe
 /* Produtos da loja (11/10/2026). As fotos ficam na pasta loja/ do repositório. Os PREÇOS DE VERDADE ficam no
    servidor (rastreamento-desbloqueio.js, LOJA_PRODUTOS): o app só mostra; mudou o preço, mudar nos dois lugares. */
 const LOJA_FOTO='https://rastreandogps.github.io/rastreando-app/loja/';
+const LOJA_QTD_MAX=10;
+/* v = preço da unidade; de2 = preço de cada unidade comprando 2 ou mais (cartão NFC). Os valores que valem são os do servidor (LOJA_PRODUTOS). */
 const LOJA_ITENS=[
-  {img:'nfc.jpg', n:'Cartão de emergência (NFC)', d:'Encoste no celular e abra o app na hora, sem procurar nada. Ideal para roubo ou emergência.',
-   preco:'a partir de R$ 29,90', opcoes:[{k:'nfc1',t:'1 unidade',v:29.90},{k:'nfc2',t:'2 unidades',v:49.90,sub:'R$ 24,95 cada'}]},
-  {img:'ktag.jpg', n:'K-tag', d:'Localizador auxiliar do rastreador. Bateria com duração de até 1 ano e meio.',
-   preco:'R$ 99,00', opcoes:[{k:'ktag',t:'1 unidade',v:99.00}]},
-  {img:'portatil.jpg', n:'Rastreador portátil', d:'Com bateria própria. Para moto, bicicleta, carga, bolsa ou qualquer coisa que você queira acompanhar.',
-   preco:'R$ 320,00', opcoes:[{k:'portatil',t:'1 unidade',v:320.00}]},
+  {k:'nfc', img:'nfc.jpg', n:'Cartão de emergência (NFC)', d:'Encoste no celular e abra o app na hora, sem procurar nada. Ideal para roubo ou emergência.', v:29.90, de2:24.95},
+  {k:'ktag', img:'ktag.jpg', n:'K-tag', d:'Localizador auxiliar do rastreador. Bateria com duração de até 1 ano e meio.', v:99.00},
+  {k:'portatil', img:'portatil.jpg', n:'Rastreador portátil', d:'Com bateria própria. Para moto, bicicleta, carga, bolsa ou qualquer coisa que você queira acompanhar.', v:320.00},
 ];
+function lojaPreco(it,q){ return q*Math.round((it.de2&&q>=2?it.de2:it.v)*100)/100 }
 function maisAtualizar(){
   const nivel=bloqueioNivel||'ok', dot=$('maisFatDot'), nb=$('maisBadge'), tx=$('maisFatTxt');
   const alerta = nivel==='aviso'||nivel==='bloqueado'||nivel==='confianca';
@@ -5210,7 +5217,7 @@ function lojaDesenhar(){
     '<button class="ljwpp" type="button" data-lw="'+i+'" aria-label="Perguntar pelo WhatsApp" title="Perguntar pelo WhatsApp">'+LOJA_SVG_WPP+'</button>'+
     '<img class="ljimg" src="'+LOJA_FOTO+it.img+'" alt="'+esc(it.n)+'" loading="lazy" data-zoom="'+i+'">'+
     '<div class="ljt"><b>'+esc(it.n)+'</b><small>'+esc(it.d)+'</small>'+
-    '<span class="ljp">'+(it.preco.startsWith('a partir')?'<i>a partir de </i>'+esc(it.preco.replace('a partir de ','')):esc(it.preco))+'</span>'+
+    '<span class="ljp">'+brl(it.v)+(it.de2?' <i>· 2 ou mais: '+brl(it.de2)+' cada</i>':'')+'</span>'+
     '<button class="ljcomprar" type="button" data-compra="'+i+'">Comprar</button></div></div>').join('');
   $('lojaPedidos').innerHTML='';
   lojaPedidosDesenhar();
@@ -5220,7 +5227,7 @@ function lojaDesenhar(){
     const bc=e.target.closest('[data-compra]');
     if(bc){ lojaResumo(+bc.dataset.compra); return }
     const bp=e.target.closest('[data-k]'); /* "Pagar" de um pedido aguardando: reabre o mesmo PIX (o servidor devolve o mesmo em até 30 min) */
-    if(bp){ lojaComprarPix(bp.dataset.k,bp); return }
+    if(bp){ lojaComprarPix(bp.dataset.k,bp,Number(bp.dataset.q)||1); return }
     const bw=e.target.closest('[data-lw]');
     if(bw){ const it=LOJA_ITENS[+bw.dataset.lw]; if(!it) return; const quem=lojaLogin();
       const msg='Olá! Vim pelo app da Rastreando GPS e quero saber sobre: *'+it.n+'*.'+(quem?'\nMeu login no app: '+quem:'');
@@ -5230,34 +5237,32 @@ function lojaDesenhar(){
   };
 }
 /* ----- resumo do pedido: 2 etapas, o PIX só é gerado no botão "Gerar PIX de pagamento" ----- */
-let lojaResItem=null, lojaResOp=null;
+let lojaResItem=null, lojaResQ=1;
 function lojaResumo(i){
   const it=LOJA_ITENS[i]; if(!it) return;
-  lojaResItem=it; lojaResOp=it.opcoes[0];
+  lojaResItem=it; lojaResQ=1;
   $('ljrImg').src=LOJA_FOTO+it.img; $('ljrNome').textContent=it.n; $('ljrDesc').textContent=it.d;
-  const q=$('ljrQtd');
-  if(it.opcoes.length>1){
-    q.style.display='';
-    q.innerHTML=it.opcoes.map((o,j)=>'<button type="button" data-op="'+j+'">'+esc(o.t)+'<small>'+brl(o.v)+(o.sub?' · '+esc(o.sub):'')+'</small></button>').join('');
-    q.onclick=e=>{ const b=e.target.closest('[data-op]'); if(!b) return; lojaResOp=it.opcoes[+b.dataset.op]; lojaResPintar() };
-  } else { q.style.display='none'; q.innerHTML='' }
+  $('ljrUnit').textContent=it.de2?'1 un. '+brl(it.v)+' · 2 ou mais: '+brl(it.de2)+' cada':brl(it.v)+' cada';
   lojaResPintar();
   $('ljrGerar').disabled=false; $('ljrGerar').textContent='Gerar PIX de pagamento';
   $('mLojaRes').classList.add('show');
 }
 function lojaResPintar(){
-  const it=lojaResItem, o=lojaResOp;
-  $('ljrItem').textContent=it.n+(it.opcoes.length>1?' · '+o.t:'');
-  $('ljrValor').textContent=brl(o.v); $('ljrTotal').textContent=brl(o.v);
-  document.querySelectorAll('#ljrQtd [data-op]').forEach((b,j)=>b.classList.toggle('on',it.opcoes[j]===o));
+  const it=lojaResItem, q=lojaResQ, tot=lojaPreco(it,q);
+  $('ljrN').textContent=q;
+  $('ljrMenos').disabled=q<=1; $('ljrMais').disabled=q>=LOJA_QTD_MAX;
+  $('ljrItem').textContent=it.n+' · '+q+(q>1?' unidades':' unidade');
+  $('ljrValor').textContent=brl(tot); $('ljrTotal').textContent=brl(tot);
 }
+$('ljrMenos').onclick=()=>{ if(lojaResQ>1){ lojaResQ--; lojaResPintar() } };
+$('ljrMais').onclick=()=>{ if(lojaResQ<LOJA_QTD_MAX){ lojaResQ++; lojaResPintar() } else toast('Para mais de '+LOJA_QTD_MAX+' unidades, fale com a gente pelo WhatsApp.') };
 function lojaResFechar(){ $('mLojaRes').classList.remove('show') }
 $('ljrVoltar').onclick=lojaResFechar; $('ljrX').onclick=lojaResFechar;
 $('ljrGerar').onclick=async()=>{
-  const b=$('ljrGerar'); if(b.disabled||!lojaResOp) return;
+  const b=$('ljrGerar'); if(b.disabled||!lojaResItem) return;
   b.disabled=true; b.textContent='Gerando PIX...';
   try{
-    const r=await fnLoja('lojaComprar',{produto:lojaResOp.k});
+    const r=await fnLoja('lojaComprar',{produto:lojaResItem.k,qtd:lojaResQ});
     if(r.semCpf||r.semCadastro){ toast('Seu CPF ainda não está vinculado ao financeiro. Fale com a gente pelo WhatsApp que resolvemos na hora.',5000); b.disabled=false; b.textContent='Gerar PIX de pagamento'; return }
     lojaResFechar(); lojaAbrirPix(r);
   }catch(e){ toast(e.message); b.disabled=false; b.textContent='Gerar PIX de pagamento' }
@@ -5283,11 +5288,11 @@ async function fnLoja(acao,extra){
   return j;
 }
 let lojaPed=null, lojaPollTimer=null;
-async function lojaComprarPix(k,btn){
+async function lojaComprarPix(k,btn,q){
   if(btn.disabled) return;
   btn.disabled=true; const t0=btn.textContent; btn.textContent='Gerando PIX...';
   try{
-    const r=await fnLoja('lojaComprar',{produto:k});
+    const r=await fnLoja('lojaComprar',{produto:k,qtd:q||1});
     if(r.semCpf||r.semCadastro) toast('Seu CPF ainda não está vinculado ao financeiro. Peça pelo WhatsApp que a gente resolve na hora.',5000);
     else lojaAbrirPix(r);
   }catch(e){ toast(e.message) }
@@ -5348,7 +5353,7 @@ async function lojaPedidosDesenhar(){ /* pedidos dos últimos 7 dias (aguardando
         const pago=p.estado==='pago';
         return '<div class="ljped"><div class="ljpt"><b>'+esc(p.nome)+'</b><small>'+esc(p.rotulo||'')+' · '+brl(p.valor)+'</small><span class="ljst '+(pago?'ok':'ag')+'">'+(pago?'Pago':'Aguardando pagamento')+'</span></div>'+
           (pago?'<button class="ljbtn" type="button" data-lent="'+esc(p.rotulo||'')+'" data-ln="'+esc(p.nome)+'">'+LOJA_SVG_WPP+'Entrega</button>'
-               :'<button class="ljcomprar" type="button" data-k="'+esc(p.produto)+'">Pagar</button>')+'</div>'}).join('')+'</div></div>';
+               :'<button class="ljcomprar" type="button" data-k="'+esc(p.produto)+'" data-q="'+(Number(p.qtd)||1)+'">Pagar</button>')+'</div>'}).join('')+'</div></div>';
     $('lojaCarHead').onclick=()=>{ lojaCarAberto=!lojaCarAberto; $('lojaCar').classList.toggle('aberto',lojaCarAberto) };
   }catch(e){ box.innerHTML=''; cb.classList.remove('show') }
 }
