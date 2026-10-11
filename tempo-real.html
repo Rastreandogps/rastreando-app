@@ -492,39 +492,78 @@ body.desenhando .follow,body.desenhando .sheet,body.desenhando .vazio{display:no
 .sw span::after{content:'';position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
 .sw input:checked+span{background:var(--green)}
 .sw input:checked+span::after{transform:translateX(18px)}
-.alrow{display:flex;gap:12px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:11px 14px;margin:0 0 8px}
-.alrow .ic{width:38px;height:38px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;background:rgba(96,165,250,.16);color:#60a5fa}
-.alrow .ic svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.alrow .ic.i{background:rgba(96,165,250,.16);color:#60a5fa}
-.alrow .ic.off{background:rgba(154,163,178,.16);color:var(--mut)}
-.alrow .ic.e{background:rgba(51,209,122,.16);color:var(--green)}
-.alrow .ic.s{background:rgba(245,184,61,.16);color:var(--amber)}
-.alrow .ic.b{background:rgba(227,38,47,.16);color:var(--red2)}
-.alrow .ic.v{background:rgba(167,139,250,.18);color:#a78bfa}
+/* Aba Alertas (layout novo, 10/10/2026) */
+@media (min-width:900px){#alview .vtop,#alList{width:100%;max-width:760px;margin-left:auto;margin-right:auto}}
+.alsec{font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--mut);margin:18px 4px 8px}
+.alpush{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:10px 10px 10px 12px;margin:0}
+.alpush .corpo{flex:1;min-width:0}
+.alpush b{display:block;font-size:14px;font-weight:650}
+.alpush small{display:block;font-size:12px;color:var(--mut);margin-top:1px}
+.alpush .mini{height:34px;padding:0 12px;border-radius:999px;font-size:12.5px}
+.alpush .kmdel{border-radius:999px;height:34px;min-width:34px}
+.alic{width:36px;height:36px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;position:relative}
+.alic svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.alic.i{background:rgba(96,165,250,.16);color:#60a5fa}
+.alic.off{background:rgba(154,163,178,.16);color:var(--mut)}
+.alic.e{background:rgba(51,209,122,.16);color:var(--green)}
+.alic.s{background:rgba(245,184,61,.17);color:var(--amber)}
+.alic.b{background:rgba(227,38,47,.15);color:var(--red2)}
+.alic.v{background:rgba(167,139,250,.18);color:#a78bfa}
+.alic.m{background:rgba(251,146,60,.17);color:#fb923c}
+.altiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.altile{display:flex;flex-direction:column;align-items:flex-start;gap:8px;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px;min-height:112px;color:var(--txt);transition:transform .12s ease,border-color .15s ease}
+.altile:active{transform:scale(.97)}
+.altile b{font-size:13.5px;font-weight:650;line-height:1.2}
+.altile small{margin-top:auto;font-size:12px;color:var(--mut);font-weight:600}
+.altile.on small{color:var(--green)}
+.allista{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.alrow{display:flex;gap:12px;align-items:center;padding:12px 14px}
+.alrow+.alrow{border-top:1px solid var(--line)}
 .alrow .corpo{flex:1;min-width:0}
 .alrow .tx{font-size:14.5px;font-weight:650;line-height:1.3}
-.alrow .hr{font-size:12.5px;color:var(--mut);margin-top:2px;line-height:1.35}
-.alrow .hora{flex:none;align-self:flex-start;font-size:12.5px;color:var(--mut);font-weight:600;padding-top:2px}
-.alrow.novo{border-color:rgba(227,38,47,.45)}
+.alrow .vc{font-size:12.5px;color:var(--mut);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.alrow .hr{font-size:12.5px;color:var(--mut);margin-top:3px;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.alrow .hora{flex:none;align-self:flex-start;font-size:12px;color:var(--mut);font-weight:600;padding-top:2px;text-align:right}
+.alrow.novo .alic::after{content:"";position:absolute;top:0;right:0;width:10px;height:10px;border-radius:50%;background:var(--red2);border:2px solid var(--card)}
 .alrow.novo .hora{color:var(--red2)}
-.alrow.novo .hora::before{content:"novo · ";font-weight:700}
-.aldia{font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--mut);margin:14px 2px 8px}
-.alsec{font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--mut);margin:16px 2px 8px}
-.alrow .ic.m{background:rgba(251,146,60,.17);color:#fb923c}
-.kmform{margin-top:8px}
+.alvazio{display:flex;flex-direction:column;align-items:center;gap:10px;padding:28px 16px;text-align:center;color:var(--mut);font-size:14px}
+.alvazio .alic{width:48px;height:48px}
+.alvazio .alic svg{width:22px;height:22px}
+.almaisbtn{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;height:46px;margin-top:10px;border-radius:14px;border:1px solid var(--line);background:var(--card);color:var(--cyan);font-weight:650;font-size:14px}
+.aldia{font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--mut);margin:16px 4px 8px}
+.aldia:first-child{margin-top:4px}
+.alsheet .box2{max-height:88vh;overflow-y:auto}
+.alsheet .box2 h3{margin-bottom:4px}
+.alsheet .alfechar{width:100%;margin-top:14px}
+.alnota{font-size:12.5px!important;color:var(--mut);margin:10px 2px 0!important;line-height:1.4}
+.algrupo{background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:0 14px}
+.algrupo .igrow{border-top:1px solid var(--line);padding:11px 0;min-height:52px}
+.algrupo .igrow:first-child{border-top:0}
+.algrupo .igrow > span:first-child{font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media (min-width:900px){.alsheet{align-items:center}.alsheet .box2{border-radius:18px}}
+#alKmLista{margin-bottom:12px}
+#alKmLista:empty{display:none}
+.kmform{margin-top:4px}
 .kmform select.fld{appearance:auto}
+.kmlinha{display:grid;grid-template-columns:120px 1fr;gap:8px}
+.kmsuf{position:relative}
+.kmsuf .fld{padding-right:38px}
+.kmsuf span{position:absolute;right:12px;top:14px;font-size:14px;color:var(--mut);font-weight:600;pointer-events:none}
 .kmform .fchk{margin:2px 0 8px}
-.kmform .btn{width:100%;height:46px}
-.kmitem{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
+.kmitem{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--line)}
+.kmitem:first-child{border-top:0}
 .kmitem .kminfo{flex:1;min-width:0}
 .kmitem .kmt{font-size:14px;font-weight:650;line-height:1.3}
 .kmitem .kms{font-size:12.5px;color:var(--mut);margin-top:2px;line-height:1.35}
-.kmdel{flex:none;min-width:40px;height:36px;border-radius:10px;border:1px solid var(--line);background:var(--card2);color:var(--mut);display:flex;align-items:center;justify-content:center;padding:0 10px;font-size:12.5px;font-weight:700}
+.kmbar{height:5px;border-radius:999px;background:var(--line);margin-top:7px;overflow:hidden}
+.kmbar i{display:block;height:100%;border-radius:999px;background:#fb923c}
+.kmfalta{font-size:12px;color:var(--mut);margin-top:5px}
+.kmfalta b{color:var(--txt);font-weight:650}
+.alrow.aberto .hr{display:block;-webkit-line-clamp:unset;overflow:visible}
+.alrow .hr.cortado{cursor:pointer}
+.kmdel{flex:none;min-width:40px;height:36px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--mut);display:flex;align-items:center;justify-content:center;padding:0 10px;font-size:12.5px;font-weight:700}
 .kmdel svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .kmdel.conf{color:#fff;background:var(--red);border-color:var(--red)}
-.almais{margin-top:4px}
-.almais .alrow{margin-bottom:8px}
-.almais .aldia:first-child{margin-top:12px}
 .arow .mini.perigo{color:var(--red2)}
 
 /* Navegação */
@@ -945,39 +984,19 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
   <section class="alview" id="alview">
     <div class="vtop">
       <div class="vtitle"><h2>Alertas</h2><button class="linkbtn" id="alAtualizar">Atualizar</button></div>
-      <div class="vcount">Ignição e cercas dos últimos 7 dias</div>
+      <div class="vcount">Últimos 7 dias</div>
     </div>
     <div class="vlist" id="alList">
       <div class="alcard" id="alPush"></div>
-      <details class="alcard alcfg" id="alIgnBox"><summary><span>Alertas de ignição</span><small id="alIgnResumo"></small><span class="seta">›</span></summary>
-        <p class="alhint">Escolha os veículos que avisam quando a ignição liga ou desliga. Os alertas de cerca já vêm ligados em toda cerca criada.</p>
-        <div id="alIgn"></div>
-      </details>
-      <details class="alcard alcfg" id="alVoltaBox"><summary><span>Avisar quando voltar a transmitir</span><small id="alVoltaResumo"></small><span class="seta">›</span></summary>
-        <p class="alhint">Para aparelho que perde o sinal (estrada, área rural). Ligue no veículo: quando ele ficar 30 minutos ou mais sem posição e voltar a transmitir, você recebe um aviso. Depois de avisar, a chave desliga sozinha; é só ligar de novo quando quiser outro aviso.</p>
-        <div id="alVolta"></div>
-      </details>
-      <details class="alcard alcfg" id="alKmBox"><summary><span>Lembrete de quilometragem</span><small id="alKmResumo"></small><span class="seta">›</span></summary>
-        <p class="alhint">Avisa quando o veículo rodar a quilometragem que você escolher, por exemplo para a troca de óleo. A conta começa agora, quando você cria o lembrete.</p>
-        <div id="alKmLista"></div>
-        <div class="kmform">
-          <label class="flbl" for="kmVeic">Veículo</label>
-          <select class="fld" id="kmVeic"></select>
-          <label class="flbl" for="kmValor">Avisar quando rodar quantos km?</label>
-          <input class="fld" id="kmValor" type="text" inputmode="numeric" maxlength="6" placeholder="Ex.: 1000" autocomplete="off">
-          <label class="flbl" for="kmNome">Nome do lembrete (opcional)</label>
-          <input class="fld" id="kmNome" maxlength="40" placeholder="Ex.: Troca de óleo" autocomplete="off">
-          <label class="fchk"><input type="checkbox" id="kmRep"> <span id="kmRepTx">Repetir a cada ___ km</span></label>
-          <p class="alhint" id="kmDica" style="display:none;margin:0 0 8px"></p>
-          <div class="ferr" id="kmErro"></div>
-          <button class="btn btn-red" id="kmCriar">Criar lembrete</button>
-        </div>
-      </details>
+      <div class="alsec">Avisos que você recebe</div>
+      <div class="altiles">
+        <button class="altile" id="alTIgn" type="button"><span class="alic i"><svg viewBox="0 0 24 24"><path d="M12 3v8"/><path d="M6.4 6.6a8 8 0 1011.2 0"/></svg></span><b>Ignição</b><small id="alIgnResumo">…</small></button>
+        <button class="altile" id="alTVolta" type="button"><span class="alic v"><svg viewBox="0 0 24 24"><path d="M5 12.5a10 10 0 0114 0"/><path d="M8.5 16a5 5 0 017 0"/><circle cx="12" cy="19.2" r="1"/></svg></span><b>Volta do sinal</b><small id="alVoltaResumo">…</small></button>
+        <button class="altile" id="alTKm" type="button"><span class="alic m"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg></span><b>Revisão por km</b><small id="alKmResumo">…</small></button>
+      </div>
       <div class="alsec">Últimos alertas</div>
       <div id="alItens"></div>
-      <details class="alcard alcfg almais" id="alMais" style="display:none"><summary><span>Alertas anteriores</span><small id="alMaisN"></small><span class="seta">›</span></summary>
-        <div id="alMaisLista"></div>
-      </details>
+      <button class="almaisbtn" id="alMais" type="button" style="display:none"><span id="alMaisN"></span><span class="seta">›</span></button>
     </div>
   </section>
   <section class="cpanel" id="cpanel">
@@ -1300,6 +1319,59 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
       <button class="btn btn-out" data-close>Cancelar</button>
       <button class="btn btn-red" id="cpfSalvar">Salvar</button>
     </div>
+  </div>
+</div>
+
+<!-- Aba Alertas: janelas de configuração e alertas anteriores -->
+<div class="modal alsheet" id="mAlIgn">
+  <div class="box2">
+    <h3>Alertas de ignição</h3>
+    <p>Avisa quando a ignição liga ou desliga. Ligue nos veículos que quiser.</p>
+    <div class="algrupo" id="alIgn"></div>
+    <p class="alnota">Os alertas de cerca já vêm ligados em toda cerca criada.</p>
+    <button class="btn btn-out alfechar" data-close type="button">Fechar</button>
+  </div>
+</div>
+<div class="modal alsheet" id="mAlVolta">
+  <div class="box2">
+    <h3>Avisar quando voltar o sinal</h3>
+    <p>Para rastreador que perde o sinal (estrada, área rural). Se ele ficar 30 minutos ou mais sem posição e voltar, você recebe um aviso.</p>
+    <div class="algrupo" id="alVolta"></div>
+    <p class="alnota">Depois de avisar, a chave desliga sozinha. Ligue de novo quando quiser outro aviso.</p>
+    <button class="btn btn-out alfechar" data-close type="button">Fechar</button>
+  </div>
+</div>
+<div class="modal alsheet" id="mAlKm">
+  <div class="box2">
+    <h3>Revisão por quilometragem</h3>
+    <p>Avisa quando o veículo rodar a quilometragem que você escolher, como na troca de óleo.</p>
+    <div id="alKmLista"></div>
+    <button class="btn btn-red" id="kmNovo" type="button" style="width:100%">+ Novo lembrete</button>
+    <div class="kmform" id="kmForm" style="display:none">
+      <label class="flbl" for="kmVeic">Veículo</label>
+      <select class="fld" id="kmVeic"></select>
+      <div class="kmlinha">
+        <div><label class="flbl" for="kmValor">Distância</label>
+          <div class="kmsuf"><input class="fld" id="kmValor" type="text" inputmode="numeric" maxlength="6" placeholder="1000" autocomplete="off"><span>km</span></div></div>
+        <div><label class="flbl" for="kmNome">Nome (opcional)</label>
+          <input class="fld" id="kmNome" maxlength="40" placeholder="Troca de óleo" autocomplete="off"></div>
+      </div>
+      <label class="fchk"><input type="checkbox" id="kmRep"> <span id="kmRepTx">Repetir a cada ___ km</span></label>
+      <p class="alnota" id="kmDica" style="display:none"></p>
+      <div class="ferr" id="kmErro"></div>
+      <div class="actions2">
+        <button class="btn btn-out" id="kmCancelar" type="button">Cancelar</button>
+        <button class="btn btn-red" id="kmCriar" type="button">Criar</button>
+      </div>
+    </div>
+    <button class="btn btn-out alfechar" data-close type="button" id="kmFechar">Fechar</button>
+  </div>
+</div>
+<div class="modal alsheet" id="mAlMais">
+  <div class="box2">
+    <h3>Alertas anteriores</h3>
+    <div id="alMaisLista"></div>
+    <button class="btn btn-out alfechar" data-close type="button">Fechar</button>
   </div>
 </div>
 
@@ -4271,17 +4343,36 @@ function desenharAlertas(){
       default: return {c:'i',s:ICONES.sino};
     }
   };
-  const linha=(e,comDia)=>{ const vis=visual(e.tipo); return '<div class="alrow'+(e.em>limite&&!abertaAgora?' novo':'')+'"><span class="ic '+vis.c+'">'+vis.s+'</span>'+
-    '<div class="corpo"><div class="tx">'+esc(e.titulo)+'</div>'+(e.texto?'<div class="hr">'+esc(e.texto)+'</div>':'')+'</div>'+
-    '<span class="hora">'+esc(horaTxt(e.em,comDia))+'</span></div>' };
-  /* os 3 mais recentes ficam livres; o resto vai para a gaveta, separado por dia */
+  /* título: separa o nome do veículo (linha pequena) do evento (linha principal) */
+  const partes=e=>{
+    const v=veiculos.find(x=>String(x.id)===String(e.deviceId));
+    let t=String(e.titulo||''), vn='';
+    if(v && v.nome && t.toLowerCase().startsWith(v.nome.toLowerCase())){ vn=v.nome; t=t.slice(v.nome.length).replace(/^[\s:·-]+/,'') }
+    else { const i=t.indexOf(': '); if(i>0 && i<50){ vn=t.slice(0,i); t=t.slice(i+2) } }
+    if(!t){ t=String(e.titulo||''); vn='' }
+    return {vn:vn, t:t.charAt(0).toUpperCase()+t.slice(1)};
+  };
+  /* nesses tipos o texto só repete a hora: não mostra */
+  const SO_HORA={ignicao_on:1,ignicao_off:1,cerca_entrou:1,cerca_saiu:1};
+  const quando=(ms,comDia)=>{
+    const h=new Date(ms).toLocaleTimeString('pt-BR',{timeZone:TZ,hour:'2-digit',minute:'2-digit'});
+    if(!comDia || diaChave(ms)===hojeCh) return h;
+    return (diaChave(ms)===ontemCh?'Ontem':new Date(ms).toLocaleDateString('pt-BR',{timeZone:TZ,day:'2-digit',month:'2-digit'}))+'<br>'+h;
+  };
+  const linha=(e,comDia)=>{
+    const vis=visual(e.tipo), pt=partes(e), mostraTexto=e.texto && !SO_HORA[e.tipo];
+    return '<div class="alrow'+(e.em>limite&&!abertaAgora?' novo':'')+'"><span class="alic '+vis.c+'">'+vis.s+'</span>'+
+      '<div class="corpo"><div class="tx">'+esc(pt.t)+'</div>'+(pt.vn?'<div class="vc">'+esc(pt.vn)+'</div>':'')+(mostraTexto?'<div class="hr">'+esc(e.texto)+'</div>':'')+'</div>'+
+      '<span class="hora">'+quando(e.em,comDia)+'</span></div>';
+  };
+  /* os 3 mais recentes ficam na tela; o resto abre numa janela, separado por dia */
   const LIVRES=3, livres=alertas.slice(0,LIVRES), resto=alertas.slice(LIVRES);
-  $('alItens').innerHTML=livres.map(e=>linha(e,true)).join('') || '<div class="vempty">Nenhum alerta nos últimos 7 dias.</div>';
+  $('alItens').innerHTML=livres.length ? '<div class="allista">'+livres.map(e=>linha(e,true)).join('')+'</div>'
+    : '<div class="allista"><div class="alvazio"><span class="alic off">'+ICONES.sino+'</span>Nenhum alerta nos últimos 7 dias.</div></div>';
   let htmlResto='', diaAnt='';
-  resto.forEach(e=>{ const c=diaChave(e.em); if(c!==diaAnt){ htmlResto+='<div class="aldia">'+esc(diaRotulo(e.em))+'</div>'; diaAnt=c } htmlResto+=linha(e,false) });
-  $('alMaisLista').innerHTML=htmlResto;
-  const novosResto=resto.filter(e=>e.em>limite&&!abertaAgora).length;
-  $('alMaisN').textContent=resto.length+(resto.length===1?' alerta':' alertas')+(novosResto?' · '+novosResto+(novosResto===1?' novo':' novos'):'');
+  resto.forEach(e=>{ const c=diaChave(e.em); if(c!==diaAnt){ htmlResto+=(diaAnt?'</div>':'')+'<div class="aldia">'+esc(diaRotulo(e.em))+'</div><div class="allista">'; diaAnt=c } htmlResto+=linha(e,false) });
+  $('alMaisLista').innerHTML=htmlResto+(htmlResto?'</div>':'');
+  $('alMaisN').textContent='Ver mais '+resto.length+(resto.length===1?' alerta':' alertas');
   $('alMais').style.display=resto.length?'':'none';
   const b=$('alBadge');
   if(abertaAgora){ lsSet(chaveVisto(),new Date().toISOString()); b.classList.remove('show') }
@@ -4302,7 +4393,7 @@ async function inscricaoAtual(){
   try{ const reg=await navigator.serviceWorker.getRegistration(); return reg ? await reg.pushManager.getSubscription() : null }catch(e){ return null }
 }
 async function desenharPush(){
-  const box=$('alPush');
+  const box=$('alPush'); box.className='alcard';
   if(ehIos && !instalado()){
     box.innerHTML='<div class="tt">Notificações no celular</div><div class="tx">No iPhone, os alertas só chegam com o app instalado na tela de início (e iOS 16.4 ou mais novo).</div><div class="bts"><a class="mini" href="instalar.html">Como instalar</a></div>'; return;
   }
@@ -4310,9 +4401,15 @@ async function desenharPush(){
   const sub=await inscricaoAtual(), perm=Notification.permission;
   if(perm==='denied'){ box.innerHTML='<div class="tt">Notificações bloqueadas</div><div class="tx">Você bloqueou as notificações deste app. Para liberar, abra as configurações do celular (ou do navegador), procure Notificações e permita para o Rastreando GPS.</div>'; return }
   if(sub && perm==='granted'){
-    box.innerHTML='<div class="tt">🔔 Notificações ativadas neste celular</div><div class="tx">Os alertas chegam mesmo com o app fechado.</div><div class="bts"><button class="mini" id="alTeste">Enviar teste</button><button class="mini" id="alDesativar">Desativar</button></div>';
+    box.className='alpush';
+    box.innerHTML='<span class="alic e"><svg viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 1112 0v5l2 2H4l2-2z"/><path d="M10 21h4"/></svg></span>'+
+      '<div class="corpo"><b>Notificações ativas</b><small>Mesmo com o app fechado</small></div>'+
+      '<button class="mini" id="alTeste" type="button">Testar</button>'+
+      '<button class="kmdel" id="alDesativar" type="button" aria-label="Desativar notificações" title="Desativar notificações neste celular"><svg viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 019.4-4.9M18 11v5l2 2H8"/><path d="M10 21h4"/><line x1="3" y1="3" x2="21" y2="21"/></svg></button>';
     $('alTeste').onclick=async()=>{ try{ const r=await fnAl('alertasTeste'); toast(r.enviados?'Teste enviado. Deve chegar em alguns segundos.':'Não consegui enviar. Desative e ative de novo.',5000) }catch(e){ toast(e.message) } };
-    $('alDesativar').onclick=async()=>{ try{ const s2=await inscricaoAtual(); if(s2){ try{ await fnAl('alertasCancelar',{endpoint:s2.endpoint}) }catch(e){} await s2.unsubscribe() } toast('Notificações desativadas neste celular.') }catch(e){} desenharPush() };
+    $('alDesativar').onclick=async()=>{ const bd=$('alDesativar');
+      if(!bd.classList.contains('conf')){ bd.classList.add('conf'); bd.textContent='Desativar?'; setTimeout(()=>{ if(bd.isConnected && bd.classList.contains('conf')) desenharPush() },4000); return }
+      try{ const s2=await inscricaoAtual(); if(s2){ try{ await fnAl('alertasCancelar',{endpoint:s2.endpoint}) }catch(e){} await s2.unsubscribe() } toast('Notificações desativadas neste celular.') }catch(e){} desenharPush() };
     return;
   }
   box.innerHTML='<div class="tt">Receba os alertas no celular</div><div class="tx">Ative para saber na hora quando a ignição ligar ou o veículo entrar ou sair de uma cerca, mesmo com o app fechado.</div><div class="bts"><button class="mini verde" id="alAtivar">Ativar notificações</button></div>';
@@ -4343,8 +4440,8 @@ async function carregarCfgAlertas(){
 function desenharIgn(){
   const ign=alCfg.ign||{}, lista=veiculos.slice().sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
   const n=lista.filter(v=>ign[String(v.id)]).length;
-  $('alIgnResumo').textContent=n?(n+(n===1?' veículo':' veículos')):'nenhum';
-  $('alIgn').innerHTML=lista.map(v=>'<div class="igrow"><span>'+esc(v.nome)+'</span><label class="sw"><input type="checkbox" data-ign="'+v.id+'"'+(ign[String(v.id)]?' checked':'')+'><span></span></label></div>').join('') || '<div class="alhint">Nenhum veículo.</div>';
+  $('alIgnResumo').textContent=n?(n+(n===1?' veículo':' veículos')):'Desligado'; $('alTIgn').classList.toggle('on',n>0);
+  $('alIgn').innerHTML=lista.map(v=>'<div class="igrow"><span>'+esc(v.nome)+'</span><label class="sw"><input type="checkbox" data-ign="'+v.id+'"'+(ign[String(v.id)]?' checked':'')+'><span></span></label></div>').join('') || '<div class="igrow"><span>Nenhum veículo.</span></div>';
 }
 $('alIgn').addEventListener('change',async e=>{
   const i=e.target.closest('input[data-ign]'); if(!i) return;
@@ -4358,8 +4455,8 @@ $('alIgn').addEventListener('change',async e=>{
 function desenharVolta(){
   const vo=alCfg.volta||{}, lista=veiculos.slice().sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
   const n=lista.filter(v=>vo[String(v.id)]).length;
-  $('alVoltaResumo').textContent=n?(n+(n===1?' veículo':' veículos')):'nenhum';
-  $('alVolta').innerHTML=lista.map(v=>'<div class="igrow"><span>'+esc(v.nome)+'</span><label class="sw"><input type="checkbox" data-volta="'+v.id+'"'+(vo[String(v.id)]?' checked':'')+'><span></span></label></div>').join('') || '<div class="alhint">Nenhum veículo.</div>';
+  $('alVoltaResumo').textContent=n?(n+(n===1?' veículo':' veículos')):'Desligado'; $('alTVolta').classList.toggle('on',n>0);
+  $('alVolta').innerHTML=lista.map(v=>'<div class="igrow"><span>'+esc(v.nome)+'</span><label class="sw"><input type="checkbox" data-volta="'+v.id+'"'+(vo[String(v.id)]?' checked':'')+'><span></span></label></div>').join('') || '<div class="igrow"><span>Nenhum veículo.</span></div>';
 }
 $('alVolta').addEventListener('change',async e=>{
   const i=e.target.closest('input[data-volta]'); if(!i) return;
@@ -4389,14 +4486,17 @@ function desenharManut(){
     sel.innerHTML=lista.map(v=>'<option value="'+v.id+'">'+esc(v.nome)+'</option>').join('')||'<option value="">Nenhum veículo</option>';
     sel.dataset.ids=chave; if(atual && lista.some(v=>String(v.id)===atual)) sel.value=atual;
   }
-  $('alKmResumo').textContent=kmLista.length?(kmLista.length+(kmLista.length===1?' lembrete':' lembretes')):'nenhum';
-  $('alKmLista').innerHTML=kmLista.map(it=>{
+  $('alKmResumo').textContent=kmLista.length?(kmLista.length+(kmLista.length===1?' lembrete':' lembretes')):'Nenhum'; $('alTKm').classList.toggle('on',kmLista.length>0);
+  const itens=kmLista.map(it=>{
     const v=veiculos.find(x=>String(x.id)===String(it.deviceId));
     const falta=(v&&v.odo!=null&&!isNaN(v.odo))?Math.max(0,it.alvoM-v.odo):null, km=kmFmt(Math.round(it.intervaloM/1000));
-    return '<div class="kmitem"><div class="kminfo"><div class="kmt">'+esc(v?v.nome:'Veículo')+(it.nome?' · '+esc(it.nome):'')+'</div>'+
-      '<div class="kms">'+(falta!=null?'Faltam '+esc(fmtOdo(falta)):'Aviso em '+esc(km)+' km')+' · '+(it.repetir?'repete a cada '+esc(km)+' km':'avisa uma vez')+'</div></div>'+
+    const pct=falta!=null&&it.intervaloM>0?Math.max(0,Math.min(100,100-falta/it.intervaloM*100)):0;
+    return '<div class="kmitem"><div class="kminfo"><div class="kmt">'+esc(it.nome||'Lembrete de '+km+' km')+'</div>'+
+      '<div class="kms">'+esc(v?v.nome:'Veículo')+' · '+(it.repetir?'repete a cada '+esc(km)+' km':'avisa uma vez')+'</div>'+
+      (falta!=null?'<div class="kmbar"><i style="width:'+pct.toFixed(1)+'%"></i></div><div class="kmfalta">Faltam <b>'+esc(fmtOdo(falta))+'</b> de '+esc(km)+' km</div>':'')+'</div>'+
       '<button class="kmdel" data-kmdel="'+esc(it.id)+'" aria-label="Apagar lembrete">'+ICONE_LIXO+'</button></div>';
   }).join('');
+  $('alKmLista').innerHTML=itens?'<div class="algrupo">'+itens+'</div>':'';
 }
 function atualizarKmTexto(){
   const n=parseInt($('kmValor').value,10), rep=$('kmRep').checked, d=$('kmDica');
@@ -4413,11 +4513,25 @@ $('kmCriar').onclick=async()=>{
   b.disabled=true; b.textContent='Criando...';
   try{
     const j=await fnAl('manutCriar',{deviceId:dev,km:km,nome:$('kmNome').value.trim(),repetir:rep});
-    kmLista=j.lista||[]; $('kmValor').value=''; $('kmNome').value=''; $('kmRep').checked=false; atualizarKmTexto(); desenharManut();
+    kmLista=j.lista||[]; kmFormulario(false); desenharManut();
     toast('Lembrete criado. Você será avisado quando o veículo rodar '+kmFmt(km)+' km'+(rep?' (e a cada '+kmFmt(km)+' km depois).':'.'),6000);
   }catch(err){ erro.textContent=err.message||'Não consegui criar o lembrete.' }
-  b.disabled=false; b.textContent='Criar lembrete';
+  b.disabled=false; b.textContent='Criar';
 };
+/* formulário do lembrete: fica escondido até tocar em "+ Novo lembrete" */
+function kmFormulario(mostrar){
+  $('kmForm').style.display=mostrar?'':'none'; $('kmNovo').style.display=mostrar?'none':''; $('kmFechar').style.display=mostrar?'none':'';
+  $('kmValor').value=''; $('kmNome').value=''; $('kmRep').checked=false; $('kmErro').textContent=''; atualizarKmTexto();
+  if(mostrar){ const sel=$('kmVeic'), v=typeof ativo==='function'?ativo():null; if(v && [...sel.options].some(o=>o.value===String(v.id))) sel.value=String(v.id); setTimeout(()=>$('kmValor').focus(),50) }
+}
+$('kmNovo').onclick=()=>kmFormulario(true);
+$('kmCancelar').onclick=()=>kmFormulario(false);
+$('alTIgn').onclick=()=>abrir('mAlIgn');
+$('alTVolta').onclick=()=>abrir('mAlVolta');
+$('alTKm').onclick=()=>{ kmFormulario(false); desenharManut(); abrir('mAlKm') };
+$('alMais').onclick=()=>abrir('mAlMais');
+/* tocar num alerta mostra o texto inteiro (o texto longo aparece cortado em 2 linhas) */
+['alItens','alMaisLista'].forEach(id=>$(id).addEventListener('click',e=>{ const r=e.target.closest('.alrow'); if(r && r.querySelector('.hr')) r.classList.toggle('aberto') }));
 /* apagar: um toque pede confirmação no próprio botão ("Apagar?"), o segundo apaga */
 $('alKmLista').addEventListener('click',async e=>{
   const b=e.target.closest('button[data-kmdel]'); if(!b) return;
