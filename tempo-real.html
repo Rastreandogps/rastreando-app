@@ -369,6 +369,14 @@ main{position:relative;flex:1;min-height:0;overflow:hidden}
 /* ===== HISTÓRICO DE ROTAS (10/10/2026) ===== */
 #map.hist-on .leaflet-marker-icon:not(.hmk){visibility:hidden;pointer-events:none}
 body.hist-on #follow,body.hist-on #btnEu{display:none!important}
+/* carrinho no topo do mapa: aparece quando o cliente tem pedido da loja esperando pagamento (11/10/2026) */
+#mapCar{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:420;width:52px;height:52px;border-radius:50%;background:#ffe600;border:none;display:none;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(0,0,0,.4);cursor:pointer;animation:mapCarPulso 1.8s ease-in-out infinite}
+#mapCar.show{display:flex}
+#mapCar svg{width:26px;height:26px;fill:none;stroke:#2d3277;stroke-width:2.3;stroke-linecap:round;stroke-linejoin:round}
+#mapCar .mcn{position:absolute;top:-3px;right:-3px;min-width:21px;height:21px;padding:0 5px;border-radius:11px;background:#e11d48;color:#fff;font-size:12px;font-weight:800;line-height:21px;text-align:center;border:2px solid #fff}
+@keyframes mapCarPulso{0%,100%{box-shadow:0 4px 14px rgba(0,0,0,.4),0 0 0 0 rgba(255,230,0,.65)}50%{box-shadow:0 4px 14px rgba(0,0,0,.4),0 0 0 12px rgba(255,230,0,0)}}
+@media (prefers-reduced-motion:reduce){#mapCar{animation:none}}
+body.hist-on #mapCar{display:none!important}
 .hpanel .hperres{display:none;align-items:center;justify-content:space-between;gap:8px;background:var(--card2);border-radius:12px;padding:8px 12px;font-size:13.5px;font-weight:600}
 .hpanel .hperres button{border:0;background:none;color:#3b82f6;font:inherit;font-size:13px;font-weight:700;cursor:pointer;padding:0}
 .hpanel.achou .hdias,.hpanel.achou .hper,.hpanel.achou .hbuscar{display:none}
@@ -512,7 +520,7 @@ body.hist-on #follow,body.hist-on #btnEu{display:none!important}
 #btnBlock::before{--ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='4.5' y='10.5' width='15' height='10' rx='2.5'/%3E%3Cpath d='M8 10.5V7.5a4 4 0 018 0v3'/%3E%3C/svg%3E");display:block!important}
 #btnUnblock{background:rgba(26,158,87,.12);color:var(--green);border:1px solid rgba(26,158,87,.28)}
 #btnUnblock::before{--ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='4.5' y='10.5' width='15' height='10' rx='2.5'/%3E%3Cpath d='M8 10.5V7.5a4 4 0 017.6-1.7'/%3E%3C/svg%3E");display:block!important}
-#btnShare{background:var(--card2);border:1px solid var(--line);color:var(--txt);padding:0}
+#btnShare{background:linear-gradient(135deg,#22c55e,#16a34a);border:none;color:#fff;padding:0;box-shadow:0 2px 8px rgba(22,163,74,.35)}
 #admSmsRow{display:none;margin-top:8px;gap:8px}
 #btnResetSms{background:rgba(245,184,61,.12);color:var(--amber);border:1px solid rgba(245,184,61,.32)}
 #admSmsRow.tres .btn{font-size:11.5px;gap:5px;padding:0 6px}
@@ -1039,6 +1047,7 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
     <span class="lbl" id="euTxt">Minha posição</span>
   </button>
 
+  <button id="mapCar" type="button" aria-label="Você tem pedido aguardando pagamento" title="Pedido aguardando pagamento"><svg viewBox="0 0 24 24"><path d="M6 6h15l-1.5 9h-12z"/><path d="M6 6L5 3H2"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/></svg><span class="mcn" id="mapCarN">1</span></button>
   <div class="vazio" id="vazio">Nenhum veículo selecionado<small>Abra a aba Veículos para escolher.</small></div>
 
   <section class="sheet" id="sheet">
@@ -3534,6 +3543,7 @@ async function descobrirAdmin(){
   document.querySelector('nav button[data-tab="Faturas"]').style.display = 'none';
   document.querySelector('nav button[data-tab="Mais"]').style.display = ehAdmin ? 'none' : '';
   $('btnEu').style.display = ehAdmin ? 'flex' : 'none';
+  try{ lojaMapaAtualizar() }catch(e){}
 }
 /* ===== último acesso do cliente ===== */
 function dispAtual(){
@@ -5207,7 +5217,7 @@ function sair(msg){
   lsDel('rg_token'); lsDel('rg_email'); try{sessionStorage.removeItem('rg_basic')}catch(e){}
   cercasReset();
   permCli={smsBloqueio:false,reset:false,editarNome:false,cercaRapida:false,minhaPosicao:false}; cobrCli=null;
-  ehAdmin=false; usuarios=[]; $('aview').classList.remove('show');
+  ehAdmin=false; usuarios=[]; $('aview').classList.remove('show'); try{ $('mapCar').classList.remove('show') }catch(e){}
   document.querySelector('nav button[data-tab="Admin"]').style.display='none'; document.querySelector('nav button[data-tab="Faturas"]').style.display='none'; document.querySelector('nav button[data-tab="Mais"]').style.display='none'; cpfsMapa={}; faturasDados=null; aplicarBloqueio(null); euDesligar(); $('btnEu').style.display='none'; irPara('Mapa');
   auth=null;
   veiculos.forEach(v=>{ if(v.marker&&map.hasLayer(v.marker)) map.removeLayer(v.marker) });
@@ -5286,11 +5296,14 @@ const LOJA_ITENS=[
                'Pequeno: pode ficar escondido em outro ponto do veículo.',
                'Bateria com duração de até 1 ano e meio.',
                'Dúvidas sobre o uso e a instalação? Fale com a gente pelo WhatsApp.']}},
-  {k:'portatil', img:'portatil.jpg', n:'Rastreador portátil', d:'Com bateria própria. Para moto, bicicleta, carga, bolsa ou qualquer coisa que você queira acompanhar.', v:320.00,
+  {k:'portatil', img:'portatil.jpg', n:'Rastreador portátil', d:'Bateria de aproximadamente 25 dias e ímã de fixação. Para moto, carga, bolsa ou o que você quiser acompanhar.', v:320.00,
    det:{int:'Um rastreador com bateria própria, que não depende da instalação no veículo. Você leva para onde quiser acompanhar.',
         itens:['Sem fios: funciona com a bateria dele.',
+               'Bateria com duração de aproximadamente 25 dias.',
+               'Com ímã de fixação: gruda em qualquer superfície de metal, sem ferramenta.',
                'Para moto, bicicleta, carga, bolsa, mala ou qualquer objeto de valor.',
                'Você acompanha a localização pelo mesmo app da Rastreando GPS.',
+               'Funciona com um chip de dados fornecido por nós. Consulte os valores da conectividade pelo WhatsApp.',
                'Dúvidas sobre ativação e uso? Fale com a gente pelo WhatsApp.']}},
 ];
 function lojaPreco(it,q){ return q*Math.round((it.de2&&q>=2?it.de2:it.v)*100)/100 }
@@ -5459,6 +5472,7 @@ async function lojaPedidosDesenhar(){ /* pedidos dos últimos 7 dias (aguardando
   try{
     const r=await fnLoja('lojaPedidos',{});
     const lista=r.lista||[];
+    lojaMapaPintar(lista);
     if(!lista.length){ box.innerHTML=''; cb.classList.remove('show'); return }
     const ag=lista.filter(p=>p.estado!=='pago').length, pg=lista.length-ag;
     const resumo=[ag?ag+(ag>1?' aguardando pagamento':' aguardando pagamento'):'', pg?pg+(pg>1?' pagos':' pago')+' · combine a entrega':''].filter(Boolean).join(' · ');
@@ -5511,6 +5525,19 @@ async function lojaManter(ped,btn){
   try{ await fnLoja('lojaCancelar',{pedido:ped,manter:true}); toast('Pedido mantido. O PIX continua valendo.'); lojaPedidosDesenhar() }
   catch(e){ toast(e.message); btn.disabled=false }
 }
+/* ----- carrinho piscando no topo do mapa: pedidos esperando pagamento (inclui os com cancelamento agendado) ----- */
+function lojaMapaPintar(lista){
+  const n=(lista||[]).filter(p=>p.estado==='aguardando').length, b=$('mapCar'); if(!b) return;
+  $('mapCarN').textContent=n; b.classList.toggle('show', n>0 && !ehAdmin);
+}
+async function lojaMapaAtualizar(){
+  if(ehAdmin||!lsGet('rg_token')){ lojaMapaPintar([]); return }
+  if(document.visibilityState==='hidden') return;
+  try{ const r=await fnLoja('lojaPedidos',{}); lojaMapaPintar(r.lista) }catch(e){ /* sem rede: deixa como está */ }
+}
+setInterval(lojaMapaAtualizar,120000); /* confere a cada 2 min (só com o app na tela) */
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') lojaMapaAtualizar() });
+$('mapCar').onclick=()=>{ lojaCarAberto=true; lojaDesenhar(); abrir('mLoja') };
 const LOJA_SVG_CAR='<svg viewBox="0 0 24 24"><path d="M6 6h15l-1.5 9h-12z"/><path d="M6 6L5 3H2"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/></svg>';
 $('lojaCarBtn').onclick=()=>{ lojaCarAberto=true; const c=$('lojaCar'); if(c) c.classList.add('aberto'); $('lojaRola').scrollTo({top:0,behavior:'smooth'}) };
 $('maisFat').onclick=()=>irPara('Faturas');
