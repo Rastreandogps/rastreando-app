@@ -2599,7 +2599,7 @@ function abrirConfirmacao(acao){
   const w=$('cmdWarn'), avisos=[];
   if(bloquear){
     if(v.vel>2) avisos.push('Atenção: o veículo está em movimento ('+v.vel+' km/h). Bloquear com o veículo andando pode causar acidente.');
-    else if(v.fix && Date.now()-v.fix>600000) avisos.push('A última posição do GPS é '+tempo(Date.now()-v.fix)+'. Não dá para garantir que o veículo está parado.');
+    else if(v.fix && Date.now()-v.fix>600000) avisos.push('O rastreador está com instabilidade de GPS. O bloqueio pode não ser efetivado.');
   }
   if(avisos.length){ w.textContent=avisos.join(' '); w.classList.add('show') } else w.classList.remove('show');
   $('cmdOk').textContent=bloquear?'Bloquear':'Desbloquear';
