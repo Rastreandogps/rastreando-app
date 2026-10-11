@@ -585,6 +585,40 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
 .opts{display:flex;gap:8px;margin-bottom:12px}
 .opt{flex:1;height:40px;border-radius:10px;border:1px solid var(--line);background:var(--card2);font-size:14px}
 .opt.sel{border-color:var(--cyan);color:var(--cyan)}
+/* seletor de tempo do compartilhar (gaveteirozinho) */
+.tpsel{width:100%;display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:14px;border:1px solid var(--line);background:var(--card2);color:var(--txt);text-align:left;cursor:pointer;margin-bottom:8px;transition:border-color .2s}
+.tpsel[aria-expanded="true"]{border-color:var(--red2)}
+.tpic{width:38px;height:38px;flex:0 0 38px;border-radius:12px;background:rgba(227,38,47,.14);color:var(--red2);display:flex;align-items:center;justify-content:center}
+.tpic svg,.tpmud svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.tpinfo{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.25}
+.tpinfo b{font-size:16px}
+.tpinfo small{font-size:12px;color:var(--mut)}
+.tpmud{display:flex;align-items:center;gap:2px;font-size:13px;font-weight:600;color:var(--mut)}
+.tpmud svg{width:18px;height:18px;transition:transform .25s}
+.tpsel[aria-expanded="true"] .tpmud svg{transform:rotate(180deg)}
+.tpgav{display:grid;grid-template-rows:0fr;transition:grid-template-rows .28s ease,opacity .2s;opacity:0}
+.tpgav.aberta{grid-template-rows:1fr;opacity:1}
+.tpgav>.tpin{overflow:hidden;min-height:0}
+.tpgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:2px 0 10px}
+.tpgrid button{height:58px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--txt);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;cursor:pointer;transition:transform .12s,background .15s,border-color .15s}
+.tpgrid button:active{transform:scale(.95)}
+.tpgrid b{font-size:19px;line-height:1}
+.tpgrid span{font-size:11px;color:var(--mut)}
+.tpgrid button.sel{background:var(--red);border-color:var(--red);color:#fff}
+.tpgrid button.sel span{color:rgba(255,255,255,.85)}
+.tpoutro{border:1px dashed var(--line);border-radius:12px;padding:10px;margin-bottom:12px}
+.tpoutro.sel{border-style:solid;border-color:var(--red2)}
+.tpotit{font-size:12px;color:var(--mut);margin-bottom:6px;font-weight:600}
+.tporow{display:flex;gap:6px;align-items:stretch}
+.tporow input{width:64px;flex:0 0 64px;height:40px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--txt);font-size:18px;font-weight:700;text-align:center;padding:0}
+.tporow input:focus{outline:none;border-color:var(--red2)}
+.tpuni{flex:1;display:flex;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:3px;gap:2px}
+.tpuni button{flex:1;border:0;border-radius:7px;background:transparent;color:var(--mut);font-size:13px;font-weight:600;cursor:pointer}
+.tpuni button.sel{background:var(--card2);color:var(--txt);box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.tpusar{flex:0 0 auto;padding:0 14px;border-radius:10px;border:0;background:var(--red);color:#fff;font-weight:700;font-size:14px;cursor:pointer}
+.tpusar:disabled{opacity:.4}
+.tpdica{font-size:12px;color:var(--mut);margin-top:6px;min-height:16px}
+.tpdica.mal{color:var(--red2);font-weight:600}
 .link{background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:12px;font-size:13px;word-break:break-all;margin-bottom:12px;color:var(--txt)}
 .toast{position:fixed;left:50%;bottom:calc(90px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(20px);opacity:0;z-index:1100;background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:11px 16px;font-size:14px;max-width:calc(100% - 32px);text-align:center;transition:.25s;pointer-events:none}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
@@ -1055,11 +1089,38 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
   <div class="box2">
     <h3>Compartilhar localização</h3>
     <p id="shareSub">Quem receber o link vê só a posição deste veículo no mapa, sem acesso à sua conta e sem poder bloquear.</p>
-    <label class="flbl">Por quanto tempo o link vale?</label>
-    <div class="opts" id="shareOpts">
-      <button class="opt sel" data-h="1" type="button">1 hora</button>
-      <button class="opt" data-h="24" type="button">24 horas</button>
-      <button class="opt" data-h="168" type="button">7 dias</button>
+    <label class="flbl">Por quanto tempo a pessoa pode acompanhar?</label>
+    <button class="tpsel" id="tpSel" type="button" aria-expanded="false" aria-controls="tpGav">
+      <span class="tpic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
+      <span class="tpinfo"><b id="tpTxt">1 hora</b><small id="tpAte"></small></span>
+      <span class="tpmud">Trocar<svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
+    </button>
+    <div class="tpgav" id="tpGav">
+      <div class="tpin">
+        <div class="tpgrid" id="tpGrid">
+          <button type="button" data-m="5"><b>5</b><span>min</span></button>
+          <button type="button" data-m="15"><b>15</b><span>min</span></button>
+          <button type="button" data-m="30"><b>30</b><span>min</span></button>
+          <button type="button" data-m="60"><b>1</b><span>hora</span></button>
+          <button type="button" data-m="180"><b>3</b><span>horas</span></button>
+          <button type="button" data-m="360"><b>6</b><span>horas</span></button>
+          <button type="button" data-m="720"><b>12</b><span>horas</span></button>
+          <button type="button" data-m="1440"><b>24</b><span>horas</span></button>
+        </div>
+        <div class="tpoutro">
+          <div class="tpotit">Outro tempo</div>
+          <div class="tporow">
+            <input id="tpNum" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="3" placeholder="Ex.: 2" autocomplete="off" aria-label="Quantidade">
+            <div class="tpuni" id="tpUni" role="group" aria-label="Unidade">
+              <button type="button" data-u="1">min</button>
+              <button type="button" data-u="60" class="sel">horas</button>
+              <button type="button" data-u="1440">dias</button>
+            </div>
+            <button type="button" class="tpusar" id="tpUsar">Usar</button>
+          </div>
+          <div class="tpdica" id="tpDica">De 5 minutos até 7 dias.</div>
+        </div>
+      </div>
     </div>
     <button class="btn btn-red" id="shareGerar" type="button" style="width:100%">Gerar link</button>
     <div id="shareRes" style="display:none">
@@ -2568,10 +2629,10 @@ $('btnRua').onclick=()=>{
   window.open('https://www.google.com/maps/@?api=1&map_action=pano&viewpoint='+v.pos[0].toFixed(6)+','+v.pos[1].toFixed(6),'_blank','noopener');
 };
 /* ===== COMPARTILHAR LOCALIZAÇÃO (11/10/2026) =====
-   Gera um link com validade (1 h, 24 h ou 7 dias) para a página compartilhar.html, que mostra SÓ a posição
+   Gera um link com validade (de 5 minutos até 7 dias) para a página compartilhar.html, que mostra SÓ a posição
    deste veículo, sem login. O servidor (ação compCriar/compLista/compEncerrar/compVer) guarda e confere tudo. */
 const COMP_BASE = location.origin + location.pathname.replace(/[^\/]*$/,'') + 'compartilhar.html';
-let shareHoras=1, shareTexto='', shareUrl='';
+let shareMin=60, shareTexto='', shareUrl='', tpUnid=60;
 const compLink = c => COMP_BASE+'?c='+encodeURIComponent(c);
 const compQuando = ms => new Date(ms).toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}).replace(',',' às');
 function veicShare(){ return veiculos.find(x=>x.id===selId) || null }
@@ -2593,17 +2654,51 @@ function shareMostrarResultado(url,expiraMs,nome){
 }
 $('btnShare').onclick=()=>{
   const v=veicShare(); if(!v){ toast('Escolha um veículo.'); return }
-  shareHoras=1; document.querySelectorAll('#shareOpts .opt').forEach(b=>b.classList.toggle('sel',b.dataset.h==='1'));
+  tpEscolher(60,false); tpGaveta(false); $('tpNum').value=''; tpValidarOutro();
   $('shareSub').textContent='Quem receber o link vê só a posição de '+v.nome+' no mapa, sem acesso à sua conta e sem poder bloquear.';
   $('shareRes').style.display='none'; $('shareErro').textContent=''; $('shareGerar').disabled=false; $('shareGerar').textContent='Gerar link';
   $('shareAtivos').innerHTML=''; abrir('mShare'); shareCarregarAtivos();
 };
-$('shareOpts').addEventListener('click',e=>{ const b=e.target.closest('.opt'); if(!b) return; shareHoras=+b.dataset.h; document.querySelectorAll('#shareOpts .opt').forEach(x=>x.classList.toggle('sel',x===b)); });
+/* gaveteirozinho do tempo: 8 tempos prontos + "Outro tempo" (número + min/horas/dias), de 5 min até 7 dias */
+const TP_MIN=5, TP_MAX=7*24*60;
+function tpNome(m){
+  if(m<60) return m+' minutos';
+  if(m%1440===0) return (m/1440)+(m===1440?' dia':' dias');
+  if(m%60===0) return (m/60)+(m===60?' hora':' horas');
+  return Math.floor(m/60)+' h '+(m%60)+' min';
+}
+function tpAteTexto(m){
+  const fim=Date.now()+m*60000, hoje=new Date().toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo'});
+  const dia=new Date(fim).toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo'});
+  const h=new Date(fim).toLocaleTimeString('pt-BR',{timeZone:'America/Sao_Paulo',hour:'2-digit',minute:'2-digit'});
+  return 'Link vale até '+(dia===hoje?'hoje às '+h:compQuando(fim));
+}
+function tpEscolher(m,doOutro){
+  shareMin=m; let achou=false;
+  document.querySelectorAll('#tpGrid button').forEach(b=>{ const s=!doOutro && +b.dataset.m===m; b.classList.toggle('sel',s); if(s) achou=true });
+  document.querySelector('.tpoutro').classList.toggle('sel',!achou);
+  $('tpTxt').textContent=tpNome(m); $('tpAte').textContent=tpAteTexto(m);
+}
+function tpGaveta(abrirG){ $('tpAte').textContent=tpAteTexto(shareMin); $('tpGav').classList.toggle('aberta',abrirG); $('tpSel').setAttribute('aria-expanded',abrirG?'true':'false') }
+function tpValorOutro(){ const t=$('tpNum').value.trim(); if(!/^\d+$/.test(t)) return null; return parseInt(t,10)*tpUnid }
+function tpValidarOutro(){
+  const m=tpValorOutro(), d=$('tpDica'), u=$('tpUsar');
+  if(m===null){ d.textContent='De 5 minutos até 7 dias.'; d.classList.remove('mal'); u.disabled=true; return null }
+  if(m<TP_MIN){ d.textContent='O mínimo é 5 minutos.'; d.classList.add('mal'); u.disabled=true; return null }
+  if(m>TP_MAX){ d.textContent='O máximo é 7 dias.'; d.classList.add('mal'); u.disabled=true; return null }
+  d.textContent=tpNome(m)+' · '+tpAteTexto(m).replace('Link vale','vale'); d.classList.remove('mal'); u.disabled=false; return m;
+}
+$('tpSel').onclick=()=>tpGaveta(!$('tpGav').classList.contains('aberta'));
+$('tpGrid').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return; tpEscolher(+b.dataset.m,false); $('tpNum').value=''; tpValidarOutro(); setTimeout(()=>tpGaveta(false),180) });
+$('tpNum').addEventListener('input',()=>{ const v=$('tpNum').value.replace(/\D/g,'').slice(0,3); if(v!==$('tpNum').value) $('tpNum').value=v; tpValidarOutro() });
+$('tpNum').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); $('tpUsar').click() } });
+$('tpUni').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return; tpUnid=+b.dataset.u; document.querySelectorAll('#tpUni button').forEach(x=>x.classList.toggle('sel',x===b)); tpValidarOutro() });
+$('tpUsar').onclick=()=>{ const m=tpValidarOutro(); if(m===null) return; tpEscolher(m,true); $('tpNum').blur(); tpGaveta(false) };
 $('shareGerar').onclick=async()=>{
   const v=veicShare(); if(!v) return; const b=$('shareGerar');
   b.disabled=true; b.textContent='Gerando...'; $('shareErro').textContent='';
   try{
-    const j=await fnAl('compCriar',{deviceId:v.id,horas:shareHoras});
+    const j=await fnAl('compCriar',{deviceId:v.id,minutos:shareMin});
     shareMostrarResultado(compLink(j.codigo),j.expiraMs,v.nome);
     b.textContent='Gerar outro link'; shareCarregarAtivos();
   }catch(e){ $('shareErro').textContent=e.message||'Não consegui gerar o link.'; b.textContent='Gerar link' }
