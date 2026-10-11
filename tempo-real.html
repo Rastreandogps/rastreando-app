@@ -28,6 +28,13 @@ try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'){document.do
 }
 :root[data-tema="claro"] #map{background:#e8ecf0}
 :root[data-tema="claro"] .leaflet-tile-pane{filter:none}
+/* mapa do Google (4.49): sem o filtro escuro (o Google tem o próprio tema) e logo/créditos do Google acima do cartão */
+body.mapa-google .leaflet-tile-pane{filter:none!important}
+#map .leaflet-bottom{bottom:var(--mapa-pe,0px)}
+#map .leaflet-bottom.leaflet-left{left:var(--mapa-lado,0px)}
+.contamapa{display:none;align-items:center;gap:10px;margin:0 0 14px;font-size:14px}
+.contamapa select{flex:1;height:42px;border-radius:10px;border:1px solid var(--line);background:var(--card2);color:var(--txt);font:inherit;padding:0 10px}
+.pmmapa select{height:42px}
 :root[data-tema="claro"] .leaflet-control-attribution{background:rgba(255,255,255,.8)!important}
 :root[data-tema="claro"] .carlabel{background:rgba(255,255,255,.92)}
 :root[data-tema="claro"] .sheet{box-shadow:0 -8px 24px rgba(0,0,0,.15)}
@@ -368,7 +375,7 @@ main{position:relative;flex:1;min-height:0;overflow:hidden}
 
 /* ===== HISTÓRICO DE ROTAS (10/10/2026) ===== */
 #map.hist-on .leaflet-marker-icon:not(.hmk){visibility:hidden;pointer-events:none}
-body.hist-on #follow,body.hist-on #btnEu,body.hist-on #btnTodos{display:none!important}
+body.hist-on #follow,body.hist-on #btnEu,body.hist-on #btnTodos,body.hist-on #btnSat{display:none!important}
 /* carrinho no topo do mapa: aparece quando o cliente tem pedido da loja esperando pagamento (11/10/2026) */
 #mapCar{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:420;width:52px;height:52px;border-radius:50%;background:#ffe600;border:none;display:none;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(0,0,0,.4);cursor:pointer;animation:mapCarPulso 1.8s ease-in-out infinite}
 #mapCar.show{display:flex}
@@ -470,6 +477,7 @@ body.hist-on #mapCar{display:none!important}
 #mScan .scanmsg{font-size:13.5px;color:var(--mut);margin:10px 0 4px;line-height:1.45}
 #mScan .scanmsg.er{color:#e11d48;font-weight:600}
 #btnTodos.abaixo{top:118px}
+#btnSat{top:66px;display:none}
 #btnEu.buscando svg{animation:euPulsa 1s ease-in-out infinite}
 @keyframes euPulsa{0%,100%{opacity:1}50%{opacity:.35}}
 @media (prefers-reduced-motion:reduce){#btnEu.buscando svg{animation:none}}
@@ -1145,6 +1153,10 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V5a1 1 0 0 1 1-1h4M15 4h4a1 1 0 0 1 1 1v4M20 15v4a1 1 0 0 1-1 1h-4M9 20H5a1 1 0 0 1-1-1v-4"/><circle cx="12" cy="12" r="2.5"/></svg>
     <span class="lbl">Mostrar todos</span>
   </button>
+  <button class="follow" id="btnSat" aria-pressed="false" title="Satélite (mapa do Google)" aria-label="Satélite">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-7 9 7-9 7z"/><path d="M3 12l9 7 9-7"/></svg>
+    <span class="lbl">Satélite</span>
+  </button>
 
   <button id="mapCar" type="button" aria-label="Você tem pedido aguardando pagamento" title="Pedido aguardando pagamento"><svg viewBox="0 0 24 24"><path d="M6 6h15l-1.5 9h-12z"/><path d="M6 6L5 3H2"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/></svg><span class="mcn" id="mapCarN">1</span></button>
   <div class="vazio" id="vazio">Nenhum veículo selecionado<small>Abra a aba Veículos para escolher.</small></div>
@@ -1656,6 +1668,8 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
     <label class="fchk"><input type="checkbox" id="pmNome"> Editar o nome do veículo</label>
     <label class="fchk"><input type="checkbox" id="pmAncora"> Cerca rápida (botão da âncora no veículo)</label>
     <label class="fchk"><input type="checkbox" id="pmEu"> Ver a posição do próprio celular no mapa (botão Minha posição)</label>
+    <div class="pmval pmmapa"><span class="pmvl">Mapa do app</span><select class="fld" id="pmMapa"><option value="gratis">Grátis (padrão)</option><option value="google">Google Maps</option></select></div>
+    <p class="pmvh">Todo cliente começa com o mapa grátis. Se ele reclamar do mapa, troque para o Google aqui (custa por uso; vale na próxima vez que ele abrir o app).</p>
     <div class="pmval"><span class="pmvl">Acesso válido até</span><input class="fld" type="date" id="pmValidade"><input class="fld hora" type="time" id="pmHora" value="23:59" step="60"><button type="button" class="linkbtn" id="pmSemVal">Sem validade</button></div>
     <p class="pmvh" id="pmValTxt"></p>
     <div id="pmCob" style="background:var(--card2);border-radius:12px;padding:10px 12px;font-size:13.5px;margin:4px 0 10px"></div>
@@ -1792,6 +1806,7 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
   <div class="box2">
     <h3>Sua conta</h3>
     <p id="contaLogin" style="margin-bottom:14px"></p>
+    <label class="contamapa" id="contaMapa"><span>Mapa do app</span><select id="contaMapaSel"><option value="gratis">Grátis</option><option value="google">Google Maps</option></select></label>
     <button class="btn btn-out" id="contaSenha" type="button" style="width:100%;margin-bottom:8px">Trocar senha</button>
     <button class="btn btn-red" id="contaSair" type="button" style="width:100%">Sair do app</button>
     <button class="btn btn-out alfechar" data-close type="button">Fechar</button>
@@ -2002,9 +2017,114 @@ const cartao = () => ativo() || veiculos.find(v=>v.id===semPosId && v.id===selId
 /* ===== MAPA ===== */
 const map = L.map('map',{zoomControl:false,attributionControl:false}).setView([-22.787,-43.307],15);
 L.control.attribution({position:'topleft',prefix:false}).addTo(map);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+const camadaOsm=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
   maxZoom:19,attribution:'© OpenStreetMap'
 }).addTo(map);
+
+/* ===== Mapa do Google por cliente (4.49, 11/10/2026) =====
+   Todo mundo começa no mapa grátis. O administrador marca "Google Maps" no cliente (Permissões do app) ou em
+   "Sua conta" para si; a escolha fica no cadastro do usuário no Traccar (attributes.mapa = "google").
+   Jeito técnico: o mapa do Google (Maps JavaScript API, cobrado por abertura) fica por baixo do Leaflet pelo
+   plugin GoogleMutant; setinhas, cercas, histórico e âncora continuam iguais. O logo e os créditos do Google ficam
+   nos cantos de baixo do mapa, acima do cartão. Se a chave falhar ou o Google não carregar, volta para o grátis. */
+const GOOGLE_MAPS_CHAVE='AIzaSyCJqHbTiW6ve7X4uVV9p29ngWvh0iw_qoI'; /* chave restrita ao site rastreandogps.github.io e só à Maps JavaScript API */
+const GM_PLUGIN=['https://cdn.jsdelivr.net/npm/leaflet.gridlayer.googlemutant@0.16.0/dist/Leaflet.GoogleMutant.js','https://unpkg.com/leaflet.gridlayer.googlemutant@0.16.0/dist/Leaflet.GoogleMutant.js'];
+/* estilo noturno (exemplo oficial do Google, "night mode") para o tema escuro do app */
+const GM_ESCURO=[{elementType:'geometry',stylers:[{color:'#242f3e'}]},{elementType:'labels.text.stroke',stylers:[{color:'#242f3e'}]},{elementType:'labels.text.fill',stylers:[{color:'#746855'}]},
+  {featureType:'administrative.locality',elementType:'labels.text.fill',stylers:[{color:'#d59563'}]},{featureType:'poi',elementType:'labels.text.fill',stylers:[{color:'#d59563'}]},
+  {featureType:'poi.park',elementType:'geometry',stylers:[{color:'#263c3f'}]},{featureType:'poi.park',elementType:'labels.text.fill',stylers:[{color:'#6b9a76'}]},
+  {featureType:'road',elementType:'geometry',stylers:[{color:'#38414e'}]},{featureType:'road',elementType:'geometry.stroke',stylers:[{color:'#212a37'}]},{featureType:'road',elementType:'labels.text.fill',stylers:[{color:'#9ca5b3'}]},
+  {featureType:'road.highway',elementType:'geometry',stylers:[{color:'#746855'}]},{featureType:'road.highway',elementType:'geometry.stroke',stylers:[{color:'#1f2835'}]},{featureType:'road.highway',elementType:'labels.text.fill',stylers:[{color:'#f3d19c'}]},
+  {featureType:'transit',elementType:'geometry',stylers:[{color:'#2f3948'}]},{featureType:'transit.station',elementType:'labels.text.fill',stylers:[{color:'#d59563'}]},
+  {featureType:'water',elementType:'geometry',stylers:[{color:'#17263c'}]},{featureType:'water',elementType:'labels.text.fill',stylers:[{color:'#515c6d'}]},{featureType:'water',elementType:'labels.text.stroke',stylers:[{color:'#17263c'}]}];
+let gmCamada=null, gmEstado='osm', gmPref='gratis', gmTemaAtual='', meuUsuario=null, gmCarregando=null;
+/* mapa ou satélite (Google): escolha lembrada neste aparelho; o satélite custa o mesmo que o mapa normal (por abertura) */
+let gmTipo='roadmap'; try{ if(localStorage.getItem('rg_mapa_tipo')==='hybrid') gmTipo='hybrid' }catch(e){}
+$('btnSat').onclick=()=>{ gmTipo=gmTipo==='hybrid'?'roadmap':'hybrid'; try{ localStorage.setItem('rg_mapa_tipo',gmTipo) }catch(e){} mapaBotoes(); mapaGoogleLigar(); toast(gmTipo==='hybrid'?'Satélite ligado.':'Mapa normal.') };
+const temaEscuro=()=>document.documentElement.getAttribute('data-tema')!=='claro';
+function carregarScript(urls){
+  return new Promise((ok,falha)=>{
+    const tenta=i=>{ if(i>=urls.length) return falha(new Error('script'));
+      const sc=document.createElement('script'); sc.src=urls[i]; sc.async=true;
+      sc.onload=()=>ok(); sc.onerror=()=>{ sc.remove(); tenta(i+1) };
+      document.head.appendChild(sc) };
+    tenta(0);
+  });
+}
+function gmCarregarApi(){
+  if(window.google && google.maps && google.maps.Map) return Promise.resolve();
+  if(gmCarregando) return gmCarregando;
+  gmCarregando=new Promise((ok,falha)=>{
+    const t=setTimeout(()=>falha(new Error('demorou')),20000);
+    window.gm_authFailure=()=>{ clearTimeout(t); gmCarregando=null; gmFalhou('chave recusada pelo Google'); falha(new Error('chave')) };
+    window.__gmPronto=async()=>{ try{ if(google.maps.importLibrary) await google.maps.importLibrary('maps') }catch(e){} clearTimeout(t); ok() };
+    const sc=document.createElement('script');
+    sc.src='https://maps.googleapis.com/maps/api/js?key='+encodeURIComponent(GOOGLE_MAPS_CHAVE)+'&v=weekly&loading=async&language=pt-BR&region=BR&callback=__gmPronto';
+    sc.async=true; sc.onerror=()=>{ clearTimeout(t); falha(new Error('script')) };
+    document.head.appendChild(sc);
+  }).catch(e=>{ gmCarregando=null; throw e });
+  return gmCarregando;
+}
+/* logo e créditos do Google acima do cartão de baixo (e à direita do cartão, no computador) */
+function mapaPe(){
+  try{ const m=$('map'); m.style.setProperty('--mapa-pe',(gmEstado==='google'?cobertura():0)+'px'); m.style.setProperty('--mapa-lado',(gmEstado==='google'?coberturaLado():0)+'px') }catch(e){}
+}
+function gmFalhou(motivo){
+  if(gmCamada){ try{ map.removeLayer(gmCamada) }catch(e){} gmCamada=null }
+  if(!map.hasLayer(camadaOsm)) camadaOsm.addTo(map);
+  document.body.classList.remove('mapa-google'); gmEstado='osm'; mapaPe(); mapaBotoes();
+  if(ehAdmin && motivo) toast('Mapa do Google não carregou ('+motivo+'). Usando o mapa grátis.',6000);
+}
+async function mapaGoogleLigar(){
+  if(gmPref!=='google') return;
+  if(!GOOGLE_MAPS_CHAVE || GOOGLE_MAPS_CHAVE==='COLE_A_CHAVE_AQUI'){ gmFalhou(ehAdmin?'a chave ainda não foi colocada no app':''); return }
+  try{
+    await gmCarregarApi();
+    if(!(L.gridLayer && L.gridLayer.googleMutant)) await carregarScript(GM_PLUGIN);
+    if(!(L.gridLayer && L.gridLayer.googleMutant)) throw new Error('leitor do mapa');
+  }catch(e){ if(e.message!=='chave') gmFalhou(e.message==='demorou'?'demorou demais':(e.message==='leitor do mapa'?'este aparelho não suporta':'sem internet ou bloqueado')); return }
+  if(gmPref!=='google') return;
+  const escuro=temaEscuro(), marca=(escuro?'escuro':'claro')+'/'+gmTipo;
+  if(gmCamada && gmEstado==='google' && gmTemaAtual===marca) return;
+  const nova=L.gridLayer.googleMutant({type:gmTipo,maxZoom:19,maxNativeZoom:19,styles:(escuro&&gmTipo==='roadmap')?GM_ESCURO:[]});
+  const antiga=gmCamada; gmCamada=nova; gmTemaAtual=marca;
+  let pronto=false;
+  const t=setTimeout(()=>{ if(!pronto){ if(gmCamada===nova) gmFalhou('demorou demais') } },25000);
+  nova.once('load',()=>{
+    pronto=true; clearTimeout(t);
+    if(gmCamada!==nova) return;
+    if(antiga){ try{ map.removeLayer(antiga) }catch(e){} }
+    if(map.hasLayer(camadaOsm)) map.removeLayer(camadaOsm);
+    document.body.classList.add('mapa-google'); gmEstado='google'; mapaPe(); mapaBotoes();
+  });
+  nova.addTo(map);
+}
+function mapaAplicar(pref){
+  gmPref=pref==='google'?'google':'gratis';
+  if(gmPref==='google') mapaGoogleLigar(); else { gmFalhou(''); }
+}
+/* lê no cadastro do usuário (Traccar) qual mapa ele usa; chamado depois de entrar */
+async function mapaDecidir(){
+  try{ const rs=await minhaSessao(); if(!rs.ok) return; meuUsuario=await rs.json() }catch(e){ return }
+  const pref=(meuUsuario.attributes&&meuUsuario.attributes.mapa==='google')?'google':'gratis';
+  try{ $('contaMapa').style.display=ehAdmin?'flex':'none'; $('contaMapaSel').value=pref }catch(e){}
+  mapaAplicar(pref);
+}
+/* o administrador troca o próprio mapa em "Sua conta" */
+$('contaMapaSel').addEventListener('change',async()=>{
+  const pref=$('contaMapaSel').value;
+  if(!meuUsuario){ toast('Não consegui ler o seu cadastro. Tente de novo.'); return }
+  const attrs=Object.assign({},meuUsuario.attributes||{}); if(pref==='google') attrs.mapa='google'; else delete attrs.mapa;
+  const corpo=Object.assign({},meuUsuario,{attributes:attrs}); delete corpo.password;
+  try{
+    const r=await api('/api/users/'+meuUsuario.id,{method:'PUT',headers:JSONH,body:JSON.stringify(corpo)});
+    if(!r.ok) throw new Error(await msgErro(r,'Não consegui salvar'));
+    meuUsuario=Object.assign({},meuUsuario,{attributes:attrs});
+    mapaAplicar(pref); toast(pref==='google'?'Mapa do Google ligado para você.':'Voltou para o mapa grátis.');
+  }catch(e){ if(!e.sessao) toast(e.message||'Não consegui salvar',5000); $('contaMapaSel').value=(meuUsuario.attributes&&meuUsuario.attributes.mapa==='google')?'google':'gratis' }
+});
+try{ new ResizeObserver(()=>mapaPe()).observe($('sheet')) }catch(e){}
+window.addEventListener('resize',mapaPe);
 
 const carSvg = '<svg viewBox="0 0 44 44" width="44" height="44"><circle class="anel" cx="22" cy="22" r="18" stroke-width="1.5"/><path class="seta" d="M22 8 L31 32 L22 27 L13 32 Z" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></svg>';
 
@@ -2119,6 +2239,18 @@ function ajBtnTodos(){
   const n=visiveis().filter(v=>v.pos).length;
   b.style.display = n>=1 ? 'flex' : 'none';
   b.classList.toggle('abaixo', $('btnEu').style.display==='flex');
+  mapaBotoes();
+}
+/* botão Satélite: só com o mapa do Google ligado; fica abaixo dos outros botões redondos */
+function mapaBotoes(){
+  const sb=$('btnSat'); if(!sb) return;
+  const google=(typeof gmEstado!=='undefined' && gmEstado==='google');
+  sb.style.display=google?'flex':'none';
+  if(!google) return;
+  let top=14; if($('btnEu').style.display==='flex') top=66;
+  if($('btnTodos').style.display==='flex') top+=52;
+  sb.style.top=(top+52)+'px';
+  sb.classList.toggle('active',gmTipo==='hybrid'); sb.setAttribute('aria-pressed',gmTipo==='hybrid'?'true':'false');
 }
 $('btnTodos').onclick=()=>{
   const vs=visiveis().filter(v=>v.pos);
@@ -3059,6 +3191,7 @@ $('pmValidade').addEventListener('input',textoValidade); $('pmHora').addEventLis
 $('pmSemVal').onclick=()=>{ $('pmValidade').value=''; $('pmHora').value='23:59'; textoValidade() };
 function mostrarPermTraccar(u){
   $('pmApp').checked=permAttr(u,'appBloqueio'); $('pmCercaBloq').checked=permAttr(u,'cercaBloqueio');
+  $('pmMapa').value=(u.attributes&&u.attributes.mapa==='google')?'google':'gratis';
   const t=validadeDe(u); $('pmValidade').value=t?isoData(t):''; $('pmHora').value=t?horaSP(t):'23:59'; textoValidade();
 }
 async function salvarPermTraccar(u){
@@ -3066,6 +3199,7 @@ async function salvarPermTraccar(u){
   const attrs=Object.assign({},u.attributes||{});
   if(app) delete attrs.appBloqueio; else attrs.appBloqueio=false;
   if(cb) delete attrs.cercaBloqueio; else attrs.cercaBloqueio=false;
+  if($('pmMapa').value==='google') attrs.mapa='google'; else delete attrs.mapa; /* mapa do Google por cliente (4.49) */
   const exp=v?new Date(fimValidade()).toISOString():null;
   const mudouApp=permAttr(u,'appBloqueio')!==app;
   const igual=JSON.stringify(attrs)===JSON.stringify(u.attributes||{}) && (validadeDe(u)||0)===(exp?Date.parse(exp):0);
@@ -5939,7 +6073,7 @@ function sair(msg){
   cercasReset();
   permCli={smsBloqueio:false,reset:false,editarNome:false,cercaRapida:false,minhaPosicao:false}; cobrCli=null;
   ehAdmin=false; usuarios=[]; $('aview').classList.remove('show'); try{ $('mapCar').classList.remove('show') }catch(e){}
-  document.querySelector('nav button[data-tab="Admin"]').style.display='none'; document.querySelector('nav button[data-tab="Faturas"]').style.display='none'; document.querySelector('nav button[data-tab="Mais"]').style.display='none'; cpfsMapa={}; faturasDados=null; aplicarBloqueio(null); euDesligar(); $('btnEu').style.display='none'; irPara('Mapa');
+  document.querySelector('nav button[data-tab="Admin"]').style.display='none'; document.querySelector('nav button[data-tab="Faturas"]').style.display='none'; document.querySelector('nav button[data-tab="Mais"]').style.display='none'; cpfsMapa={}; faturasDados=null; aplicarBloqueio(null); euDesligar(); $('btnEu').style.display='none'; try{ meuUsuario=null; mapaAplicar('gratis') }catch(e){} irPara('Mapa');
   auth=null;
   veiculos.forEach(v=>{ if(v.marker&&map.hasLayer(v.marker)) map.removeLayer(v.marker) });
   veiculos=[]; selId=null; primeiraCarga=true; assinaturaLista='';
@@ -5981,6 +6115,7 @@ $('lform').addEventListener('submit',async e=>{
     indicador('CONECTANDO...',false);
     await descobrirAdmin();
     carregarPermissoes();
+    mapaDecidir();
     verificarBloqueio();
     registrarAcesso();
     bioBotao(); setTimeout(bioOferecer,1500);
@@ -6315,6 +6450,7 @@ $('sSalvar').onclick=async()=>{
     bioChecar().then(ok=>{ if(!ok){ $('bioLock').classList.remove('show'); return } if(bioAtivo()) bioTravar(); else setTimeout(bioOferecer,2500) });
     await descobrirAdmin();
     carregarPermissoes();
+    mapaDecidir();
     verificarBloqueio();
     registrarAcesso();
     await buscarSeguro();
@@ -6377,6 +6513,7 @@ $('sSalvar').onclick=async()=>{
     raiz.setAttribute('data-tema',novo);
     try{localStorage.setItem('tema',novo)}catch(e){}
     ajusta();
+    try{ if(typeof mapaGoogleLigar==='function' && gmPref==='google') mapaGoogleLigar() }catch(e){} /* refaz o mapa do Google no tema novo */
   });
 })();
 </script>
