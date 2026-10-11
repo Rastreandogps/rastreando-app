@@ -158,6 +158,10 @@ function tempo(ms) {
 let mapa = null, marcador = null, seguir = true, ultimo = null, dados = null, falhas = 0, encerrado = false;
 let endPos = null, endMs = 0, endBusca = false;
 let casa = null, linhaRota = null, rotaDe = null, rotaMs = 0, rotaBusca = false, rota = null;
+/* animação suave da setinha (mesma do tempo-real.html): desliza da posição antiga até a nova
+   ao longo do intervalo de atualização, em vez de pular */
+const ANIMA_MS = 10000; /* igual ao intervalo de busca (10 s) */
+let animDe = null, animPara = null, animT0 = 0;
 const FOTOS = 'https://rastreandogps.github.io/rastreando-scanner/fotos/';
 
 function erro(titulo, texto) {
@@ -320,7 +324,20 @@ function desenhar(d) {
     $('btnMaps').href = 'https://www.google.com/maps/search/?api=1&query=' + p.lat + ',' + p.lon;
     if (!mapa) iniciarMapa(p.lat, p.lon);
     if (!marcador) marcador = L.marker(ll, { icon: iconeSeta(p, d.nome) }).addTo(mapa);
-    else { marcador.setLatLng(ll); marcador.setIcon(iconeSeta(p, d.nome)); }
+    else {
+      marcador.setIcon(iconeSeta(p, d.nome));
+      const atual = marcador.getLatLng();
+      const alvo = animPara || [atual.lat, atual.lng];
+      if (Math.abs(alvo[0] - ll[0]) > 1e-6 || Math.abs(alvo[1] - ll[1]) > 1e-6) {
+        if (Math.abs(atual.lat - ll[0]) < 0.01 && Math.abs(atual.lng - ll[1]) < 0.01) {
+          /* mudança pequena: desliza suave até a posição nova */
+          animDe = [atual.lat, atual.lng]; animPara = ll; animT0 = performance.now();
+        } else {
+          /* pulo grande (ex.: ficou muito tempo sem sinal): vai direto, sem "voar" pelo mapa */
+          animDe = null; animPara = null; marcador.setLatLng(ll);
+        }
+      }
+    }
     if (d.tipo === 'tec' && d.destino) {
       const dl = [d.destino.lat, d.destino.lon];
       if (!casa) casa = L.marker(dl, { icon: iconeCasa(), zIndexOffset: -100, title: 'Seu endereço' }).addTo(mapa);
@@ -339,6 +356,17 @@ function desenhar(d) {
   atualizarValidade();
   ajustarAltura();
 }
+
+/* laço da animação suave: move a setinha um pouquinho a cada quadro, entre a posição antiga e a nova */
+function animarSeta(now) {
+  if (marcador && animDe && animPara) {
+    const f = Math.min(1, (now - animT0) / ANIMA_MS);
+    marcador.setLatLng([animDe[0] + (animPara[0] - animDe[0]) * f, animDe[1] + (animPara[1] - animDe[1]) * f]);
+    if (f >= 1) { animDe = null; animPara = null; }
+  }
+  requestAnimationFrame(animarSeta);
+}
+requestAnimationFrame(animarSeta);
 
 function centralizar(animar) {
   if (!mapa || !dados || !dados.pos) return;
