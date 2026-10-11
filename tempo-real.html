@@ -1047,7 +1047,7 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
       <div class="maisgrid">
         <button class="maiscard" id="maisFat" type="button"><span class="mdot" id="maisFatDot">!</span><span class="mic f"><svg viewBox="0 0 24 24"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6M9 13h8M9 17h8"/></svg></span><b>Faturas</b><small id="maisFatTxt">Mensalidades, PIX e segunda via</small></button>
         <button class="maiscard" id="maisLoja" type="button"><span class="mic l"><svg viewBox="0 0 24 24"><path d="M6 6h15l-1.5 9h-12z"/><path d="M6 6L5 3H2"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/></svg></span><b>Loja</b><small>Tag de emergência, rastreador portátil e mais</small></button>
-        <button class="maiscard" id="maisIndique" type="button"><span class="mic g"><svg viewBox="0 0 24 24"><path d="M20 12v9H4v-9"/><path d="M2 7h20v5H2z"/><path d="M12 22V7"/><path d="M12 7H7.5a2.5 2.5 0 010-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 000-5C13 2 12 7 12 7z"/></svg></span><b>Indique um amigo</b><small>Compartilhe a Rastreando GPS</small></button>
+        <button class="maiscard" id="maisIndique" type="button"><span class="mic g"><svg viewBox="0 0 24 24"><path d="M20 12v9H4v-9"/><path d="M2 7h20v5H2z"/><path d="M12 22V7"/><path d="M12 7H7.5a2.5 2.5 0 010-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 000-5C13 2 12 7 12 7z"/></svg></span><b>Indique e ganhe</b><small>Pegue o seu link de indicação</small></button>
         <button class="maiscard" id="maisConta" type="button"><span class="mic c"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0116 0"/></svg></span><b>Sua conta</b><small>Trocar senha e sair do app</small></button>
       </div>
       <div class="maisrodape">Precisa de ajuda? Fale com a gente no WhatsApp<br><a id="maisWpp" href="#" style="color:var(--cyan);font-weight:700;text-decoration:none">(21) 98088-6087</a></div>
@@ -1396,19 +1396,6 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
     <h3>Loja</h3>
     <p style="margin-bottom:12px">Escolha o que precisa e peça pelo WhatsApp. A gente confirma valor, entrega ou instalação com você.</p>
     <div id="lojaLista"></div>
-    <button class="btn btn-out alfechar" data-close type="button">Fechar</button>
-  </div>
-</div>
-<!-- Indique um amigo (11/10/2026) -->
-<div class="modal alsheet" id="mIndique">
-  <div class="box2">
-    <h3>Indique um amigo</h3>
-    <p style="margin-bottom:12px">Conhece alguém que precisa proteger o carro ou a moto? Mande a mensagem abaixo. Seu nome vai junto, para a gente saber que a indicação foi sua.</p>
-    <div class="link" id="indiqueTexto"></div>
-    <div class="actions2">
-      <button class="btn btn-out" id="indiqueCopiar" type="button">Copiar</button>
-      <button class="btn" id="indiqueWpp" type="button" style="background:#16a34a;color:#fff">WhatsApp</button>
-    </div>
     <button class="btn btn-out alfechar" data-close type="button">Fechar</button>
   </div>
 </div>
@@ -5047,6 +5034,7 @@ $('lform').addEventListener('submit',async e=>{
 /* o botão de sair abre "Sua conta" (trocar senha, opcional, ou sair) — pedido do dono em 10/10/2026 */
 /* ===== ABA "MAIS" (cliente, 11/10/2026): Faturas, Loja, Indique um amigo, Sua conta =====
    A barra de baixo fica com 6 abas; o que vier depois entra aqui. Admin não vê (tem a aba Admin). */
+const INDICACAO_URL='https://app.rastreandogpsbr.com.br/indicacao.html';
 const LOJA_WPP='5521980886087'; /* WhatsApp de atendimento da Rastreando GPS (pedidos da loja e indicações) */
 /* Produtos da loja (v1): o pedido vai pelo WhatsApp. Valores a definir pelo dono: enquanto não houver, mostra "consulte o valor". */
 const LOJA_ITENS=[
@@ -5072,16 +5060,10 @@ function lojaDesenhar(){
     const msg='Olá! Vim pelo app da Rastreando GPS e quero saber sobre: *'+it.n+'*.'+(quem?'\nMeu login no app: '+quem:'');
     window.open('https://wa.me/'+LOJA_WPP+'?text='+encodeURIComponent(msg),'_blank') };
 }
-function indiqueTexto(){
-  const quem=(lsGet('rg_email')||'').split('@')[0];
-  return 'Oi! Eu uso a Rastreando GPS para cuidar do meu veículo: vejo onde ele está em tempo real, recebo alertas no celular e consigo bloquear pelo app se precisar. Recomendo! Fala com eles no WhatsApp: https://wa.me/'+LOJA_WPP+(quem?'\n(Indicação de '+quem+')':'');
-}
 $('maisFat').onclick=()=>irPara('Faturas');
 $('maisLoja').onclick=()=>{ lojaDesenhar(); abrir('mLoja') };
-$('maisIndique').onclick=()=>{ $('indiqueTexto').textContent=indiqueTexto(); abrir('mIndique') };
+$('maisIndique').onclick=()=>window.open(INDICACAO_URL,'_blank'); /* página de indicação do dono: o cliente digita o CPF e pega o link dele */
 $('maisConta').onclick=()=>$('btnSair').onclick();
-$('indiqueCopiar').onclick=async()=>{ toast(await copiarTexto(indiqueTexto())?'Mensagem copiada. Cole no WhatsApp de quem você quer indicar.':'Não consegui copiar. Toque e segure no texto para copiar.') };
-$('indiqueWpp').onclick=()=>{ window.open('https://wa.me/?text='+encodeURIComponent(indiqueTexto()),'_blank') };
 $('fVoltar').onclick=()=>irPara('Mais');
 $('btnSair').onclick=()=>{ $('contaLogin').textContent='Você entrou como '+(lsGet('rg_email')||'—')+'.'; abrir('mConta') };
 $('contaSair').onclick=()=>{ fechar(); sair('') };
