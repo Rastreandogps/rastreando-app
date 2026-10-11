@@ -1173,7 +1173,7 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
     <input class="fld" id="cDesde" type="date">
     <div id="cAparWrap"><label class="flbl" id="cAparLbl">Aparelhos deste cliente (opcional)</label>
     <div class="apsel" id="cAparelhos"></div></div>
-    <label class="fchk"><input type="checkbox" id="cLeitura" checked> Cliente não pode editar nem apagar o aparelho</label>
+    <label class="fchk" style="display:none"><input type="checkbox" id="cLeitura" checked> Cliente não pode editar nem apagar o aparelho</label>
     <div class="ferr" id="cErro"></div>
     <div class="actions2">
       <button class="btn btn-out" data-close>Cancelar</button>
@@ -3005,6 +3005,7 @@ async function descobrirAdmin(){
     const em=(lsGet('rg_email')||'').toLowerCase();
     ehAdmin = !!usuarios.find(u=>u.administrator && casaUsuario(u,em));
   }catch(e){}
+  if(ehAdmin) setTimeout(()=>{ travarClientes().catch(()=>{}) },4000); /* check-up 10/10: corrige clientes antigos sem trava */
   document.querySelector('nav button[data-tab="Admin"]').style.display = ehAdmin ? '' : 'none';
   document.querySelector('nav button[data-tab="Faturas"]').style.display = ehAdmin ? 'none' : '';
   $('btnEu').style.display = ehAdmin ? 'flex' : 'none';
@@ -3163,6 +3164,38 @@ $('aProteger').onclick=async ()=>{
   }catch(e){ if(e.sessao) sair('Sessão expirada. Entre novamente.'); else toast(e.message||'Não consegui concluir.') }
   b.disabled=false; b.textContent='Proteger comandos dos clientes';
 };
+/* ===== TRAVA DE SEGURANÇA DOS CLIENTES (check-up de 10/10/2026, itens 2.3 e 2.4) =====
+   Roda sozinha, uma vez, quando o ADMINISTRADOR abre o app. Só mexe em quem está sem trava:
+   - deviceReadonly (o cliente não edita nem apaga o aparelho; ex.: trocar o número do chip): liga em todo cliente.
+   - limitCommands (o cliente só manda os comandos salvos): liga só quando é seguro, ou seja, quando o cliente já tem
+     Bloquear e Desbloquear ligados a ele, ou quando o "Bloquear pelo app" dele está desligado. Senão ele perderia o
+     botão de bloquear; nesse caso só avisa o nome.
+   NÃO liga nem desliga comandos (respeita a permissão "Bloquear pelo app"). */
+let travaFeita=false;
+async function travarClientes(){
+  if(travaFeita || !ehAdmin) return; travaFeita=true;
+  const alvos=(usuarios||[]).filter(u=>!u.administrator && (!u.deviceReadonly || !u.limitCommands));
+  if(!alvos.length) return;
+  let ids=null; try{ ids=await garantirComandos() }catch(e){ if(e.sessao) return }
+  let ok=0; const falhas=[], semCmd=[];
+  for(const u of alvos){
+    try{
+      let limitar=!!u.limitCommands;
+      if(!limitar){
+        if(!permAttr(u,'appBloqueio')) limitar=true;
+        else if(ids){ const rc=await api('/api/commands?userId='+u.id); const tem=rc.ok?(await rc.json()).map(c=>c.id):[]; limitar=tem.includes(ids.bloquear)&&tem.includes(ids.desbloquear) }
+        if(!limitar) semCmd.push(loginDe(u));
+      }
+      if(u.deviceReadonly && limitar===!!u.limitCommands) continue; /* nada a mudar */
+      const corpo=Object.assign({},u,{deviceReadonly:true,limitCommands:limitar}); delete corpo.password;
+      const r=await api('/api/users/'+u.id,{method:'PUT',headers:JSONH,body:JSON.stringify(corpo)});
+      if(r.ok){ ok++; u.deviceReadonly=true; u.limitCommands=limitar } else falhas.push(loginDe(u));
+    }catch(e){ if(e.sessao) return; falhas.push(loginDe(u)) }
+  }
+  if(ok) toast('Segurança: '+ok+' cliente(s) agora não podem editar o aparelho'+(semCmd.length?'.':' nem mandar comando livre.'),6000);
+  if(falhas.length) setTimeout(()=>toast('Não consegui travar: '+falhas.join(', '),8000),6500);
+  if(semCmd.length) setTimeout(()=>toast('Sem trava de comando (não têm Bloquear/Desbloquear ligados): '+semCmd.join(', '),9000),falhas.length?15000:6500);
+}
 async function comandoSalvo(bloquear){
   try{
     const r=await api('/api/commands'); if(!r.ok) return null;
@@ -3830,7 +3863,7 @@ $('cSalvar').onclick=async ()=>{
     if(editando){
       const u=usuarios.find(x=>x.id===editando); if(!u) throw new Error('Cliente não encontrado. Atualize a lista.');
       const antigo=loginDe(u), antigoEmail=String(u.email||'');
-      const corpo=Object.assign({},u,{name:nome,email:lg.email,login:lg.loginTraccar,deviceReadonly:$('cLeitura').checked,phone:wpp});
+      const corpo=Object.assign({},u,{name:nome,email:lg.email,login:lg.loginTraccar,deviceReadonly:true,phone:wpp}); /* check-up 10/10: cliente nunca edita o aparelho */
       corpo.attributes=Object.assign({},u.attributes||{});
       if(desde) corpo.attributes.criadoEm=desde; else delete corpo.attributes.criadoEm;
       if(senha) corpo.password=senha; else delete corpo.password;
@@ -3871,7 +3904,7 @@ $('cSalvar').onclick=async ()=>{
       if(senha) mostrarAcesso('Acesso atualizado',lg.login,senha);
       $('cSalvar').disabled=false; return;
     }
-    const corpo={name:nome,email:lg.email,password:senha,administrator:false,deviceReadonly:$('cLeitura').checked,limitCommands:true,phone:wpp,attributes:cpf?{cpf:cpf}:{}};
+    const corpo={name:nome,email:lg.email,password:senha,administrator:false,deviceReadonly:true,limitCommands:true,phone:wpp,attributes:cpf?{cpf:cpf}:{}}; /* check-up 10/10: cliente nunca edita o aparelho */
     corpo.attributes.criadoEm=desde||hojeISO();
     if(lg.loginTraccar) corpo.login=lg.loginTraccar;
     const r=await api('/api/users',{method:'POST',headers:JSONH,body:JSON.stringify(corpo)});
