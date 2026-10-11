@@ -268,6 +268,8 @@ body.hist-on #follow,body.hist-on #btnEu{display:none!important}
 .hpanel .hpdf{width:100%;height:42px;margin-top:8px;border-radius:12px;border:1px solid var(--line);background:var(--card2);color:var(--txt);font:inherit;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer}
 .hpanel .hpdf svg{width:18px;height:18px}
 .hpanel .hpdf:disabled{opacity:.6}
+.hpanel .hwpp{background:#1faa53;border-color:#1faa53;color:#fff}
+.hpanel .hwpp span{display:flex}.hpanel .hwpp svg{width:19px;height:19px}
 .hpanel .hend{display:block;font-style:normal;font-size:11.5px;color:var(--mut);line-height:1.3;margin-top:1px}
 .hpanel .hend:empty{display:none}
 .hpop .hpopb{display:block;text-align:center;padding:9px 10px;border-radius:10px;background:#2563eb;color:#fff!important;font-size:13px;font-weight:700;text-decoration:none;margin-top:6px}
@@ -867,6 +869,7 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
       </label>
       <details id="hParadas"><summary>Paradas</summary><div id="hParLista"></div></details>
       <button type="button" class="hpdf" id="hPdf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M12 12v6M9 15l3 3 3-3"/></svg>Baixar PDF das paradas</button>
+      <button type="button" class="hpdf hwpp" id="hPdfWpp" style="display:none"><span id="hPdfWppIco"></span>Enviar o PDF pelo WhatsApp</button>
     </div>
   </section>
 
@@ -2433,7 +2436,7 @@ function histEntrar(){
   setTimeout(()=>{ try{ map.invalidateSize() }catch(e){} },50);
 }
 function histLimpar(){
-  histParar(); geoFilaGer++;
+  histParar(); geoFilaGer++; hist.pdf=null; $('hPdfWpp').style.display='none';
   if(hist.camada){ map.removeLayer(hist.camada); hist.camada=null }
   hist.marc=null; hist.pts=[]; hist.tv=[]; hist.total=0; hist.t=0;
   $('hRes').classList.remove('show'); $('hpanel').classList.remove('achou');
@@ -2604,9 +2607,20 @@ $('hPdf').onclick=async()=>{
       doc.text('Página '+i+' de '+n,W-14,doc.internal.pageSize.getHeight()-8,{align:'right'}) }
     const nomeArq=('paradas-'+String(v.nome||'veiculo')+'-'+$('hData').value).normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^A-Za-z0-9-]+/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'').toLowerCase()+'.pdf';
     doc.save(nomeArq);
-    toast('PDF gerado.');
+    /* guarda o PDF para o botão de enviar pelo WhatsApp (some ao buscar outro trajeto ou recarregar o app) */
+    try{ hist.pdf=new File([doc.output('blob')],nomeArq,{type:'application/pdf'}); hist.pdfNome=String(v.nome||'Veículo'); $('hPdfWppIco').innerHTML=ICO_WPP; $('hPdfWpp').style.display='flex'; const hp=$('hpanel'); hp.scrollTop=hp.scrollHeight }catch(e){}
+    toast('PDF baixado. Para mandar, toque em Enviar pelo WhatsApp.',4500);
   }catch(e){ toast(e.message||'Não consegui gerar o PDF.',5000) }
   b.disabled=false; b.innerHTML=t0;
+};
+$('hPdfWpp').onclick=async()=>{
+  const f=hist.pdf; if(!f){ $('hPdfWpp').style.display='none'; return }
+  const dados={files:[f],title:'Relatório de paradas',text:'Relatório de paradas · '+hist.pdfNome+' · '+$('hPerTxt').textContent};
+  try{
+    if(navigator.canShare && navigator.canShare({files:[f]})){ await navigator.share(dados); return }
+  }catch(e){ if(e && e.name==='AbortError') return }
+  /* aparelho sem compartilhamento de arquivos (ex.: alguns computadores): o PDF já está em Downloads */
+  toast('Neste aparelho não dá para enviar direto. O PDF está na pasta Downloads: anexe no WhatsApp.',6000);
 };
 function histMostrar(pos,id){
   /* só posições com GPS válido, em ordem, sem repetir o mesmo ponto parado */
