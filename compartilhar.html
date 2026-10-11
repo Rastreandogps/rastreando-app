@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#0f1115">
+<title>Localização compartilhada · Rastreando GPS</title>
+<link rel="icon" href="icon-192.png">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<!--
+  Página pública de COMPARTILHAR LOCALIZAÇÃO (Rastreando GPS, 11/10/2026).
+  Abre com ?c=CÓDIGO (gerado no app pelo botão de compartilhar do cartão do veículo).
+  Mostra só a posição de UM veículo, enquanto o link vale. Não tem login, não mostra chip, IMEI nem dados da conta.
+  Os dados vêm da função rastreamentoDesbloqueio (ação "compVer"), que confere o código, a validade e se quem
+  compartilhou ainda tem o veículo.
+-->
+<style>
+:root{
+  --bg:#0f1115;--card:#171a20;--card2:#1f232b;--line:#2a2f39;
+  --txt:#f2f4f7;--mut:#9aa3b2;--red:#e3262f;--red2:#ff4a52;
+  --cyan:#38e1e6;--green:#33d17a;--amber:#f5b83d;--gray:#8b93a1;
+  --sombra:0 -8px 28px rgba(0,0,0,.45);
+}
+@media (prefers-color-scheme: light){
+  :root{
+    --bg:#f4f6f9;--card:#ffffff;--card2:#eef1f5;--line:#d9dee6;
+    --txt:#14181f;--mut:#5d6675;--red:#d81f28;--red2:#d81f28;
+    --cyan:#0a8f95;--green:#1a9e57;--amber:#b87800;--gray:#6b7280;
+    --sombra:0 -8px 24px rgba(0,0,0,.14);
+  }
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--txt);font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;-webkit-tap-highlight-color:transparent}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+#map{position:fixed;top:0;right:0;bottom:0;left:0;background:#e8ecf0}
+.topo{position:fixed;top:0;left:0;right:0;z-index:500;display:flex;align-items:center;gap:10px;padding:calc(10px + env(safe-area-inset-top)) 14px 10px;background:linear-gradient(var(--bg) 55%,transparent);pointer-events:none}
+.topo img{width:34px;height:34px;border-radius:50%;object-fit:cover;pointer-events:auto}
+.topo .marca{font-weight:800;letter-spacing:.06em;font-size:15px;line-height:1.05}
+.topo .marca small{display:block;font-weight:600;font-size:10.5px;letter-spacing:.32em;color:var(--mut)}
+.topo .vivo{margin-left:auto;display:flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;letter-spacing:.06em;color:var(--green);border:1px solid currentColor;border-radius:999px;padding:4px 10px;background:var(--card);pointer-events:auto}
+.topo .vivo i{width:7px;height:7px;border-radius:50%;background:currentColor;animation:pisca 1.6s ease-in-out infinite}
+.topo .vivo.parado{color:var(--mut)}
+.topo .vivo.parado i{animation:none}
+@keyframes pisca{50%{opacity:.25}}
+.centro{position:fixed;right:14px;z-index:500;width:46px;height:46px;border-radius:50%;background:var(--card);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 10px rgba(0,0,0,.25);bottom:calc(var(--h,260px) + 14px);transition:bottom .2s}
+.centro svg{width:22px;height:22px;fill:none;stroke:var(--txt);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.centro.on{background:var(--cyan);border-color:var(--cyan)}
+.centro.on svg{stroke:#0f1115}
+.cartao{position:fixed;left:0;right:0;bottom:0;z-index:600;background:var(--card);border-top:1px solid var(--line);border-radius:20px 20px 0 0;box-shadow:var(--sombra);padding:16px 16px calc(16px + env(safe-area-inset-bottom))}
+@media (min-width:900px){.cartao{left:16px;right:auto;bottom:16px;width:420px;border:1px solid var(--line);border-radius:20px}.centro{bottom:auto;top:76px}}
+.nome{font-size:19px;font-weight:750;line-height:1.2}
+.placa{font-size:12.5px;color:var(--mut);letter-spacing:.12em;margin-top:2px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 10px}
+.chip{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 11px;border-radius:999px;background:var(--card2);border:1px solid var(--line);font-size:13px;font-weight:650}
+.chip i{width:8px;height:8px;border-radius:50%;background:var(--gray)}
+.chip.mov i{background:var(--green)} .chip.par i{background:var(--amber)} .chip.on i{background:var(--green)}
+.end{font-size:14px;line-height:1.4;min-height:20px}
+.hora{font-size:12.5px;color:var(--mut);margin-top:4px}
+.hora.velho{color:var(--amber)}
+.botoes{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+.btn{height:46px;border-radius:14px;font-weight:700;font-size:14.5px;display:flex;align-items:center;justify-content:center;gap:8px;text-decoration:none}
+.btn svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.btn.pri{background:var(--red);color:#fff}
+.btn.sec{background:var(--card2);border:1px solid var(--line);color:var(--txt)}
+.valid{display:flex;align-items:center;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line);font-size:12.5px;color:var(--mut)}
+.valid svg{width:15px;height:15px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.tela{position:fixed;inset:0;z-index:900;background:var(--bg);display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;gap:14px}
+.tela.show{display:flex}
+.tela img{width:64px;height:64px;border-radius:50%;object-fit:cover}
+.tela h1{font-size:20px}
+.tela p{font-size:15px;color:var(--mut);max-width:340px;line-height:1.45}
+.spin{width:28px;height:28px;border-radius:50%;border:3px solid var(--line);border-top-color:var(--cyan);animation:gira .8s linear infinite}
+@keyframes gira{to{transform:rotate(360deg)}}
+.seta{width:44px;height:44px;display:flex;align-items:center;justify-content:center}
+.seta .disco{width:38px;height:38px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.35);border:3px solid var(--cor,#f5b83d)}
+.seta svg{width:22px;height:22px}
+.rotulo{background:rgba(15,17,21,.86);color:#fff;font-size:12px;font-weight:700;padding:3px 8px;border-radius:8px;white-space:nowrap;transform:translate(-50%,-34px);position:absolute;left:50%;top:0}
+@media (prefers-color-scheme: light){.rotulo{background:rgba(255,255,255,.95);color:#14181f;box-shadow:0 1px 4px rgba(0,0,0,.2)}}
+.leaflet-control-attribution{font-size:10px}
+.leaflet-top{top:calc(58px + env(safe-area-inset-top))}
+</style>
+</head>
+<body>
+<div id="map"></div>
+
+<header class="topo">
+  <img src="logo.jpeg" alt="" onerror="this.style.display='none'">
+  <div class="marca">RASTREANDO<small>GPS</small></div>
+  <div class="vivo" id="vivo"><i></i><span>AO VIVO</span></div>
+</header>
+
+<button class="centro on" id="btnCentro" type="button" aria-label="Centralizar no veículo" title="Centralizar no veículo">
+  <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="8"/></svg>
+</button>
+
+<section class="cartao" id="cartao" style="display:none">
+  <div class="nome" id="nome"></div>
+  <div class="placa" id="placa"></div>
+  <div class="chips" id="chips"></div>
+  <div class="end" id="end"></div>
+  <div class="hora" id="hora"></div>
+  <div class="botoes">
+    <a class="btn pri" id="btnRota" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M3 11l18-8-8 18-2-8-8-2z"/></svg>Traçar rota</a>
+    <a class="btn sec" id="btnMaps" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M12 22s7-6.1 7-12a7 7 0 10-14 0c0 5.9 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg>Google Maps</a>
+  </div>
+  <div class="valid"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span id="valid"></span></div>
+</section>
+
+<div class="tela show" id="telaCarrega"><div class="spin"></div><p>Carregando a localização…</p></div>
+<div class="tela" id="telaErro">
+  <img src="logo.jpeg" alt="" onerror="this.style.display='none'">
+  <h1 id="erroTit">Link indisponível</h1>
+  <p id="erroTxt"></p>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+"use strict";
+const FN = 'https://southamerica-east1-rastreando-assinaturas.cloudfunctions.net/rastreamentoDesbloqueio';
+const TZ = 'America/Sao_Paulo';
+const $ = (id) => document.getElementById(id);
+const codigo = (new URLSearchParams(location.search).get('c') || '').trim();
+const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const hora = (ms) => new Date(ms).toLocaleTimeString('pt-BR', { timeZone: TZ, hour: '2-digit', minute: '2-digit' });
+const diaHora = (ms) => new Date(ms).toLocaleString('pt-BR', { timeZone: TZ, day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }).replace(',', ' às');
+function tempo(ms) {
+  const m = Math.max(1, Math.round(ms / 60000));
+  if (m < 60) return m + ' min';
+  const h = Math.floor(m / 60);
+  if (h < 48) return h + ' h' + (m % 60 ? ' ' + (m % 60) + ' min' : '');
+  return Math.round(h / 24) + ' dias';
+}
+
+let mapa = null, marcador = null, seguir = true, ultimo = null, dados = null, falhas = 0, encerrado = false;
+let endPos = null, endMs = 0, endBusca = false;
+
+function erro(titulo, texto) {
+  encerrado = true;
+  $('telaCarrega').classList.remove('show');
+  $('erroTit').textContent = titulo;
+  $('erroTxt').textContent = texto;
+  $('telaErro').classList.add('show');
+}
+
+function iniciarMapa(lat, lon) {
+  mapa = L.map('map', { zoomControl: false, attributionControl: true }).setView([lat, lon], 16);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' }).addTo(mapa);
+  mapa.on('dragstart', () => { seguir = false; $('btnCentro').classList.remove('on'); });
+}
+
+function corDe(p) {
+  if (!p.gpsOk || (p.gpsMs && Date.now() - p.gpsMs > 600000)) return '#8b93a1'; // sem GPS há mais de 10 min
+  return p.kmh > 3 ? '#33d17a' : '#f5b83d';
+}
+function iconeSeta(p, nome) {
+  const cor = corDe(p);
+  const html = '<div class="seta"><div class="disco" style="--cor:' + cor + '">' +
+    '<svg viewBox="0 0 24 24" style="transform:rotate(' + (p.curso || 0) + 'deg)"><path d="M12 2l7 18-7-4-7 4z" fill="' + cor + '" stroke="#14181f" stroke-width="1.2" stroke-linejoin="round"/></svg>' +
+    '</div><div class="rotulo">' + esc(nome) + '</div></div>';
+  return L.divIcon({ html, className: '', iconSize: [44, 44], iconAnchor: [22, 22] });
+}
+
+function ajustarAltura() {
+  const h = window.innerWidth >= 900 ? 0 : $('cartao').offsetHeight;
+  document.documentElement.style.setProperty('--h', h + 'px');
+}
+
+function distM(a, b) {
+  const R = 6371000, r = (x) => x * Math.PI / 180;
+  const dLa = r(b[0] - a[0]), dLo = r(b[1] - a[1]);
+  const h = Math.sin(dLa / 2) ** 2 + Math.cos(r(a[0])) * Math.cos(r(b[0])) * Math.sin(dLo / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
+/* endereço por extenso: serviço público do OpenStreetMap, no máximo 1 consulta a cada 30 s e só se andou mais de ~60 m */
+async function endereco(lat, lon) {
+  if (endBusca) return;
+  if (endPos && distM(endPos, [lat, lon]) < 60) return;
+  if (Date.now() - endMs < 30000) return;
+  endBusca = true; endMs = Date.now();
+  try {
+    const r = await fetch('https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=18&accept-language=pt-BR&lat=' + lat + '&lon=' + lon);
+    const j = await r.json(), a = j.address || {};
+    const rua = [a.road || a.pedestrian || a.footway, a.house_number].filter(Boolean).join(', ');
+    const bairro = a.suburb || a.neighbourhood || a.quarter || '';
+    const cidade = a.city || a.town || a.village || a.municipality || '';
+    const txt = [rua, bairro, cidade].filter(Boolean).join(' - ');
+    if (txt) { $('end').textContent = txt; endPos = [lat, lon]; }
+  } catch (e) { /* sem endereço: segue só com o mapa */ }
+  endBusca = false;
+}
+
+function desenhar(d) {
+  dados = d;
+  $('telaCarrega').classList.remove('show');
+  $('cartao').style.display = '';
+  $('nome').textContent = d.nome;
+  $('placa').textContent = d.placa ? d.placa.replace(/^([A-Z]{3})(\d)/, '$1-$2') : '';
+  $('placa').style.display = d.placa ? '' : 'none';
+  const p = d.pos;
+  const chips = [];
+  if (!p) {
+    $('end').textContent = 'O rastreador ainda não enviou nenhuma posição.';
+    $('hora').textContent = '';
+    $('chips').innerHTML = '';
+    $('btnRota').style.visibility = $('btnMaps').style.visibility = 'hidden';
+  } else {
+    const anda = p.kmh > 3;
+    chips.push('<span class="chip ' + (anda ? 'mov' : 'par') + '"><i></i>' + (anda ? 'Em movimento · ' + p.kmh + ' km/h' : 'Parado') + '</span>');
+    if (p.ignicao !== null) chips.push('<span class="chip ' + (p.ignicao ? 'on' : '') + '"><i></i>Ignição ' + (p.ignicao ? 'ligada' : 'desligada') + '</span>');
+    $('chips').innerHTML = chips.join('');
+    const velho = p.gpsMs && Date.now() - p.gpsMs > 600000;
+    $('hora').textContent = p.gpsMs ? (velho ? 'Posição de ' + diaHora(p.gpsMs) + ' (há ' + tempo(Date.now() - p.gpsMs) + ')' : 'Posição atualizada às ' + hora(p.gpsMs)) : '';
+    $('hora').classList.toggle('velho', !!velho);
+    const ll = [p.lat, p.lon];
+    $('btnRota').style.visibility = $('btnMaps').style.visibility = 'visible';
+    $('btnRota').href = 'https://www.google.com/maps/dir/?api=1&destination=' + p.lat + ',' + p.lon;
+    $('btnMaps').href = 'https://www.google.com/maps/search/?api=1&query=' + p.lat + ',' + p.lon;
+    if (!mapa) iniciarMapa(p.lat, p.lon);
+    if (!marcador) marcador = L.marker(ll, { icon: iconeSeta(p, d.nome) }).addTo(mapa);
+    else { marcador.setLatLng(ll); marcador.setIcon(iconeSeta(p, d.nome)); }
+    if (seguir) centralizar(false);
+    endereco(p.lat, p.lon);
+    if (!$('end').textContent) $('end').textContent = 'Buscando endereço…';
+  }
+  const vivo = $('vivo');
+  const recente = p && p.chegouMs && Date.now() - p.chegouMs < 600000;
+  vivo.classList.toggle('parado', !recente);
+  vivo.querySelector('span').textContent = recente ? 'AO VIVO' : 'SEM SINAL';
+  atualizarValidade();
+  ajustarAltura();
+}
+
+function centralizar(animar) {
+  if (!mapa || !dados || !dados.pos) return;
+  const ll = [dados.pos.lat, dados.pos.lon];
+  const h = window.innerWidth >= 900 ? 0 : $('cartao').offsetHeight;
+  const ponto = mapa.project(ll, mapa.getZoom()).add([0, h / 2]); /* deixa o veículo no meio do espaço livre acima do cartão */
+  mapa.setView(mapa.unproject(ponto, mapa.getZoom()), mapa.getZoom(), { animate: !!animar });
+}
+
+function atualizarValidade() {
+  if (!dados) return;
+  const falta = dados.expiraMs - Date.now();
+  if (falta <= 0) { erro('Link expirado', 'O prazo deste compartilhamento acabou. Peça um novo link para quem te enviou.'); return; }
+  $('valid').textContent = 'Link válido até ' + diaHora(dados.expiraMs) + ' (faltam ' + tempo(falta) + ')';
+}
+
+async function buscar() {
+  if (encerrado) return;
+  try {
+    const r = await fetch(FN, { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'omit', body: JSON.stringify({ acao: 'compVer', codigo }) });
+    let j = {}; try { j = await r.json(); } catch (e) {}
+    if (r.status === 404 || r.status === 410) { erro('Link indisponível', j.erro || 'Este link não existe ou já foi encerrado.'); return; }
+    if (!r.ok) throw new Error(j.erro || ('erro ' + r.status));
+    falhas = 0;
+    desenhar(j);
+  } catch (e) {
+    falhas++;
+    if (!dados && falhas >= 3) erro('Sem conexão', 'Não consegui carregar a localização. Confira a internet e abra o link de novo.');
+  }
+}
+
+$('btnCentro').onclick = () => { seguir = true; $('btnCentro').classList.add('on'); centralizar(true); };
+window.addEventListener('resize', () => { ajustarAltura(); if (seguir) centralizar(false); });
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') buscar(); });
+
+if (!/^[A-Za-z0-9_-]{16,40}$/.test(codigo)) {
+  erro('Link incompleto', 'Este link está incompleto. Peça para quem te enviou mandar de novo.');
+} else {
+  buscar();
+  setInterval(() => { if (document.visibilityState === 'visible') buscar(); }, 10000);
+  setInterval(atualizarValidade, 30000);
+}
+</script>
+</body>
+</html>
