@@ -85,6 +85,21 @@ try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'){document.do
 .maiscard small{font-size:12px;color:var(--mut);line-height:1.35}
 .maiscard .mdot{position:absolute;top:12px;right:12px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--red);color:#fff;font-size:11px;font-weight:800;line-height:18px;text-align:center;display:none}
 .maiscard .mdot.show{display:block}
+.maisgrid>.maiscard:last-child:nth-child(odd){grid-column:1/-1;min-height:0;flex-direction:row;align-items:center}
+.maiscard .mic.s{background:rgba(124,58,237,.14);color:#8b5cf6}
+/* lista de serviços (links para os formulários do cliente) */
+.svitem{display:flex;align-items:center;gap:12px;width:100%;padding:14px;background:var(--card);border:1px solid var(--line);border-radius:16px;margin-bottom:10px;text-align:left;color:var(--txt);text-decoration:none}
+.svitem:active{transform:scale(.98)}
+.svitem .svic{width:44px;height:44px;flex:none;border-radius:14px;display:flex;align-items:center;justify-content:center}
+.svitem .svic svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.svitem .svic.or{background:rgba(249,115,22,.14);color:#f97316}
+.svitem .svic.rd{background:rgba(227,38,47,.14);color:var(--red2)}
+.svitem .svic.in{background:rgba(99,102,241,.15);color:#6366f1}
+.svitem .svic.pu{background:rgba(147,51,234,.14);color:#a855f7}
+.svitem .svt{flex:1;min-width:0}
+.svitem .svt b{display:block;font-size:15px;line-height:1.2}
+.svitem .svt small{display:block;font-size:12.5px;color:var(--mut);line-height:1.4;margin-top:3px}
+.svitem .svseta{width:18px;height:18px;flex:none;fill:none;stroke:var(--mut);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
 .maisrodape{margin-top:18px;text-align:center;font-size:12px;color:var(--mut);line-height:1.5}
 .voltar{width:34px;height:34px;border-radius:50%;background:var(--card2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;flex:none}
 .voltar svg{width:18px;height:18px;fill:none;stroke:var(--txt);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
@@ -566,13 +581,13 @@ body.desenhando .follow,body.desenhando .sheet,body.desenhando .vazio{display:no
 .alsheet .box2 h3{margin-bottom:4px}
 .alsheet .alfechar{width:100%;margin-top:14px}
 /* "Alertas anteriores": título e X fixos em cima, lista rola no meio, Fechar sempre visível embaixo */
-#mAlMais .box2,#mLoja .box2{display:flex;flex-direction:column;max-height:80vh;overflow:hidden}
-#mAlMais .almtopo,#mLoja .almtopo{flex:none;display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}
-#mAlMais .almtopo h3,#mLoja .almtopo h3{margin:0}
-#mAlMais .almx,#mLoja .almx{width:38px;height:38px;flex:none;border-radius:50%;background:var(--card2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;cursor:pointer}
-#mAlMais .almx svg,#mLoja .almx svg{width:18px;height:18px;fill:none;stroke:var(--txt);stroke-width:2.4;stroke-linecap:round}
-#mAlMais #alMaisLista,#mLoja #lojaRola{flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
-#mAlMais .alfechar,#mLoja .alfechar{flex:none;margin-top:10px}
+#mAlMais .box2,#mLoja .box2,#mServ .box2{display:flex;flex-direction:column;max-height:80vh;overflow:hidden}
+#mAlMais .almtopo,#mLoja .almtopo,#mServ .almtopo{flex:none;display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}
+#mAlMais .almtopo h3,#mLoja .almtopo h3,#mServ .almtopo h3{margin:0}
+#mAlMais .almx,#mLoja .almx,#mServ .almx{width:38px;height:38px;flex:none;border-radius:50%;background:var(--card2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;cursor:pointer}
+#mAlMais .almx svg,#mLoja .almx svg,#mServ .almx svg{width:18px;height:18px;fill:none;stroke:var(--txt);stroke-width:2.4;stroke-linecap:round}
+#mAlMais #alMaisLista,#mLoja #lojaRola,#mServ #servRola{flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+#mAlMais .alfechar,#mLoja .alfechar,#mServ .alfechar{flex:none;margin-top:10px}
 .alnota{font-size:12.5px!important;color:var(--mut);margin:10px 2px 0!important;line-height:1.4}
 .algrupo{background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:0 14px}
 .algrupo .igrow{border-top:1px solid var(--line);padding:11px 0;min-height:52px}
@@ -1041,11 +1056,12 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
   <section class="maisview" id="maisview">
     <div class="vtop">
       <div class="vtitle"><h2>Mais</h2></div>
-      <div class="vcount" id="maisSub">Faturas, loja, indicação e sua conta</div>
+      <div class="vcount" id="maisSub">Faturas, serviços, loja, indicação e sua conta</div>
     </div>
     <div class="vlist">
       <div class="maisgrid">
         <button class="maiscard" id="maisFat" type="button"><span class="mdot" id="maisFatDot">!</span><span class="mic f"><svg viewBox="0 0 24 24"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6M9 13h8M9 17h8"/></svg></span><b>Faturas</b><small id="maisFatTxt">Mensalidades, PIX e segunda via</small></button>
+        <button class="maiscard" id="maisServ" type="button"><span class="mic s"><svg viewBox="0 0 24 24"><path d="M7 10h3v-3l-3.5 -3.5a6 6 0 0 1 8 8l6 6a2 2 0 0 1 -3 3l-6 -6a6 6 0 0 1 -8 -8l3.5 3.5"/></svg></span><b>Serviços</b><small>Manutenção, retirada, titularidade e troca de veículo</small></button>
         <button class="maiscard" id="maisLoja" type="button"><span class="mic l"><svg viewBox="0 0 24 24"><path d="M6 6h15l-1.5 9h-12z"/><path d="M6 6L5 3H2"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/></svg></span><b>Loja</b><small>Tag de emergência, rastreador portátil e mais</small></button>
         <button class="maiscard" id="maisIndique" type="button"><span class="mic g"><svg viewBox="0 0 24 24"><path d="M20 12v9H4v-9"/><path d="M2 7h20v5H2z"/><path d="M12 22V7"/><path d="M12 7H7.5a2.5 2.5 0 010-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 000-5C13 2 12 7 12 7z"/></svg></span><b>Indique e ganhe</b><small>Pegue o seu link de indicação</small></button>
         <button class="maiscard" id="maisConta" type="button"><span class="mic c"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0116 0"/></svg></span><b>Sua conta</b><small>Trocar senha e sair do app</small></button>
@@ -1390,6 +1406,20 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
 
 <!-- Confirmação genérica -->
 <!-- Sua conta: trocar senha (opcional) e sair -->
+<!-- Serviços (11/10/2026): os mesmos formulários do Apps.html (app.rastreandogpsbr.com.br) -->
+<div class="modal alsheet" id="mServ">
+  <div class="box2">
+    <div class="almtopo"><h3>Serviços</h3><button class="almx" data-close type="button" aria-label="Fechar" title="Fechar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <div id="servRola">
+      <p style="margin-bottom:12px">Escolha o serviço. Abre o formulário, e a gente confirma o agendamento com você.</p>
+      <a class="svitem" href="https://app.rastreandogpsbr.com.br/Manutencao.html" target="_blank" rel="noopener"><span class="svic or"><svg viewBox="0 0 24 24"><path d="M7 10h3v-3l-3.5 -3.5a6 6 0 0 1 8 8l6 6a2 2 0 0 1 -3 3l-6 -6a6 6 0 0 1 -8 -8l3.5 3.5"/></svg></span><span class="svt"><b>Manutenção</b><small>Peça uma visita para conserto do rastreador</small></span><svg class="svseta" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></a>
+      <a class="svitem" href="https://app.rastreandogpsbr.com.br/troca.html" target="_blank" rel="noopener"><span class="svic pu"><svg viewBox="0 0 24 24"><path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4"/><path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"/></svg></span><span class="svt"><b>Troca de veículo</b><small>Passe o rastreador para outro veículo e agende a visita</small></span><svg class="svseta" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></a>
+      <a class="svitem" href="https://app.rastreandogpsbr.com.br/titularidade.html" target="_blank" rel="noopener"><span class="svic in"><svg viewBox="0 0 24 24"><path d="M7 10h14l-4 -4"/><path d="M17 14h-14l4 4"/></svg></span><span class="svt"><b>Troca de titularidade</b><small>Vendeu o veículo? Informe o novo dono</small></span><svg class="svseta" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></a>
+      <a class="svitem" href="https://app.rastreandogpsbr.com.br/cancelamento.html" target="_blank" rel="noopener"><span class="svic rd"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M10 10l4 4m0 -4l-4 4"/></svg></span><span class="svt"><b>Retirada</b><small>Cancele o serviço e agende a retirada do rastreador</small></span><svg class="svseta" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></a>
+    </div>
+    <button class="btn btn-out alfechar" data-close type="button">Fechar</button>
+  </div>
+</div>
 <!-- Loja (11/10/2026): v1, o pedido vai pelo WhatsApp da empresa -->
 <div class="modal alsheet" id="mLoja">
   <div class="box2">
@@ -5051,8 +5081,6 @@ const LOJA_WPP='5521980886087'; /* WhatsApp de atendimento da Rastreando GPS (pe
 const LOJA_ITENS=[
   {e:'\u{1F4B3}', n:'Cartão de emergência (NFC)', d:'Encoste no celular e abra o app na hora, sem procurar nada. Ideal para roubo ou emergência.', p:''},
   {e:'\u{1F4E1}', n:'Rastreador portátil', d:'Com bateria própria. Para moto, bicicleta, carga, bolsa ou qualquer coisa que você queira acompanhar.', p:''},
-  {e:'\u{1F697}', n:'Rastreador para outro veículo', d:'Instalação com bloqueio pelo app, igual ao que você já tem.', p:''},
-  {e:'\u{1F527}', n:'Manutenção ou troca de lugar', d:'Rastreador parou de comunicar, trocou de carro ou quer mudar a instalação.', p:''},
 ];
 function maisAtualizar(){
   const nivel=bloqueioNivel||'ok', dot=$('maisFatDot'), nb=$('maisBadge'), tx=$('maisFatTxt');
@@ -5072,6 +5100,7 @@ function lojaDesenhar(){
     window.open('https://wa.me/'+LOJA_WPP+'?text='+encodeURIComponent(msg),'_blank') };
 }
 $('maisFat').onclick=()=>irPara('Faturas');
+$('maisServ').onclick=()=>abrir('mServ');
 $('maisLoja').onclick=()=>{ lojaDesenhar(); abrir('mLoja') };
 $('maisIndique').onclick=()=>window.open(INDICACAO_URL,'_blank'); /* página de indicação do dono: o cliente digita o CPF e pega o link dele */
 $('maisConta').onclick=()=>$('btnSair').onclick();
