@@ -104,7 +104,9 @@ try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'){document.do
 .voltar{width:34px;height:34px;border-radius:50%;background:var(--card2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;flex:none}
 .voltar svg{width:18px;height:18px;fill:none;stroke:var(--txt);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
 /* loja (fotos reais, compra por PIX ou pedido pelo WhatsApp; 11/10/2026) */
-.ljitem{position:relative;display:flex;gap:12px;align-items:flex-start;padding:14px;padding-right:58px;background:var(--card);border:1px solid var(--line);border-radius:16px;margin-bottom:10px}
+.ljitem{position:relative;display:flex;gap:12px;align-items:flex-start;padding:16px 14px 14px;padding-right:58px;background:linear-gradient(180deg,rgba(255,230,0,.10),rgba(255,230,0,.03) 60%);border:none;border-top:4px solid #ffe600;border-radius:16px;margin-bottom:14px;box-shadow:0 3px 12px rgba(0,0,0,.28)}
+:root[data-tema="claro"] .ljitem{background:linear-gradient(180deg,#fff7c2,#fffdf0 60%);box-shadow:0 3px 12px rgba(0,0,0,.08)}
+.ljitem .ljimg{border:none!important;box-shadow:0 1px 4px rgba(0,0,0,.18)}
 .ljitem .lje{font-size:28px;line-height:1;width:44px;height:44px;flex:none;display:flex;align-items:center;justify-content:center;border-radius:14px;background:var(--card2)}
 .ljitem .ljimg{width:76px;height:76px;flex:none;border-radius:14px;object-fit:cover;background:#fff;border:1px solid var(--line);cursor:zoom-in}
 .ljitem .ljt{flex:1;min-width:0}
@@ -122,7 +124,7 @@ try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'){document.do
 /* coluna da foto + botão "Ver detalhes" */
 .ljitem .ljfoto{flex:none;width:84px;display:flex;flex-direction:column;align-items:stretch;gap:8px}
 .ljitem .ljfoto .ljimg{width:84px;height:84px}
-.ljdet{height:30px;border-radius:9px;background:linear-gradient(135deg,#f59e0b,#f97316);color:#fff;font-size:11.5px;font-weight:800;letter-spacing:.2px;box-shadow:0 2px 8px rgba(249,115,22,.35);display:flex;align-items:center;justify-content:center;gap:4px;padding:0 4px;white-space:nowrap}
+.ljdet{height:30px;border-radius:9px;background:#ffe600;color:#2d3277;font-size:11.5px;font-weight:800;letter-spacing:.2px;box-shadow:0 2px 6px rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center;gap:4px;padding:0 4px;white-space:nowrap}
 .ljdet:active{transform:scale(.95)}
 /* modal de detalhes do produto (centralizado) */
 #mLojaDet{align-items:center;padding:16px}
