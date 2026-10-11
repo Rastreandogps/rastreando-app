@@ -1050,21 +1050,29 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
   </div>
 </div>
 
-<!-- Compartilhar -->
-<div class="modal" id="mShare">
+<!-- Compartilhar localização (link com validade, só posição) -->
+<div class="modal alsheet" id="mShare">
   <div class="box2">
     <h3>Compartilhar localização</h3>
-    <p>Quem receber o link vê só a posição deste veículo, sem acesso à sua conta.</p>
+    <p id="shareSub">Quem receber o link vê só a posição deste veículo no mapa, sem acesso à sua conta e sem poder bloquear.</p>
+    <label class="flbl">Por quanto tempo o link vale?</label>
     <div class="opts" id="shareOpts">
-      <button class="opt sel" data-h="1">1 hora</button>
-      <button class="opt" data-h="24">24 horas</button>
-      <button class="opt" data-h="168">7 dias</button>
+      <button class="opt sel" data-h="1" type="button">1 hora</button>
+      <button class="opt" data-h="24" type="button">24 horas</button>
+      <button class="opt" data-h="168" type="button">7 dias</button>
     </div>
-    <div class="link" id="shareLink"></div>
-    <div class="actions2">
-      <button class="btn btn-out" data-close>Fechar</button>
-      <button class="btn btn-red" id="shareCopy">Copiar link</button>
+    <button class="btn btn-red" id="shareGerar" type="button" style="width:100%">Gerar link</button>
+    <div id="shareRes" style="display:none">
+      <div class="link" id="shareLink"></div>
+      <div class="actions2">
+        <button class="btn btn-out" id="shareCopy" type="button">Copiar</button>
+        <button class="btn" id="shareWpp" type="button" style="background:#16a34a;color:#fff">WhatsApp</button>
+      </div>
+      <button class="btn btn-out" id="shareNativo" type="button" style="width:100%;margin-top:8px;display:none">Enviar de outro jeito</button>
     </div>
+    <div class="ferr" id="shareErro" style="margin-top:8px"></div>
+    <div id="shareAtivos"></div>
+    <button class="btn btn-out alfechar" data-close type="button">Fechar</button>
   </div>
 </div>
 
@@ -2559,7 +2567,64 @@ $('btnRua').onclick=()=>{
   const v=ativo(); if(!v) return;
   window.open('https://www.google.com/maps/@?api=1&map_action=pano&viewpoint='+v.pos[0].toFixed(6)+','+v.pos[1].toFixed(6),'_blank','noopener');
 };
-$('btnShare').onclick=()=>toast('Compartilhar: em construção');
+/* ===== COMPARTILHAR LOCALIZAÇÃO (11/10/2026) =====
+   Gera um link com validade (1 h, 24 h ou 7 dias) para a página compartilhar.html, que mostra SÓ a posição
+   deste veículo, sem login. O servidor (ação compCriar/compLista/compEncerrar/compVer) guarda e confere tudo. */
+const COMP_BASE = location.origin + location.pathname.replace(/[^\/]*$/,'') + 'compartilhar.html';
+let shareHoras=1, shareTexto='', shareUrl='';
+const compLink = c => COMP_BASE+'?c='+encodeURIComponent(c);
+const compQuando = ms => new Date(ms).toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}).replace(',',' às');
+function veicShare(){ return veiculos.find(x=>x.id===selId) || null }
+async function shareCarregarAtivos(){
+  const v=veicShare(), box=$('shareAtivos'); if(!v){ box.innerHTML=''; return }
+  try{
+    const j=await fnAl('compLista',{deviceId:v.id}); const l=j.lista||[];
+    box.innerHTML = l.length ? '<div class="alsec" style="margin-top:14px">Links ativos deste veículo</div><div class="algrupo">'+
+      l.map(x=>'<div class="kmitem"><div class="kminfo"><div class="kmt">Válido até '+esc(compQuando(x.expiraMs))+'</div><div class="kms">Criado '+esc(compQuando(x.criadoMs))+'</div></div>'+
+        '<button class="kmdel" type="button" data-cpcopy="'+esc(x.codigo)+'" aria-label="Copiar link" title="Copiar link"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 012-2h10"/></svg></button>'+
+        '<button class="kmdel" type="button" data-cpfim="'+esc(x.codigo)+'">Encerrar</button></div>').join('')+'</div>' : '';
+  }catch(e){ box.innerHTML='' }
+}
+function shareMostrarResultado(url,expiraMs,nome){
+  shareUrl=url;
+  shareTexto='Acompanhe a localização de '+nome+' em tempo real:\n'+url+'\nLink válido até '+compQuando(expiraMs)+'.\nRastreando GPS';
+  $('shareLink').textContent=url; $('shareRes').style.display='';
+  $('shareNativo').style.display=navigator.share?'':'none';
+}
+$('btnShare').onclick=()=>{
+  const v=veicShare(); if(!v){ toast('Escolha um veículo.'); return }
+  shareHoras=1; document.querySelectorAll('#shareOpts .opt').forEach(b=>b.classList.toggle('sel',b.dataset.h==='1'));
+  $('shareSub').textContent='Quem receber o link vê só a posição de '+v.nome+' no mapa, sem acesso à sua conta e sem poder bloquear.';
+  $('shareRes').style.display='none'; $('shareErro').textContent=''; $('shareGerar').disabled=false; $('shareGerar').textContent='Gerar link';
+  $('shareAtivos').innerHTML=''; abrir('mShare'); shareCarregarAtivos();
+};
+$('shareOpts').addEventListener('click',e=>{ const b=e.target.closest('.opt'); if(!b) return; shareHoras=+b.dataset.h; document.querySelectorAll('#shareOpts .opt').forEach(x=>x.classList.toggle('sel',x===b)); });
+$('shareGerar').onclick=async()=>{
+  const v=veicShare(); if(!v) return; const b=$('shareGerar');
+  b.disabled=true; b.textContent='Gerando...'; $('shareErro').textContent='';
+  try{
+    const j=await fnAl('compCriar',{deviceId:v.id,horas:shareHoras});
+    shareMostrarResultado(compLink(j.codigo),j.expiraMs,v.nome);
+    b.textContent='Gerar outro link'; shareCarregarAtivos();
+  }catch(e){ $('shareErro').textContent=e.message||'Não consegui gerar o link.'; b.textContent='Gerar link' }
+  b.disabled=false;
+};
+async function copiarTexto(t){
+  try{ await navigator.clipboard.writeText(t); return true }catch(e){}
+  try{ const a=document.createElement('textarea'); a.value=t; document.body.appendChild(a); a.select(); const ok=document.execCommand('copy'); a.remove(); return ok }catch(e){ return false }
+}
+$('shareCopy').onclick=async()=>{ toast(await copiarTexto(shareTexto)?'Link copiado. Cole no WhatsApp, SMS ou onde quiser.':'Não consegui copiar. Toque e segure no link para copiar.') };
+$('shareWpp').onclick=()=>{ window.open('https://wa.me/?text='+encodeURIComponent(shareTexto),'_blank') };
+$('shareNativo').onclick=async()=>{ try{ await navigator.share({title:'Localização compartilhada',text:shareTexto}) }catch(e){} };
+$('shareAtivos').addEventListener('click',async e=>{
+  const c=e.target.closest('button[data-cpcopy]');
+  if(c){ toast(await copiarTexto(compLink(c.dataset.cpcopy))?'Link copiado.':'Não consegui copiar.'); return }
+  const b=e.target.closest('button[data-cpfim]'); if(!b) return;
+  if(!b.classList.contains('conf')){ b.classList.add('conf'); b.textContent='Encerrar?'; setTimeout(()=>{ if(b.isConnected){ b.classList.remove('conf'); b.textContent='Encerrar' } },4000); return }
+  b.disabled=true;
+  try{ await fnAl('compEncerrar',{codigo:b.dataset.cpfim}); toast('Link encerrado. Quem tinha o link não vê mais a localização.'); if(shareUrl.endsWith(b.dataset.cpfim)) $('shareRes').style.display='none' }catch(err){ toast(err.message) }
+  shareCarregarAtivos();
+});
 
 /* ===== ABAS ===== */
 function irPara(tab){
