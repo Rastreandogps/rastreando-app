@@ -2518,15 +2518,24 @@ function histDesenharParadas(){
   if(hist.camPar) hist.camPar.clearLayers();
   hist.parFilt=lst;
   hist.mkPar=lst.map((s,i)=>L.marker(s.ll,{icon:L.divIcon({className:'hmk',html:'<div class="hpinarea"><div class="hpin par">'+(i+1)+'</div></div>',iconSize:[44,44],iconAnchor:[22,22]}),zIndexOffset:600,bubblingMouseEvents:false})
-    .bindPopup(popParada(s,i),{className:'hpop',closeButton:true,autoPanPaddingBottomRight:[20,($('hpanel').offsetHeight||0)+20]}).addTo(hist.camPar));
+    .on('click',function(){ const pp=this.getPopup(); if(!pp) return; pp.options.autoPanPaddingBottomRight=[20,telaLarga()?40:($('hpanel').offsetHeight||0)+40]; pp.options.autoPanPaddingTopLeft=[telaLarga()?($('hpanel').offsetWidth||0)+40:20,20] })
+    .bindPopup(popParada(s,i),{className:'hpop',closeButton:true,autoPanPaddingTopLeft:[20,20],autoPanPaddingBottomRight:[20,40]}).addTo(hist.camPar));
   $('hNPar').textContent=String(lst.length);
   $('hParLista').innerHTML=lst.length?lst.map((s,i)=>'<div class="hstop" data-i="'+i+'"><span class="n">'+(i+1)+'</span><span>'+(hist.varios?hhData(s.ini)+' ':'')+hhmm(s.ini)+' às '+hhmm(s.fim)+' <small>· '+durCurta(s.dur)+'</small><em class="hend" data-e="'+i+'">'+esc(enderecoGuardado(s.ll)||'')+'</em></span></div>').join(''):'<div class="hstop"><small>Nenhuma parada desse tamanho no período.</small></div>';
-  $('hParLista').onclick=e=>{ const r=e.target.closest('[data-i]'); if(r){ const i=+r.dataset.i, s=lst[i]; map.setView(s.ll,17); setTimeout(()=>{ try{ hist.mkPar[i].openPopup() }catch(er){} },350) } };
+  $('hParLista').onclick=e=>{ const r=e.target.closest('[data-i]'); if(r){ const i=+r.dataset.i, s=lst[i]; histFocar(s.ll,17); setTimeout(()=>{ try{ hist.mkPar[i].openPopup() }catch(er){} },350) } };
   $('hParadas').querySelector('summary').textContent='Paradas ('+lst.length+')';
   enderecosParadas(lst,(i,t)=>{
     const e=$('hParLista').querySelector('[data-e="'+i+'"]'); if(e) e.textContent=t;
     const mk=hist.mkPar&&hist.mkPar[i]; if(mk) mk.setPopupContent(popParada(lst[i],i));
   });
+}
+/* leva o ponto para a parte do mapa que o painel não cobre (no celular, mais para cima, deixando espaço para o balão) */
+function histFocar(ll,z){
+  const p=$('hpanel'), sz=map.getSize(), alvo=map.project(ll,z);
+  let dx=0, dy=0;
+  if(telaLarga()){ dx=-(p.offsetWidth+16)/2 }
+  else { const livre=Math.max(120,sz.y-(p.offsetHeight||0)); dy=sz.y/2-livre*0.72 }
+  map.setView(map.unproject(alvo.add([dx,dy]),z),z,{animate:true});
 }
 /* ===== PDF das paradas (10/10/2026) =====
    Montado no próprio aparelho (bibliotecas jsPDF e AutoTable, carregadas só quando o botão é tocado). Respeita o filtro de paradas. */
