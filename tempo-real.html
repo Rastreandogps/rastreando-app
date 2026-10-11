@@ -104,23 +104,51 @@ try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'){document.do
 .voltar{width:34px;height:34px;border-radius:50%;background:var(--card2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;flex:none}
 .voltar svg{width:18px;height:18px;fill:none;stroke:var(--txt);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
 /* loja (fotos reais, compra por PIX ou pedido pelo WhatsApp; 11/10/2026) */
-.ljitem{display:flex;gap:12px;align-items:flex-start;padding:14px;background:var(--card);border:1px solid var(--line);border-radius:16px;margin-bottom:10px}
+.ljitem{position:relative;display:flex;gap:12px;align-items:flex-start;padding:14px;padding-right:58px;background:var(--card);border:1px solid var(--line);border-radius:16px;margin-bottom:10px}
 .ljitem .lje{font-size:28px;line-height:1;width:44px;height:44px;flex:none;display:flex;align-items:center;justify-content:center;border-radius:14px;background:var(--card2)}
-.ljitem .ljimg{width:76px;height:76px;flex:none;border-radius:14px;object-fit:cover;background:#fff;border:1px solid var(--line)}
+.ljitem .ljimg{width:76px;height:76px;flex:none;border-radius:14px;object-fit:cover;background:#fff;border:1px solid var(--line);cursor:zoom-in}
 .ljitem .ljt{flex:1;min-width:0}
 .ljitem .ljt b{display:block;font-size:15px;line-height:1.2}
 .ljitem .ljt small{display:block;font-size:12.5px;color:var(--mut);line-height:1.4;margin-top:3px}
-.ljitem .ljp{display:inline-block;margin-top:6px;font-size:12px;font-weight:700;color:var(--cyan)}
-.ljitem .ljbtn{margin-top:10px;height:38px;padding:0 12px;border-radius:10px;background:#16a34a;color:#fff;font-weight:700;font-size:13px;display:inline-flex;align-items:center;gap:6px}
-.ljitem .ljbtn svg{width:16px;height:16px;fill:currentColor}
-.ljbtns{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-.ljcomprar{margin-top:10px;height:38px;padding:0 12px;border-radius:10px;background:#2563eb;color:#fff;font-weight:700;font-size:13px;display:inline-flex;align-items:center;gap:6px}
+.ljitem .ljp{display:block;margin-top:6px;font-size:14px;font-weight:800;color:var(--txt)}
+.ljitem .ljp i{font-style:normal;font-size:12px;font-weight:600;color:var(--mut)}
+.ljbtn{height:38px;padding:0 12px;border-radius:10px;background:#16a34a;color:#fff;font-weight:700;font-size:13px;display:inline-flex;align-items:center;gap:6px}
+.ljbtn svg{width:16px;height:16px;fill:currentColor}
+.ljwpp{position:absolute;top:12px;right:12px;width:40px;height:40px;border-radius:50%;background:#25d366;color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+.ljwpp svg{width:22px;height:22px;fill:currentColor}
+.ljwpp:active,.ljcomprar:active{transform:scale(.95)}
+.ljcomprar{margin-top:10px;height:40px;padding:0 18px;border-radius:10px;background:#2563eb;color:#fff;font-weight:700;font-size:14px;display:inline-flex;align-items:center;gap:6px}
 .ljcomprar:disabled{opacity:.6}
+/* resumo do pedido (antes de gerar o PIX) */
+#mLojaRes .ljrtopo{display:flex;gap:12px;align-items:center;margin:8px 0 14px}
+#mLojaRes .ljrtopo img{width:64px;height:64px;border-radius:12px;object-fit:cover;background:#fff;border:1px solid var(--line);flex:none}
+#mLojaRes .ljrtopo b{display:block;font-size:15px;line-height:1.25}
+#mLojaRes .ljrtopo small{display:block;font-size:12.5px;color:var(--mut);margin-top:2px}
+.ljqtd{display:flex;gap:8px;margin-bottom:12px}
+.ljqtd button{flex:1;padding:10px 8px;border-radius:12px;border:2px solid var(--line);background:var(--card2);color:var(--txt);font-weight:700;font-size:13.5px;line-height:1.3}
+.ljqtd button small{display:block;font-weight:600;font-size:12px;color:var(--mut)}
+.ljqtd button.on{border-color:#2563eb;background:rgba(37,99,235,.14)}
+.ljrlin{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid var(--line);font-size:14px}
+.ljrlin.tot{font-weight:800;font-size:16px}
+.ljrnota{font-size:12.5px;color:var(--mut);line-height:1.5;margin:10px 0 0;padding:10px 12px;border-radius:12px;background:var(--card2)}
+#mLojaRes .ljracoes{display:flex;gap:8px;margin-top:14px}
+#mLojaRes .ljracoes button{flex:1;height:46px}
+#ljrGerar{background:#2563eb;color:#fff;border-radius:12px;font-weight:800;font-size:14.5px}
+#ljrGerar:disabled{opacity:.6}
+/* foto ampliada */
+#ljZoom{position:fixed;inset:0;z-index:1200;background:rgba(0,0,0,.92);display:none;align-items:center;justify-content:center;overflow:auto;-webkit-overflow-scrolling:touch}
+#ljZoom.show{display:flex}
+#ljZoom img{max-width:94vw;max-height:84vh;border-radius:12px;background:#fff;transition:transform .2s;cursor:zoom-in;touch-action:pinch-zoom}
+#ljZoom.grande{align-items:flex-start;justify-content:flex-start}
+#ljZoom.grande img{max-width:none;max-height:none;width:200vw;cursor:zoom-out}
+#ljZoom .ljzx{position:fixed;top:14px;right:14px;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;z-index:2}
+#ljZoom .ljzx svg{width:20px;height:20px;fill:none;stroke:#fff;stroke-width:2.6;stroke-linecap:round}
+#ljZoom .ljzdica{position:fixed;bottom:18px;left:0;right:0;text-align:center;color:rgba(255,255,255,.75);font-size:12.5px;pointer-events:none}
 .ljped{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;background:var(--card);border:1px solid var(--line);border-radius:14px;margin-bottom:8px}
 .ljped .ljpt{flex:1;min-width:0}
 .ljped .ljpt b{display:block;font-size:14px;line-height:1.2}
 .ljped .ljpt small{display:block;font-size:12px;color:var(--mut);margin-top:2px}
-.ljped .ljbtn,.ljped .ljcomprar{margin-top:0;flex:none}
+.ljped .ljbtn,.ljped .ljcomprar{margin-top:0;flex:none;height:36px;padding:0 12px;font-size:13px}
 #mLojaPix .box2{display:flex;flex-direction:column;max-height:85vh;overflow:hidden}
 #mLojaPix #ljpRola{flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
 #mLojaPix .alfechar{flex:none;margin-top:10px}
@@ -597,10 +625,10 @@ body.desenhando .follow,body.desenhando .sheet,body.desenhando .vazio{display:no
 .alsheet .alfechar{width:100%;margin-top:14px}
 /* "Alertas anteriores": título e X fixos em cima, lista rola no meio, Fechar sempre visível embaixo */
 #mAlMais .box2,#mLoja .box2,#mServ .box2{display:flex;flex-direction:column;max-height:80vh;overflow:hidden}
-#mAlMais .almtopo,#mLoja .almtopo,#mServ .almtopo{flex:none;display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}
-#mAlMais .almtopo h3,#mLoja .almtopo h3,#mServ .almtopo h3{margin:0}
-#mAlMais .almx,#mLoja .almx,#mServ .almx{width:38px;height:38px;flex:none;border-radius:50%;background:var(--card2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;cursor:pointer}
-#mAlMais .almx svg,#mLoja .almx svg,#mServ .almx svg{width:18px;height:18px;fill:none;stroke:var(--txt);stroke-width:2.4;stroke-linecap:round}
+#mAlMais .almtopo,#mLoja .almtopo,#mServ .almtopo,#mLojaRes .almtopo,#mLojaPix .almtopo{flex:none;display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}
+#mAlMais .almtopo h3,#mLoja .almtopo h3,#mServ .almtopo h3,#mLojaRes .almtopo h3,#mLojaPix .almtopo h3{margin:0}
+#mAlMais .almx,#mLoja .almx,#mServ .almx,#mLojaRes .almx,#mLojaPix .almx{width:38px;height:38px;flex:none;border-radius:50%;background:var(--card2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;cursor:pointer}
+#mAlMais .almx svg,#mLoja .almx svg,#mServ .almx svg,#mLojaRes .almx svg,#mLojaPix .almx svg{width:18px;height:18px;fill:none;stroke:var(--txt);stroke-width:2.4;stroke-linecap:round}
 #mAlMais #alMaisLista,#mLoja #lojaRola,#mServ #servRola{flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
 #mAlMais .alfechar,#mLoja .alfechar,#mServ .alfechar{flex:none;margin-top:10px}
 .alnota{font-size:12.5px!important;color:var(--mut);margin:10px 2px 0!important;line-height:1.4}
@@ -1447,6 +1475,24 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
     <button class="btn btn-out alfechar" data-close type="button">Fechar</button>
   </div>
 </div>
+<!-- Resumo do pedido da loja (confirmação antes de gerar o PIX) -->
+<div class="modal alsheet" id="mLojaRes">
+  <div class="box2">
+    <div class="almtopo"><h3>Resumo do pedido</h3><button class="almx" id="ljrX" type="button" aria-label="Voltar" title="Voltar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <div class="ljrtopo"><img id="ljrImg" alt=""><div><b id="ljrNome"></b><small id="ljrDesc"></small></div></div>
+    <div class="ljqtd" id="ljrQtd"></div>
+    <div class="ljrlin"><span id="ljrItem"></span><span id="ljrValor"></span></div>
+    <div class="ljrlin"><span>Entrega</span><span>Combinada pelo WhatsApp</span></div>
+    <div class="ljrlin tot"><span>Total no PIX</span><span id="ljrTotal"></span></div>
+    <p class="ljrnota">Ao tocar em <b>Gerar PIX de pagamento</b>, criamos a cobrança no seu CPF. Depois de pagar, você combina a entrega com a gente pelo WhatsApp. Se não pagar, a cobrança é cancelada sozinha em 24 horas.</p>
+    <div class="ljracoes">
+      <button class="btn btn-out" id="ljrVoltar" type="button">Voltar</button>
+      <button id="ljrGerar" type="button">Gerar PIX de pagamento</button>
+    </div>
+  </div>
+</div>
+<!-- Foto ampliada da loja -->
+<div id="ljZoom"><button class="ljzx" type="button" aria-label="Fechar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button><img id="ljZoomImg" alt=""><div class="ljzdica">Toque na foto para aumentar · toque fora para fechar</div></div>
 <!-- PIX da loja -->
 <div class="modal alsheet" id="mLojaPix">
   <div class="box2">
@@ -5120,11 +5166,11 @@ const LOJA_WPP='5521980886087'; /* WhatsApp de atendimento da Rastreando GPS (pe
 const LOJA_FOTO='https://rastreandogps.github.io/rastreando-app/loja/';
 const LOJA_ITENS=[
   {img:'nfc.jpg', n:'Cartão de emergência (NFC)', d:'Encoste no celular e abra o app na hora, sem procurar nada. Ideal para roubo ou emergência.',
-   compras:[{k:'nfc1',t:'1 un. · R$ 29,90'},{k:'nfc2',t:'2 un. · R$ 49,90'}]},
+   preco:'a partir de R$ 29,90', opcoes:[{k:'nfc1',t:'1 unidade',v:29.90},{k:'nfc2',t:'2 unidades',v:49.90,sub:'R$ 24,95 cada'}]},
   {img:'ktag.jpg', n:'K-tag', d:'Localizador auxiliar do rastreador. Bateria com duração de até 1 ano e meio.',
-   compras:[{k:'ktag',t:'Comprar · R$ 99,00'}]},
+   preco:'R$ 99,00', opcoes:[{k:'ktag',t:'1 unidade',v:99.00}]},
   {img:'portatil.jpg', n:'Rastreador portátil', d:'Com bateria própria. Para moto, bicicleta, carga, bolsa ou qualquer coisa que você queira acompanhar.',
-   compras:[{k:'portatil',t:'Comprar · R$ 320,00'}]},
+   preco:'R$ 320,00', opcoes:[{k:'portatil',t:'1 unidade',v:320.00}]},
 ];
 function maisAtualizar(){
   const nivel=bloqueioNivel||'ok', dot=$('maisFatDot'), nb=$('maisBadge'), tx=$('maisFatTxt');
@@ -5137,14 +5183,21 @@ function maisAtualizar(){
 const LOJA_SVG_WPP='<svg viewBox="0 0 24 24"><path d="M17.5 14.4c-.3-.1-1.8-.9-2-1-.3-.1-.5-.1-.7.1-.2.3-.8 1-.9 1.2-.2.2-.3.2-.6.1-.3-.1-1.3-.5-2.4-1.5-.9-.8-1.5-1.8-1.7-2.1-.2-.3 0-.5.1-.6l.4-.5c.1-.2.2-.3.3-.5.1-.2 0-.4 0-.5l-.9-2.2c-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.1c.1.2 2.1 3.2 5.1 4.5 1.9.8 2.6.7 3.1.6.6-.1 1.8-.7 2-1.4.2-.7.2-1.3.2-1.4-.1-.1-.3-.2-.6-.3zM12 2a10 10 0 00-8.6 15.1L2 22l5-1.3A10 10 0 1012 2z"/></svg>';
 function lojaLogin(){ return (lsGet('rg_email')||'').split('@')[0] }
 function lojaDesenhar(){
-  $('lojaLista').innerHTML=LOJA_ITENS.map((it,i)=>'<div class="ljitem"><img class="ljimg" src="'+LOJA_FOTO+it.img+'" alt="" loading="lazy"><div class="ljt"><b>'+esc(it.n)+'</b><small>'+esc(it.d)+'</small>'+
-    '<div class="ljbtns">'+it.compras.map(c=>'<button class="ljcomprar" type="button" data-k="'+c.k+'">'+esc(c.t)+'</button>').join('')+
-    '<button class="ljbtn" type="button" data-lw="'+i+'" title="Pedir pelo WhatsApp">'+LOJA_SVG_WPP+'WhatsApp</button></div></div></div>').join('');
+  $('lojaLista').innerHTML=LOJA_ITENS.map((it,i)=>'<div class="ljitem">'+
+    '<button class="ljwpp" type="button" data-lw="'+i+'" aria-label="Perguntar pelo WhatsApp" title="Perguntar pelo WhatsApp">'+LOJA_SVG_WPP+'</button>'+
+    '<img class="ljimg" src="'+LOJA_FOTO+it.img+'" alt="'+esc(it.n)+'" loading="lazy" data-zoom="'+i+'">'+
+    '<div class="ljt"><b>'+esc(it.n)+'</b><small>'+esc(it.d)+'</small>'+
+    '<span class="ljp">'+(it.preco.startsWith('a partir')?'<i>a partir de </i>'+esc(it.preco.replace('a partir de ','')):esc(it.preco))+'</span>'+
+    '<button class="ljcomprar" type="button" data-compra="'+i+'">Comprar</button></div></div>').join('');
   $('lojaPedidos').innerHTML='';
   lojaPedidosDesenhar();
   $('lojaRola').onclick=e=>{
-    const bc=e.target.closest('[data-k]');
-    if(bc){ lojaComprarPix(bc.dataset.k,bc); return }
+    const bz=e.target.closest('[data-zoom]');
+    if(bz){ lojaZoom(LOJA_FOTO+LOJA_ITENS[+bz.dataset.zoom].img); return }
+    const bc=e.target.closest('[data-compra]');
+    if(bc){ lojaResumo(+bc.dataset.compra); return }
+    const bp=e.target.closest('[data-k]'); /* "Pagar" de um pedido aguardando: reabre o mesmo PIX (o servidor devolve o mesmo em até 30 min) */
+    if(bp){ lojaComprarPix(bp.dataset.k,bp); return }
     const bw=e.target.closest('[data-lw]');
     if(bw){ const it=LOJA_ITENS[+bw.dataset.lw]; if(!it) return; const quem=lojaLogin();
       const msg='Olá! Vim pelo app da Rastreando GPS e quero saber sobre: *'+it.n+'*.'+(quem?'\nMeu login no app: '+quem:'');
@@ -5153,6 +5206,46 @@ function lojaDesenhar(){
     if(be){ lojaWppEntrega(be.dataset.ln||'',be.dataset.lent||''); return }
   };
 }
+/* ----- resumo do pedido: 2 etapas, o PIX só é gerado no botão "Gerar PIX de pagamento" ----- */
+let lojaResItem=null, lojaResOp=null;
+function lojaResumo(i){
+  const it=LOJA_ITENS[i]; if(!it) return;
+  lojaResItem=it; lojaResOp=it.opcoes[0];
+  $('ljrImg').src=LOJA_FOTO+it.img; $('ljrNome').textContent=it.n; $('ljrDesc').textContent=it.d;
+  const q=$('ljrQtd');
+  if(it.opcoes.length>1){
+    q.style.display='';
+    q.innerHTML=it.opcoes.map((o,j)=>'<button type="button" data-op="'+j+'">'+esc(o.t)+'<small>'+brl(o.v)+(o.sub?' · '+esc(o.sub):'')+'</small></button>').join('');
+    q.onclick=e=>{ const b=e.target.closest('[data-op]'); if(!b) return; lojaResOp=it.opcoes[+b.dataset.op]; lojaResPintar() };
+  } else { q.style.display='none'; q.innerHTML='' }
+  lojaResPintar();
+  $('ljrGerar').disabled=false; $('ljrGerar').textContent='Gerar PIX de pagamento';
+  $('mLojaRes').classList.add('show');
+}
+function lojaResPintar(){
+  const it=lojaResItem, o=lojaResOp;
+  $('ljrItem').textContent=it.n+(it.opcoes.length>1?' · '+o.t:'');
+  $('ljrValor').textContent=brl(o.v); $('ljrTotal').textContent=brl(o.v);
+  document.querySelectorAll('#ljrQtd [data-op]').forEach((b,j)=>b.classList.toggle('on',it.opcoes[j]===o));
+}
+function lojaResFechar(){ $('mLojaRes').classList.remove('show') }
+$('ljrVoltar').onclick=lojaResFechar; $('ljrX').onclick=lojaResFechar;
+$('ljrGerar').onclick=async()=>{
+  const b=$('ljrGerar'); if(b.disabled||!lojaResOp) return;
+  b.disabled=true; b.textContent='Gerando PIX...';
+  try{
+    const r=await fnLoja('lojaComprar',{produto:lojaResOp.k});
+    if(r.semCpf||r.semCadastro){ toast('Seu CPF ainda não está vinculado ao financeiro. Fale com a gente pelo WhatsApp que resolvemos na hora.',5000); b.disabled=false; b.textContent='Gerar PIX de pagamento'; return }
+    lojaResFechar(); lojaAbrirPix(r);
+  }catch(e){ toast(e.message); b.disabled=false; b.textContent='Gerar PIX de pagamento' }
+};
+/* ----- foto ampliada: toque na foto aumenta/diminui; toque fora ou no X fecha ----- */
+function lojaZoom(src){ const z=$('ljZoom'); z.classList.remove('grande'); $('ljZoomImg').src=src; z.classList.add('show') }
+$('ljZoom').onclick=e=>{
+  const z=$('ljZoom');
+  if(e.target.id==='ljZoomImg'){ z.classList.toggle('grande'); if(z.classList.contains('grande')){ z.scrollLeft=(z.scrollWidth-z.clientWidth)/2; z.scrollTop=(z.scrollHeight-z.clientHeight)/2 } return }
+  z.classList.remove('show','grande');
+};
 /* ----- compra por PIX (as ações lojaComprar/lojaStatus/lojaPedidos ficam no rastreamento-desbloqueio.js) ----- */
 async function fnLoja(acao,extra){
   const tok=lsGet('rg_token');
