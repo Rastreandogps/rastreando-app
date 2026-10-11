@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
-<meta name="referrer" content="no-referrer">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="theme-color" content="#0f1115">
 <title>Localização compartilhada · Rastreando GPS</title>
 <link rel="icon" href="icon-192.png">
@@ -270,6 +270,11 @@ function mostrarEta() {
     return;
   }
   box.classList.remove('chegou');
+  if (p.gpsMs && Date.now() - p.gpsMs > 15 * 60000) { /* posição velha: previsão seria enganosa */
+    $('etaMin').innerHTML = '—';
+    $('etaInfo').innerHTML = '<b>Aguardando a posição atual do técnico.</b><br>A previsão de chegada aparece assim que o rastreador atualizar.';
+    return;
+  }
   if (rota && rotaDe && distM(rotaDe, [p.lat, p.lon]) < 400) {
     /* rota recalculada a cada minuto ou quando o técnico anda 150 m */
     const min = Math.max(1, Math.round(rota.s * 1.25 / 60)); /* +25% por causa do trânsito (estimativa) */
