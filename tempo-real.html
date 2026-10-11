@@ -899,6 +899,52 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
 #aview .abar .atab svg{width:20px;height:20px}
 #aview .abar .search{flex:1;min-width:0;margin:0;height:44px}
 #aview .aico{flex:none;width:44px;height:44px;border-radius:13px;border:1px solid var(--line);background:var(--card);color:var(--mut);display:flex;align-items:center;justify-content:center;cursor:pointer}
+/* importar equipamentos em massa (11/10/2026) */
+#mImport{align-items:center;padding:12px}
+#mImport .box2{max-width:820px;border-radius:18px;max-height:92vh;display:flex;flex-direction:column;overflow:hidden}
+#mImport .imrola{flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+#mImport .imtopo{flex:none;display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}
+#mImport .imtopo h3{margin:0}
+#mImport .imx{width:38px;height:38px;flex:none;border-radius:50%;background:var(--card2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;cursor:pointer}
+#mImport .imx svg{width:18px;height:18px;fill:none;stroke:var(--txt);stroke-width:2.4;stroke-linecap:round}
+#mImport p{font-size:13.5px;line-height:1.5;margin-bottom:8px}
+#mImport .imcols{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 10px}
+#mImport .imcols span{font-size:12px;font-weight:700;padding:4px 9px;border-radius:8px;background:var(--card2);border:1px solid var(--line)}
+#mImport .imcols span i{font-style:normal;font-weight:500;color:var(--mut)}
+#imTexto{width:100%;min-height:170px;resize:vertical;font:13px/1.45 ui-monospace,Menlo,Consolas,monospace;background:var(--card2);color:var(--txt);border:1px solid var(--line);border-radius:12px;padding:10px;white-space:pre;overflow-wrap:normal;overflow-x:auto}
+#mImport .imlink{background:none;border:none;color:var(--cyan);font-weight:700;font-size:13px;padding:4px 0;cursor:pointer;text-decoration:underline}
+#mImport .imres{display:flex;flex-wrap:wrap;gap:8px;margin:2px 0 10px}
+#mImport .imres b{font-size:13px;padding:5px 10px;border-radius:9px}
+#mImport .imres .ok{background:rgba(22,163,74,.16);color:#16a34a}
+#mImport .imres .er{background:rgba(225,29,72,.14);color:#e11d48}
+#mImport .imtab{width:100%;border-collapse:collapse;font-size:12.5px}
+#mImport .imtab th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.3px;color:var(--mut);padding:6px 6px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--card)}
+#mImport .imtab td{padding:7px 6px;border-bottom:1px solid var(--line);vertical-align:top;word-break:break-word}
+#mImport .imtab tr.er td{background:rgba(225,29,72,.07)}
+#mImport .imtab .st{font-weight:700;white-space:nowrap}
+#mImport .imtab tr.ok .st{color:#16a34a}
+#mImport .imtab tr.er .st{color:#e11d48;white-space:normal}
+#mImport .imwrap{border:1px solid var(--line);border-radius:12px;max-height:46vh;overflow-y:auto}
+#mImport .imli{display:flex;gap:10px;padding:9px 12px;border-bottom:1px solid var(--line)}
+#mImport .imli:last-child{border-bottom:none}
+#mImport .imli.er{background:rgba(225,29,72,.07)}
+#mImport .imli .imn{flex:none;width:22px;font-size:12px;color:var(--mut);padding-top:2px}
+#mImport .imli .imt{flex:1;min-width:0}
+#mImport .imli .imt b{display:block;font-size:14px;line-height:1.25}
+#mImport .imli .imt small{display:block;font-size:12px;color:var(--mut);margin-top:2px;line-height:1.4;word-break:break-word}
+#mImport .imli .imst{display:block;font-size:12.5px;font-weight:700;margin-top:3px}
+#mImport .imli.ok .imst{color:#16a34a}
+#mImport .imli.er .imst{color:#e11d48}
+#mImport .imacoes{flex:none;display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+#mImport .imacoes.um{grid-template-columns:1fr}
+#mImport .improg{font-size:14px;font-weight:700;margin:10px 0}
+#mImport .imsms{margin-top:14px;padding:12px;border-radius:14px;background:var(--card2);border:1px solid var(--line)}
+#mImport .imsms h4{font-size:15px;margin-bottom:6px}
+#mImport .imsms label{display:flex;align-items:flex-start;gap:8px;font-size:13.5px;padding:6px 0;cursor:pointer}
+#mImport .imsms label input{margin-top:3px;width:18px;height:18px;flex:none}
+#mImport .imsms label small{display:block;color:var(--mut);font-size:12px}
+#mImport .imsms .perigo{color:#e11d48}
+#mImport .imsms .imconta{font-size:12.5px;color:var(--mut);margin-top:6px;line-height:1.45}
 #aview .aico svg{width:20px;height:20px}
 #aview .aico.anovo{width:46px;height:46px;margin:0;border:0;color:#fff;border-radius:50%}
 #aview .aico.anovo.verde{background:linear-gradient(135deg,#22b35e,#16a34a);box-shadow:0 6px 14px rgba(22,163,74,.3)}
@@ -1168,6 +1214,7 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
         </div>
         <input class="search" id="aSearch" type="search" placeholder="Buscar" autocomplete="off">
         <button class="aico" id="aFinAtualizar" style="display:none" title="Atualizar situação financeira" aria-label="Atualizar situação financeira"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg></button>
+        <button class="aico" id="aImportar" title="Importar equipamentos da planilha" aria-label="Importar equipamentos da planilha"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 9v12M15 9v12"/></svg></button>
         <button class="aico anovo" id="aNovo" title="Novo equipamento" aria-label="Novo equipamento"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
       </div>
       <div class="ameta"><b id="aCount"></b><span id="aFinTxt"></span><span id="aTabNome" hidden></span></div>
@@ -1391,6 +1438,38 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
     <div class="actions2">
       <button class="btn btn-out" data-close>Cancelar</button>
       <button class="btn btn-red" id="eSalvar">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Importar equipamentos da planilha (11/10/2026) -->
+<div class="modal" id="mImport">
+  <div class="box2">
+    <div class="imtopo"><h3 id="imTit">Importar equipamentos</h3><button class="imx" id="imX" type="button" aria-label="Fechar" title="Fechar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <div class="imrola" id="imRola">
+      <div id="imP1">
+        <p>Na planilha (Excel ou Google Planilhas), selecione as linhas, copie e cole aqui embaixo. Pode colar com ou sem a linha de títulos.</p>
+        <div class="imcols"><span>Nome</span><span>IMEI</span><span>Chip <i>(com DDD)</i></span><span>Placa <i>(opcional)</i></span><span>Cliente <i>(login ou e-mail, opcional)</i></span></div>
+        <textarea id="imTexto" spellcheck="false" placeholder="Moto do João&#9;865190073599055&#9;(11) 92224-2936&#9;ABC1D23&#9;joao"></textarea>
+        <button class="imlink" id="imModelo" type="button">Baixar a planilha modelo</button>
+      </div>
+      <div id="imP2" style="display:none">
+        <div class="imres" id="imRes"></div>
+        <div class="imwrap" id="imCorpo"></div>
+        <div class="improg" id="imProg"></div>
+        <div class="imsms" id="imSms" style="display:none">
+          <h4>Enviar a configuração por SMS</h4>
+          <p style="margin-bottom:4px">Para os equipamentos cadastrados agora que têm chip. Sai pelo servidor (SMS Market).</p>
+          <label><input type="checkbox" id="imSApn" checked><span>APN<small>APN,ss.vivo.com.br,vivo,vivo#</small></span></label>
+          <label><input type="checkbox" id="imSIp" checked><span>IP e Porta<small>SERVER,0,179.199.150.156,5023,0# · o rastreador deixa de aparecer na plataforma antiga</small></span></label>
+          <label><input type="checkbox" id="imSImed" checked><span class="perigo">Bloqueio imediato<small>SZCS#SOURCE_OFF_TYPE=1 · corta em qualquer velocidade</small></span></label>
+          <div class="imconta" id="imConta"></div>
+        </div>
+      </div>
+    </div>
+    <div class="imacoes" id="imAcoes">
+      <button class="btn btn-out" id="imVoltar" type="button">Cancelar</button>
+      <button class="btn btn-red" id="imOk" type="button">Conferir</button>
     </div>
   </div>
 </div>
@@ -3780,6 +3859,7 @@ function desenharAdmin(){
   if($('aSearch').placeholder!==ph){ buscaAdmin[abaAnt||'equip']=$('aSearch').value; $('aSearch').value=buscaAdmin[abaAdmin]||''; $('aSearch').placeholder=ph }
   abaAnt=abaAdmin;
   $('aFinAtualizar').style.display = abaAdmin==='cli' ? '' : 'none';
+  $('aImportar').style.display = abaAdmin==='equip' ? '' : 'none';
   $('aProteger').style.display = 'none'; /* botão aposentado: cliente novo já nasce com os comandos liberados */
   if($('aFiltros')) $('aFiltros').hidden = abaAdmin!=='cli';
   if(abaAdmin==='equip') desenharEquip(); else desenharClientes();
@@ -4312,6 +4392,172 @@ $('eSalvar').onclick=async ()=>{
     if(!e.sessao) erro(e.message && e.message!=='Failed to fetch' ? e.message : 'Não consegui falar com o servidor.');
   }
   $('eSalvar').disabled=false;
+};
+
+/* --- Importar equipamentos em massa (11/10/2026) ---
+   O dono cola linhas copiadas da planilha (colunas Nome, IMEI, Chip, Placa, Cliente). O app confere tudo antes
+   (IMEI com 15 números, IMEI e chip NUNCA repetidos, placa, cliente existente), mostra a prévia e cadastra só as
+   linhas certas, do mesmo jeito do cadastro de um por um. Depois pode mandar APN, IP/Porta e Bloq. imediato por SMS. */
+const IM_MAX=200;
+let imLinhas=[], imFase='colar', imCriados=[], imOcupado=false;
+const imChave=n=>{ let t=soDigitos(n); if(t.length>11 && t.indexOf('55')===0) t=t.slice(2); return t.length>=10 ? t.slice(0,2)+t.slice(-8) : t };
+function imAbrir(){
+  imLinhas=[]; imCriados=[]; imFase='colar'; imOcupado=false;
+  $('imTit').textContent='Importar equipamentos';
+  $('imP1').style.display=''; $('imP2').style.display='none'; $('imSms').style.display='none'; $('imProg').textContent='';
+  $('imVoltar').textContent='Cancelar'; $('imOk').textContent='Conferir'; $('imOk').disabled=false; $('imOk').style.display='';
+  $('imAcoes').classList.remove('um');
+  abrir('mImport'); setTimeout(()=>$('imTexto').focus(),60);
+}
+function imFechar(){ if(imOcupado){ toast('Aguarde terminar.'); return } $('mImport').classList.remove('show') }
+$('imX').onclick=imFechar;
+$('aImportar').onclick=imAbrir;
+$('imModelo').onclick=()=>{
+  const csv='﻿Nome;IMEI;Chip;Placa;Cliente\r\nMoto do João;865190073599055;(11) 92224-2936;ABC1D23;joao\r\n';
+  const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+  const a=document.createElement('a'); a.href=url; a.download='modelo-equipamentos.csv'; document.body.appendChild(a); a.click();
+  setTimeout(()=>{ URL.revokeObjectURL(url); a.remove() },1000);
+};
+/* lê o texto colado: separador TAB (Excel/Google), ";" ou ","; com ou sem linha de títulos */
+function imLer(txt){
+  const linhas=String(txt||'').replace(/\r/g,'').split('\n').map(l=>l.replace(/\s+$/,'')).filter(l=>l.trim());
+  if(!linhas.length) return {erro:'Cole as linhas da planilha.'};
+  const sep=linhas[0].indexOf('\t')>=0?'\t':(linhas[0].indexOf(';')>=0?';':',');
+  let cel=linhas.map(l=>l.split(sep).map(c=>c.trim().replace(/^"(.*)"$/,'$1').trim()));
+  let ordem={nome:0,imei:1,chip:2,placa:3,cliente:4};
+  const tit=cel[0].map(c=>c.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,''));
+  if(tit.some(c=>/imei/.test(c))){
+    const ach=re=>tit.findIndex(c=>re.test(c));
+    ordem={nome:ach(/nome|veiculo|equip/),imei:ach(/imei/),chip:ach(/chip|telefone|fone|numero|celular|linha/),placa:ach(/placa/),cliente:ach(/cliente|login|e-?mail|usuario/)};
+    cel=cel.slice(1);
+  }
+  if(!cel.length) return {erro:'Só encontrei a linha de títulos. Cole também as linhas dos equipamentos.'};
+  if(cel.length>IM_MAX) return {erro:'São '+cel.length+' linhas. Importe no máximo '+IM_MAX+' de cada vez.'};
+  const pega=(r,k)=>ordem[k]>=0 && ordem[k]<r.length ? r[ordem[k]] : '';
+  return {linhas:cel.map((r,i)=>({n:i+1,nome:pega(r,'nome'),imei:soDigitos(pega(r,'imei')),imeiTxt:pega(r,'imei'),chip:soDigitos(pega(r,'chip')),chipTxt:pega(r,'chip'),placa:pega(r,'placa').toUpperCase().replace(/[^A-Z0-9]/g,''),placaTxt:pega(r,'placa'),cliente:pega(r,'cliente')}))};
+}
+/* confere cada linha contra a planilha e contra o servidor */
+async function imConferir(){
+  const r=imLer($('imTexto').value);
+  if(r.erro){ toast(r.erro,5000); return }
+  $('imOk').disabled=true; $('imOk').textContent='Conferindo...';
+  let todos;
+  try{
+    const rl=await api('/api/devices');
+    if(!rl.ok) throw new Error('x');
+    todos=await rl.json();
+    await carregarUsuarios();
+  }catch(e){ if(!e.sessao) toast('Não consegui conferir no servidor se o IMEI e o chip já existem. Tente de novo.',6000); $('imOk').disabled=false; $('imOk').textContent='Conferir'; return }
+  const imeisSrv=new Map(todos.map(x=>[soDigitos(x.uniqueId),x.name||'outro equipamento']));
+  const chipsSrv=new Map(todos.filter(x=>x.phone).map(x=>[imChave(x.phone),x.name||'outro equipamento']));
+  const contI={}, contC={};
+  r.linhas.forEach(l=>{ if(l.imei) contI[l.imei]=(contI[l.imei]||0)+1; if(l.chip) { const k=imChave(l.chip); contC[k]=(contC[k]||0)+1 } });
+  const clientes=usuarios.filter(u=>!u.administrator);
+  r.linhas.forEach(l=>{
+    const e=[];
+    if(!l.nome) e.push('falta o nome');
+    if(l.imei.length!==15) e.push(l.imei?'IMEI com '+l.imei.length+' números (precisa de 15)':'falta o IMEI');
+    else if(imeisSrv.has(l.imei)) e.push('IMEI já cadastrado em "'+imeisSrv.get(l.imei)+'"');
+    else if(contI[l.imei]>1) e.push('IMEI repetido na planilha');
+    if(l.chip){
+      const k=imChave(l.chip);
+      if(l.chip.length<10) e.push('chip sem DDD');
+      else if(chipsSrv.has(k)) e.push('chip já está em "'+chipsSrv.get(k)+'"');
+      else if(contC[k]>1) e.push('chip repetido na planilha');
+    }
+    if(l.placa && !/^[A-Z]{3}[0-9][A-Z0-9][0-9]{2}$/.test(l.placa)) e.push('placa inválida');
+    l.user=null;
+    if(l.cliente){ l.user=clientes.find(u=>casaUsuario(u,l.cliente)) || clientes.find(u=>casaUsuario(u,l.cliente.toLowerCase()+EMAIL_FALSO)) || null; if(!l.user) e.push('cliente "'+l.cliente+'" não encontrado') }
+    l.erros=e; l.estado=e.length?'erro':'ok';
+  });
+  imLinhas=r.linhas; imFase='previa';
+  imDesenhar();
+  $('imP1').style.display='none'; $('imP2').style.display='';
+  const ok=imLinhas.filter(l=>l.estado==='ok').length;
+  $('imVoltar').textContent='Voltar'; $('imOk').disabled=!ok; $('imOk').textContent=ok?'Cadastrar '+ok+(ok===1?' equipamento':' equipamentos'):'Nada para cadastrar';
+  $('imRola').scrollTop=0;
+}
+function imDesenhar(){
+  const ok=imLinhas.filter(l=>l.estado==='ok'||l.estado==='feito').length, er=imLinhas.filter(l=>l.estado==='erro'||l.estado==='falhou').length;
+  const feito=imFase==='feito';
+  $('imRes').innerHTML='<b class="ok">'+ok+(feito?' cadastrados':' prontos')+'</b>'+(er?'<b class="er">'+er+(feito?' não cadastrados':' com erro (ficam de fora)')+'</b>':'');
+  $('imCorpo').innerHTML=imLinhas.map(l=>{
+    const st={ok:'Pronto',feito:'Cadastrado ✓',erro:l.erros.join('; '),falhou:'Não cadastrado: '+(l.falha||'erro'),indo:'Cadastrando…'}[l.estado]||'';
+    const cls=(l.estado==='erro'||l.estado==='falhou')?'er':'ok';
+    const det=['IMEI '+(l.imeiTxt||'—'), 'Chip '+(l.chip?fmtFone(l.chip):'—'), l.placa?'Placa '+l.placa:'', (l.user||l.cliente)?'Cliente '+(l.user?(l.user.name||loginDe(l.user)):l.cliente):'Sem cliente'].filter(Boolean).join(' · ');
+    return '<div class="imli '+cls+'"><span class="imn">'+l.n+'</span><span class="imt"><b>'+esc(l.nome||'(sem nome)')+'</b><small>'+esc(det)+'</small><span class="imst">'+esc(st)+(l.vincFalhou?' (não vinculou ao cliente)':'')+'</span></span></div>'}).join('');
+}
+async function imCadastrar(){
+  const fila=imLinhas.filter(l=>l.estado==='ok'); if(!fila.length) return;
+  imOcupado=true; $('imOk').disabled=true; $('imVoltar').disabled=true;
+  imCriados=[];
+  let i=0;
+  for(const l of fila){
+    i++; $('imProg').textContent='Cadastrando '+i+' de '+fila.length+'...'; l.estado='indo'; imDesenhar();
+    try{
+      const at=l.placa?{placa:l.placa}:{};
+      const r=await api('/api/devices',{method:'POST',headers:JSONH,body:JSON.stringify({name:l.nome,uniqueId:l.imei,phone:l.chip,contact:l.user?loginDe(l.user).toLowerCase():'',attributes:at})});
+      if(!r.ok) throw new Error(await msgErro(r,'o servidor recusou'));
+      const d=await r.json();
+      if(l.user){ try{ await vincular(l.user.id,d.id) }catch(e){ if(e.sessao) throw e; l.vincFalhou=true } }
+      l.estado='feito'; l.devId=d.id; imCriados.push({id:d.id,nome:l.nome,chip:l.chip});
+    }catch(e){ if(e.sessao){ imOcupado=false; return } l.estado='falhou'; l.falha=e.message||'erro' }
+    imDesenhar();
+  }
+  imFase='feito'; imOcupado=false; $('imVoltar').disabled=false;
+  const ok=imCriados.length, comChip=imCriados.filter(x=>x.chip).length;
+  $('imProg').textContent=ok?'Pronto: '+ok+(ok===1?' equipamento cadastrado.':' equipamentos cadastrados.'):'Nenhum equipamento foi cadastrado.';
+  imDesenhar();
+  buscando=false; try{ await buscarSeguro() }catch(e){} vinculos={}; desenharAdmin(); carregarVinculos();
+  if(comChip){
+    $('imSms').style.display=''; imContar();
+    $('imVoltar').textContent='Fechar'; $('imOk').disabled=false; $('imOk').textContent='Enviar SMS';
+  } else { $('imOk').style.display='none'; $('imAcoes').classList.add('um'); $('imVoltar').textContent='Fechar' }
+}
+const IM_TIPOS=[['imSApn','apn','APN'],['imSIp','ip','IP e Porta'],['imSImed','imediato','Bloqueio imediato']];
+function imContar(){
+  const n=imCriados.filter(x=>x.chip).length, t=IM_TIPOS.filter(x=>$(x[0]).checked).length, total=n*t;
+  $('imConta').innerHTML=total?(n+(n===1?' equipamento':' equipamentos')+' × '+t+' SMS = <b>'+total+' SMS</b> (cerca de R$ '+(total*0.10).toFixed(2).replace('.',',')+').'+
+    (total>100?' <b class="perigo">Passa do limite de 100 SMS do administrador por dia: o que passar será recusado; mande o resto amanhã.</b>':'')+' A ordem de envio é APN, IP e Porta, Bloqueio imediato, um aparelho de cada vez.'):'Marque pelo menos um SMS.';
+  if(imFase==='feito') $('imOk').disabled=!total;
+}
+IM_TIPOS.forEach(x=>$(x[0]).addEventListener('change',imContar));
+async function imEnviarSms(){
+  const tipos=IM_TIPOS.filter(x=>$(x[0]).checked); const alvos=imCriados.filter(x=>x.chip);
+  if(!tipos.length||!alvos.length) return;
+  if(!confirmarImediato()) return;
+  imOcupado=true; $('imOk').disabled=true; $('imVoltar').disabled=true; IM_TIPOS.forEach(x=>$(x[0]).disabled=true);
+  const total=tipos.length*alvos.length; let n=0, ok=0; const falhas=[];
+  for(const a of alvos){
+    for(const t of tipos){
+      n++; $('imProg').textContent='Enviando SMS '+n+' de '+total+' ('+t[2]+' para '+a.nome+')...';
+      try{
+        const r=await fetch(DESB_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',body:JSON.stringify({acao:'smsConfig',tipo:t[1],token:lsGet('rg_token'),deviceId:a.id})});
+        let j={}; try{ j=await r.json() }catch(e){}
+        if(!r.ok) throw new Error(j.erro||('erro '+r.status));
+        ok++;
+      }catch(e){ falhas.push(a.nome+' ('+t[2]+'): '+(e.message||'erro')) }
+      await new Promise(res=>setTimeout(res,400));
+    }
+  }
+  imOcupado=false; $('imVoltar').disabled=false; $('imVoltar').textContent='Fechar';
+  $('imConta').textContent=ok?'Configuração enviada. Os rastreadores aplicam quando recebem o SMS (pode levar alguns minutos).':'';
+  $('imOk').style.display='none'; $('imAcoes').classList.add('um');
+  $('imProg').innerHTML=esc(ok+' de '+total+' SMS enviados.')+(falhas.length?'<br><span style="color:#e11d48;font-weight:600;font-size:13px">Não enviados: '+esc(falhas.join(' · '))+'</span>':'');
+  $('imRola').scrollTop=$('imRola').scrollHeight;
+}
+let imConfirmouImed=false;
+function confirmarImediato(){
+  if(!$('imSImed').checked || imConfirmouImed) return true;
+  imConfirmouImed=true;
+  $('imConta').innerHTML='<b class="perigo">Bloqueio imediato marcado: estes rastreadores vão cortar o motor assim que receberem um bloqueio, em qualquer velocidade. Toque em "Enviar SMS" de novo para confirmar.</b>';
+  return false;
+}
+$('imOk').onclick=()=>{ if(imFase==='colar') imConferir(); else if(imFase==='previa') imCadastrar(); else if(imFase==='feito') imEnviarSms() };
+$('imVoltar').onclick=()=>{
+  if(imOcupado) return;
+  if(imFase==='previa'){ imFase='colar'; $('imP1').style.display=''; $('imP2').style.display='none'; $('imVoltar').textContent='Cancelar'; $('imOk').textContent='Conferir'; $('imOk').disabled=false; return }
+  imFechar();
 };
 
 /* --- Cliente --- */
