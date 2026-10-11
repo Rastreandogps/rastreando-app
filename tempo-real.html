@@ -2027,7 +2027,7 @@ const camadaOsm=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
    Jeito técnico: o mapa do Google (Maps JavaScript API, cobrado por abertura) fica por baixo do Leaflet pelo
    plugin GoogleMutant; setinhas, cercas, histórico e âncora continuam iguais. O logo e os créditos do Google ficam
    nos cantos de baixo do mapa, acima do cartão. Se a chave falhar ou o Google não carregar, volta para o grátis. */
-const GOOGLE_MAPS_CHAVE='AIzaSyCJqHbTiW6ve7X4uVV9p29ngWvh0iw_qoI'; /* chave restrita ao site rastreandogps.github.io e só à Maps JavaScript API */
+const GOOGLE_MAPS_CHAVE='COLE_A_CHAVE_AQUI'; /* chave restrita ao site rastreandogps.github.io e só à Maps JavaScript API */
 const GM_PLUGIN=['https://cdn.jsdelivr.net/npm/leaflet.gridlayer.googlemutant@0.16.0/dist/Leaflet.GoogleMutant.js','https://unpkg.com/leaflet.gridlayer.googlemutant@0.16.0/dist/Leaflet.GoogleMutant.js'];
 /* estilo noturno (exemplo oficial do Google, "night mode") para o tema escuro do app */
 const GM_ESCURO=[{elementType:'geometry',stylers:[{color:'#242f3e'}]},{elementType:'labels.text.stroke',stylers:[{color:'#242f3e'}]},{elementType:'labels.text.fill',stylers:[{color:'#746855'}]},
@@ -2105,7 +2105,17 @@ function mapaAplicar(pref){
 }
 /* lê no cadastro do usuário (Traccar) qual mapa ele usa; chamado depois de entrar */
 async function mapaDecidir(){
-  try{ const rs=await minhaSessao(); if(!rs.ok) return; meuUsuario=await rs.json() }catch(e){ return }
+  /* 1) pela sessão (quem entrou com a chave de 30 dias); 2) pela lista de usuários (administrador, que pode ter entrado
+     por senha: nesse caso o Traccar não responde /api/session). */
+  let me=null;
+  try{ const rs=await minhaSessao(); if(rs.ok) me=await rs.json() }catch(e){ if(e.sessao) return }
+  if(!me){
+    const em=(lsGet('rg_email')||'').toLowerCase();
+    if(!usuarios.length){ try{ await carregarUsuarios() }catch(e){} }
+    me=usuarios.find(u=>casaUsuario(u,em))||null;
+  }
+  if(!me) return;
+  meuUsuario=me;
   const pref=(meuUsuario.attributes&&meuUsuario.attributes.mapa==='google')?'google':'gratis';
   try{ $('contaMapa').style.display=ehAdmin?'flex':'none'; $('contaMapaSel').value=pref }catch(e){}
   mapaAplicar(pref);
