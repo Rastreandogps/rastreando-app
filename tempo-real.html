@@ -492,13 +492,27 @@ body.desenhando .follow,body.desenhando .sheet,body.desenhando .vazio{display:no
 .sw span::after{content:'';position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
 .sw input:checked+span{background:var(--green)}
 .sw input:checked+span::after{transform:translateX(18px)}
-.alrow .dot.i{background:#60a5fa}.alrow .dot.b{background:var(--red)}
-.alrow{padding:12px 0;border-bottom:1px solid var(--line);display:flex;gap:10px;align-items:flex-start}
-.alrow .dot{width:10px;height:10px;border-radius:50%;margin-top:6px;flex:none}
-.alrow .dot.e{background:var(--green)}.alrow .dot.s{background:var(--amber)}.alrow .dot.v{background:#a78bfa}
-.alrow .tx{font-size:15px;font-weight:600}
-.alrow .hr{font-size:12px;color:var(--mut);margin-top:2px}
-.alrow.novo .tx::after{content:" • novo";color:var(--red2);font-size:12px}
+.alrow{display:flex;gap:12px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:11px 14px;margin:0 0 8px}
+.alrow .ic{width:38px;height:38px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;background:rgba(96,165,250,.16);color:#60a5fa}
+.alrow .ic svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.alrow .ic.i{background:rgba(96,165,250,.16);color:#60a5fa}
+.alrow .ic.off{background:rgba(154,163,178,.16);color:var(--mut)}
+.alrow .ic.e{background:rgba(51,209,122,.16);color:var(--green)}
+.alrow .ic.s{background:rgba(245,184,61,.16);color:var(--amber)}
+.alrow .ic.b{background:rgba(227,38,47,.16);color:var(--red2)}
+.alrow .ic.v{background:rgba(167,139,250,.18);color:#a78bfa}
+.alrow .corpo{flex:1;min-width:0}
+.alrow .tx{font-size:14.5px;font-weight:650;line-height:1.3}
+.alrow .hr{font-size:12.5px;color:var(--mut);margin-top:2px;line-height:1.35}
+.alrow .hora{flex:none;align-self:flex-start;font-size:12.5px;color:var(--mut);font-weight:600;padding-top:2px}
+.alrow.novo{border-color:rgba(227,38,47,.45)}
+.alrow.novo .hora{color:var(--red2)}
+.alrow.novo .hora::before{content:"novo · ";font-weight:700}
+.aldia{font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--mut);margin:14px 2px 8px}
+.alsec{font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--mut);margin:16px 2px 8px}
+.almais{margin-top:4px}
+.almais .alrow{margin-bottom:8px}
+.almais .aldia:first-child{margin-top:12px}
 .arow .mini.perigo{color:var(--red2)}
 
 /* Navegação */
@@ -931,7 +945,11 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
         <p class="alhint">Para aparelho que perde o sinal (estrada, área rural). Ligue no veículo: quando ele ficar 30 minutos ou mais sem posição e voltar a transmitir, você recebe um aviso. Depois de avisar, a chave desliga sozinha; é só ligar de novo quando quiser outro aviso.</p>
         <div id="alVolta"></div>
       </details>
+      <div class="alsec">Últimos alertas</div>
       <div id="alItens"></div>
+      <details class="alcard alcfg almais" id="alMais" style="display:none"><summary><span>Alertas anteriores</span><small id="alMaisN"></small><span class="seta">›</span></summary>
+        <div id="alMaisLista"></div>
+      </details>
     </div>
   </section>
   <section class="cpanel" id="cpanel">
@@ -4190,11 +4208,50 @@ function desenharAlertas(){
   const v2=lsGet(chaveVisto()), limite=v2?new Date(v2).getTime():Date.now();
   const abertaAgora=$('alview').classList.contains('show');
   const novos=alertas.filter(e=>e.em>limite).length;
-  const cor=t=>t==='ignicao_on'||t==='ignicao_off'?'i':(t==='volta'?'v':(t==='cerca_bloqueio'?'b':(t==='cerca_saiu'?'s':'e')));
-  $('alItens').innerHTML=alertas.map(e=>
-    '<div class="alrow'+(e.em>limite&&!abertaAgora?' novo':'')+'"><span class="dot '+cor(e.tipo)+'"></span><div><div class="tx">'+esc(e.titulo)+'</div>'+
-    '<div class="hr">'+esc(new Date(e.em).toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}))+(e.texto?' · '+esc(e.texto):'')+'</div></div></div>'
-  ).join('') || '<div class="vempty">Nenhum alerta nos últimos 7 dias.</div>';
+  const TZ='America/Sao_Paulo';
+  const diaChave=ms=>new Date(ms).toLocaleDateString('en-CA',{timeZone:TZ});
+  const hojeCh=diaChave(Date.now()), ontemCh=diaChave(Date.now()-86400000);
+  const diaRotulo=ms=>{ const c=diaChave(ms); if(c===hojeCh) return 'Hoje'; if(c===ontemCh) return 'Ontem'; return new Date(ms).toLocaleDateString('pt-BR',{timeZone:TZ,weekday:'short',day:'2-digit',month:'2-digit'}).replace('.','') };
+  const horaTxt=(ms,comDia)=>{
+    const h=new Date(ms).toLocaleTimeString('pt-BR',{timeZone:TZ,hour:'2-digit',minute:'2-digit'});
+    return comDia && diaChave(ms)!==hojeCh ? new Date(ms).toLocaleDateString('pt-BR',{timeZone:TZ,day:'2-digit',month:'2-digit'})+' '+h : h;
+  };
+  const SV=d=>'<svg viewBox="0 0 24 24">'+d+'</svg>';
+  const ICONES={
+    power:SV('<path d="M12 3v8"/><path d="M6.4 6.6a8 8 0 1011.2 0"/>'),
+    entrou:SV('<path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/>'),
+    saiu:SV('<path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>'),
+    cadeado:SV('<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/>'),
+    sinal:SV('<path d="M5 12.5a10 10 0 0114 0"/><path d="M8.5 16a5 5 0 017 0"/><circle cx="12" cy="19.2" r="1"/>'),
+    raio:SV('<path d="M13 2L4 14h7l-1 8 9-12h-7z"/>'),
+    onda:SV('<polyline points="3 12 7 12 10 5 14 19 17 12 21 12"/>'),
+    sino:SV('<path d="M6 16V11a6 6 0 1112 0v5l2 2H4l2-2z"/><path d="M10 21h4"/>')
+  };
+  const visual=t=>{
+    switch(t){
+      case 'ignicao_on': return {c:'i',s:ICONES.power};
+      case 'ignicao_off': return {c:'off',s:ICONES.power};
+      case 'ignicao_oscilando': return {c:'s',s:ICONES.onda};
+      case 'sem_energia': return {c:'s',s:ICONES.raio};
+      case 'cerca_entrou': return {c:'e',s:ICONES.entrou};
+      case 'cerca_saiu': return {c:'s',s:ICONES.saiu};
+      case 'cerca_bloqueio': return {c:'b',s:ICONES.cadeado};
+      case 'volta': return {c:'v',s:ICONES.sinal};
+      default: return {c:'i',s:ICONES.sino};
+    }
+  };
+  const linha=(e,comDia)=>{ const vis=visual(e.tipo); return '<div class="alrow'+(e.em>limite&&!abertaAgora?' novo':'')+'"><span class="ic '+vis.c+'">'+vis.s+'</span>'+
+    '<div class="corpo"><div class="tx">'+esc(e.titulo)+'</div>'+(e.texto?'<div class="hr">'+esc(e.texto)+'</div>':'')+'</div>'+
+    '<span class="hora">'+esc(horaTxt(e.em,comDia))+'</span></div>' };
+  /* os 3 mais recentes ficam livres; o resto vai para a gaveta, separado por dia */
+  const LIVRES=3, livres=alertas.slice(0,LIVRES), resto=alertas.slice(LIVRES);
+  $('alItens').innerHTML=livres.map(e=>linha(e,true)).join('') || '<div class="vempty">Nenhum alerta nos últimos 7 dias.</div>';
+  let htmlResto='', diaAnt='';
+  resto.forEach(e=>{ const c=diaChave(e.em); if(c!==diaAnt){ htmlResto+='<div class="aldia">'+esc(diaRotulo(e.em))+'</div>'; diaAnt=c } htmlResto+=linha(e,false) });
+  $('alMaisLista').innerHTML=htmlResto;
+  const novosResto=resto.filter(e=>e.em>limite&&!abertaAgora).length;
+  $('alMaisN').textContent=resto.length+(resto.length===1?' alerta':' alertas')+(novosResto?' · '+novosResto+(novosResto===1?' novo':' novos'):'');
+  $('alMais').style.display=resto.length?'':'none';
   const b=$('alBadge');
   if(abertaAgora){ lsSet(chaveVisto(),new Date().toISOString()); b.classList.remove('show') }
   else if(novos>0){ b.textContent=novos>9?'9+':novos; b.classList.add('show') }
