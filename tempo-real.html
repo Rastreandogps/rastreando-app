@@ -196,7 +196,8 @@ main{position:relative;flex:1;min-height:0;overflow:hidden}
 .leaflet-control-attribution{background:rgba(15,17,21,.7)!important;color:var(--mut)!important;font-size:9px}
 .leaflet-control-attribution a{color:var(--mut)!important}
 .car{width:44px;height:44px;transition:transform .25s linear}
-/* cor da setinha (09/10/2026): verde = andando; amarela = parada (ignição ligada ou desligada); cinza = sem GPS há mais de 10 min */
+/* cor da setinha (regra do dono, 11/10/2026): cinza = rastreador SEM COMUNICAÇÃO NENHUMA com o servidor há mais de 3 min (offline de tudo);
+   verde = andando (GPS atual); amarela = comunicando, mas parado ou com o GPS sem atualizar */
 .car .anel{fill:rgba(255,255,255,.92);stroke:#e0a020;stroke-width:2.5px}
 .car .seta{fill:#f0a800;stroke:rgba(15,23,42,.55)}
 .car.c-mov .anel{stroke:#16a34a}
@@ -1741,10 +1742,12 @@ async function enderecosParadas(lista,aoAchar){
 }
 function fmtOdo(m){ if(m==null||isNaN(m)) return '—'; const km=m/1000; return (km<100?km.toFixed(1).replace('.',','):Math.round(km).toLocaleString('pt-BR'))+' km' }
 /* cor da setinha no mapa */
+const SEM_CONTATO_MS = 3*60000; // sem nenhuma mensagem do rastreador há mais de 3 min = offline (cinza)
 function corSeta(v){
-  if(!v.gpsT || Date.now()-v.gpsT>600000) return 'c-sem'; // sem GPS (ou GPS velho): cinza
-  if(v.vel>2) return 'c-mov';                              // andando: verde
-  return 'c-par';                                          // parada, com ignição ligada ou desligada: amarela
+  const ult = v.ultimo || v.fix;                                          // último contato (GSM) do rastreador com o servidor
+  if(!ult || Date.now()-ult>SEM_CONTATO_MS) return 'c-sem';               // offline de tudo: cinza
+  if(v.vel>2 && v.gpsT && Date.now()-v.gpsT<=600000) return 'c-mov';      // andando, com GPS atual: verde
+  return 'c-par';                                                         // comunicando (parado ou GPS sem atualizar): amarela
 }
 function status(v){
   if(!v.pos) return ['Aguardando sinal','st-off'];
