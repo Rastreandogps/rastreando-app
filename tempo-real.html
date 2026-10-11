@@ -1266,6 +1266,34 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
 </div>
 
 <!-- Confirmação genérica -->
+<!-- Sua conta: trocar senha (opcional) e sair -->
+<div class="modal alsheet" id="mConta">
+  <div class="box2">
+    <h3>Sua conta</h3>
+    <p id="contaLogin" style="margin-bottom:14px"></p>
+    <button class="btn btn-out" id="contaSenha" type="button" style="width:100%;margin-bottom:8px">Trocar senha</button>
+    <button class="btn btn-red" id="contaSair" type="button" style="width:100%">Sair do app</button>
+    <button class="btn btn-out alfechar" data-close type="button">Fechar</button>
+  </div>
+</div>
+<div class="modal alsheet" id="mSenha">
+  <div class="box2">
+    <h3>Trocar senha</h3>
+    <p>Escolha uma senha fácil de lembrar, com 6 ou mais letras ou números.</p>
+    <label class="flbl" for="sAtual">Senha atual</label>
+    <input class="fld" id="sAtual" type="password" autocomplete="current-password">
+    <label class="flbl" for="sNova">Nova senha</label>
+    <input class="fld" id="sNova" type="password" autocomplete="new-password">
+    <label class="flbl" for="sNova2">Repita a nova senha</label>
+    <input class="fld" id="sNova2" type="password" autocomplete="new-password">
+    <label class="fchk"><input type="checkbox" id="sVer"> Mostrar as senhas</label>
+    <div class="ferr" id="sErro"></div>
+    <div class="actions2">
+      <button class="btn btn-out" data-close type="button">Cancelar</button>
+      <button class="btn btn-red" id="sSalvar" type="button">Salvar</button>
+    </div>
+  </div>
+</div>
 <div class="modal" id="mConf">
   <div class="box2">
     <h3 id="confTitulo"></h3>
@@ -4736,7 +4764,43 @@ $('lform').addEventListener('submit',async e=>{
   }
   btn.disabled=false; btn.textContent='Entrar';
 });
-$('btnSair').onclick=()=>sair('');
+/* o botão de sair abre "Sua conta" (trocar senha, opcional, ou sair) — pedido do dono em 10/10/2026 */
+$('btnSair').onclick=()=>{ $('contaLogin').textContent='Você entrou como '+(lsGet('rg_email')||'—')+'.'; abrir('mConta') };
+$('contaSair').onclick=()=>{ fechar(); sair('') };
+$('contaSenha').onclick=()=>{ fechar(); ['sAtual','sNova','sNova2'].forEach(i=>{ $(i).value=''; $(i).type='password' }); $('sVer').checked=false; $('sErro').textContent=''; $('sSalvar').disabled=false; abrir('mSenha'); setTimeout(()=>$('sAtual').focus(),50) };
+$('sVer').onchange=()=>{ ['sAtual','sNova','sNova2'].forEach(i=>$(i).type=$('sVer').checked?'text':'password') };
+$('sSalvar').onclick=async()=>{
+  const atual=$('sAtual').value, nova=$('sNova').value, nova2=$('sNova2').value, err=$('sErro'), b=$('sSalvar'), login=lsGet('rg_email')||'';
+  err.textContent='';
+  if(!atual){ err.textContent='Digite a senha atual.'; return }
+  if(nova.length<6){ err.textContent='A nova senha precisa ter 6 ou mais letras ou números.'; return }
+  if(nova!==nova2){ err.textContent='As duas novas senhas não são iguais.'; return }
+  if(nova===atual){ err.textContent='A nova senha é igual à atual.'; return }
+  b.disabled=true; b.textContent='Salvando...';
+  try{
+    /* 1) confere a senha atual (do mesmo jeito que o login) */
+    const basicAtual='Basic '+btoa(unescape(encodeURIComponent(login+':'+atual)));
+    const t=await fetch(API+'/api/devices',{headers:{Authorization:basicAtual,Accept:'application/json'},credentials:'omit'});
+    if(t.status===401||t.status===403) throw new Error('Senha atual incorreta.');
+    if(!t.ok) throw new Error('O servidor respondeu com erro '+t.status+'. Tente de novo.');
+    /* 2) grava a nova senha no próprio usuário (o resto do cadastro fica igual) */
+    const rs=await api('/api/session'); if(!rs.ok) throw new Error('Não consegui ler o seu cadastro (erro '+rs.status+').');
+    const eu=await rs.json();
+    const corpo=Object.assign({},eu,{password:nova});
+    const ru=await api('/api/users/'+eu.id,{method:'PUT',headers:JSONH,body:JSON.stringify(corpo)});
+    if(!ru.ok) throw new Error(await msgErro(ru,'Não consegui trocar a senha'));
+    /* 3) continua conectado: se o acesso guardado deixar de valer, entra de novo com a senha nova */
+    let continua=false;
+    try{ const tt=await api('/api/devices'); continua=tt.ok }catch(e){ continua=false }
+    if(!continua || String(auth).startsWith('Basic ')){ try{ await entrar(login,nova) }catch(e){} }
+    fechar();
+    toast('Senha trocada. Use a nova senha da próxima vez que entrar.',6000);
+  }catch(e){
+    if(e.sessao){ fechar(); sair('Sessão expirada. Entre novamente.'); return }
+    err.textContent=e.message||'Não consegui trocar a senha.';
+  }
+  b.disabled=false; b.textContent='Salvar';
+};
 
 (async function iniciar(){
   setSeguir(false);
