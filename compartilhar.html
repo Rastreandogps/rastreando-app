@@ -15,6 +15,8 @@
   Mostra só a posição de UM veículo, enquanto o link vale. Não tem login, não mostra chip, IMEI nem dados da conta.
   Os dados vêm da função rastreamentoDesbloqueio (ação "compVer"), que confere o código, a validade e se quem
   compartilhou ainda tem o veículo.
+  Modo "técnico a caminho" (tipo "tec", gerado pelo APP Técnico): mostra o nome e a foto do técnico (nunca o nome nem a
+  placa do veículo dele), o endereço do cliente, a rota pelas ruas e a previsão de chegada (serviço público OSRM; estimativa).
 -->
 <style>
 :root{
@@ -78,6 +80,24 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .seta svg{width:22px;height:22px}
 .rotulo{background:rgba(15,17,21,.86);color:#fff;font-size:12px;font-weight:700;padding:3px 8px;border-radius:8px;white-space:nowrap;transform:translate(-50%,-34px);position:absolute;left:50%;top:0}
 @media (prefers-color-scheme: light){.rotulo{background:rgba(255,255,255,.95);color:#14181f;box-shadow:0 1px 4px rgba(0,0,0,.2)}}
+/* modo "técnico a caminho" */
+.tec{display:none;align-items:center;gap:12px}
+.tec.show{display:flex}
+.tec .foto{width:52px;height:52px;flex:none;border-radius:50%;background:var(--red);color:#fff;font-weight:800;font-size:22px;display:flex;align-items:center;justify-content:center;overflow:hidden;border:2px solid var(--card2)}
+.tec .foto img{width:100%;height:100%;object-fit:cover}
+.tec .t1{font-size:19px;font-weight:750;line-height:1.2}
+.tec .t2{font-size:12.5px;color:var(--mut);margin-top:2px}
+.eta{display:none;align-items:center;gap:14px;margin:14px 0 4px;padding:12px 14px;border-radius:16px;background:var(--card2);border:1px solid var(--line)}
+.eta.show{display:flex}
+.eta .min{font-size:28px;font-weight:800;line-height:1;color:var(--txt);white-space:nowrap}
+.eta .min small{font-size:14px;font-weight:700;color:var(--mut);margin-left:3px}
+.eta .info{font-size:13px;color:var(--mut);line-height:1.35}
+.eta .info b{color:var(--txt);font-weight:700}
+.eta.chegou{background:rgba(51,209,122,.14);border-color:var(--green)}
+.eta.chegou .min{font-size:18px;color:var(--green)}
+.casa{width:40px;height:40px;display:flex;align-items:center;justify-content:center}
+.casa div{width:34px;height:34px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:var(--red);border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center}
+.casa svg{width:17px;height:17px;transform:rotate(45deg);fill:none;stroke:#fff;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
 .leaflet-control-attribution{font-size:10px}
 .leaflet-top{top:calc(58px + env(safe-area-inset-top))}
 </style>
@@ -96,6 +116,8 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 </button>
 
 <section class="cartao" id="cartao" style="display:none">
+  <div class="tec" id="tec"><div class="foto" id="tecFoto"></div><div><div class="t1" id="tecTit"></div><div class="t2">Técnico da Rastreando GPS</div></div></div>
+  <div class="eta" id="eta"><div class="min" id="etaMin"></div><div class="info" id="etaInfo"></div></div>
   <div class="nome" id="nome"></div>
   <div class="placa" id="placa"></div>
   <div class="chips" id="chips"></div>
@@ -135,6 +157,8 @@ function tempo(ms) {
 
 let mapa = null, marcador = null, seguir = true, ultimo = null, dados = null, falhas = 0, encerrado = false;
 let endPos = null, endMs = 0, endBusca = false;
+let casa = null, linhaRota = null, rotaDe = null, rotaMs = 0, rotaBusca = false, rota = null;
+const FOTOS = 'https://rastreandogps.github.io/rastreando-scanner/fotos/';
 
 function erro(titulo, texto) {
   encerrado = true;
@@ -191,24 +215,91 @@ async function endereco(lat, lon) {
   endBusca = false;
 }
 
+/* ===== técnico a caminho: foto, destino (endereço do cliente), rota e tempo estimado ===== */
+const ehTec = () => !!(dados && dados.tipo === 'tec');
+function prepararTec(d) {
+  if ($('tec').classList.contains('show')) return;
+  document.title = d.tecnico + ' está a caminho · Rastreando GPS';
+  $('tec').classList.add('show');
+  $('nome').style.display = 'none'; $('placa').style.display = 'none';
+  $('tecTit').textContent = d.tecnico + ' está a caminho';
+  const foto = $('tecFoto');
+  foto.textContent = (d.tecnico || '?').charAt(0).toUpperCase();
+  const img = new Image();
+  img.alt = '';
+  img.onload = () => { foto.textContent = ''; foto.appendChild(img); };
+  img.src = FOTOS + String(d.tecnico || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '') + '.jpg';
+  document.querySelector('.botoes').style.display = 'none';
+  $('btnCentro').setAttribute('aria-label', 'Mostrar o técnico'); $('btnCentro').title = 'Mostrar o técnico';
+}
+function iconeCasa() {
+  return L.divIcon({ html: '<div class="casa"><div><svg viewBox="0 0 24 24"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/></svg></div></div>', className: '', iconSize: [40, 40], iconAnchor: [20, 38] });
+}
+function fmtKm(m) { return m < 1000 ? Math.round(m / 10) * 10 + ' m' : (m / 1000).toFixed(m < 10000 ? 1 : 0).replace('.', ',') + ' km'; }
+/* rota pelas ruas: serviço público OSRM (sem trânsito), no máximo 1 consulta por minuto ou quando o técnico anda mais de 150 m */
+async function buscarRota(p, dest) {
+  if (rotaBusca) return;
+  if (rota && rotaDe && distM(rotaDe, [p.lat, p.lon]) < 150 && Date.now() - rotaMs < 60000) return;
+  if (Date.now() - rotaMs < 20000) return;
+  rotaBusca = true; rotaMs = Date.now();
+  try {
+    const r = await fetch('https://router.project-osrm.org/route/v1/driving/' + p.lon + ',' + p.lat + ';' + dest.lon + ',' + dest.lat + '?overview=simplified&geometries=geojson');
+    const j = await r.json();
+    const rt = j && j.routes && j.routes[0];
+    if (rt) {
+      rota = { m: rt.distance, s: rt.duration, ll: rt.geometry.coordinates.map((c) => [c[1], c[0]]) };
+      rotaDe = [p.lat, p.lon];
+      if (!linhaRota) linhaRota = L.polyline(rota.ll, { color: '#2f6bff', weight: 5, opacity: .85 }).addTo(mapa);
+      else linhaRota.setLatLngs(rota.ll);
+      if (linhaRota.bringToBack) linhaRota.bringToBack();
+      mostrarEta();
+    }
+  } catch (e) { /* sem rota: mostra só a distância em linha reta */ }
+  rotaBusca = false;
+}
+function mostrarEta() {
+  const d = dados, p = d && d.pos, dest = d && d.destino, box = $('eta');
+  if (!p || !dest) { box.classList.remove('show'); return; }
+  box.classList.add('show');
+  const reta = distM([p.lat, p.lon], [dest.lat, dest.lon]);
+  if (reta < 150) {
+    box.classList.add('chegou');
+    $('etaMin').textContent = 'Chegou';
+    $('etaInfo').innerHTML = '<b>O técnico chegou ao local.</b><br>Se ainda não te encontrou, ele deve chamar em instantes.';
+    if (linhaRota) { linhaRota.remove(); linhaRota = null; }
+    return;
+  }
+  box.classList.remove('chegou');
+  if (rota && rotaDe && distM(rotaDe, [p.lat, p.lon]) < 400) {
+    /* rota recalculada a cada minuto ou quando o técnico anda 150 m */
+    const min = Math.max(1, Math.round(rota.s * 1.25 / 60)); /* +25% por causa do trânsito (estimativa) */
+    $('etaMin').innerHTML = (min < 60 ? min + '<small>min</small>' : Math.floor(min / 60) + '<small>h</small>' + (min % 60 ? ' ' + (min % 60) + '<small>min</small>' : ''));
+    $('etaInfo').innerHTML = 'Previsão de chegada <b>' + hora(Date.now() + min * 60000) + '</b><br>' + fmtKm(rota.m) + ' pelas ruas · estimativa, pode variar com o trânsito';
+  } else {
+    $('etaMin').innerHTML = fmtKm(reta).replace(/ (k?m)$/, '<small>$1</small>');
+    $('etaInfo').innerHTML = '<b>de distância</b> em linha reta até o seu endereço';
+  }
+}
+
 function desenhar(d) {
   dados = d;
   $('telaCarrega').classList.remove('show');
   $('cartao').style.display = '';
+  if (d.tipo === 'tec') prepararTec(d);
   $('nome').textContent = d.nome;
   $('placa').textContent = d.placa ? d.placa.replace(/^([A-Z]{3})(\d)/, '$1-$2') : '';
-  $('placa').style.display = d.placa ? '' : 'none';
+  $('placa').style.display = d.placa && d.tipo !== 'tec' ? '' : 'none';
   const p = d.pos;
   const chips = [];
   if (!p) {
-    $('end').textContent = 'O rastreador ainda não enviou nenhuma posição.';
+    $('end').textContent = d.tipo === 'tec' ? 'Aguardando a posição do técnico.' : 'O rastreador ainda não enviou nenhuma posição.';
     $('hora').textContent = '';
     $('chips').innerHTML = '';
     $('btnRota').style.visibility = $('btnMaps').style.visibility = 'hidden';
   } else {
     const anda = p.kmh > 3;
     chips.push('<span class="chip ' + (anda ? 'mov' : 'par') + '"><i></i>' + (anda ? 'Em movimento · ' + p.kmh + ' km/h' : 'Parado') + '</span>');
-    if (p.ignicao !== null) chips.push('<span class="chip ' + (p.ignicao ? 'on' : '') + '"><i></i>Ignição ' + (p.ignicao ? 'ligada' : 'desligada') + '</span>');
+    if (p.ignicao !== null && d.tipo !== 'tec') chips.push('<span class="chip ' + (p.ignicao ? 'on' : '') + '"><i></i>Ignição ' + (p.ignicao ? 'ligada' : 'desligada') + '</span>');
     $('chips').innerHTML = chips.join('');
     const velho = p.gpsMs && Date.now() - p.gpsMs > 600000;
     $('hora').textContent = p.gpsMs ? (velho ? 'Posição de ' + diaHora(p.gpsMs) + ' (há ' + tempo(Date.now() - p.gpsMs) + ')' : 'Posição atualizada às ' + hora(p.gpsMs)) : '';
@@ -220,6 +311,13 @@ function desenhar(d) {
     if (!mapa) iniciarMapa(p.lat, p.lon);
     if (!marcador) marcador = L.marker(ll, { icon: iconeSeta(p, d.nome) }).addTo(mapa);
     else { marcador.setLatLng(ll); marcador.setIcon(iconeSeta(p, d.nome)); }
+    if (d.tipo === 'tec' && d.destino) {
+      const dl = [d.destino.lat, d.destino.lon];
+      if (!casa) casa = L.marker(dl, { icon: iconeCasa(), zIndexOffset: -100, title: 'Seu endereço' }).addTo(mapa);
+      else casa.setLatLng(dl);
+      mostrarEta();
+      buscarRota(p, d.destino);
+    }
     if (seguir) centralizar(false);
     endereco(p.lat, p.lon);
     if (!$('end').textContent) $('end').textContent = 'Buscando endereço…';
@@ -236,6 +334,14 @@ function centralizar(animar) {
   if (!mapa || !dados || !dados.pos) return;
   const ll = [dados.pos.lat, dados.pos.lon];
   const h = window.innerWidth >= 900 ? 0 : $('cartao').offsetHeight;
+  if (ehTec() && dados.destino && distM(ll, [dados.destino.lat, dados.destino.lon]) > 150) {
+    /* técnico e endereço do cliente juntos na tela, acima do cartão */
+    const larg = window.innerWidth >= 900 ? 460 : 0;
+    mapa.fitBounds(L.latLngBounds([ll, [dados.destino.lat, dados.destino.lon]]), {
+      paddingTopLeft: [40 + larg, 80], paddingBottomRight: [40, h + 40], maxZoom: 16, animate: !!animar,
+    });
+    return;
+  }
   const ponto = mapa.project(ll, mapa.getZoom()).add([0, h / 2]); /* deixa o veículo no meio do espaço livre acima do cartão */
   mapa.setView(mapa.unproject(ponto, mapa.getZoom()), mapa.getZoom(), { animate: !!animar });
 }
@@ -243,7 +349,11 @@ function centralizar(animar) {
 function atualizarValidade() {
   if (!dados) return;
   const falta = dados.expiraMs - Date.now();
-  if (falta <= 0) { erro('Link expirado', 'O prazo deste compartilhamento acabou. Peça um novo link para quem te enviou.'); return; }
+  if (falta <= 0) {
+    if (ehTec()) erro('Acompanhamento encerrado', 'O link para acompanhar o técnico venceu. Se precisar, fale com a Rastreando GPS.');
+    else erro('Link expirado', 'O prazo deste compartilhamento acabou. Peça um novo link para quem te enviou.');
+    return;
+  }
   $('valid').textContent = 'Link válido até ' + diaHora(dados.expiraMs) + ' (faltam ' + tempo(falta) + ')';
 }
 
