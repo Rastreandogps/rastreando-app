@@ -566,13 +566,13 @@ body.desenhando .follow,body.desenhando .sheet,body.desenhando .vazio{display:no
 .alsheet .box2 h3{margin-bottom:4px}
 .alsheet .alfechar{width:100%;margin-top:14px}
 /* "Alertas anteriores": título e X fixos em cima, lista rola no meio, Fechar sempre visível embaixo */
-#mAlMais .box2{display:flex;flex-direction:column;max-height:80vh;overflow:hidden}
-#mAlMais .almtopo{flex:none;display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}
-#mAlMais .almtopo h3{margin:0}
-#mAlMais .almx{width:38px;height:38px;flex:none;border-radius:50%;background:var(--card2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;cursor:pointer}
-#mAlMais .almx svg{width:18px;height:18px;fill:none;stroke:var(--txt);stroke-width:2.4;stroke-linecap:round}
-#mAlMais #alMaisLista{flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
-#mAlMais .alfechar{flex:none;margin-top:10px}
+#mAlMais .box2,#mLoja .box2{display:flex;flex-direction:column;max-height:80vh;overflow:hidden}
+#mAlMais .almtopo,#mLoja .almtopo{flex:none;display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}
+#mAlMais .almtopo h3,#mLoja .almtopo h3{margin:0}
+#mAlMais .almx,#mLoja .almx{width:38px;height:38px;flex:none;border-radius:50%;background:var(--card2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;cursor:pointer}
+#mAlMais .almx svg,#mLoja .almx svg{width:18px;height:18px;fill:none;stroke:var(--txt);stroke-width:2.4;stroke-linecap:round}
+#mAlMais #alMaisLista,#mLoja #lojaRola{flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+#mAlMais .alfechar,#mLoja .alfechar{flex:none;margin-top:10px}
 .alnota{font-size:12.5px!important;color:var(--mut);margin:10px 2px 0!important;line-height:1.4}
 .algrupo{background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:0 14px}
 .algrupo .igrow{border-top:1px solid var(--line);padding:11px 0;min-height:52px}
@@ -1393,9 +1393,11 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
 <!-- Loja (11/10/2026): v1, o pedido vai pelo WhatsApp da empresa -->
 <div class="modal alsheet" id="mLoja">
   <div class="box2">
-    <h3>Loja</h3>
-    <p style="margin-bottom:12px">Escolha o que precisa e peça pelo WhatsApp. A gente confirma valor, entrega ou instalação com você.</p>
-    <div id="lojaLista"></div>
+    <div class="almtopo"><h3>Loja</h3><button class="almx" data-close type="button" aria-label="Fechar" title="Fechar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <div id="lojaRola">
+      <p style="margin-bottom:12px">Escolha o que precisa e peça pelo WhatsApp. A gente confirma valor, entrega ou instalação com você.</p>
+      <div id="lojaLista"></div>
+    </div>
     <button class="btn btn-out alfechar" data-close type="button">Fechar</button>
   </div>
 </div>
@@ -1824,6 +1826,15 @@ function indicador(texto,ok){
 }
 
 /* ===== COMUNICAÇÃO COM O SERVIDOR ===== */
+/* cadastro do próprio usuário. O Traccar só responde GET /api/session com o token no endereço (?token=);
+   sem ele dá 404 (achado em 11/10/2026 na troca de senha). Login sem token (senha guardada na sessão): usa login+senha, se informada. */
+async function minhaSessao(senha){
+  const tk=lsGet('rg_token');
+  if(tk) return api('/api/session?token='+encodeURIComponent(tk));
+  if(senha) return fetch(API+'/api/session',{method:'POST',credentials:'omit',headers:{'Content-Type':'application/x-www-form-urlencoded',Accept:'application/json'},
+    body:'email='+encodeURIComponent(lsGet('rg_email')||'')+'&password='+encodeURIComponent(senha)});
+  return api('/api/session');
+}
 async function api(caminho,opcoes){
   const o = opcoes||{};
   const h = Object.assign({Authorization:auth,Accept:'application/json'},o.headers||{});
@@ -2451,7 +2462,7 @@ async function carregarPermissoes(){
   if(ehAdmin){ permCli={smsBloqueio:true,reset:true,editarNome:true,cercaRapida:true,minhaPosicao:true,appBloqueio:true,cercaBloqueio:true}; cobrCli=null; mostrarBotoesSms(); return }
   if(!lsGet('rg_token')) return;
   /* permissões guardadas no usuário do Traccar: Bloquear/Desbloquear pelo app e cerca que bloqueia (padrão: liberado) */
-  try{ const rs=await api('/api/session'); if(rs.ok){ const me=await rs.json(); permCli.appBloqueio=permAttr(me,'appBloqueio'); permCli.cercaBloqueio=permAttr(me,'cercaBloqueio'); mostrarBotoesSms() } }catch(e){ if(e.sessao) return }
+  try{ const rs=await minhaSessao(); if(rs.ok){ const me=await rs.json(); permCli.appBloqueio=permAttr(me,'appBloqueio'); permCli.cercaBloqueio=permAttr(me,'cercaBloqueio'); mostrarBotoesSms() } }catch(e){ if(e.sessao) return }
   try{
     const r=await fetch(DESB_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',body:JSON.stringify({acao:'minhas',token:lsGet('rg_token')})});
     if(!r.ok) return;
@@ -5084,7 +5095,7 @@ $('sSalvar').onclick=async()=>{
     if(t.status===401||t.status===403) throw new Error('Senha atual incorreta.');
     if(!t.ok) throw new Error('O servidor respondeu com erro '+t.status+'. Tente de novo.');
     /* 2) grava a nova senha no próprio usuário (o resto do cadastro fica igual) */
-    const rs=await api('/api/session'); if(!rs.ok) throw new Error('Não consegui ler o seu cadastro (erro '+rs.status+').');
+    const rs=await minhaSessao(atual); if(!rs.ok) throw new Error('Não consegui ler o seu cadastro (erro '+rs.status+').');
     const eu=await rs.json();
     const corpo=Object.assign({},eu,{password:nova});
     const ru=await api('/api/users/'+eu.id,{method:'PUT',headers:JSONH,body:JSON.stringify(corpo)});
