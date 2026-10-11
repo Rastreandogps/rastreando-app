@@ -536,6 +536,14 @@ body.desenhando .follow,body.desenhando .sheet,body.desenhando .vazio{display:no
 .alsheet .box2{max-height:88vh;overflow-y:auto}
 .alsheet .box2 h3{margin-bottom:4px}
 .alsheet .alfechar{width:100%;margin-top:14px}
+/* "Alertas anteriores": título e X fixos em cima, lista rola no meio, Fechar sempre visível embaixo */
+#mAlMais .box2{display:flex;flex-direction:column;max-height:80vh;overflow:hidden}
+#mAlMais .almtopo{flex:none;display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}
+#mAlMais .almtopo h3{margin:0}
+#mAlMais .almx{width:38px;height:38px;flex:none;border-radius:50%;background:var(--card2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;cursor:pointer}
+#mAlMais .almx svg{width:18px;height:18px;fill:none;stroke:var(--txt);stroke-width:2.4;stroke-linecap:round}
+#mAlMais #alMaisLista{flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+#mAlMais .alfechar{flex:none;margin-top:10px}
 .alnota{font-size:12.5px!important;color:var(--mut);margin:10px 2px 0!important;line-height:1.4}
 .algrupo{background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:0 14px}
 .algrupo .igrow{border-top:1px solid var(--line);padding:11px 0;min-height:52px}
@@ -1019,7 +1027,7 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
   <section class="alview" id="alview">
     <div class="vtop">
       <div class="vtitle"><h2>Alertas</h2><button class="linkbtn" id="alAtualizar">Atualizar</button></div>
-      <div class="vcount">Últimos 7 dias</div>
+      <div class="vcount">Últimos 3 dias</div>
     </div>
     <div class="vlist" id="alList">
       <div class="alcard" id="alPush"></div>
@@ -1467,7 +1475,7 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
 </div>
 <div class="modal alsheet" id="mAlMais">
   <div class="box2">
-    <h3>Alertas anteriores</h3>
+    <div class="almtopo"><h3>Alertas anteriores</h3><button class="almx" data-close type="button" aria-label="Fechar" title="Fechar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
     <div id="alMaisLista"></div>
     <button class="btn btn-out alfechar" data-close type="button">Fechar</button>
   </div>
@@ -4551,7 +4559,7 @@ async function carregarAlertas(aberta){
   if(!auth || !lsGet('rg_token')) return;
   try{
     const j=await fnAl('alertasLista');
-    alertas=j.lista||[];
+    alertas=(j.lista||[]).filter(e=>e.em>=Date.now()-3*86400000); /* só os últimos 3 dias (pedido do dono, 11/10/2026) */
     const novosIds=new Set(alertas.map(e=>e.id));
     if(alertasIds){
       const novos=alertas.filter(e=>!alertasIds.has(e.id));
@@ -4628,7 +4636,7 @@ function desenharAlertas(){
   /* os 3 mais recentes ficam na tela; o resto abre numa janela, separado por dia */
   const LIVRES=3, livres=alertas.slice(0,LIVRES), resto=alertas.slice(LIVRES);
   $('alItens').innerHTML=livres.length ? '<div class="allista">'+livres.map(e=>linha(e,true)).join('')+'</div>'
-    : '<div class="allista"><div class="alvazio"><span class="alic off">'+ICONES.sino+'</span>Nenhum alerta nos últimos 7 dias.</div></div>';
+    : '<div class="allista"><div class="alvazio"><span class="alic off">'+ICONES.sino+'</span>Nenhum alerta nos últimos 3 dias.</div></div>';
   let htmlResto='', diaAnt='';
   resto.forEach(e=>{ const c=diaChave(e.em); if(c!==diaAnt){ htmlResto+=(diaAnt?'</div>':'')+'<div class="aldia">'+esc(diaRotulo(e.em))+'</div><div class="allista">'; diaAnt=c } htmlResto+=linha(e,false) });
   $('alMaisLista').innerHTML=htmlResto+(htmlResto?'</div>':'');
