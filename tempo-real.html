@@ -510,6 +510,18 @@ body.desenhando .follow,body.desenhando .sheet,body.desenhando .vazio{display:no
 .alrow.novo .hora::before{content:"novo · ";font-weight:700}
 .aldia{font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--mut);margin:14px 2px 8px}
 .alsec{font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--mut);margin:16px 2px 8px}
+.alrow .ic.m{background:rgba(251,146,60,.17);color:#fb923c}
+.kmform{margin-top:8px}
+.kmform select.fld{appearance:auto}
+.kmform .fchk{margin:2px 0 8px}
+.kmform .btn{width:100%;height:46px}
+.kmitem{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
+.kmitem .kminfo{flex:1;min-width:0}
+.kmitem .kmt{font-size:14px;font-weight:650;line-height:1.3}
+.kmitem .kms{font-size:12.5px;color:var(--mut);margin-top:2px;line-height:1.35}
+.kmdel{flex:none;min-width:40px;height:36px;border-radius:10px;border:1px solid var(--line);background:var(--card2);color:var(--mut);display:flex;align-items:center;justify-content:center;padding:0 10px;font-size:12.5px;font-weight:700}
+.kmdel svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.kmdel.conf{color:#fff;background:var(--red);border-color:var(--red)}
 .almais{margin-top:4px}
 .almais .alrow{margin-bottom:8px}
 .almais .aldia:first-child{margin-top:12px}
@@ -944,6 +956,22 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
       <details class="alcard alcfg" id="alVoltaBox"><summary><span>Avisar quando voltar a transmitir</span><small id="alVoltaResumo"></small><span class="seta">›</span></summary>
         <p class="alhint">Para aparelho que perde o sinal (estrada, área rural). Ligue no veículo: quando ele ficar 30 minutos ou mais sem posição e voltar a transmitir, você recebe um aviso. Depois de avisar, a chave desliga sozinha; é só ligar de novo quando quiser outro aviso.</p>
         <div id="alVolta"></div>
+      </details>
+      <details class="alcard alcfg" id="alKmBox"><summary><span>Lembrete de quilometragem</span><small id="alKmResumo"></small><span class="seta">›</span></summary>
+        <p class="alhint">Avisa quando o veículo rodar a quilometragem que você escolher, por exemplo para a troca de óleo. A conta começa agora, quando você cria o lembrete.</p>
+        <div id="alKmLista"></div>
+        <div class="kmform">
+          <label class="flbl" for="kmVeic">Veículo</label>
+          <select class="fld" id="kmVeic"></select>
+          <label class="flbl" for="kmValor">Avisar quando rodar quantos km?</label>
+          <input class="fld" id="kmValor" type="text" inputmode="numeric" maxlength="6" placeholder="Ex.: 1000" autocomplete="off">
+          <label class="flbl" for="kmNome">Nome do lembrete (opcional)</label>
+          <input class="fld" id="kmNome" maxlength="40" placeholder="Ex.: Troca de óleo" autocomplete="off">
+          <label class="fchk"><input type="checkbox" id="kmRep"> <span id="kmRepTx">Repetir a cada ___ km</span></label>
+          <p class="alhint" id="kmDica" style="display:none;margin:0 0 8px"></p>
+          <div class="ferr" id="kmErro"></div>
+          <button class="btn btn-red" id="kmCriar">Criar lembrete</button>
+        </div>
       </details>
       <div class="alsec">Últimos alertas</div>
       <div id="alItens"></div>
@@ -4197,6 +4225,7 @@ async function carregarAlertas(aberta){
       const novos=alertas.filter(e=>!alertasIds.has(e.id));
       if(novos.length && !$('alview').classList.contains('show')) toast('Alerta: '+novos[0].titulo,5000);
       if(novos.some(e=>e.tipo==='volta')) carregarCfgAlertas(); /* o aviso de "voltou" desliga sozinho no servidor: atualiza a chave */
+      else if(novos.some(e=>e.tipo==='manutencao')) carregarManut(); /* lembrete sem repetição some sozinho depois de avisar */
     }
     alertasIds=novosIds;
     desenharAlertas();
@@ -4225,7 +4254,8 @@ function desenharAlertas(){
     sinal:SV('<path d="M5 12.5a10 10 0 0114 0"/><path d="M8.5 16a5 5 0 017 0"/><circle cx="12" cy="19.2" r="1"/>'),
     raio:SV('<path d="M13 2L4 14h7l-1 8 9-12h-7z"/>'),
     onda:SV('<polyline points="3 12 7 12 10 5 14 19 17 12 21 12"/>'),
-    sino:SV('<path d="M6 16V11a6 6 0 1112 0v5l2 2H4l2-2z"/><path d="M10 21h4"/>')
+    sino:SV('<path d="M6 16V11a6 6 0 1112 0v5l2 2H4l2-2z"/><path d="M10 21h4"/>'),
+    chave:SV('<path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/>')
   };
   const visual=t=>{
     switch(t){
@@ -4237,6 +4267,7 @@ function desenharAlertas(){
       case 'cerca_saiu': return {c:'s',s:ICONES.saiu};
       case 'cerca_bloqueio': return {c:'b',s:ICONES.cadeado};
       case 'volta': return {c:'v',s:ICONES.sinal};
+      case 'manutencao': return {c:'m',s:ICONES.chave};
       default: return {c:'i',s:ICONES.sino};
     }
   };
@@ -4307,7 +4338,7 @@ async function ativarPush(){
 /* ----- alertas de ignição por veículo ----- */
 async function carregarCfgAlertas(){
   try{ const j=await fnAl('alertasEstado'); alCfg=j.cfg||{ign:{},volta:{}} }catch(e){}
-  desenharIgn(); desenharVolta();
+  desenharIgn(); desenharVolta(); carregarManut();
 }
 function desenharIgn(){
   const ign=alCfg.ign||{}, lista=veiculos.slice().sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
@@ -4342,6 +4373,62 @@ $('alVolta').addEventListener('change',async e=>{
   }
   catch(err){ i.checked=!i.checked; toast(err.message) }
   i.disabled=false; desenharVolta();
+});
+/* ----- lembrete de quilometragem por veículo (servidor: rastreamento-manutencao.js) ----- */
+let kmLista=[];
+const ICONE_LIXO='<svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>';
+const kmFmt=n=>Number(n).toLocaleString('pt-BR');
+async function carregarManut(){
+  try{ const j=await fnAl('manutLista'); kmLista=j.lista||[] }catch(e){}
+  desenharManut();
+}
+function desenharManut(){
+  const lista=veiculos.slice().sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
+  const sel=$('kmVeic'), atual=sel.value, chave=lista.map(v=>v.id).join(',');
+  if(sel.dataset.ids!==chave){ /* só remonta a lista quando os veículos mudam: não perde a escolha de quem está preenchendo */
+    sel.innerHTML=lista.map(v=>'<option value="'+v.id+'">'+esc(v.nome)+'</option>').join('')||'<option value="">Nenhum veículo</option>';
+    sel.dataset.ids=chave; if(atual && lista.some(v=>String(v.id)===atual)) sel.value=atual;
+  }
+  $('alKmResumo').textContent=kmLista.length?(kmLista.length+(kmLista.length===1?' lembrete':' lembretes')):'nenhum';
+  $('alKmLista').innerHTML=kmLista.map(it=>{
+    const v=veiculos.find(x=>String(x.id)===String(it.deviceId));
+    const falta=(v&&v.odo!=null&&!isNaN(v.odo))?Math.max(0,it.alvoM-v.odo):null, km=kmFmt(Math.round(it.intervaloM/1000));
+    return '<div class="kmitem"><div class="kminfo"><div class="kmt">'+esc(v?v.nome:'Veículo')+(it.nome?' · '+esc(it.nome):'')+'</div>'+
+      '<div class="kms">'+(falta!=null?'Faltam '+esc(fmtOdo(falta)):'Aviso em '+esc(km)+' km')+' · '+(it.repetir?'repete a cada '+esc(km)+' km':'avisa uma vez')+'</div></div>'+
+      '<button class="kmdel" data-kmdel="'+esc(it.id)+'" aria-label="Apagar lembrete">'+ICONE_LIXO+'</button></div>';
+  }).join('');
+}
+function atualizarKmTexto(){
+  const n=parseInt($('kmValor').value,10), rep=$('kmRep').checked, d=$('kmDica');
+  $('kmRepTx').textContent='Repetir a cada '+(n>0?kmFmt(n):'___')+' km';
+  if(rep && n>0 && n<10){ d.textContent='Com um valor pequeno você vai receber muitos avisos seguidos.'; d.style.display='' } else d.style.display='none';
+}
+$('kmValor').addEventListener('input',()=>{ const l=$('kmValor').value.replace(/\D/g,'').slice(0,6); if(l!==$('kmValor').value) $('kmValor').value=l; $('kmErro').textContent=''; atualizarKmTexto() });
+$('kmRep').addEventListener('change',atualizarKmTexto);
+$('kmCriar').onclick=async()=>{
+  const dev=+$('kmVeic').value, km=parseInt($('kmValor').value,10), rep=$('kmRep').checked, erro=$('kmErro'), b=$('kmCriar');
+  erro.textContent='';
+  if(!dev){ erro.textContent='Escolha o veículo.'; return }
+  if(!(km>=1 && km<=100000)){ erro.textContent='Digite a quilometragem, de 1 a 100.000 km.'; $('kmValor').focus(); return }
+  b.disabled=true; b.textContent='Criando...';
+  try{
+    const j=await fnAl('manutCriar',{deviceId:dev,km:km,nome:$('kmNome').value.trim(),repetir:rep});
+    kmLista=j.lista||[]; $('kmValor').value=''; $('kmNome').value=''; $('kmRep').checked=false; atualizarKmTexto(); desenharManut();
+    toast('Lembrete criado. Você será avisado quando o veículo rodar '+kmFmt(km)+' km'+(rep?' (e a cada '+kmFmt(km)+' km depois).':'.'),6000);
+  }catch(err){ erro.textContent=err.message||'Não consegui criar o lembrete.' }
+  b.disabled=false; b.textContent='Criar lembrete';
+};
+/* apagar: um toque pede confirmação no próprio botão ("Apagar?"), o segundo apaga */
+$('alKmLista').addEventListener('click',async e=>{
+  const b=e.target.closest('button[data-kmdel]'); if(!b) return;
+  if(!b.classList.contains('conf')){
+    b.classList.add('conf'); b.textContent='Apagar?'; clearTimeout(b._t);
+    b._t=setTimeout(()=>{ if(b.isConnected){ b.classList.remove('conf'); b.innerHTML=ICONE_LIXO } },4000);
+    return;
+  }
+  b.disabled=true;
+  try{ const j=await fnAl('manutApagar',{id:b.dataset.kmdel}); kmLista=j.lista||[]; toast('Lembrete apagado.') }catch(err){ toast(err.message) }
+  desenharManut();
 });
 /* tocar na notificação abre a aba Alertas */
 if('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('message',e=>{ if(e.data&&e.data.abrir==='alertas') irPara('Alertas') });
