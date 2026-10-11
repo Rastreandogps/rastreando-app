@@ -179,6 +179,14 @@ try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'){document.do
 .ljped .ljst{display:inline-block;padding:1px 7px;border-radius:7px;font-size:11px;font-weight:800;margin-top:4px}
 .ljped .ljst.ok{background:rgba(22,163,74,.18);color:#16a34a}
 .ljped .ljst.ag{background:rgba(245,158,11,.18);color:#d97706}
+.ljped .ljst.cc{background:rgba(225,29,72,.15);color:#e11d48}
+.ljped .ljpb{display:flex;flex-direction:column;align-items:stretch;gap:6px;flex:none}
+.ljped .ljcanc{background:none;border:none;color:var(--mut);font-size:12.5px;font-weight:700;text-decoration:underline;padding:2px 4px;cursor:pointer}
+#mLojaCanc .box2 p{font-size:14px;line-height:1.5}
+#mLojaCanc .ljcacoes{display:flex;gap:8px;margin-top:16px}
+#mLojaCanc .ljcacoes button{flex:1;height:46px}
+#lcSim{background:#e11d48;color:#fff;border-radius:12px;font-weight:800;font-size:14.5px}
+#lcSim:disabled{opacity:.6}
 #mLojaPix .box2{display:flex;flex-direction:column;max-height:85vh;overflow:hidden}
 #mLojaPix #ljpRola{flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
 #mLojaPix .alfechar{flex:none;margin-top:10px}
@@ -1518,6 +1526,23 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
     <div class="ljracoes">
       <button class="btn btn-out" id="ljrVoltar" type="button">Voltar</button>
       <button id="ljrGerar" type="button">Gerar PIX de pagamento</button>
+    </div>
+  </div>
+</div>
+<!-- Cancelar pedido da loja (o cancelamento acontece 2 h depois; até lá o PIX vale) -->
+<div class="modal alsheet" id="mLojaCanc">
+  <div class="box2">
+    <div id="lcPerg">
+      <h3>Cancelar pedido?</h3>
+      <p id="lcTxt" style="margin-top:8px"></p>
+      <div class="ljcacoes"><button class="btn btn-out" id="lcVoltar" type="button">Voltar</button><button id="lcSim" type="button">Sim, cancelar</button></div>
+    </div>
+    <div id="lcOk" style="display:none">
+      <h3>Pedido de cancelamento enviado</h3>
+      <p style="margin-top:8px">Seu pedido será cancelado em até <b>2 horas</b>.</p>
+      <p style="margin-top:8px">Enquanto isso, o PIX continua disponível: se mudar de ideia, é só pagar normalmente que o pedido segue.</p>
+      <p style="margin-top:8px">Quando o cancelamento for concluído, o pedido some da sua lista.</p>
+      <button class="btn btn-out" id="lcEntendi" type="button" style="width:100%;margin-top:16px;height:46px">Entendi</button>
     </div>
   </div>
 </div>
@@ -5234,6 +5259,10 @@ function lojaDesenhar(){
       window.open('https://wa.me/'+LOJA_WPP+'?text='+encodeURIComponent(msg),'_blank'); return }
     const be=e.target.closest('[data-lent]');
     if(be){ lojaWppEntrega(be.dataset.ln||'',be.dataset.lent||''); return }
+    const bx=e.target.closest('[data-lcan]');
+    if(bx){ lojaCancAbrir(bx.dataset.lcan,bx.dataset.ln||''); return }
+    const bm=e.target.closest('[data-lmant]');
+    if(bm){ lojaManter(bm.dataset.lmant,bm); return }
   };
 }
 /* ----- resumo do pedido: 2 etapas, o PIX só é gerado no botão "Gerar PIX de pagamento" ----- */
@@ -5351,11 +5380,40 @@ async function lojaPedidosDesenhar(){ /* pedidos dos últimos 7 dias (aguardando
       '<span class="ljctx"><b>Seus pedidos</b><small>'+esc(resumo)+'</small></span><svg class="ljcseta" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>'+
       '<div class="ljclista">'+lista.map(p=>{
         const pago=p.estado==='pago';
-        return '<div class="ljped"><div class="ljpt"><b>'+esc(p.nome)+'</b><small>'+esc(p.rotulo||'')+' · '+brl(p.valor)+'</small><span class="ljst '+(pago?'ok':'ag')+'">'+(pago?'Pago':'Aguardando pagamento')+'</span></div>'+
-          (pago?'<button class="ljbtn" type="button" data-lent="'+esc(p.rotulo||'')+'" data-ln="'+esc(p.nome)+'">'+LOJA_SVG_WPP+'Entrega</button>'
-               :'<button class="ljcomprar" type="button" data-k="'+esc(p.produto)+'" data-q="'+(Number(p.qtd)||1)+'">Pagar</button>')+'</div>'}).join('')+'</div></div>';
+        const canc=!pago&&p.cancelarEmMs;
+        const tag=pago?'<span class="ljst ok">Pago</span>':canc?'<span class="ljst cc">Cancelamento até '+fmtHora(p.cancelarEmMs).split(' ').pop()+'</span>':'<span class="ljst ag">Aguardando pagamento</span>';
+        const bts=pago?'<button class="ljbtn" type="button" data-lent="'+esc(p.rotulo||'')+'" data-ln="'+esc(p.nome)+'">'+LOJA_SVG_WPP+'Entrega</button>'
+          :'<div class="ljpb"><button class="ljcomprar" type="button" data-k="'+esc(p.produto)+'" data-q="'+(Number(p.qtd)||1)+'">Pagar</button>'+
+            (canc?'<button class="ljcanc" type="button" data-lmant="'+esc(p.pedido)+'">Manter pedido</button>'
+                 :'<button class="ljcanc" type="button" data-lcan="'+esc(p.pedido)+'" data-ln="'+esc(p.nome)+'">Cancelar</button>')+'</div>';
+        return '<div class="ljped"><div class="ljpt"><b>'+esc(p.nome)+'</b><small>'+esc(p.rotulo||'')+' · '+brl(p.valor)+'</small>'+tag+'</div>'+bts+'</div>'}).join('')+'</div></div>';
     $('lojaCarHead').onclick=()=>{ lojaCarAberto=!lojaCarAberto; $('lojaCar').classList.toggle('aberto',lojaCarAberto) };
   }catch(e){ box.innerHTML=''; cb.classList.remove('show') }
+}
+/* ----- cancelar pedido não pago: o servidor cancela 2 h depois; até lá o PIX vale (estratégia do dono) ----- */
+let lojaCancPed='';
+function lojaCancAbrir(ped,nome){
+  lojaCancPed=ped;
+  $('lcTxt').textContent='Deseja cancelar o pedido de '+nome+'?';
+  $('lcPerg').style.display=''; $('lcOk').style.display='none';
+  $('lcSim').disabled=false; $('lcSim').textContent='Sim, cancelar';
+  $('mLojaCanc').classList.add('show');
+}
+function lojaCancFechar(){ $('mLojaCanc').classList.remove('show') }
+$('lcVoltar').onclick=lojaCancFechar; $('lcEntendi').onclick=lojaCancFechar;
+$('lcSim').onclick=async()=>{
+  const b=$('lcSim'); if(b.disabled||!lojaCancPed) return;
+  b.disabled=true; b.textContent='Enviando...';
+  try{
+    await fnLoja('lojaCancelar',{pedido:lojaCancPed});
+    $('lcPerg').style.display='none'; $('lcOk').style.display='';
+    lojaPedidosDesenhar();
+  }catch(e){ toast(e.message); b.disabled=false; b.textContent='Sim, cancelar' }
+};
+async function lojaManter(ped,btn){
+  if(btn.disabled) return; btn.disabled=true;
+  try{ await fnLoja('lojaCancelar',{pedido:ped,manter:true}); toast('Pedido mantido. O PIX continua valendo.'); lojaPedidosDesenhar() }
+  catch(e){ toast(e.message); btn.disabled=false }
 }
 const LOJA_SVG_CAR='<svg viewBox="0 0 24 24"><path d="M6 6h15l-1.5 9h-12z"/><path d="M6 6L5 3H2"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/></svg>';
 $('lojaCarBtn').onclick=()=>{ lojaCarAberto=true; const c=$('lojaCar'); if(c) c.classList.add('aberto'); $('lojaRola').scrollTo({top:0,behavior:'smooth'}) };
