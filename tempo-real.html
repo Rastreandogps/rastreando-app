@@ -38,6 +38,7 @@ body.mapa-google #map .leaflet-top.leaflet-left .leaflet-control-attribution{mar
 .pmmapa select{height:42px}
 :root[data-tema="claro"] .leaflet-control-attribution{background:rgba(255,255,255,.8)!important}
 :root[data-tema="claro"] .carlabel{background:rgba(255,255,255,.92)}
+:root[data-tema="claro"] .carlabel.sochips{background:transparent}
 :root[data-tema="claro"] .sheet{box-shadow:0 -8px 24px rgba(0,0,0,.15)}
 :root[data-tema="claro"] .chk input:checked + .box::after{border-color:#fff}
 :root[data-tema="claro"] .modal{background:rgba(0,0,0,.4)}
@@ -372,7 +373,15 @@ main{position:relative;flex:1;min-height:0;overflow:hidden}
 .car.c-sem .seta{fill:#64748b}
 /* setinha mais visível no mapa claro/bege (10/10/2026): disco branco, contorno colorido e sombra */
 .car svg{overflow:visible;filter:drop-shadow(0 1px 3px rgba(0,0,0,.45))}
-.carlabel .cbtag{margin-left:6px;padding-left:6px;border-left:1px solid var(--line);color:#f59e0b;font-weight:700}
+.carlabel .lbnome{padding:0 2px}
+.carlabel .lbchip{display:inline-flex;align-items:center;gap:3px;margin-left:5px;padding:2px 7px;border-radius:999px;font-weight:800;font-size:12px;line-height:1.25;letter-spacing:.01em;box-shadow:0 1px 4px rgba(0,0,0,.25)}
+.carlabel .lbchip:first-child{margin-left:0}
+.carlabel .lbchip.comb{background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#3b2300}
+.carlabel .lbchip.meta{background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff}
+.carlabel .lbchip.meta.alerta{background:linear-gradient(135deg,#f87171,#dc2626);color:#fff;animation:lbPulsa 1.2s ease-in-out infinite}
+@keyframes lbPulsa{0%,100%{box-shadow:0 0 0 0 rgba(220,38,38,.55)}50%{box-shadow:0 0 0 5px rgba(220,38,38,0)}}
+.carlabel.sonome{padding:2px 3px}
+.carlabel.sochips{background:transparent;border-color:transparent;padding:0}
 .carlabel{position:absolute;bottom:46px;left:50%;transform:translateX(-50%);background:rgba(15,17,21,.85);border:1px solid var(--line);border-radius:6px;padding:2px 6px;font-size:11px;white-space:nowrap;color:var(--txt)}
 
 /* ===== HISTÓRICO DE ROTAS (10/10/2026) ===== */
@@ -535,10 +544,23 @@ body.hist-on #mapCar{display:none!important}
 #mComb .cbin{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:8px 0 4px}
 #mComb .cbin label{font-size:12px;color:var(--mut);display:block}
 #mComb .cbin .fld{margin:4px 0 0}
-#mComb .cbtot{background:var(--card2);border-radius:14px;padding:14px 10px;text-align:center;margin:12px 0 4px}
-#mComb .cbtot span{display:block;font-size:12px;color:var(--mut)}
-#mComb .cbtot b{display:block;font-size:26px;margin-top:4px;color:#f59e0b}
-#mComb .cbtot small{display:block;font-size:12.5px;color:var(--mut);margin-top:3px}
+#mComb .cbodo{display:flex;justify-content:space-between;align-items:baseline;background:var(--card2);border-radius:12px;padding:10px 14px;margin:6px 0 4px}
+#mComb .cbodo span{font-size:12.5px;color:var(--mut)}
+#mComb .cbodo b{font-size:18px}
+#mComb .cbsec{border:1px solid var(--line);border-radius:16px;padding:12px;margin-top:12px}
+#mComb .cbsect{font-weight:800;font-size:15px;margin-bottom:2px}
+#mComb .cbtot{border-radius:14px;padding:12px 10px;text-align:center;margin:10px 0 6px}
+#mComb .cbtot span{display:block;font-size:12px;opacity:.85}
+#mComb .cbtot b{display:block;font-size:28px;margin-top:2px;letter-spacing:.01em}
+#mComb .cbtot small{display:block;font-size:12.5px;opacity:.85;margin-top:3px}
+#mComb .cbtot.comb{background:linear-gradient(135deg,rgba(251,191,36,.18),rgba(245,158,11,.10));color:#f59e0b}
+#mComb .cbtot.meta{background:linear-gradient(135deg,rgba(34,197,94,.16),rgba(22,163,74,.08));color:#16a34a}
+#mComb .cbtot.meta.alerta{background:linear-gradient(135deg,rgba(248,113,113,.20),rgba(220,38,38,.10));color:#dc2626}
+#mComb .cbtot.meta.vazio{background:var(--card2);color:var(--mut)}
+#mComb .mtbar{height:8px;border-radius:99px;background:rgba(127,127,127,.22);margin:8px 6px 2px;overflow:hidden}
+#mComb .mtbar i{display:block;height:100%;width:0;border-radius:99px;background:currentColor;transition:width .4s}
+#mComb .mtacoes .btn{width:100%}
+#mComb .fchk{margin-top:8px}
 #mComb .cbnota{font-size:11.5px;color:var(--mut);margin-top:10px;line-height:1.4}
 .addr{font-size:13px;color:var(--mut);display:flex;justify-content:space-between;gap:8px;margin-bottom:12px}
 .addr strong{color:var(--txt);font-weight:600}
@@ -1820,14 +1842,32 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
 <!-- calculadora de combustível (11/10/2026): abre ao tocar no quadro do Odômetro -->
 <div class="modal alsheet" id="mComb">
   <div class="box2">
-    <h3 id="cbTit">Combustível</h3>
-    <div class="cbin">
-      <div><label for="cbKml">Consumo (km por litro)</label><input class="fld" id="cbKml" type="text" autocomplete="off" inputmode="decimal" placeholder="ex.: 12"></div>
-      <div><label for="cbPreco">Preço do litro (R$)</label><input class="fld" id="cbPreco" type="text" autocomplete="off" inputmode="decimal" placeholder="ex.: 6,29"></div>
+    <h3 id="cbTit">Odômetro</h3>
+    <div class="cbodo"><span>Odômetro agora</span><b id="cbOdo">—</b></div>
+
+    <div class="cbsec">
+      <div class="cbsect">⛽ Combustível</div>
+      <div class="cbin">
+        <div><label for="cbKml">Consumo (km por litro)</label><input class="fld" id="cbKml" type="text" autocomplete="off" inputmode="decimal" placeholder="ex.: 12"></div>
+        <div><label for="cbPreco">Preço do litro (R$)</label><input class="fld" id="cbPreco" type="text" autocomplete="off" inputmode="decimal" placeholder="ex.: 6,29"></div>
+      </div>
+      <div class="cbtot comb"><span>Gasto pelo odômetro</span><b id="cbValor">—</b><small id="cbDet"></small></div>
+      <label class="fchk" id="cbMapaLbl"><input type="checkbox" id="cbMapa"> Mostrar no mapa</label>
     </div>
-    <div class="cbtot"><span>Gasto pelo odômetro</span><b id="cbValor">—</b><small id="cbDet"></small></div>
-    <label class="fchk" id="cbMapaLbl" style="margin-top:12px"><input type="checkbox" id="cbMapa"> Mostrar o valor no mapa, ao lado do nome do veículo</label>
-    <p class="cbnota">O valor acompanha o odômetro: quando o veículo anda, sobe; se o odômetro for zerado, zera junto. É uma estimativa pelo consumo informado. Fica salvo neste aparelho, por veículo.</p>
+
+    <div class="cbsec">
+      <div class="cbsect">🔧 Meta de quilometragem</div>
+      <div class="cbin">
+        <div><label for="mtKm">A cada (km)</label><input class="fld" id="mtKm" type="text" autocomplete="off" inputmode="numeric" placeholder="ex.: 10000"></div>
+        <div><label for="mtNome">Para quê? (opcional)</label><input class="fld" id="mtNome" type="text" autocomplete="off" maxlength="30" placeholder="ex.: troca de óleo"></div>
+      </div>
+      <div class="cbtot meta" id="mtBox"><span id="mtLbl">Faltam</span><b id="mtFalta">—</b><div class="mtbar"><i id="mtBarra"></i></div><small id="mtDet"></small></div>
+      <div class="mtacoes"><button class="btn btn-out" id="mtComecar" type="button">Começar contagem</button></div>
+      <label class="fchk" id="mtMapaLbl"><input type="checkbox" id="mtMapa"> Mostrar no mapa</label>
+    </div>
+
+    <label class="fchk" id="snLbl" style="margin-top:10px"><input type="checkbox" id="snNome"> Esconder o nome no mapa (mostrar só os valores)</label>
+    <p class="cbnota">Tudo acompanha o odômetro do veículo: conforme ele anda, o gasto sobe e a meta desce. A meta fica verde e passa a vermelha quando faltam 10%. São estimativas. Fica salvo neste aparelho, por veículo.</p>
     <button class="btn btn-out alfechar" data-close type="button">Fechar</button>
   </div>
 </div>
@@ -2183,20 +2223,31 @@ const carSvg = '<svg viewBox="0 0 44 44" width="44" height="44"><circle class="a
 
 /* troca o nome escrito no mapa na hora (sem F5) */
 /* rótulo do mapa: nome e, se ligado na calculadora, o gasto de combustível de hoje (11/10/2026) */
-function rotuloHtml(v){ const g=(typeof cbMapaTxt==='function')?cbMapaTxt(v):''; return esc(v.nome)+(g?'<span class="cbtag">⛽ '+esc(g)+'</span>':'') }
+/* chips do rótulo: ⛽ gasto pelo odômetro e 🔧 km que faltam para a meta; opcional esconder o nome (11/10/2026) */
+function rotuloHtml(v){
+  let chips='';
+  try{
+    const g=cbMapaTxt(v); if(g) chips+='<span class="lbchip comb">⛽ '+esc(g)+'</span>';
+    const m=metaMapaInfo(v); if(m) chips+='<span class="lbchip meta'+(m.alerta?' alerta':'')+'">🔧 '+esc(m.txt)+'</span>';
+  }catch(e){}
+  const semNome=chips && semNomeLigado(v.id);
+  return (semNome?'':'<span class="lbnome">'+esc(v.nome)+'</span>')+chips;
+}
+function rotuloClasse(v){ const h=rotuloHtml(v); return h.indexOf('lbnome')<0 ? 'carlabel sochips' : 'carlabel' }
 function rotularMarcador(v){
   try{
     const h=rotuloHtml(v); v.rotuloHtml=h;
     const ic=v.marker.options && v.marker.options.icon;
-    if(ic && ic.options) ic.options.html='<div class="car">'+carSvg+'</div><div class="carlabel">'+h+'</div>';
+    const cl=h.indexOf('lbnome')<0?'carlabel sochips':'carlabel';
+    if(ic && ic.options) ic.options.html='<div class="car">'+carSvg+'</div><div class="'+cl+'">'+h+'</div>';
     const el=v.marker.getElement && v.marker.getElement();
-    const l=el && el.querySelector('.carlabel'); if(l) l.innerHTML=h;
+    const l=el && el.querySelector('.carlabel'); if(l){ l.innerHTML=h; l.className=cl }
   }catch(e){}
 }
 function criarMarcador(v){
   v.marker = L.marker(v.pos,{icon:L.divIcon({
     className:'',iconSize:[44,44],iconAnchor:[22,22],
-    html:'<div class="car">'+carSvg+'</div><div class="carlabel">'+rotuloHtml(v)+'</div>'
+    html:'<div class="car">'+carSvg+'</div><div class="'+rotuloClasse(v)+'">'+rotuloHtml(v)+'</div>'
   })});
   v.rotuloNome=v.nome;
   v.marker.on('click',()=>{ selId = v.id; recolhido = false; atualizar(); });
@@ -3306,51 +3357,108 @@ $('pmZerar').onclick=async()=>{
 };
 
 
-/* ===== CALCULADORA DE COMBUSTÍVEL (11/10/2026, simplificada às 20h43 a pedido do dono) =====
-   Toque no quadro do Odômetro. O cliente informa o consumo (km/l) e o preço do litro; o app mostra quanto o
-   veículo gastou em R$ pelo ODÔMETRO (o mesmo número do quadro): sobe conforme anda e zera se o odômetro for zerado.
-   Caixinha: mostrar o valor no mapa, ao lado do nome. Tudo salvo neste aparelho, por veículo. Sem consulta a mais
-   no servidor (o odômetro já vem com a posição a cada 5 s). */
+/* ===== ODÔMETRO: COMBUSTÍVEL E META DE KM (11/10/2026) =====
+   Toque no quadro do Odômetro.
+   ⛽ Combustível: consumo (km/l) e preço do litro → quanto o veículo gastou em R$ pelo odômetro (sobe conforme anda;
+      zera se o odômetro for zerado).
+   🔧 Meta de km (ideia do dono, 20h53): "a cada X km" (ex.: troca de óleo). "Começar contagem" guarda o odômetro de agora;
+      o que falta desce conforme anda: verde, vermelho piscando quando faltam 10% ou menos, até zerar. "Recomeçar" após a troca.
+   Cada um pode aparecer no mapa ao lado do nome (chips), e o nome pode ser escondido. Tudo salvo neste aparelho, por
+   veículo. Sem consulta a mais no servidor (o odômetro já vem com a posição a cada 5 s). */
 let cbVeic=null;
-const cbNum=v=>{ const n=parseFloat(String(v||'').replace(',','.')); return isFinite(n)?n:0 };
+const cbNum=v=>{ const n=parseFloat(String(v||'').replace(/\./g,'').replace(',','.')); return isFinite(n)?n:0 };
+const cbNumDec=v=>{ const n=parseFloat(String(v||'').replace(',','.')); return isFinite(n)?n:0 };
 const cbBrl=n=>'R$ '+n.toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.');
 const cbLtTxt=n=>(n<100?n.toFixed(1).replace('.',','):Math.round(n).toLocaleString('pt-BR'))+' L';
-function cbLer(id){ try{ const j=JSON.parse(localStorage.getItem('rg_comb_'+id)||'null'); if(j) return j }catch(e){} try{ return JSON.parse(localStorage.getItem('rg_comb_ultimo')||'null')||{} }catch(e){ return {} } }
-function cbGravar(){ if(!cbVeic) return; const d={kml:$('cbKml').value,preco:$('cbPreco').value}; try{ localStorage.setItem('rg_comb_'+cbVeic.id,JSON.stringify(d)); localStorage.setItem('rg_comb_ultimo',JSON.stringify(d)) }catch(e){} }
-const cbMapaLigado=id=>{ try{ return localStorage.getItem('rg_comb_mapa_'+id)==='1' }catch(e){ return false } };
-/* valor em R$ pelo odômetro do veículo (null = falta consumo/preço ou odômetro) */
+const kmTxt=n=>Math.round(n).toLocaleString('pt-BR')+' km';
+const lsJ=(k,def)=>{ try{ const j=JSON.parse(localStorage.getItem(k)||'null'); return j==null?def:j }catch(e){ return def } };
+const lsJset=(k,v)=>{ try{ v==null?localStorage.removeItem(k):localStorage.setItem(k,JSON.stringify(v)) }catch(e){} };
+const lsFlag=k=>{ try{ return localStorage.getItem(k)==='1' }catch(e){ return false } };
+const lsFlagSet=(k,on)=>{ try{ on?localStorage.setItem(k,'1'):localStorage.removeItem(k) }catch(e){} };
+function cbLer(id){ return lsJ('rg_comb_'+id,null) || lsJ('rg_comb_ultimo',{}) || {} }
+function cbGravar(){ if(!cbVeic) return; const d={kml:$('cbKml').value,preco:$('cbPreco').value}; lsJset('rg_comb_'+cbVeic.id,d); lsJset('rg_comb_ultimo',d) }
+const cbMapaLigado=id=>lsFlag('rg_comb_mapa_'+id);
+const metaMapaLigado=id=>lsFlag('rg_meta_mapa_'+id);
+const semNomeLigado=id=>lsFlag('rg_semnome_'+id);
+const odoKm=v=>(v&&v.odo!=null)?Math.max(0,v.odo/1000):null;
+/* ⛽ */
 function cbGasto(v){
-  if(!v || v.odo==null) return null;
-  const c=(cbVeic&&cbVeic.id===v.id&&$('mComb').classList.contains('show'))?{kml:$('cbKml').value,preco:$('cbPreco').value}:cbLer(v.id);
-  const kml=cbNum(c.kml), preco=cbNum(c.preco); if(!(kml>0&&preco>0)) return null;
-  const km=Math.max(0,v.odo/1000), lt=km/kml;
-  return {km,lt,rs:lt*preco};
+  const km=odoKm(v); if(km==null) return null;
+  const aberto=cbVeic&&cbVeic.id===v.id&&$('mComb').classList.contains('show');
+  const c=aberto?{kml:$('cbKml').value,preco:$('cbPreco').value}:cbLer(v.id);
+  const kml=cbNumDec(c.kml), preco=cbNumDec(c.preco); if(!(kml>0&&preco>0)) return null;
+  const lt=km/kml; return {km,lt,rs:lt*preco};
 }
 function cbMapaTxt(v){ if(!v || !cbMapaLigado(v.id)) return ''; const g=cbGasto(v); return g?cbBrl(g.rs):'' }
-function cbPintar(){
-  const v=cbVeic&&veiculos.find(x=>x.id===cbVeic.id), g=cbGasto(v);
-  const ok=cbNum($('cbKml').value)>0&&cbNum($('cbPreco').value)>0;
-  $('cbValor').textContent = g ? cbBrl(g.rs) : '—';
-  $('cbDet').textContent = g ? fmtOdo(v.odo)+' · '+cbLtTxt(g.lt) : (!ok ? 'Informe o consumo e o preço do litro.' : 'Odômetro ainda sem valor.');
-  $('cbMapa').disabled=!ok; $('cbMapaLbl').style.opacity=ok?'1':'.5';
-  $('cbMapa').checked=!!(cbVeic&&cbMapaLigado(cbVeic.id));
+/* 🔧 meta: {km: tamanho da meta, odo0: odômetro (km) quando começou, nome} */
+function metaLer(id){ return lsJ('rg_meta_'+id,null) }
+function metaInfo(v){
+  const m=v&&metaLer(v.id), km=odoKm(v); if(!m || !(m.km>0) || km==null) return null;
+  if(km<m.odo0){ m.odo0=0; lsJset('rg_meta_'+v.id,m) } /* odômetro zerado: conta a partir do zero */
+  const falta=m.km-(km-m.odo0), pct=Math.max(0,Math.min(1,falta/m.km));
+  return {m,falta,pct,alerta:falta<=m.km*0.10};
 }
+function metaMapaInfo(v){
+  if(!v || !metaMapaLigado(v.id)) return null;
+  const i=metaInfo(v); if(!i) return null;
+  return {txt:i.falta>0?kmTxt(i.falta):'0 km',alerta:i.alerta};
+}
+function cbPintar(){
+  const v=cbVeic&&veiculos.find(x=>x.id===cbVeic.id);
+  $('cbOdo').textContent = v&&v.odo!=null ? fmtOdo(v.odo) : '—';
+  /* combustível */
+  const g=cbGasto(v), ok=cbNumDec($('cbKml').value)>0&&cbNumDec($('cbPreco').value)>0;
+  $('cbValor').textContent = g ? cbBrl(g.rs) : '—';
+  $('cbDet').textContent = g ? cbLtTxt(g.lt)+' pelo odômetro' : (!ok ? 'Informe o consumo e o preço do litro.' : 'Odômetro ainda sem valor.');
+  $('cbMapa').disabled=!ok; $('cbMapaLbl').style.opacity=ok?'1':'.5';
+  $('cbMapa').checked=!!(v&&cbMapaLigado(v.id));
+  /* meta */
+  const i=v&&metaInfo(v), box=$('mtBox');
+  box.classList.toggle('vazio',!i); box.classList.toggle('alerta',!!(i&&i.alerta));
+  if(i){
+    $('mtLbl').textContent=(i.m.nome?i.m.nome+' · ':'')+(i.falta>0?'Faltam':'Meta atingida');
+    $('mtFalta').textContent=i.falta>0?kmTxt(i.falta):'0 km';
+    $('mtBarra').style.width=Math.round(i.pct*100)+'%';
+    $('mtDet').textContent=i.falta>0?('Rodados '+kmTxt(Math.max(0,i.m.km-i.falta))+' de '+kmTxt(i.m.km)+(i.alerta?' · ⚠️ está chegando':'')):('Passou '+kmTxt(-i.falta)+'. Faça a manutenção e toque em Recomeçar.');
+    $('mtComecar').textContent='Recomeçar contagem';
+  } else {
+    $('mtLbl').textContent='Faltam'; $('mtFalta').textContent='—'; $('mtBarra').style.width='0';
+    $('mtDet').textContent='Informe a cada quantos km e toque em Começar contagem.';
+    $('mtComecar').textContent='Começar contagem';
+  }
+  $('mtMapa').disabled=!i; $('mtMapaLbl').style.opacity=i?'1':'.5';
+  $('mtMapa').checked=!!(v&&metaMapaLigado(v.id));
+  const algum=!!(v&&(cbMapaLigado(v.id)||metaMapaLigado(v.id)));
+  $('snNome').disabled=!algum; $('snLbl').style.opacity=algum?'1':'.5';
+  $('snNome').checked=!!(v&&semNomeLigado(v.id));
+}
+function cbRotular(){ if(!cbVeic) return; const v=veiculos.find(x=>x.id===cbVeic.id); if(v) rotularMarcador(v) }
 function abrirComb(){
   const v=cartao(); if(!v){ toast('Escolha um veículo.'); return }
-  cbVeic=v; $('cbTit').textContent='Combustível · '+v.nome;
-  const s=cbLer(v.id); $('cbKml').value=s.kml||''; $('cbPreco').value=s.preco||'';
+  cbVeic=v; $('cbTit').textContent='Odômetro · '+v.nome;
+  const c=cbLer(v.id); $('cbKml').value=c.kml||''; $('cbPreco').value=c.preco||'';
+  const m=metaLer(v.id); $('mtKm').value=m&&m.km?String(m.km):''; $('mtNome').value=m&&m.nome||'';
   cbPintar(); abrir('mComb');
-  if(!$('cbKml').value) setTimeout(()=>{ try{ $('cbKml').focus() }catch(e){} },80);
 }
 $('sOdoBtn').onclick=abrirComb;
-['cbKml','cbPreco'].forEach(k=>$(k).addEventListener('input',()=>{ cbGravar(); cbPintar(); if(cbVeic){ const v=veiculos.find(x=>x.id===cbVeic.id); if(v) rotularMarcador(v) } }));
-$('cbMapa').addEventListener('change',()=>{
-  if(!cbVeic) return;
-  try{ $('cbMapa').checked?localStorage.setItem('rg_comb_mapa_'+cbVeic.id,'1'):localStorage.removeItem('rg_comb_mapa_'+cbVeic.id) }catch(e){}
-  const v=veiculos.find(x=>x.id===cbVeic.id); if(v) rotularMarcador(v);
-  toast($('cbMapa').checked?'O valor vai aparecer ao lado do nome no mapa.':'Valor tirado do mapa.');
-});
-/* chamado a cada atualização: troca o rótulo do mapa só se o valor mudou; com a janela aberta, atualiza o valor */
+['cbKml','cbPreco'].forEach(k=>$(k).addEventListener('input',()=>{ cbGravar(); cbPintar(); cbRotular() }));
+$('cbMapa').addEventListener('change',()=>{ if(!cbVeic) return; lsFlagSet('rg_comb_mapa_'+cbVeic.id,$('cbMapa').checked); cbPintar(); cbRotular() });
+$('mtComecar').onclick=()=>{
+  const v=cbVeic&&veiculos.find(x=>x.id===cbVeic.id); if(!v) return;
+  const km=Math.round(cbNum($('mtKm').value)), o=odoKm(v);
+  if(!(km>=1&&km<=1000000)){ toast('Informe a cada quantos km (ex.: 10000).'); $('mtKm').focus(); return }
+  if(o==null){ toast('O odômetro deste veículo ainda não tem valor.'); return }
+  lsJset('rg_meta_'+v.id,{km,odo0:o,nome:$('mtNome').value.trim()});
+  if(!metaMapaLigado(v.id)) lsFlagSet('rg_meta_mapa_'+v.id,true);
+  cbPintar(); cbRotular(); toast('Contagem começou: faltam '+kmTxt(km)+'.');
+};
+['mtKm','mtNome'].forEach(k=>$(k).addEventListener('change',()=>{
+  const v=cbVeic&&veiculos.find(x=>x.id===cbVeic.id); const m=v&&metaLer(v.id); if(!m) return;
+  const km=Math.round(cbNum($('mtKm').value)); if(km>=1) m.km=km; m.nome=$('mtNome').value.trim(); lsJset('rg_meta_'+v.id,m); cbPintar(); cbRotular();
+}));
+$('mtMapa').addEventListener('change',()=>{ if(!cbVeic) return; lsFlagSet('rg_meta_mapa_'+cbVeic.id,$('mtMapa').checked); cbPintar(); cbRotular() });
+$('snNome').addEventListener('change',()=>{ if(!cbVeic) return; lsFlagSet('rg_semnome_'+cbVeic.id,$('snNome').checked); cbRotular() });
+/* chamado a cada atualização: troca o rótulo do mapa só se mudou; com a janela aberta, atualiza os valores */
 function cbMapaAtualizar(){
   veiculos.forEach(v=>{ if(!v.marker) return; const h=rotuloHtml(v); if(h!==v.rotuloHtml) rotularMarcador(v) });
   if($('mComb').classList.contains('show')) cbPintar();
