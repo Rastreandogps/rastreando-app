@@ -335,6 +335,11 @@ details.cli summary .seta{align-self:flex-start;margin-top:6px}
 .mini{height:36px;padding:0 14px;border-radius:10px;border:1px solid var(--line);background:var(--card2);font-size:13px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;color:var(--txt);text-decoration:none}
 .apsel{max-height:190px;overflow-y:auto;border:1px solid var(--line);border-radius:12px;background:var(--card2);margin-bottom:10px}
 .apit{display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid var(--line);cursor:pointer;font-size:14px}
+/* 12/10/2026: buscador de aparelhos (nome, IMEI, placa ou chip) */
+.apbusca{display:flex;align-items:center;gap:8px;margin:0 0 6px}
+.apbusca input{flex:1;margin:0}
+.apbusca small{flex:none;font-size:12px;color:var(--mut);white-space:nowrap}
+.apit.esc{display:none}
 .apit:last-child{border-bottom:0}
 .apit input{width:20px;height:20px;flex:none}
 .apit small{color:var(--mut);font-size:12px;word-break:break-all}
@@ -1810,6 +1815,7 @@ nav button.on .nemo.txt{color:var(--red2)}
     <label class="flbl" for="cDesde">Cliente desde (data do cadastro)</label>
     <input class="fld" id="cDesde" type="date">
     <div id="cAparWrap"><label class="flbl" id="cAparLbl">Aparelhos deste cliente (opcional)</label>
+    <div class="apbusca"><input class="fld" id="cApBusca" type="search" placeholder="Buscar aparelho: nome, IMEI, placa ou chip" autocomplete="off" data-lista="cAparelhos"><small id="cApBuscaN"></small></div>
     <div class="apsel" id="cAparelhos"></div></div>
     <label class="fchk"><input type="checkbox" id="cFrot"> <b>Frotista</b> (frota: motorista com WhatsApp em cada veículo e compartilhar "a caminho" para os clientes dele)</label>
     <label class="fchk" style="display:none"><input type="checkbox" id="cLeitura" checked> Cliente não pode editar nem apagar o aparelho</label>
@@ -1826,6 +1832,7 @@ nav button.on .nemo.txt{color:var(--red2)}
   <div class="box2">
     <h3 id="vincTitulo">Vincular aparelhos</h3>
     <p>Marque os aparelhos que este cliente pode ver no app.</p>
+    <div class="apbusca"><input class="fld" id="vincBusca" type="search" placeholder="Buscar aparelho: nome, IMEI, placa ou chip" autocomplete="off" data-lista="vincLista"><small id="vincBuscaN"></small></div>
     <div class="apsel" id="vincLista"></div>
     <div class="ferr" id="vincErro"></div>
     <div class="actions2">
@@ -5108,7 +5115,7 @@ function desenharFiltrosCli(lista,cpfDe){
   }).join('');
   const ord='<button type="button" class="fordem" data-o="1" title="Trocar a ordem da lista">'+
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4v16M3 16l4 4 4-4M17 20V4M13 8l4-4 4 4"/></svg>'+
-    (ordemCli==='acesso'?'Último acesso':'A–Z')+'</button>';
+    (filtroCli==='hoje'?'Mais novos':ordemCli==='acesso'?'Último acesso':'A–Z')+'</button>';
   const sl=box.querySelector('.fchips'), x=sl?sl.scrollLeft:0;
   box.innerHTML=ord+'<div class="fchips">'+chips+'</div>';
   const novo=box.querySelector('.fchips'); if(novo) novo.scrollLeft=x;
@@ -5116,6 +5123,7 @@ function desenharFiltrosCli(lista,cpfDe){
 $('aFiltros').addEventListener('click',e=>{
   const c=e.target.closest('[data-f]'), o=e.target.closest('[data-o]');
   if(c){ filtroCli=c.dataset.f; try{localStorage.setItem('rg_cli_filtro',filtroCli)}catch(er){} desenharClientes(); return }
+  if(o && filtroCli==='hoje'){ toast('Em "Criados hoje" a lista fica sempre do mais novo para o mais velho.'); return }
   if(o){ ordemCli=ordemCli==='acesso'?'nome':'acesso'; try{localStorage.setItem('rg_cli_ordem',ordemCli)}catch(er){} desenharClientes(); if(ordemCli==='acesso') carregarAcessos(); }
 });
 /* estrela de cliente especial ao lado do nome (10/10/2026): cheia = especial; vazia = normal; toque marca/tira */
@@ -5137,7 +5145,7 @@ function desenharClientes(){
   const porNome=(a,b)=>String(a.name||loginDe(a)).trim().localeCompare(String(b.name||loginDe(b)).trim(),'pt-BR',{sensitivity:'base'});
   const ultAc=u=>(acessosMapa&&acessosMapa[u.id]&&acessosMapa[u.id].ultimoMs)||0;
   const cl=(esperaFin||esperaAc)?[]:busca.filter(u=>filtro.ok(u,cpfDe))
-    .sort(ordemCli==='acesso'?((a,b)=>(ultAc(b)-ultAc(a))||porNome(a,b)):porNome);
+    .sort(filtro.id==='hoje'?((a,b)=>b.id-a.id):ordemCli==='acesso'?((a,b)=>(ultAc(b)-ultAc(a))||porNome(a,b)):porNome); /* 12/10/2026: "Criados hoje" sempre do mais novo para o mais velho (o número do cliente no Traccar cresce a cada cadastro) */
   const filtrado=q||filtro.id!=='todos';
   $('aCount').textContent=(filtrado?cl.length+' de ':'')+todos.length+' clientes';
   if(esperaFin||esperaAc){ $('aList').innerHTML='<div class="vempty">'+(esperaFin?'Aguardando a situação financeira carregar...':'Aguardando o registro de acessos carregar...')+'</div>'; return }
@@ -5211,7 +5219,7 @@ $('aList').addEventListener('click',e=>{
     vincUserId=+b.dataset.u;
     const u=usuarios.find(x=>x.id===vincUserId); if(!u) return;
     $('vincTitulo').textContent='Vincular aparelhos a '+u.name;
-    $('vincLista').innerHTML=htmlAparelhos(aparelhosDe(u).map(v=>v.id));
+    $('vincLista').innerHTML=htmlAparelhos(aparelhosDe(u).map(v=>v.id)); apBuscaLimpar('vincBusca');
     $('vincErro').textContent=''; $('vincSalvar').disabled=false;
     abrir('mVinc'); return;
   }
@@ -5300,9 +5308,24 @@ function htmlAparelhos(excluirIds){
   const ex=new Set(excluirIds||[]);
   const lista=veiculos.filter(v=>!ex.has(v.id)).sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
   if(!lista.length) return '<div class="apvazio">Nenhum aparelho disponível. Cadastre o aparelho na aba Equipamentos.</div>';
-  return lista.map(v=>'<label class="apit"><input type="checkbox" value="'+v.id+'"><span><b>'+esc(v.nome)+'</b><br><small>IMEI '+esc(v.imei)+(v.contato?' · cliente atual: '+esc(v.contato):' · sem cliente')+'</small></span></label>').join('');
+  const chave=v=>[v.nome,v.imei,v.placa,v.fone,v.contato].join(' ').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+  return lista.map(v=>'<label class="apit" data-busca="'+esc(chave(v))+'"><input type="checkbox" value="'+v.id+'"><span><b>'+esc(v.nome)+'</b><br><small>IMEI '+esc(v.imei)+(v.contato?' · cliente atual: '+esc(v.contato):' · sem cliente')+'</small></span></label>').join('');
 }
 const marcados = idDiv => Array.prototype.map.call($(idDiv).querySelectorAll('input:checked'),i=>+i.value);
+/* buscador da lista de aparelhos: esconde o que não bate; os marcados ficam sempre à vista */
+function apFiltrar(inp){
+  const box=$(inp.dataset.lista); if(!box) return;
+  const t=String(inp.value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim(), td=t.replace(/\D/g,'');
+  let vis=0, tot=0;
+  box.querySelectorAll('.apit').forEach(el=>{
+    tot++; const k=el.dataset.busca||'', marc=el.querySelector('input').checked;
+    const ok=!t || marc || k.includes(t) || (td.length>=4 && k.replace(/\D/g,' ').includes(td));
+    el.classList.toggle('esc',!ok); if(ok) vis++;
+  });
+  const n=$(inp.id+'N'); if(n) n.textContent=t?vis+' de '+tot:'';
+}
+function apBuscaLimpar(id){ const i=$(id); if(i){ i.value=''; apFiltrar(i) } }
+['cApBusca','vincBusca'].forEach(id=>{ const i=$(id); if(!i) return; i.addEventListener('input',()=>apFiltrar(i)); i.addEventListener('keydown',e=>{ if(e.key==='Enter') e.preventDefault() }) });
 /* liga os aparelhos ao cliente no Traccar; devolve os nomes dos que falharam */
 async function ligarAparelhos(user,ids){
   const falhas=[];
@@ -6019,7 +6042,7 @@ function abrirCliente(pre){
   $('cTitulo').textContent='Novo cliente'; $('cSalvar').textContent='Criar cliente'; $('cSenhaLbl').textContent='Senha';
   $('cAparWrap').style.display=''; $('cAparLbl').textContent='Aparelhos deste cliente (opcional)';
   $('cLeitura').checked=true; $('cFrot').checked=false; $('cErro').textContent=''; $('cSalvar').disabled=false;
-  $('cAparelhos').innerHTML=htmlAparelhos();
+  $('cAparelhos').innerHTML=htmlAparelhos(); apBuscaLimpar('cApBusca');
   const o=$('cOrigem'); o.classList.toggle('on',!!pre);
   if(pre){
     $('cNome').value=pre.nome; $('cEmail').value=loginSugerido(pre.nome); $('cSenha').value='123456'; $('cWpp').value=fmtWpp(pre.tel||'');
@@ -6058,7 +6081,7 @@ function abrirEdicaoCliente(id){
   /* aparelhos: marcado = vinculado. Desmarque para tirar, marque para vincular. */
   editAparAntes=aparelhosDe(u).map(v=>v.id);
   $('cAparWrap').style.display=''; $('cAparLbl').textContent='Aparelhos deste cliente (marque para vincular, desmarque para tirar)';
-  $('cAparelhos').innerHTML=htmlAparelhos();
+  $('cAparelhos').innerHTML=htmlAparelhos(); apBuscaLimpar('cApBusca');
   marcarAparelhos(editAparAntes);
   $('cLeitura').checked=!!u.deviceReadonly; $('cFrot').checked=attrLig(u,'frotista'); $('cErro').textContent=''; $('cSalvar').disabled=true;
   abrir('mCliente');
