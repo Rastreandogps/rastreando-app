@@ -540,12 +540,20 @@ body.hist-on #mapCar{display:none!important}
 .stat small{display:block;font-size:10px;color:var(--mut);margin-top:1px}
 .stat span{font-size:11px;color:var(--mut)}
 /* calculadora de combustível (11/10/2026): o quadro do Odômetro vira botão */
-.statbtn{border:0;font:inherit;color:inherit;cursor:pointer;position:relative;width:100%}
-.statbtn:active{transform:scale(.97)}
-.statbtn::after{content:"";position:absolute;inset:0;border-radius:12px;pointer-events:none}
-.statbtn.odo::after{border:1px solid rgba(34,197,94,.40)}
-.statbtn.comb::after{border:1px solid rgba(245,158,11,.45)}
+.statbtn{font:inherit;color:inherit;cursor:pointer;position:relative;width:100%;border-radius:12px;transition:transform .08s,box-shadow .08s,filter .15s;-webkit-tap-highlight-color:transparent}
+/* Odômetro e Combustível com cara de botão (11/10, 21h17): cor própria, relevo embaixo e setinha no canto */
+.statbtn.odo{background:linear-gradient(160deg,rgba(34,197,94,.22),rgba(22,163,74,.10));border:1.5px solid rgba(34,197,94,.65);box-shadow:0 3px 0 rgba(22,163,74,.55),0 6px 14px rgba(22,163,74,.18)}
+.statbtn.comb{background:linear-gradient(160deg,rgba(251,191,36,.24),rgba(245,158,11,.10));border:1.5px solid rgba(245,158,11,.70);box-shadow:0 3px 0 rgba(217,119,6,.60),0 6px 14px rgba(245,158,11,.18)}
+.statbtn.odo span{color:#16a34a;font-weight:700}
+.statbtn.comb span{color:#d97706;font-weight:700}
 .statbtn.comb b{color:#f59e0b}
+.statbtn::after{content:"›";position:absolute;top:2px;right:6px;font-size:15px;font-weight:800;line-height:1;opacity:.75}
+.statbtn.odo::after{color:#16a34a}
+.statbtn.comb::after{color:#d97706}
+.statbtn:hover{filter:brightness(1.08)}
+.statbtn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.25)}
+:root[data-tema="claro"] .statbtn.odo{background:linear-gradient(160deg,#dcfce7,#f0fdf4)}
+:root[data-tema="claro"] .statbtn.comb{background:linear-gradient(160deg,#fef3c7,#fffbeb)}
 #mComb .cbin{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:8px 0 4px}
 #mComb .cbin label{font-size:12px;color:var(--mut);display:block}
 #mComb .cbin .fld{margin:4px 0 0}
