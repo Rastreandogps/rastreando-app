@@ -2976,15 +2976,48 @@ function atualizarContagem(){
   try{ ajBtnTodos() }catch(e){}
 }
 /* o app lembra, neste aparelho, quais veículos você escolheu esconder do mapa (aparelho novo aparece por padrão) */
-const chaveVis = () => 'rg_vis_'+(lsGet('rg_email')||'');
+/* 12/10/2026: a chave não depende mais de maiúsculas/espaços do login digitado ("Eberson" e "eberson " eram chaves diferentes,
+   e a escolha parecia sumir ao entrar de novo). Lê também a chave antiga, para não perder o que já estava guardado. */
+const chaveVis = () => 'rg_vis_'+String(lsGet('rg_email')||'').trim().toLowerCase();
 let visSalvo = '';
+/* cópia também no IndexedDB (12/10/2026): o navegador grava o localStorage com atraso de alguns segundos; quem desmarcava os
+   veículos e fechava o app logo em seguida perdia a escolha (ao abrir, todos voltavam marcados). O IndexedDB grava na hora. */
+const visMem=new Map(); let visIdbPronto=false, visMexeu=false;
+function visIdb(modo,fn){
+  try{
+    const r=indexedDB.open('rg_app',1);
+    r.onupgradeneeded=()=>{ try{ r.result.createObjectStore('kv') }catch(e){} };
+    r.onsuccess=()=>{ try{ const db=r.result, tx=db.transaction('kv',modo); fn(tx.objectStore('kv'),tx); tx.oncomplete=()=>db.close(); tx.onerror=()=>db.close() }catch(e){} };
+  }catch(e){}
+}
+visIdb('readonly',(st,tx)=>{
+  const q=st.openCursor();
+  q.onsuccess=()=>{ const c=q.result; if(c){ if(String(c.key).startsWith('rg_vis_')) visMem.set(String(c.key),String(c.value)); c.continue() } };
+  tx.oncomplete=()=>{
+    visIdbPronto=true;
+    /* se os veículos já carregaram antes do IndexedDB responder e ninguém mexeu ainda, aplica a escolha guardada */
+    if(veiculos.length && !visMexeu && visMem.has(chaveVis())){
+      const oc=ocultosSalvos(); let mudou=false;
+      veiculos.forEach(v=>{ const vis=!oc.has(v.id); if(v.visivel!==vis){ v.visivel=vis; mudou=true } });
+      if(mudou){ try{ sincronizarChecks(); mudouSelecao(); desenharLista() }catch(e){} }
+    }
+  };
+});
 function ocultosSalvos(){
-  try{ return new Set(String(lsGet(chaveVis())||'').split(',').filter(Boolean).map(Number)) }catch(e){ return new Set() }
+  try{
+    let txt=visMem.has(chaveVis())?visMem.get(chaveVis()):lsGet(chaveVis());
+    if(txt===null) txt=lsGet('rg_vis_'+(lsGet('rg_email')||''));
+    return new Set(String(txt||'').split(',').filter(Boolean).map(Number))
+  }catch(e){ return new Set() }
 }
 function salvarVisibilidade(){
   if(!veiculos.length) return;
   const oc=veiculos.filter(v=>!v.visivel).map(v=>v.id).sort((a,b)=>a-b).join(','), k=chaveVis(), marca=k+'|'+oc;
-  if(marca!==visSalvo){ visSalvo=marca; lsSet(k,oc) }
+  if(marca!==visSalvo){
+    if(visSalvo && visSalvo.split('|')[0]===k) visMexeu=true;
+    visSalvo=marca; lsSet(k,oc); visMem.set(k,oc);
+    visIdb('readwrite',st=>st.put(oc,k));
+  }
 }
 function sincronizarChecks(){
   document.querySelectorAll('#vList .vrow').forEach(r=>{
