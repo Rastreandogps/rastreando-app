@@ -1799,11 +1799,11 @@ nav button.on .nemo.txt{color:var(--red2)}
     <label class="flbl" for="cNome">Nome</label>
     <input class="fld" id="cNome" autocomplete="off">
     <label class="flbl" for="cEmail">Login do cliente (e-mail ou um nome de usuário, ex: joao.silva)</label>
-    <input class="fld" id="cEmail" type="text" autocomplete="off" autocapitalize="none" spellcheck="false">
+    <input class="fld" id="cEmail" name="rg-login-do-cliente" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" data-lpignore="true" data-1p-ignore>
     <label class="flbl" for="cSenha" id="cSenhaLbl">Senha</label>
-    <input class="fld" id="cSenha" autocomplete="off">
+    <input class="fld" id="cSenha" name="rg-senha-do-cliente" autocomplete="new-password" data-lpignore="true" data-1p-ignore>
     <button class="mini" id="cGerar" type="button" style="margin-bottom:10px">Gerar senha</button>
-    <label class="flbl" for="cCpf">CPF (opcional)</label>
+    <label class="flbl" for="cCpf">CPF ou CNPJ (opcional)</label>
     <input class="fld" id="cCpf" inputmode="numeric" autocomplete="off">
     <label class="flbl" for="cWpp">WhatsApp do cliente (opcional) — com DDD, ex: (21) 99999-8888</label>
     <input class="fld" id="cWpp" type="tel" inputmode="tel" autocomplete="off" placeholder="(21) 99999-8888">
@@ -6029,7 +6029,23 @@ function abrirCliente(pre){
   }
   abrir('mCliente');
   if(pre) setTimeout(()=>{ try{ $('cCpf').focus() }catch(e){} },150);
+  cLimparAutofill(pre?pre:null);
 }
+/* 12/10/2026: o navegador preenchia o login (e a senha) do PRÓPRIO administrador no cadastro de cliente.
+   Depois de abrir, apaga o que não foi o app que colocou. */
+function cLimparAutofill(pre){
+  const meu=String(lsGet('rg_email')||'').trim().toLowerCase();
+  const login=pre?$('cEmail').value:'', senha=pre?$('cSenha').value:'';
+  [80,400,1200].forEach(ms=>setTimeout(()=>{
+    if(!$('mCliente').classList.contains('show') || editUserId) return;
+    const e=$('cEmail'), sn=$('cSenha');
+    if(e.value!==login && (!e.dataset.mexeu || e.value.trim().toLowerCase()===meu)){ e.value=login }
+    if(sn.value!==senha && !sn.dataset.mexeu){ sn.value=senha }
+  },ms));
+}
+['cEmail','cSenha'].forEach(i=>{ $(i).addEventListener('keydown',()=>{ $(i).dataset.mexeu='1' }); $(i).addEventListener('focus',()=>{ $(i).dataset.mexeu='' }) });
+$('cGerar').addEventListener('click',()=>{ $('cSenha').dataset.mexeu='1' });
+$('cCpf').addEventListener('blur',()=>{ const d=soDigitos($('cCpf').value); if(d.length===11||d.length===14) $('cCpf').value=fmtCpf(d) });
 function abrirEdicaoCliente(id){
   const u=usuarios.find(x=>x.id===id); if(!u) return;
   editUserId=id;
@@ -6092,7 +6108,7 @@ $('cSalvar').onclick=async ()=>{
   const desde=String($('cDesde').value||'').trim();
   if(desde && (!/^\d{4}-\d{2}-\d{2}$/.test(desde) || desde>hojeISO())) return erro('Data de cadastro inválida.');
   if(editando ? (senha && senha.length<6) : senha.length<6) return erro('A senha precisa ter pelo menos 6 caracteres.');
-  if(editando ? (cpf && cpf.length!==11 && cpf.length!==14) : (cpf && cpf.length!==11)) return erro(editando?'O CPF precisa ter 11 números (ou CNPJ com 14).':'O CPF precisa ter 11 números.');
+  if(cpf && cpf.length!==11 && cpf.length!==14) return erro('O CPF precisa ter 11 números (ou o CNPJ, 14).'); /* 12/10/2026: CNPJ também no cadastro novo */
   erro(''); $('cSalvar').disabled=true;
   try{
     if(editando){
