@@ -1158,6 +1158,9 @@ nav button.on .nemo.txt{color:var(--red2)}
 /* cartão aberto (selecionado) em destaque */
 #aview details.cli[open],#aview #aList > details.eq[open]{background:linear-gradient(0deg,rgba(37,99,235,.10),rgba(37,99,235,.10)),var(--card);border-color:rgba(37,99,235,.55);box-shadow:0 0 0 2px rgba(37,99,235,.35),0 10px 28px rgba(37,99,235,.14)}
 #aview details.cli[open] .ficha{background:var(--card)}
+/* 12/10/2026: ficha do cliente (CPF, WhatsApp, Acesso...) no mesmo palha bem fraquinho dos quadrinhos do cartão */
+:root[data-tema="claro"] #aview .ficha,:root[data-tema="claro"] #aview details.cli[open] .ficha{background:#fbf8f0;border:1px solid #efe7d4}
+:root:not([data-tema="claro"]) #aview .ficha,:root:not([data-tema="claro"]) #aview details.cli[open] .ficha{background:rgba(245,230,200,.07);border:1px solid rgba(245,230,200,.14)}
 #aview details.cli[open] .cbox{background:var(--card)}
 #aview details.cli[open] .gav details.eq{background:var(--card)}
 #aview details.cli,#aview details.eq{transition:box-shadow .2s,border-color .2s,background .2s}
