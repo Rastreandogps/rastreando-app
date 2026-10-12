@@ -4075,7 +4075,7 @@ function shareTick(){
   if(mudou) shareCarregarAtivos();
 }
 const IC_LINK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg>';
-const IC_CAMINHAO='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h11v10H3z"/><path d="M14 10h4l3 3v3h-7"/><circle cx="7" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/></svg>';
+const IC_CAMINHAO='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="18" r="2"/><path d="M8 18h5a3 3 0 0 0 0-6H9a3 3 0 0 1 0-6h4"/><path d="M18 2.5a3.5 3.5 0 0 0-3.5 3.5c0 2.6 3.5 6 3.5 6s3.5-3.4 3.5-6A3.5 3.5 0 0 0 18 2.5z"/><circle cx="18" cy="6" r="1"/></svg>'; /* rota até o destino (genérico: serve para reboque, entrega, técnico, carro) */
 async function shareCarregarAtivos(){
   const v=veicShare(), box=$('shareAtivos'); if(!v){ box.innerHTML=''; return }
   try{
