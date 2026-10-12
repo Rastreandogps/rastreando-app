@@ -1178,6 +1178,7 @@ nav button.on .nemo.txt{color:var(--red2)}
 .afila .fora{background:transparent;color:var(--mut)}
 .corigem{background:rgba(37,99,235,.08);border:1px solid rgba(37,99,235,.25);border-radius:10px;padding:8px 10px;font-size:12.5px;margin:0 0 10px;display:none}
 .corigem.on{display:block}
+.corigem .dup,.afila .dup{display:block;color:var(--red2);font-weight:700;margin-top:3px}
 #aview .aico.girando svg{animation:giraFin 1s linear infinite}
 @keyframes giraFin{to{transform:rotate(360deg)}}
 #aview .ameta{font-size:12.5px;color:var(--mut);margin:10px 2px 0}
@@ -5989,9 +5990,21 @@ function filaDesenhar(){
   const x=f[0];
   $('aFilaNome').textContent=x.nome;
   $('aFilaSub').textContent=['Vindo do APP Técnico'+(x.tec?' ('+x.tec+')':''),x.veic?x.veic.split(' · ')[0]:'',n>1?'e mais '+(n-1):''].filter(Boolean).join(' · ');
+  const d=filaDuplicado(x); if(d){ const e=document.createElement('span'); e.className='dup'; e.textContent='⚠ '+dupTexto(d); $('aFilaSub').appendChild(e) }
 }
 $('aFilaIr').onclick=()=>{ const f=filaLer(); if(f.length) abrirCliente(f[0]) };
 $('aFilaFora').onclick=()=>{ const f=filaLer(); if(!f.length) return; if(!confirm('Descartar "'+f[0].nome+'" sem criar o cliente?')) return; f.shift(); filaGravar(f); filaDesenhar() };
+/* já existe cliente com o mesmo WhatsApp ou o mesmo nome? (12/10/2026, pergunta do dono) */
+const nomeChave=t=>String(t||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+function filaDuplicado(x){
+  const w=normWpp(x.tel||''), n=nomeChave(x.nome);
+  const cli=(usuarios||[]).filter(u=>!u.administrator);
+  const porW=w?cli.find(u=>u.phone && normWpp(u.phone)===w):null;
+  if(porW) return {u:porW, por:'mesmo WhatsApp'};
+  const porN=n?cli.find(u=>nomeChave(u.name)===n):null;
+  return porN?{u:porN, por:'mesmo nome'}:null;
+}
+const dupTexto=d=>'Já existe: '+(d.u.name||loginDe(d.u))+' ('+loginDe(d.u)+'), '+d.por+'.';
 function loginSugerido(nome){
   const p=String(nome||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z ]+/g,' ').trim().split(/\s+/).filter(w=>w.length>1 && !['de','da','do','dos','das','e'].includes(w));
   if(!p.length) return '';
@@ -6011,7 +6024,8 @@ function abrirCliente(pre){
   if(pre){
     $('cNome').value=pre.nome; $('cEmail').value=loginSugerido(pre.nome); $('cSenha').value='123456'; $('cWpp').value=fmtWpp(pre.tel||'');
     const d=/^\d{4}-\d{2}-\d{2}$/.test(pre.data)?pre.data:''; if(d && d<=hojeISO()) $('cDesde').value=d;
-    o.innerHTML='<b>Vindo do card do APP Técnico</b>'+(pre.veic?'<br>'+esc(pre.veic):'')+(pre.tec?'<br>Técnico: '+esc(pre.tec):'')+'<br><span style="color:var(--mut)">Senha padrão 123456. Confira o login, digite o CPF e marque o aparelho.</span>';
+    const dp=filaDuplicado(pre);
+    o.innerHTML='<b>Vindo do card do APP Técnico</b>'+(pre.veic?'<br>'+esc(pre.veic):'')+(pre.tec?'<br>Técnico: '+esc(pre.tec):'')+(dp?'<span class="dup">⚠ '+esc(dupTexto(dp))+' Confira antes de criar outro.</span>':'')+'<br><span style="color:var(--mut)">Senha padrão 123456. Confira o login, digite o CPF e marque o aparelho.</span>';
   }
   abrir('mCliente');
   if(pre) setTimeout(()=>{ try{ $('cCpf').focus() }catch(e){} },150);
@@ -6072,6 +6086,7 @@ $('cSalvar').onclick=async ()=>{
   if(!nome) return erro('Informe o nome do cliente.');
   const lg=camposLogin($('cEmail').value); if(lg.erro) return erro(lg.erro);
   if(usuarios.some(x=>x.id!==editando && (casaUsuario(x,lg.login)||casaUsuario(x,lg.email)))) return erro('Já existe um cliente com esse login.');
+  if(!editando && cFilaAtual){ const d=filaDuplicado({nome:nome,tel:$('cWpp').value}); if(d && !confirm(dupTexto(d)+'\n\nCriar outro cliente mesmo assim?')) return }
   const wpp=normWpp($('cWpp').value);
   if(wpp===null) return erro('WhatsApp inválido. Digite o DDD e o número, ex: (21) 99999-8888.');
   const desde=String($('cDesde').value||'').trim();
