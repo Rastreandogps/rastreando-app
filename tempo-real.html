@@ -4851,6 +4851,7 @@ function blocoUso(u){
 /* filtros e ordem da lista de clientes (10/10/2026). A escolha fica lembrada neste aparelho. */
 const finDe=u=>finMapa&&finMapa[u.id];
 const FILTROS_CLI=[
+  {id:'hoje',   t:'Criados hoje', ok:u=>desdeDe(u)===hojeISO(), tit:'Clientes cadastrados hoje (para achar rápido quem o técnico está instalando)'},
   {id:'todos',  t:'Todos',        ok:()=>true},
   {id:'emdia',  t:'Em dia',       fin:1, ok:u=>{const f=finDe(u);return !!f&&f.nivel==='ok'}, tit:'Sem mensalidade vencida'},
   {id:'atras',  t:'Atrasados',    fin:1, ok:u=>{const f=finDe(u);return !!f&&(f.nivel==='aviso'||(f.nivel==='bloqueado'&&f.especial))}, tit:'Mensalidade vencida, acesso ainda liberado (1 a 4 dias, ou cliente especial)'},
@@ -5872,7 +5873,10 @@ $('cSalvar').onclick=async ()=>{
       try{ await fn('vincular',{userId:novo.id,cpf:cpf}); await carregarCpfs() }
       catch(e){ toast('Cliente criado, mas o CPF não foi vinculado: '+e.message+' (use o botão CPF do cliente)') }
     }
-    mostrarAcesso('Cliente criado',lg.login,senha); desenharAdmin();
+    /* 12/10/2026: sem a janela da senha (o dono manda o acesso pelo botão do WhatsApp do cartão); a lista vai para "Criados hoje" */
+    toast('Cliente criado: '+nome+'. Para mandar o acesso, use o botão do WhatsApp no cartão.',6000);
+    filtroCli='hoje'; try{localStorage.setItem('rg_cli_filtro','hoje')}catch(er){}
+    desenharAdmin();
   }catch(e){
     if(!e.sessao) erro(e.message && e.message!=='Failed to fetch' ? e.message : 'Não consegui falar com o servidor.');
   }
