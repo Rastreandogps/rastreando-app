@@ -48,6 +48,10 @@ body.mapa-google #map .leaflet-top.leaflet-left .leaflet-control-attribution{mar
 :root[data-tema="claro"] .tema .sol{display:block}
 :root[data-tema="claro"] .tema .lua{display:none}
 .demo.ok{color:var(--green);border-color:rgba(51,209,122,.4)}
+/* 12/10/2026: saldo do SMS Market na tarja (só administrador) */
+.demo.saldo{display:inline-flex;flex-direction:column;align-items:center;line-height:1.1;padding:3px 9px;cursor:pointer;border-radius:14px}
+.demo.saldo small{font-size:9px;font-weight:700;color:var(--mut);letter-spacing:.02em}
+.demo.saldo small.baixo{color:var(--red2)}
 .login{display:none;position:fixed;inset:0;z-index:2000;background:var(--bg);align-items:center;justify-content:center;padding:24px}
 .login.show{display:flex}
 /* trava com digital / Face ID */
@@ -1267,6 +1271,8 @@ nav button.on .nemo.txt{color:var(--red2)}
 .eclis small{display:block;color:var(--mut);font-size:12px}
 .eclis .vz{padding:12px;color:var(--mut);font-size:13px}
 .esel{font-size:12.5px;color:var(--mut);margin:0 0 10px}
+/* 12/10/2026: cabeçalho um pouco mais justo em tela estreita, para a tarja com saldo caber ao lado dos 3 botões (tema, cadeado, sair) */
+@media (max-width:420px){ header{padding-left:10px;padding-right:10px;gap:6px} .hdir{gap:6px} .brand{gap:8px} }
 </style>
 </head>
 <body>
@@ -2748,8 +2754,23 @@ function status(v){
   return ['Parado','st-stop'];
 }
 function indicador(texto,ok){
-  const e=$('live'); e.textContent=texto; e.classList.toggle('ok',!!ok);
+  const e=$('live'); e.classList.toggle('ok',!!ok);
+  if(ok && texto==='TEMPO REAL' && saldoSms && ehAdmin){ e.innerHTML='TEMPO REAL<small class="'+(saldoSms.sms<200?'baixo':'')+'">'+fmtN(saldoSms.sms)+' SMS</small><small class="'+(saldoSms.whatsapp<50?'baixo':'')+'">'+fmtN(saldoSms.whatsapp)+' WhatsApp</small>'; e.classList.add('saldo') }
+  else { e.textContent=texto; e.classList.remove('saldo') }
 }
+/* saldo do SMS Market na tarja do administrador (12/10/2026): lê ao abrir e a cada 10 min; o servidor guarda por 10 min */
+var saldoSms=null, saldoUlt=0; /* var de propósito: a tarja pode ser pintada antes desta linha rodar */
+const fmtN=n=>Number(n||0).toLocaleString('pt-BR');
+async function carregarSaldo(agora){
+  if(!ehAdmin || !lsGet('rg_token')) return;
+  if(!agora && Date.now()-saldoUlt<10*60000) return; saldoUlt=Date.now();
+  try{
+    const r=await fetch(DESB_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',body:JSON.stringify({acao:'smsSaldo',token:lsGet('rg_token'),agora:!!agora})});
+    if(!r.ok) return; const j=await r.json(); if(j && j.sms!=null){ saldoSms=j; if($('live').classList.contains('ok')) indicador('TEMPO REAL',true) }
+  }catch(e){}
+}
+setInterval(()=>carregarSaldo(false),60000);
+$('live').addEventListener('click',()=>{ if(!ehAdmin||!saldoSms) return; const v=saldoSms.expiration?' · créditos valem até '+String(saldoSms.expiration).slice(0,10).split('-').reverse().join('/'):''; toast('SMS Market: '+fmtN(saldoSms.sms)+' SMS e '+fmtN(saldoSms.whatsapp)+' WhatsApp'+v+'. Atualizado '+fmtHora(saldoSms.em)+'.',6000); carregarSaldo(true) });
 
 /* ===== COMUNICAÇÃO COM O SERVIDOR ===== */
 /* cadastro do próprio usuário. O Traccar só responde GET /api/session com o token no endereço (?token=);
@@ -2894,6 +2915,7 @@ async function buscarSeguro(){
   buscando = true;
   try{
     await buscar();
+    if(ehAdmin && !saldoSms) carregarSaldo(false);
     indicador('TEMPO REAL',true);
     if(!cercasIniciado){ cercasIniciado=true; carregarCercas().then(()=>carregarAlertas(false)); if(location.hash==='#alertas') setTimeout(()=>irPara('Alertas'),300) }
   }catch(e){
