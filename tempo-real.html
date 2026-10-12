@@ -3577,6 +3577,11 @@ function mostrarBotoesSms(){
   $('smMenuCusto').textContent=c.textContent; $('smMenuCusto').style.display=c.style.display; c.style.display='none';
   $('smMenuBloq').style.display=sms?'':'none'; $('smMenuDesb').style.display=sms?'':'none'; $('smMenuReset').style.display=rs?'':'none';
   $('smMenuResetTit').textContent=ehAdmin?'Mais SMS':'Reset';
+  /* 12/10/2026: administrador ("Mais SMS") ganha o símbolo de mais; o cliente continua com a setinha do Reset */
+  const ic=$('smMenuReset').querySelector('.smsic');
+  if(ic && ic.dataset.k!==(ehAdmin?'mais':'reset')){ ic.dataset.k=ehAdmin?'mais':'reset';
+    ic.innerHTML=ehAdmin?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>'
+      :'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 4v5h-5"/></svg>' }
   $('smMenuResetSub').textContent=ehAdmin?'Todos os SMS de configuração':'Reinicia o rastreador';
   $('btnSmsMenu').style.display=n?'':'none';
   $('btnRenome').style.display=(ehAdmin||permCli.editarNome||permCli.frotista)?'inline-flex':'none';
