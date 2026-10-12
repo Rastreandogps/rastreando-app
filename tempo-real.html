@@ -3298,8 +3298,24 @@ function desbMostrar(){
   try{ marcarBotaoAncora() }catch(e){}
   const d=v && desbPendente[v.id];
   if(!d){ row.style.display='none'; return }
-  $('desbTxt').textContent='Desbloqueio em andamento: o sistema está tentando sozinho'+(d.smsEnviado&&d.smsEmMs?' (SMS enviado às '+horaAtual(d.smsEmMs)+')':'')+'.';
+  $('desbTxt').textContent=desbTexto(v,d);
   row.style.display='flex';
+  /* relógio zerou e o SMS ainda não saiu: confere com o servidor mais vezes (o servidor olha 1 vez por minuto) */
+  if(d.criadoMs && !d.smsEnviado && !d.smsErro && Date.now()>=d.criadoMs+(d.smsAposMs||180000) && Date.now()-desbUltCheck>10000){ desbUltCheck=Date.now(); desbVerificar() }
+}
+/* cronômetro até o SMS de desbloqueio (12/10/2026, pedido do dono): o servidor manda o SMS RELAY,0# 3 min depois do pedido */
+let desbUltCheck=0;
+function desbTexto(v,d){
+  const base='Desbloqueio em andamento: o sistema está tentando sozinho';
+  if(d.smsEnviado) return 'SMS de desbloqueio enviado'+(d.smsEmMs?' às '+horaAtual(d.smsEmMs):'')+'. Aguardando o rastreador receber.';
+  const erro=String(d.smsErro||'');
+  if(/chip/i.test(erro) || (ehAdmin && v && !v.fone)) return base+' pela internet. Este aparelho não tem chip cadastrado: o SMS não será enviado.';
+  if(erro) return base+' pela internet. O SMS não pôde ser enviado ('+erro+').';
+  if(!d.criadoMs) return base+'.';
+  const falta=d.criadoMs+(d.smsAposMs||180000)-Date.now();
+  if(falta<=0) return 'Desbloqueio em andamento. Enviando o SMS de desbloqueio...';
+  const s=Math.ceil(falta/1000), mm=Math.floor(s/60), ss=String(s%60).padStart(2,'0');
+  return 'Desbloqueio em andamento. Se o rastreador não responder, enviamos o SMS em '+mm+':'+ss+'.';
 }
 async function desbVerificar(){
   if(document.visibilityState!=='visible' || !lsGet('rg_token')) return;
