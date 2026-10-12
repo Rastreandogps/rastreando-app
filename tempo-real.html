@@ -544,6 +544,14 @@ body.hist-on #mapCar{display:none!important}
 .row{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .vname{font-size:18px;font-weight:700}
 .plate{font-size:12px;color:var(--mut);letter-spacing:.08em;margin-top:2px}
+/* 12/10/2026 (frotista): motorista do veículo no cartão */
+.vmot{display:none;align-items:center;gap:6px;margin-top:4px;font-size:12.5px;color:var(--mut);max-width:100%}
+.vmot.on{display:inline-flex}
+.vmot svg{width:13px;height:13px;flex:none}
+.vmot b{font-weight:600;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px}
+.vmot a{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:7px;background:rgba(37,211,102,.13);color:#128c4a;flex:none}
+.vmot a svg{width:14px;height:14px}
+.fchk.apagada{opacity:.4;pointer-events:none}
 /* número do chip do rastreador: só administrador (10/10/2026) */
 .chiprow{display:none;align-items:center;gap:6px;margin-top:3px;font-size:12px;color:var(--mut)}
 .chiprow b{color:var(--txt);font-weight:650;letter-spacing:.2px}
@@ -1321,6 +1329,7 @@ nav button.on .nemo.txt{color:var(--red2)}
         <div>
           <div class="vname"><button id="vPick" class="vpick" type="button" aria-label="Trocar de veículo" title="Trocar de veículo"><span id="vName"></span><svg class="pickseta" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button><span class="vign" id="vIgn" title="Ignição" aria-label="Ignição"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="4"/><path d="M10.4 12.6 20 3"/><path d="M16 7l3 3"/><path d="M14 9l2 2"/></svg></span><button id="btnRenome" aria-label="Editar nome do veículo" title="Editar nome"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></button></div>
           <div class="plate" id="vPlate"></div>
+          <div class="vmot" id="vMot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><b id="vMotNome"></b><a id="vMotWpp" href="#" target="_blank" rel="noopener" aria-label="WhatsApp do motorista" title="WhatsApp do motorista" style="display:none"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.2-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.6.8-.8 1-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.3-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.8 12 12 0 0 0 4.6 4c.6.3 1.1.4 1.5.5a3.6 3.6 0 0 0 1.6.1 2.6 2.6 0 0 0 1.7-1.2 2.1 2.1 0 0 0 .2-1.2c-.1-.1-.3-.2-.5-.3z"/></svg></a></div>
           <div class="chiprow" id="chipRow"><span>Chip</span><b id="vChip"></b><button type="button" id="btnCopiaChip" aria-label="Copiar número do chip" title="Copiar número do chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg></button><button type="button" id="btnWppCli" aria-label="Abrir WhatsApp do cliente" title="Abrir WhatsApp do cliente"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2a9.9 9.9 0 0 0-8.47 15.03L2 22l5.1-1.34A9.9 9.9 0 1 0 12.04 2zm0 1.8a8.1 8.1 0 1 1-4.13 15.07l-.3-.18-3.02.8.81-2.95-.2-.31A8.1 8.1 0 0 1 12.04 3.8zM8.6 7.4c-.17 0-.45.06-.69.32-.24.26-.9.88-.9 2.14s.92 2.48 1.05 2.65c.13.17 1.8 2.86 4.45 3.9 2.2.87 2.65.7 3.12.65.48-.04 1.55-.63 1.77-1.24.22-.6.22-1.13.15-1.24-.06-.1-.24-.17-.5-.3-.27-.13-1.55-.77-1.79-.86-.24-.09-.41-.13-.59.13-.17.26-.68.86-.83 1.03-.15.18-.3.2-.56.07-.27-.13-1.1-.4-2.1-1.3-.78-.69-1.3-1.55-1.45-1.8-.15-.27-.02-.4.11-.53.12-.12.27-.3.4-.45.13-.15.17-.26.26-.43.09-.18.04-.33-.02-.46-.07-.13-.6-1.44-.82-1.97-.22-.52-.44-.45-.6-.46h-.5z"/></svg></button></div>
         </div>
         <div class="stwrap"><span class="status" id="vStatus"></span><div class="upd" id="vUpd"></div></div>
@@ -1762,6 +1771,7 @@ nav button.on .nemo.txt{color:var(--red2)}
     <input class="fld" id="cDesde" type="date">
     <div id="cAparWrap"><label class="flbl" id="cAparLbl">Aparelhos deste cliente (opcional)</label>
     <div class="apsel" id="cAparelhos"></div></div>
+    <label class="fchk"><input type="checkbox" id="cFrot"> <b>Frotista</b> (frota: motorista com WhatsApp em cada veículo e compartilhar "a caminho" para os clientes dele)</label>
     <label class="fchk" style="display:none"><input type="checkbox" id="cLeitura" checked> Cliente não pode editar nem apagar o aparelho</label>
     <div class="ferr" id="cErro"></div>
     <div class="actions2">
@@ -1832,9 +1842,10 @@ nav button.on .nemo.txt{color:var(--red2)}
   <div class="box2">
     <h3 id="pmTitulo">Permissões do app</h3>
     <p style="font-size:13px;color:var(--mut);margin:0 0 10px">Escolha o que aparece no app deste cliente.</p>
-    <label class="fchk"><input type="checkbox" id="pmApp"> Bloquear e desbloquear pelo app (desmarque para quem só pode ver o veículo, como motorista ou familiar)</label>
-    <label class="fchk"><input type="checkbox" id="pmCercaBloq"> Criar cerca e âncora que bloqueiam o veículo automaticamente</label>
-    <label class="fchk"><input type="checkbox" id="pmSms"> Bloquear e desbloquear por SMS (pela plataforma, R$ 0,10 cada)</label>
+    <label class="fchk"><input type="checkbox" id="pmSemBloq"> <b>Veículo sem bloqueio</b> (este cliente não tem relé de bloqueio: somem Bloquear/Desbloquear, SMS de bloqueio e cerca que bloqueia)</label>
+    <label class="fchk" id="pmAppRow"><input type="checkbox" id="pmApp"> Bloquear e desbloquear pelo app (desmarque para quem só pode ver o veículo, como motorista ou familiar)</label>
+    <label class="fchk" id="pmCercaBloqRow"><input type="checkbox" id="pmCercaBloq"> Criar cerca e âncora que bloqueiam o veículo automaticamente</label>
+    <label class="fchk" id="pmSmsRow"><input type="checkbox" id="pmSms"> Bloquear e desbloquear por SMS (pela plataforma, R$ 0,10 cada)</label>
     <label class="fchk"><input type="checkbox" id="pmReset"> Botão de reset (RESET#), pela plataforma (R$ 0,10) ou pelo celular dele (grátis)</label>
     <label class="fchk"><input type="checkbox" id="pmNome"> Editar o nome do veículo</label>
     <label class="fchk"><input type="checkbox" id="pmAncora"> Cerca rápida (botão da âncora no veículo)</label>
@@ -1856,8 +1867,16 @@ nav button.on .nemo.txt{color:var(--red2)}
 <!-- Renomear veículo -->
 <div class="modal" id="mRenome">
   <div class="box2">
-    <h3>Nome do veículo</h3>
+    <h3 id="rnTitulo">Nome do veículo</h3>
     <input class="fld" id="rnNome" maxlength="40" autocomplete="off">
+    <div id="rnMotBox" style="display:none;margin-top:6px">
+      <h3 style="font-size:15px;margin-bottom:6px">Motorista deste veículo</h3>
+      <label class="flbl" for="rnMotNome">Nome</label>
+      <input class="fld" id="rnMotNome" maxlength="40" autocomplete="off" placeholder="Ex.: Carlos">
+      <label class="flbl" for="rnMotFone">WhatsApp — com DDD, ex: (21) 99999-8888</label>
+      <input class="fld" id="rnMotFone" type="tel" inputmode="tel" autocomplete="off" placeholder="(21) 99999-8888">
+      <p style="font-size:12px;margin:6px 0 0">Fica salvo no veículo: vale para todos que veem este veículo. Deixe em branco para apagar.</p>
+    </div>
     <div id="rnOdoBox" style="display:none;margin-top:6px">
       <h3 style="font-size:15px;margin-bottom:6px">Odômetro (km)</h3>
       <div style="display:flex;gap:8px;align-items:center"><input class="fld" id="rnOdo" type="number" min="0" step="0.1" inputmode="decimal" style="margin:0;flex:1"><button type="button" class="btn btn-out" id="rnOdoZerar" style="flex:none;width:auto;padding:0 16px">Zerar</button></div>
@@ -2935,6 +2954,7 @@ function atualizar(){
     const [txt,cls]=status(v);
     $('vName').textContent=v.nome; $('vPick').classList.toggle('multi',veiculos.length>1);
     $('vPlate').textContent=v.placa;
+    motLinha(v);
     /* número do chip: só o administrador vê (o cliente nunca vê) */
     const cr=$('chipRow');
     if(ehAdmin){
@@ -3416,17 +3436,17 @@ async function smsBloquear(v,bloquear){
 }
 
 /* ===== PERMISSÕES DO CLIENTE (o administrador escolhe) ===== */
-let permCli={smsBloqueio:false,reset:false,editarNome:false,cercaRapida:false,minhaPosicao:false,appBloqueio:true,cercaBloqueio:true}, cobrCli=null;
+let permCli={smsBloqueio:false,reset:false,editarNome:false,cercaRapida:false,minhaPosicao:false,appBloqueio:true,cercaBloqueio:true,semBloqueio:false,frotista:false}, cobrCli=null;
 const brl2 = n => 'R$ '+Number(n||0).toFixed(2).replace('.',',');
 async function carregarPermissoes(){
-  if(ehAdmin){ permCli={smsBloqueio:true,reset:true,editarNome:true,cercaRapida:true,minhaPosicao:true,appBloqueio:true,cercaBloqueio:true}; cobrCli=null; mostrarBotoesSms(); return }
+  if(ehAdmin){ permCli={smsBloqueio:true,reset:true,editarNome:true,cercaRapida:true,minhaPosicao:true,appBloqueio:true,cercaBloqueio:true,semBloqueio:false,frotista:true}; cobrCli=null; mostrarBotoesSms(); return }
   if(!lsGet('rg_token')) return;
   /* permissões guardadas no usuário do Traccar: Bloquear/Desbloquear pelo app e cerca que bloqueia (padrão: liberado) */
-  try{ const rs=await minhaSessao(); if(rs.ok){ const me=await rs.json(); permCli.appBloqueio=permAttr(me,'appBloqueio'); permCli.cercaBloqueio=permAttr(me,'cercaBloqueio'); mostrarBotoesSms() } }catch(e){ if(e.sessao) return }
+  try{ const rs=await minhaSessao(); if(rs.ok){ const me=await rs.json(); permCli.appBloqueio=permAttr(me,'appBloqueio'); permCli.cercaBloqueio=permAttr(me,'cercaBloqueio'); permCli.semBloqueio=attrLig(me,'semBloqueio'); permCli.frotista=attrLig(me,'frotista'); mostrarBotoesSms(); try{ const cv=cartao(); if(cv) motLinha(cv) }catch(e){} } }catch(e){ if(e.sessao) return }
   try{
     const r=await fetch(DESB_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',body:JSON.stringify({acao:'minhas',token:lsGet('rg_token')})});
     if(!r.ok) return;
-    const j=await r.json(); permCli=Object.assign({smsBloqueio:false,reset:false,editarNome:false,cercaRapida:false,minhaPosicao:false},j.perm||{},{appBloqueio:permCli.appBloqueio,cercaBloqueio:permCli.cercaBloqueio}); cobrCli=j.cobranca||null;
+    const j=await r.json(); permCli=Object.assign({smsBloqueio:false,reset:false,editarNome:false,cercaRapida:false,minhaPosicao:false},j.perm||{},{appBloqueio:permCli.appBloqueio,cercaBloqueio:permCli.cercaBloqueio,semBloqueio:permCli.semBloqueio,frotista:permCli.frotista}); cobrCli=j.cobranca||null;
     mostrarBotoesSms();
   }catch(e){}
 }
@@ -3435,7 +3455,8 @@ function textoCusto(){
   return '\n\nCusto: '+brl2(cobrCli.preco)+' por SMS, cobrado na sua próxima fatura. Até agora: '+cobrCli.pendentes+' SMS = '+brl2(cobrCli.valor)+'.';
 }
 function mostrarBotoesSms(){
-  const sms=ehAdmin||permCli.smsBloqueio, rs=ehAdmin||permCli.reset;
+  const semBloq=!ehAdmin && permCli.semBloqueio===true;                                   /* 12/10/2026: Veículo sem bloqueio */
+  const sms=(ehAdmin||permCli.smsBloqueio) && !semBloq, rs=ehAdmin||permCli.reset;
   const row=$('admSmsRow'); if(!row) return;
   $('btnBlockSms').style.display=sms?'':'none'; $('btnUnblockSms').style.display=sms?'':'none'; $('btnResetSms').style.display=rs?'':'none';
   const n=(sms?2:0)+(rs?1:0);
@@ -3455,8 +3476,8 @@ function mostrarBotoesSms(){
   $('smMenuResetTit').textContent=ehAdmin?'Mais SMS':'Reset';
   $('smMenuResetSub').textContent=ehAdmin?'Todos os SMS de configuração':'Reinicia o rastreador';
   $('btnSmsMenu').style.display=n?'':'none';
-  $('btnRenome').style.display=(ehAdmin||permCli.editarNome)?'inline-flex':'none';
-  const podeApp=ehAdmin||permCli.appBloqueio!==false;
+  $('btnRenome').style.display=(ehAdmin||permCli.editarNome||permCli.frotista)?'inline-flex':'none';
+  const podeApp=ehAdmin||(permCli.appBloqueio!==false && !semBloq);
   $('btnBlock').style.display=podeApp?'':'none'; $('btnUnblock').style.display=podeApp?'':'none';
   const acts=$('btnBlock').parentElement; if(acts) acts.style.gridTemplateColumns=(podeApp?'1fr 1fr ':'')+(n?'52px ':'')+(podeApp?'44px':'52px');
   const semSinal=(()=>{ const c=cartao(); return !!(c && !c.pos) })();
@@ -3555,6 +3576,10 @@ $('btnRenome').onclick=e=>{
   e.stopPropagation();
   const v=cartao(); if(!v) return;
   $('rnNome').value=v.nome; $('rnErro').textContent=''; $('rnOk').disabled=false;
+  const podeNome=ehAdmin||permCli.editarNome, podeMot=ehAdmin||permCli.frotista;
+  $('rnNome').style.display=podeNome?'':'none'; $('rnTitulo').textContent=podeNome?'Nome do veículo':v.nome;
+  $('rnMotBox').style.display=podeMot?'':'none';
+  const m=motLer(v.id)||{}; $('rnMotNome').value=m.nome||''; $('rnMotFone').value=fmtWpp(m.fone||'');
   $('rnOdoBox').style.display=ehAdmin?'':'none'; $('rnOdo').value=v.odo!=null?(v.odo/1000).toFixed(1):''; $('rnOdo').dataset.ini=$('rnOdo').value;
   abrir('mRenome');
 };
@@ -3567,17 +3592,38 @@ async function salvarOdometro(v){
   if(!r.ok) throw new Error(await msgErro(r,'Não consegui ajustar o odômetro'));
   v.odo=Math.round(km*1000); v.odoPos=v.posId; return true;
 }
+/* motorista do veículo (frotista): guardado no veículo pelo servidor (vcfg) — 12/10/2026 */
+function motLer(id){ return lsJ('rg_mot_'+id,null) }
+function motLinha(v){
+  const el=$('vMot'); if(!el) return;
+  const m=(ehAdmin||permCli.frotista)?motLer(v.id):null;
+  if(!m || !(m.nome||m.fone)){ el.classList.remove('on'); return }
+  $('vMotNome').textContent=m.nome||fmtWpp(m.fone);
+  const a=$('vMotWpp'); if(m.fone){ a.href='https://wa.me/'+m.fone; a.style.display='' } else a.style.display='none';
+  el.classList.add('on');
+}
+function salvarMotorista(v){
+  if(!(ehAdmin||permCli.frotista) || $('rnMotBox').style.display==='none') return false;
+  const nome=$('rnMotNome').value.trim(), fone=normWpp($('rnMotFone').value);
+  if(fone===null) throw new Error('WhatsApp do motorista inválido. Digite o DDD e o número.');
+  const novo=(nome||fone)?{nome:nome,fone:fone||''}:null, antes=motLer(v.id);
+  if(JSON.stringify(novo)===JSON.stringify(antes)) return false;
+  lsJset('rg_mot_'+v.id,novo); if(!novo) lsSet('rg_mot_'+v.id,'null');
+  vcEnviar(v.id); motLinha(v); return true;
+}
 $('rnOk').onclick=async()=>{
   const v=cartao(); if(!v) return;
-  const nome=$('rnNome').value.trim();
+  const podeNome=$('rnNome').style.display!=='none';
+  const nome=podeNome?$('rnNome').value.trim():v.nome;
   if(!nome) { $('rnErro').textContent='Digite o nome.'; return }
   $('rnOk').disabled=true;
   if(nome===v.nome){
-    try{ const mudou=await salvarOdometro(v); fechar(); toast(mudou?'Odômetro ajustado.':'Nada mudou.'); atualizar() }
+    try{ const mudouMot=salvarMotorista(v); const mudou=await salvarOdometro(v); fechar(); toast(mudou?'Odômetro ajustado.':(mudouMot?'Motorista salvo.':'Nada mudou.')); atualizar() }
     catch(e){ if(!e.sessao){ $('rnErro').textContent=e.message||'Não consegui salvar.'; $('rnOk').disabled=false } }
     return;
   }
   try{
+    salvarMotorista(v);
     await salvarOdometro(v);
     const r=await fetch(DESB_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',
       body:JSON.stringify({acao:'renomear',nome:nome,token:lsGet('rg_token'),deviceId:v.id})});
@@ -3597,6 +3643,9 @@ async function chamarPerm(acao,extra){
 }
 /* permissões guardadas no próprio usuário do Traccar (10/10/2026). Sem o campo = liberado (padrão de fábrica). */
 const permAttr=(u,k)=>!(u&&u.attributes&&u.attributes[k]===false);
+/* marcações ligadas só quando o campo existe e é true (semBloqueio, frotista) — 12/10/2026 */
+const attrLig=(u,k)=>!!(u&&u.attributes&&u.attributes[k]===true);
+const podeComandar=u=>permAttr(u,'appBloqueio') && !attrLig(u,'semBloqueio');
 const isoData=ms=>{ const d=new Date(ms); return isNaN(d)?'':new Date(d.getTime()-3*3600000).toISOString().slice(0,10) };
 const horaSP=ms=>new Date(ms).toLocaleTimeString('pt-BR',{timeZone:'America/Sao_Paulo',hour:'2-digit',minute:'2-digit'});
 const fimValidade=()=>{ const v=$('pmValidade').value; if(!v) return 0; const h=$('pmHora').value||'23:59'; return Date.parse(v+'T'+h+':59-03:00') };
@@ -3609,20 +3658,24 @@ function textoValidade(){
   $('pmValTxt').innerHTML=fim<Date.now()?'<span style="color:var(--red2)">Esse horário já passou: o cliente fica sem acesso ao salvar.</span>':'O acesso desliga sozinho em '+txtValidade(fim)+'. Os rastreadores continuam funcionando.';
 }
 $('pmValidade').addEventListener('input',textoValidade); $('pmHora').addEventListener('input',textoValidade);
+function pmSemBloqPintar(){ const sem=$('pmSemBloq').checked; ['pmAppRow','pmCercaBloqRow','pmSmsRow'].forEach(i=>$(i).classList.toggle('apagada',sem)) }
+$('pmSemBloq').addEventListener('change',pmSemBloqPintar);
 $('pmSemVal').onclick=()=>{ $('pmValidade').value=''; $('pmHora').value='23:59'; textoValidade() };
 function mostrarPermTraccar(u){
   $('pmApp').checked=permAttr(u,'appBloqueio'); $('pmCercaBloq').checked=permAttr(u,'cercaBloqueio');
+  $('pmSemBloq').checked=attrLig(u,'semBloqueio'); pmSemBloqPintar();
   $('pmMapa').value=(u.attributes&&u.attributes.mapa==='google')?'google':'gratis';
   const t=validadeDe(u); $('pmValidade').value=t?isoData(t):''; $('pmHora').value=t?horaSP(t):'23:59'; textoValidade();
 }
 async function salvarPermTraccar(u){
-  const app=$('pmApp').checked, cb=$('pmCercaBloq').checked, v=$('pmValidade').value;
+  const app=$('pmApp').checked, cb=$('pmCercaBloq').checked, sem=$('pmSemBloq').checked, v=$('pmValidade').value;
   const attrs=Object.assign({},u.attributes||{});
   if(app) delete attrs.appBloqueio; else attrs.appBloqueio=false;
   if(cb) delete attrs.cercaBloqueio; else attrs.cercaBloqueio=false;
+  if(sem) attrs.semBloqueio=true; else delete attrs.semBloqueio;
   if($('pmMapa').value==='google') attrs.mapa='google'; else delete attrs.mapa; /* mapa do Google por cliente (4.49) */
   const exp=v?new Date(fimValidade()).toISOString():null;
-  const mudouApp=permAttr(u,'appBloqueio')!==app;
+  const libera=app && !sem, mudouApp=podeComandar(u)!==libera;
   const igual=JSON.stringify(attrs)===JSON.stringify(u.attributes||{}) && (validadeDe(u)||0)===(exp?Date.parse(exp):0);
   if(!igual){
     const corpo=Object.assign({},u,{attributes:attrs,expirationTime:exp}); delete corpo.password;
@@ -3633,8 +3686,8 @@ async function salvarPermTraccar(u){
   if(mudouApp){
     const ids=await garantirComandos();
     for(const k of Object.keys(ids)){
-      const r=await api('/api/permissions',{method:app?'POST':'DELETE',headers:JSONH,body:JSON.stringify({userId:u.id,commandId:ids[k]})});
-      if(!r.ok && !(app && r.status===400) && !(!app && r.status===404)) throw new Error(await msgErro(r,'Não consegui '+(app?'liberar':'travar')+' o comando '+k));
+      const r=await api('/api/permissions',{method:libera?'POST':'DELETE',headers:JSONH,body:JSON.stringify({userId:u.id,commandId:ids[k]})});
+      if(!r.ok && !(libera && r.status===400) && !(!libera && r.status===404)) throw new Error(await msgErro(r,'Não consegui '+(libera?'liberar':'travar')+' o comando '+k));
     }
   }
 }
@@ -3821,7 +3874,9 @@ $('snNome').addEventListener('change',()=>{ if(!cbVeic) return; lsFlagSet('rg_se
 const VC={pend:{}, rodando:false};
 function vcLocal(id){
   const m=metaLer(id);
-  return {comb:lsJ('rg_comb_'+id,null), meta:m&&m.km>0?{km:m.km,odo0:Number(m.odo0)||0,nome:m.nome||''}:null, combMapa:cbMapaLigado(id), metaMapa:metaMapaLigado(id)};
+  const c={comb:lsJ('rg_comb_'+id,null), meta:m&&m.km>0?{km:m.km,odo0:Number(m.odo0)||0,nome:m.nome||''}:null, combMapa:cbMapaLigado(id), metaMapa:metaMapaLigado(id)};
+  if(lsGet('rg_mot_'+id)!=null) c.mot=motLer(id); /* só manda o motorista se este aparelho já tem a cópia dele (não apaga o que outro salvou) */
+  return c;
 }
 function vcEnviar(id){
   if(!id) return;
@@ -3841,6 +3896,7 @@ function vcAplicar(id,c){
   if(c.meta && c.meta.km>0){ const old=metaLer(id); lsJset('rg_meta_'+id,{km:c.meta.km,odo0:Number(c.meta.odo0)||0,nome:c.meta.nome||'',ult:(old&&Number(old.odo0)===Number(c.meta.odo0)&&isFinite(old.ult))?old.ult:null}) }
   else lsJset('rg_meta_'+id,null);
   lsFlagSet('rg_comb_mapa_'+id,!!c.combMapa); lsFlagSet('rg_meta_mapa_'+id,!!c.metaMapa);
+  lsJset('rg_mot_'+id,c.mot&&(c.mot.nome||c.mot.fone)?{nome:c.mot.nome||'',fone:c.mot.fone||''}:null); if(!c.mot) lsSet('rg_mot_'+id,'null');
   lsSet('rg_vcfg_em_'+id,String(c.em||0)); lsSet('rg_vcfg_mig_'+id,'1');
 }
 async function vcSincronizar(){
@@ -3861,7 +3917,7 @@ async function vcSincronizar(){
         if(lsJ('rg_comb_'+id,null) || l.meta || l.combMapa || l.metaMapa) vcEnviar(id); else lsSet('rg_vcfg_mig_'+id,'1');
       }
     });
-    if(mudou){ try{ cbMapaAtualizar(); const v=cartao(); if(v) cbQuadro(v) }catch(e){} }
+    if(mudou){ try{ cbMapaAtualizar(); const v=cartao(); if(v){ cbQuadro(v); motLinha(v) } }catch(e){} }
   }catch(e){} finally{ VC.rodando=false }
 }
 setTimeout(vcSincronizar,3500);
@@ -4666,7 +4722,7 @@ async function travarClientes(){
     try{
       let limitar=!!u.limitCommands;
       if(!limitar){
-        if(!permAttr(u,'appBloqueio')) limitar=true;
+        if(!permAttr(u,'appBloqueio') || attrLig(u,'semBloqueio')) limitar=true;
         else if(ids){ const rc=await api('/api/commands?userId='+u.id); const tem=rc.ok?(await rc.json()).map(c=>c.id):[]; limitar=tem.includes(ids.bloquear)&&tem.includes(ids.desbloquear) }
         if(!limitar) semCmd.push(loginDe(u));
       }
@@ -5807,7 +5863,7 @@ function abrirCliente(){
   $('cDesde').value=hojeISO();
   $('cTitulo').textContent='Novo cliente'; $('cSalvar').textContent='Criar cliente'; $('cSenhaLbl').textContent='Senha';
   $('cAparWrap').style.display=''; $('cAparLbl').textContent='Aparelhos deste cliente (opcional)';
-  $('cLeitura').checked=true; $('cErro').textContent=''; $('cSalvar').disabled=false;
+  $('cLeitura').checked=true; $('cFrot').checked=false; $('cErro').textContent=''; $('cSalvar').disabled=false;
   $('cAparelhos').innerHTML=htmlAparelhos();
   abrir('mCliente');
 }
@@ -5825,7 +5881,7 @@ function abrirEdicaoCliente(id){
   $('cAparWrap').style.display=''; $('cAparLbl').textContent='Aparelhos deste cliente (marque para vincular, desmarque para tirar)';
   $('cAparelhos').innerHTML=htmlAparelhos();
   marcarAparelhos(editAparAntes);
-  $('cLeitura').checked=!!u.deviceReadonly; $('cErro').textContent=''; $('cSalvar').disabled=true;
+  $('cLeitura').checked=!!u.deviceReadonly; $('cFrot').checked=attrLig(u,'frotista'); $('cErro').textContent=''; $('cSalvar').disabled=true;
   abrir('mCliente');
   /* confere no servidor quais aparelhos estão realmente vinculados */
   api('/api/devices?userId='+id).then(r=>r.ok?r.json():null).then(l=>{
@@ -5881,6 +5937,7 @@ $('cSalvar').onclick=async ()=>{
       const corpo=Object.assign({},u,{name:nome,email:lg.email,login:lg.loginTraccar,deviceReadonly:true,phone:wpp}); /* check-up 10/10: cliente nunca edita o aparelho */
       corpo.attributes=Object.assign({},u.attributes||{});
       if(desde) corpo.attributes.criadoEm=desde; else delete corpo.attributes.criadoEm;
+      if($('cFrot').checked) corpo.attributes.frotista=true; else delete corpo.attributes.frotista; /* 12/10/2026 */
       if(senha) corpo.password=senha; else delete corpo.password;
       const r=await api('/api/users/'+editando,{method:'PUT',headers:JSONH,body:JSON.stringify(corpo)});
       if(!r.ok) throw new Error(await msgErro(r,'Não foi possível salvar o cliente'));
@@ -5921,6 +5978,7 @@ $('cSalvar').onclick=async ()=>{
     }
     const corpo={name:nome,email:lg.email,password:senha,administrator:false,deviceReadonly:true,limitCommands:true,phone:wpp,attributes:cpf?{cpf:cpf}:{}}; /* check-up 10/10: cliente nunca edita o aparelho */
     corpo.attributes.criadoEm=desde||hojeISO();
+    if($('cFrot').checked) corpo.attributes.frotista=true; /* 12/10/2026 */
     if(lg.loginTraccar) corpo.login=lg.loginTraccar;
     const r=await api('/api/users',{method:'POST',headers:JSONH,body:JSON.stringify(corpo)});
     if(!r.ok) throw new Error(await msgErro(r,'Não foi possível criar o cliente'));
@@ -5955,7 +6013,7 @@ $('cSalvar').onclick=async ()=>{
    A cerca fica no Traccar (ele detecta entrada/saída). Guardamos nos atributos: acao, quando, veiculos, criada, jaDentro.
    Alertas: lidos direto do Traccar com o acesso do próprio usuário. */
 const CERCA_BLOQUEIO=true;
-const podeCercaBloq=()=>CERCA_BLOQUEIO && (ehAdmin || permCli.cercaBloqueio!==false);  /* troque para true só depois que o servidor de bloqueio automático estiver publicado */
+const podeCercaBloq=()=>CERCA_BLOQUEIO && (ehAdmin || (permCli.cercaBloqueio!==false && permCli.semBloqueio!==true));  /* troque para true só depois que o servidor de bloqueio automático estiver publicado */
 const CERCA_MAX_CLIENTE=10;
 let cercas=[], cercasIniciado=false, desenho=null, bloqConfirmado=false;
 let alertas=[], alertasIds=null, alertaTimer=null;
@@ -6699,7 +6757,7 @@ function mostrarLogin(msg){
 function sair(msg){
   lsDel('rg_token'); lsDel('rg_email'); try{sessionStorage.removeItem('rg_basic')}catch(e){}
   cercasReset();
-  permCli={smsBloqueio:false,reset:false,editarNome:false,cercaRapida:false,minhaPosicao:false}; cobrCli=null;
+  permCli={smsBloqueio:false,reset:false,editarNome:false,cercaRapida:false,minhaPosicao:false,appBloqueio:true,cercaBloqueio:true,semBloqueio:false,frotista:false}; cobrCli=null;
   ehAdmin=false; usuarios=[]; $('aview').classList.remove('show'); try{ $('mapCar').classList.remove('show') }catch(e){}
   document.querySelector('nav button[data-tab="Admin"]').style.display='none'; document.querySelector('nav button[data-tab="Faturas"]').style.display='none'; document.querySelector('nav button[data-tab="Mais"]').style.display='none'; cpfsMapa={}; faturasDados=null; aplicarBloqueio(null); euDesligar(); $('btnEu').style.display='none'; try{ meuUsuario=null; mapaAplicar('gratis') }catch(e){} irPara('Mapa');
   auth=null;
