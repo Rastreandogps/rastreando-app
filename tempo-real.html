@@ -3677,6 +3677,10 @@ function motLinha(v){
   const a=$('vMotWpp'); if(m.fone){ a.href='https://wa.me/'+m.fone; a.style.display='' } else a.style.display='none';
   el.classList.add('on');
 }
+/* o botão do WhatsApp do motorista fica dentro da área de arrastar o cartão: sem isto o toque vira "arrastar" e não abre */
+$('vMotWpp').addEventListener('pointerdown',e=>e.stopPropagation());
+$('vMotWpp').addEventListener('touchstart',e=>e.stopPropagation(),{passive:true});
+$('vMotWpp').addEventListener('click',e=>{ e.stopPropagation(); e.preventDefault(); const h=$('vMotWpp').href; if(h && h.indexOf('wa.me')>=0) window.open(h,'_blank','noopener') });
 function salvarMotorista(v){
   if(!(ehAdmin||permCli.frotista) || $('rnMotBox').style.display==='none') return false;
   const nome=$('rnMotNome').value.trim(), fone=normWpp($('rnMotFone').value);
@@ -4063,13 +4067,19 @@ async function camBuscarEnd(){
   box.innerHTML='<div class="vazio">Buscando...</div>'; box.classList.add('show');
   try{
     const v=veicShare(), c=(v&&v.pos)?{lat:v.pos[0],lng:v.pos[1]}:map.getCenter();
-    const r=await fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=6&countrycodes=br&accept-language=pt-BR&viewbox='+(c.lng-1)+','+(c.lat+1)+','+(c.lng+1)+','+(c.lat-1)+'&q='+encodeURIComponent(q));
-    const lista=r.ok?await r.json():[];
+    const r=await fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=8&countrycodes=br&accept-language=pt-BR&addressdetails=1&viewbox='+(c.lng-1)+','+(c.lat+1)+','+(c.lng+1)+','+(c.lat-1)+'&q='+encodeURIComponent(q));
+    let lista=r.ok?await r.json():[];
+    /* tira repetidos (o OpenStreetMap devolve a mesma rua várias vezes, um trecho por linha) */
+    const vistos=new Set(); lista=lista.filter(x=>{ const k=String(x.display_name||'').split(', Região')[0]; if(vistos.has(k)) return false; vistos.add(k); return true }).slice(0,6);
     if(!lista.length){ box.innerHTML='<div class="vazio">Nenhum endereço encontrado. Tente com o bairro ou a cidade.</div>'; return }
-    box.innerHTML=lista.map((x,i)=>'<button type="button" data-i="'+i+'">'+esc(String(x.display_name||'').split(', Região')[0])+'</button>').join('');
+    const numDig=(q.match(/\b\d{1,6}\b/)||[])[0]||'';
+    const temNum=lista.some(x=>x.address&&x.address.house_number);
+    box.innerHTML=lista.map((x,i)=>'<button type="button" data-i="'+i+'">'+esc(String(x.display_name||'').split(', Região')[0])+'</button>').join('')+
+      (numDig&&!temNum?'<div class="vazio">O mapa não tem o número '+esc(numDig)+' nesta rua (é comum no OpenStreetMap). Escolha a rua: o destino fica nela e o número vai no texto para o cliente.</div>':'');
     box.onclick=e=>{
       const b=e.target.closest('button[data-i]'); if(!b) return;
-      const x=lista[+b.dataset.i], end=String(x.display_name||'').split(', Região')[0];
+      const x=lista[+b.dataset.i]; let end=String(x.display_name||'').split(', Região')[0];
+      if(numDig && !(x.address&&x.address.house_number)){ const p=end.split(', '); p.splice(1,0,numDig); end=p.join(', ') } /* guarda o número que o frotista digitou */
       camSel={lat:+x.lat,lon:+x.lon,endereco:end.slice(0,120)};
       $('camEnd').value=end.split(',').slice(0,3).join(','); $('camDest').textContent='Destino: '+end;
       box.classList.remove('show'); $('camEnd').blur();
