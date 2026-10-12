@@ -625,6 +625,12 @@ body.hist-on #mapCar{display:none!important}
 #btnUnblock::before{--ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='4.5' y='10.5' width='15' height='10' rx='2.5'/%3E%3Cpath d='M8 10.5V7.5a4 4 0 017.6-1.7'/%3E%3C/svg%3E");display:block!important}
 #btnShare{background:var(--card2);border:1px solid var(--line);color:var(--txt);padding:0}
 #admSmsRow{display:none;margin-top:8px;gap:8px}
+/* bloqueio/desbloqueio por SMS: um botão só (cadeado + "SMS") que abre o cartão com as opções (12/10/2026) */
+#btnSmsMenu{flex-direction:column;gap:1px;padding:0;background:var(--card2);border:1px solid var(--line);color:var(--txt)}
+#btnSmsMenu svg{width:17px;height:17px}
+#btnSmsMenu span{font-size:10px;font-weight:800;letter-spacing:.4px;line-height:1}
+#mSmsMenu .smsgrid{grid-template-columns:1fr}
+#smMenuCusto{font-size:12px;color:var(--mut);text-align:center;margin:-2px 0 12px}
 #btnResetSms{background:rgba(245,184,61,.12);color:var(--amber);border:1px solid rgba(245,184,61,.32)}
 #admSmsRow.tres .btn{font-size:11.5px;gap:5px;padding:0 6px}
 #admSmsRow.tres .btn::before{width:13px;height:13px}
@@ -668,7 +674,7 @@ body.hist-on #mapCar{display:none!important}
 
 /* cartão "Enviar SMS" */
 .smshead{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
-#smsVeic{font-size:13px;color:var(--mut);font-weight:600;text-align:right;overflow-wrap:anywhere}
+#smsVeic,#smMenuVeic{font-size:13px;color:var(--mut);font-weight:600;text-align:right;overflow-wrap:anywhere}
 .smsfone{font-size:13px;color:var(--mut);margin:0 0 12px}
 .smsfone b{color:var(--txt)}
 .smsfone.sem{color:var(--red2);font-weight:600;line-height:1.4}
@@ -1278,6 +1284,9 @@ nav button.on .nemo.txt{color:var(--red2)}
     <div class="actions">
       <button class="btn btn-red" id="btnBlock">Bloquear</button>
       <button class="btn btn-out" id="btnUnblock">Desbloquear</button>
+      <button class="btn btn-out" id="btnSmsMenu" type="button" aria-label="Bloquear ou desbloquear por SMS" title="Bloquear ou desbloquear por SMS" style="display:none">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="10.5" width="15" height="10" rx="2.5"/><path d="M8 10.5V7.5a4 4 0 018 0v3"/></svg><span>SMS</span>
+      </button>
       <button class="btn btn-out" id="btnShare" aria-label="Compartilhar">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>
       </button>
@@ -1730,6 +1739,21 @@ nav button.on .nemo.txt{color:var(--red2)}
       <button class="btn btn-out" data-close>Cancelar</button>
       <button class="btn btn-red" id="desvSalvar">Desvincular</button>
     </div>
+  </div>
+</div>
+
+<!-- Bloquear / desbloquear por SMS (botão do cadeado com "SMS" no cartão do veículo) -->
+<div class="modal" id="mSmsMenu">
+  <div class="box2">
+    <div class="smshead"><h3>SMS</h3><span id="smMenuVeic"></span></div>
+    <p class="smsfone">O SMS fica guardado na operadora e chega quando o rastreador tiver sinal de celular.</p>
+    <div class="smsgrid">
+      <button type="button" class="smsopt alerta" id="smMenuBloq"><span class="smsic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="10.5" width="15" height="10" rx="2.5"/><path d="M8 10.5V7.5a4 4 0 018 0v3"/></svg></span><span class="smstx"><b>Bloquear por SMS</b><small>Corta o veículo</small></span></button>
+      <button type="button" class="smsopt" id="smMenuDesb"><span class="smsic" style="background:rgba(26,158,87,.14);color:var(--green)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="10.5" width="15" height="10" rx="2.5"/><path d="M8 10.5V7.5a4 4 0 017.6-1.7"/></svg></span><span class="smstx"><b>Desbloquear por SMS</b><small>Libera o veículo</small></span></button>
+      <button type="button" class="smsopt aviso" id="smMenuReset"><span class="smsic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 4v5h-5"/></svg></span><span class="smstx"><b id="smMenuResetTit">Reset</b><small id="smMenuResetSub">Reinicia o rastreador</small></span></button>
+    </div>
+    <div id="smMenuCusto" style="display:none"></div>
+    <button class="btn btn-out" data-close style="width:100%">Fechar</button>
   </div>
 </div>
 
@@ -3227,10 +3251,17 @@ function mostrarBotoesSms(){
   b3.classList.toggle('mais',!!ehAdmin);
   const c=$('smsCusto');
   if(!ehAdmin && cobrCli && (sms||rs)){ c.textContent='SMS pela plataforma: '+cobrCli.pendentes+' ('+brl2(cobrCli.valor)+' na próxima fatura)'; c.style.display='' } else c.style.display='none';
+  /* 12/10/2026: a fileira de SMS e o custo saem do cartão e vão para o botão do cadeado com "SMS" */
+  row.style.display='none';
+  $('smMenuCusto').textContent=c.textContent; $('smMenuCusto').style.display=c.style.display; c.style.display='none';
+  $('smMenuBloq').style.display=sms?'':'none'; $('smMenuDesb').style.display=sms?'':'none'; $('smMenuReset').style.display=rs?'':'none';
+  $('smMenuResetTit').textContent=ehAdmin?'Mais SMS':'Reset';
+  $('smMenuResetSub').textContent=ehAdmin?'Todos os SMS de configuração':'Reinicia o rastreador';
+  $('btnSmsMenu').style.display=n?'':'none';
   $('btnRenome').style.display=(ehAdmin||permCli.editarNome)?'inline-flex':'none';
   const podeApp=ehAdmin||permCli.appBloqueio!==false;
   $('btnBlock').style.display=podeApp?'':'none'; $('btnUnblock').style.display=podeApp?'':'none';
-  const acts=$('btnBlock').parentElement; if(acts) acts.style.gridTemplateColumns=podeApp?'':'52px';
+  const acts=$('btnBlock').parentElement; if(acts) acts.style.gridTemplateColumns=(podeApp?'1fr 1fr ':'')+(n?'52px ':'')+(podeApp?'44px':'52px');
   const semSinal=(()=>{ const c=cartao(); return !!(c && !c.pos) })();
   $('btnAncora').style.display=(!semSinal && (ehAdmin||permCli.cercaRapida))?'flex':'none';
   try{ mapaColuna() }catch(e){}
@@ -3245,6 +3276,10 @@ function linkSmsTexto(f,txt){
 }
 /* terceiro botão da fileira de SMS: administrador abre o cartão com todos os SMS; cliente (com permissão) vai direto ao Reset */
 $('btnResetSms').onclick=()=>{ if(ehAdmin) abrirCartaoSms(); else abrirReset() };
+$('btnSmsMenu').onclick=()=>{ const v=cartao(); if(!v) return; $('smMenuVeic').textContent=v.nome||''; abrir('mSmsMenu') };
+$('smMenuBloq').onclick=()=>{ fechar(); $('btnBlockSms').onclick() };
+$('smMenuDesb').onclick=()=>{ fechar(); $('btnUnblockSms').onclick() };
+$('smMenuReset').onclick=()=>{ fechar(); $('btnResetSms').onclick() };
 function abrirReset(){
   const v=cartao(); if(!v || !(ehAdmin||permCli.reset)) return;
   $('rsTexto').textContent='Enviar o comando de reset (RESET#) para '+v.nome+'? O rastreador reinicia e volta a se conectar em alguns minutos.';
