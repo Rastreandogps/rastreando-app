@@ -547,7 +547,7 @@ body.hist-on #mapCar{display:none!important}
 .statbtn{font:inherit;color:inherit;cursor:pointer;position:relative;width:100%;border-radius:12px;transition:transform .08s,box-shadow .08s,filter .15s;-webkit-tap-highlight-color:transparent}
 /* Odômetro e Combustível com cara de botão (11/10, 21h17): cor própria, relevo embaixo e setinha no canto */
 .statbtn.odo{background:linear-gradient(160deg,rgba(34,197,94,.22),rgba(22,163,74,.10));border:1.5px solid rgba(34,197,94,.65);box-shadow:0 3px 0 rgba(22,163,74,.55),0 6px 14px rgba(22,163,74,.18)}
-.statbtn.comb{background:linear-gradient(160deg,rgba(251,191,36,.24),rgba(245,158,11,.10));border:1.5px solid rgba(245,158,11,.70);box-shadow:0 3px 0 rgba(217,119,6,.60),0 6px 14px rgba(245,158,11,.18)}
+.statbtn.comb{background:linear-gradient(160deg,rgba(248,113,113,.24),rgba(239,68,68,.09));border:1.5px solid rgba(239,68,68,.65);box-shadow:0 3px 0 rgba(220,38,38,.55),0 6px 14px rgba(239,68,68,.16)}
 .statbtn.odo span{color:#16a34a;font-weight:700}
 /* bateria e voltagem no mesmo quadro (11/10, 21h38) */
 .stat.bv{display:flex;flex-direction:column;justify-content:center;gap:4px;padding:6px 2px}
@@ -557,25 +557,33 @@ body.hist-on #mapCar{display:none!important}
 .stat.bv .bvl b.velha{opacity:.6}
 @media(max-width:480px){.stat.bv .bvl b{font-size:12px}.stat.bv .bvl i{font-size:11px}}
 /* Loja no quadro (11/10, 21h38) */
-.statbtn.loja{background:linear-gradient(160deg,rgba(124,58,237,.26),rgba(79,70,229,.12));border:1.5px solid rgba(139,92,246,.70);box-shadow:0 3px 0 rgba(109,40,217,.60),0 6px 14px rgba(124,58,237,.20)}
-.statbtn.loja span{color:#8b5cf6;font-weight:700}
-.statbtn.loja::after{color:#8b5cf6}
-.statbtn.loja b svg{width:22px;height:22px;color:#a78bfa;display:inline-block;vertical-align:middle}
+.statbtn.loja{background:linear-gradient(160deg,rgba(250,204,21,.26),rgba(234,179,8,.10));border:1.5px solid rgba(234,179,8,.75);box-shadow:0 3px 0 rgba(202,138,4,.60),0 6px 14px rgba(234,179,8,.18)}
+.statbtn.loja span{color:#ca8a04;font-weight:700}
+.statbtn.loja::after{color:#ca8a04}
+.statbtn.loja b svg{width:22px;height:22px;color:#eab308;display:inline-block;vertical-align:middle}
 .statbtn.loja .lojabadge{position:absolute;top:-6px;left:-4px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#e11d48;color:#fff;font-style:normal;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;border:2px solid var(--card)}
 .statbtn.loja .lojabadge[hidden]{display:none}
-:root[data-tema="claro"] .statbtn.loja{background:linear-gradient(160deg,#ede9fe,#f5f3ff)}
-.statbtn.comb span{color:#d97706;font-weight:700}
-.statbtn.comb b{color:#f59e0b}
+:root[data-tema="claro"] .statbtn.loja{background:linear-gradient(160deg,#fef9c3,#fefce8)}
+.statbtn.comb span{color:#dc2626;font-weight:700}
+.statbtn.comb b{color:#ef4444}
 .statbtn.comb b .rs{display:inline;color:inherit;font-size:.68em;font-weight:700;margin-right:1px;opacity:.85}
 .statbtn.comb b.longo{font-size:12px}
 @media(max-width:480px){.statbtn span{font-size:9.5px;letter-spacing:-.1px}.statbtn.comb b.longo{font-size:11px}}
 .statbtn::after{content:"›";position:absolute;top:2px;right:6px;font-size:15px;font-weight:800;line-height:1;opacity:.75}
 .statbtn.odo::after{color:#16a34a}
-.statbtn.comb::after{color:#d97706}
+.statbtn.comb::after{color:#dc2626}
 .statbtn:hover{filter:brightness(1.08)}
 .statbtn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.25)}
 :root[data-tema="claro"] .statbtn.odo{background:linear-gradient(160deg,#dcfce7,#f0fdf4)}
-:root[data-tema="claro"] .statbtn.comb{background:linear-gradient(160deg,#fef3c7,#fffbeb)}
+:root[data-tema="claro"] .statbtn.comb{background:linear-gradient(160deg,#fee2e2,#fef2f2)}
+/* 12/10/2026 (opção B): quadrinhos neutros, iguais aos de velocidade e bateria; a cor fica só no número/ícone */
+.statbtn.odo,.statbtn.comb,.statbtn.loja,
+:root[data-tema="claro"] .statbtn.odo,:root[data-tema="claro"] .statbtn.comb,:root[data-tema="claro"] .statbtn.loja{background:var(--card2);border:1px solid var(--line);box-shadow:none}
+.statbtn.odo span,.statbtn.comb span,.statbtn.loja span{color:var(--mut);font-weight:500}
+.statbtn.odo::after,.statbtn.comb::after,.statbtn.loja::after{color:var(--mut)}
+.statbtn.odo b{color:#16a34a}
+.statbtn.comb b{color:#dc2626}
+.statbtn.loja b svg{color:#ca8a04}
 #mComb .cbin{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:8px 0 4px}
 #mComb .cbin label{font-size:12px;color:var(--mut);display:block}
 #mComb .cbin .fld{margin:4px 0 0}
@@ -625,6 +633,8 @@ body.hist-on #mapCar{display:none!important}
 #btnUnblock::before{--ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='4.5' y='10.5' width='15' height='10' rx='2.5'/%3E%3Cpath d='M8 10.5V7.5a4 4 0 017.6-1.7'/%3E%3C/svg%3E");display:block!important}
 #btnShare{background:var(--card2);border:1px solid var(--line);color:var(--txt);padding:0}
 #admSmsRow{display:none;margin-top:8px;gap:8px}
+.stat .spdic{display:flex;justify-content:center;color:var(--mut)}
+.stat .spdic svg{width:22px;height:22px}
 /* bloqueio/desbloqueio por SMS: um botão só (cadeado + "SMS") que abre o cartão com as opções (12/10/2026) */
 #btnSmsMenu{flex-direction:column;gap:1px;padding:0;background:var(--card2);border:1px solid var(--line);color:var(--txt)}
 #btnSmsMenu svg{width:17px;height:17px}
@@ -666,6 +676,13 @@ body.hist-on #mapCar{display:none!important}
 #sheet .navbtn .navtx b{font-size:14px;font-weight:700}
 #sheet .navbtn .navtx small{font-size:11.5px;font-weight:500;color:var(--mut);white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
 #sheet .navbtn:disabled{opacity:.45;filter:grayscale(.6)}
+/* 12/10/2026: Navegar e Ver a rua em tom neutro, para não disputar cor com Bloquear/Desbloquear */
+#sheet .navbtn{height:50px;background:transparent;border:1px solid var(--line)}
+#sheet .navbtn .navic{width:34px;height:34px;border-radius:11px;color:var(--txt);opacity:.85}
+#sheet .navbtn .nv,#sheet .navbtn .st{background:rgba(127,127,127,.13);box-shadow:none}
+#sheet .navbtn .navic svg{width:19px;height:19px}
+#sheet .navbtn .navtx b{font-size:13.5px;font-weight:650}
+#sheet .navbtn:active{background:var(--card2)}
 
 /* terceiro botão da fileira de SMS (administrador): "Mais SMS" abre o cartão com todos os SMS */
 #btnResetSms.mais{background:rgba(56,225,230,.10);color:var(--cyan);border:1px solid rgba(56,225,230,.32)}
@@ -1272,7 +1289,7 @@ nav button.on .nemo.txt{color:var(--red2)}
     </div>
     <div class="banner" id="banner">Veículo bloqueado</div>
     <div class="grid">
-      <div class="stat"><span>Velocidade</span><b id="sSpeed"></b></div>
+      <div class="stat" title="Velocidade"><span class="spdic" aria-label="Velocidade"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 17a8.5 8.5 0 1 1 15 0"/><path d="M12 13l4-4"/><circle cx="12" cy="13" r="1.3" fill="currentColor"/></svg></span><b id="sSpeed"></b></div>
       <div class="stat bv" id="sBvBox" title="Bateria do rastreador e voltagem do veículo"><div class="bvl"><i aria-label="Bateria">🔋</i><b id="sBat"></b></div><div class="bvl"><i aria-label="Voltagem">⚡</i><b id="sVolt"></b></div><small id="sVoltAge" hidden></small></div>
       <button type="button" class="stat statbtn odo" id="sOdoBtn" aria-label="Odômetro e meta de quilometragem" title="Toque para a meta de quilometragem"><span>Odômetro</span><b id="sOdo"></b></button>
       <button type="button" class="stat statbtn comb" id="sCombBtn" aria-label="Combustível" title="Toque para calcular o combustível"><span>Combustível</span><b id="sComb">—</b></button>
@@ -2327,7 +2344,7 @@ function rotuloHtml(v){
   let chips='';
   try{
     const g=cbMapaTxt(v); if(g) chips+='<span class="lbchip comb">⛽ '+esc(g)+'</span>';
-    const m=metaMapaInfo(v); if(m) chips+='<span class="lbchip meta'+(m.alerta?' alerta':'')+'"><svg class="lbic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 17a8.5 8.5 0 1 1 15 0"/><path d="M12 13l4-4"/><circle cx="12" cy="13" r="1.3" fill="currentColor"/></svg>'+esc(m.txt)+'</span>';
+    const m=metaMapaInfo(v); if(m) chips+='<span class="lbchip meta'+(m.alerta?' alerta':'')+'"><svg class="lbic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 3.5 4 20.5"/><path d="M15.5 3.5 20 20.5"/><path d="M12 4.5v2.5M12 10.5v3M12 17v3"/></svg>'+esc(m.txt)+'</span>';
   }catch(e){}
   const semNome=chips && semNomeLigado(v.id);
   return (semNome?'':'<span class="lbnome">'+esc(v.nome)+'</span>')+chips;
