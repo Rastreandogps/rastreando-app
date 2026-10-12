@@ -1164,6 +1164,20 @@ nav button.on .nemo.txt{color:var(--red2)}
 #aview .aico.anovo{width:46px;height:46px;margin:0;border:0;color:#fff;border-radius:50%}
 #aview .aico.anovo.verde{background:linear-gradient(135deg,#22b35e,#16a34a);box-shadow:0 6px 14px rgba(22,163,74,.3)}
 #aview .aico.anovo.azul{background:linear-gradient(135deg,#3b82f6,#2563eb);box-shadow:0 6px 14px rgba(37,99,235,.3)}
+/* 12/10/2026: clientes vindos do card do APP Técnico (fila) */
+#aview .aico.anovo{position:relative}
+#aview .aico.anovo .fila{position:absolute;top:-5px;right:-5px;min-width:19px;height:19px;padding:0 5px;border-radius:10px;background:#dc2626;color:#fff;font-size:11px;font-weight:800;display:none;align-items:center;justify-content:center;border:2px solid var(--bg)}
+#aview .aico.anovo .fila.on{display:inline-flex}
+.afila{display:none;align-items:center;gap:10px;margin:8px 0 2px;padding:10px 12px;border-radius:12px;background:rgba(37,99,235,.08);border:1px solid rgba(37,99,235,.25);font-size:13px}
+.afila.on{display:flex}
+.afila .t{flex:1;min-width:0}
+.afila .t b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.afila .t small{color:var(--mut);font-size:12px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.afila button{flex:none;border:0;border-radius:9px;padding:7px 11px;font-size:12.5px;font-weight:700;cursor:pointer}
+.afila .ir{background:#2563eb;color:#fff}
+.afila .fora{background:transparent;color:var(--mut)}
+.corigem{background:rgba(37,99,235,.08);border:1px solid rgba(37,99,235,.25);border-radius:10px;padding:8px 10px;font-size:12.5px;margin:0 0 10px;display:none}
+.corigem.on{display:block}
 #aview .aico.girando svg{animation:giraFin 1s linear infinite}
 @keyframes giraFin{to{transform:rotate(360deg)}}
 #aview .ameta{font-size:12.5px;color:var(--mut);margin:10px 2px 0}
@@ -1452,9 +1466,10 @@ nav button.on .nemo.txt{color:var(--red2)}
         <input class="search" id="aSearch" type="search" placeholder="Buscar" autocomplete="off">
         <button class="aico" id="aFinAtualizar" style="display:none" title="Atualizar situação financeira" aria-label="Atualizar situação financeira"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg></button>
         <button class="aico" id="aImportar" title="Importar equipamentos em lista" aria-label="Importar equipamentos em lista"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 9v12M15 9v12"/></svg><b class="imbadge" id="imBadge"></b></button>
-        <button class="aico anovo" id="aNovo" title="Novo equipamento" aria-label="Novo equipamento"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+        <button class="aico anovo" id="aNovo" title="Novo equipamento" aria-label="Novo equipamento"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span class="fila" id="aNovoFila"></span></button>
       </div>
       <div class="ameta"><b id="aCount"></b><span id="aFinTxt"></span><span id="aTabNome" hidden></span></div>
+      <div class="afila" id="aFila"><div class="t"><b id="aFilaNome"></b><small id="aFilaSub"></small></div><button type="button" class="fora" id="aFilaFora">Descartar</button><button type="button" class="ir" id="aFilaIr">Criar agora</button></div>
       <div class="afiltros" id="aFiltros" hidden></div>
       <div class="afiltros" id="aFiltrosEq" hidden></div>
       <button class="linkbtn" id="aProteger" style="display:none">Proteger comandos dos clientes</button>
@@ -1779,6 +1794,7 @@ nav button.on .nemo.txt{color:var(--red2)}
 <div class="modal" id="mCliente">
   <div class="box2">
     <h3 id="cTitulo">Novo cliente</h3>
+    <div class="corigem" id="cOrigem"></div>
     <label class="flbl" for="cNome">Nome</label>
     <input class="fld" id="cNome" autocomplete="off">
     <label class="flbl" for="cEmail">Login do cliente (e-mail ou um nome de usuário, ex: joao.silva)</label>
@@ -4881,6 +4897,7 @@ function desenharAdmin(){
   if($('aFiltros')) $('aFiltros').hidden = abaAdmin!=='cli';
   if($('aFiltrosEq')) $('aFiltrosEq').hidden = abaAdmin!=='equip';
   if(abaAdmin==='equip') desenharEquip(); else desenharClientes();
+  try{ filaDesenhar() }catch(e){}
 }
 let buscaAdmin={equip:'',cli:''}, abaAnt=null;
 const ICO_PEN='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg>';
@@ -5947,16 +5964,57 @@ function senhaAleatoria(){
   const a=new Uint32Array(10); (window.crypto||window.msCrypto).getRandomValues(a);
   a.forEach(n=>s+=c[n%c.length]); return s;
 }
-let editUserId=null;
-function abrirCliente(){
-  editUserId=null;
+let editUserId=null, cFilaAtual=null;
+/* ===== CLIENTE VINDO DO CARD DO APP TÉCNICO (12/10/2026) =====
+   O APP Técnico abre este app com #novocli=<dados> (nome, WhatsApp, veículo, OS). Entra numa fila guardada no
+   aparelho; o administrador vê "1 cliente vindo do APP Técnico" e o cadastro abre preenchido. Nada passa por servidor. */
+const filaLer=()=>lsJ('rg_cli_fila',[]);
+const filaGravar=f=>lsJset('rg_cli_fila',f.length?f:null);
+function filaEntrar(){
+  const m=/^#novocli=([A-Za-z0-9_-]+)/.exec(location.hash||''); if(!m) return;
+  try{
+    const b=m[1].replace(/-/g,'+').replace(/_/g,'/'), j=JSON.parse(decodeURIComponent(escape(atob(b+'==='.slice((b.length+3)%4)))));
+    if(j && j.nome){ const f=filaLer().filter(x=>!(j.os && x.os===j.os)); f.push({os:String(j.os||''),nome:String(j.nome).slice(0,80),tel:String(j.tel||'').replace(/\D/g,''),veic:String(j.veic||'').slice(0,80),data:String(j.data||''),tec:String(j.tec||''),em:Date.now()}); filaGravar(f) }
+  }catch(e){}
+  try{ history.replaceState(null,'',location.pathname+location.search) }catch(e){ location.hash='' }
+}
+filaEntrar();
+window.addEventListener('hashchange',()=>{ filaEntrar(); if(ehAdmin) filaDesenhar() });
+function filaDesenhar(){
+  const f=filaLer(), b=$('aNovoFila'), box=$('aFila'); if(!b||!box) return;
+  const n=ehAdmin?f.length:0;
+  b.textContent=n; b.classList.toggle('on',n>0);
+  box.classList.toggle('on',n>0 && abaAdmin==='cli');
+  if(!n) return;
+  const x=f[0];
+  $('aFilaNome').textContent=x.nome;
+  $('aFilaSub').textContent=['Vindo do APP Técnico'+(x.tec?' ('+x.tec+')':''),x.veic?x.veic.split(' · ')[0]:'',n>1?'e mais '+(n-1):''].filter(Boolean).join(' · ');
+}
+$('aFilaIr').onclick=()=>{ const f=filaLer(); if(f.length) abrirCliente(f[0]) };
+$('aFilaFora').onclick=()=>{ const f=filaLer(); if(!f.length) return; if(!confirm('Descartar "'+f[0].nome+'" sem criar o cliente?')) return; f.shift(); filaGravar(f); filaDesenhar() };
+function loginSugerido(nome){
+  const p=String(nome||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z ]+/g,' ').trim().split(/\s+/).filter(w=>w.length>1 && !['de','da','do','dos','das','e'].includes(w));
+  if(!p.length) return '';
+  let base=p.length>1?p[0]+'.'+p[p.length-1]:p[0], l=base, i=2;
+  while(usuarios.some(x=>casaUsuario(x,l))) l=base+i++;
+  return l;
+}
+function abrirCliente(pre){
+  editUserId=null; cFilaAtual=pre||null;
   ['cNome','cEmail','cSenha','cCpf','cWpp'].forEach(i=>$(i).value='');
   $('cDesde').value=hojeISO();
   $('cTitulo').textContent='Novo cliente'; $('cSalvar').textContent='Criar cliente'; $('cSenhaLbl').textContent='Senha';
   $('cAparWrap').style.display=''; $('cAparLbl').textContent='Aparelhos deste cliente (opcional)';
   $('cLeitura').checked=true; $('cFrot').checked=false; $('cErro').textContent=''; $('cSalvar').disabled=false;
   $('cAparelhos').innerHTML=htmlAparelhos();
+  const o=$('cOrigem'); o.classList.toggle('on',!!pre);
+  if(pre){
+    $('cNome').value=pre.nome; $('cEmail').value=loginSugerido(pre.nome); $('cSenha').value='123456'; $('cWpp').value=fmtWpp(pre.tel||'');
+    const d=/^\d{4}-\d{2}-\d{2}$/.test(pre.data)?pre.data:''; if(d && d<=hojeISO()) $('cDesde').value=d;
+    o.innerHTML='<b>Vindo do card do APP Técnico</b>'+(pre.veic?'<br>'+esc(pre.veic):'')+(pre.tec?'<br>Técnico: '+esc(pre.tec):'')+'<br><span style="color:var(--mut)">Senha padrão 123456. Confira o login, digite o CPF e marque o aparelho.</span>';
+  }
   abrir('mCliente');
+  if(pre) setTimeout(()=>{ try{ $('cCpf').focus() }catch(e){} },150);
 }
 function abrirEdicaoCliente(id){
   const u=usuarios.find(x=>x.id===id); if(!u) return;
@@ -6090,6 +6148,7 @@ $('cSalvar').onclick=async ()=>{
       try{ await fn('vincular',{userId:novo.id,cpf:cpf}); await carregarCpfs() }
       catch(e){ toast('Cliente criado, mas o CPF não foi vinculado: '+e.message+' (use o botão CPF do cliente)') }
     }
+    if(cFilaAtual){ filaGravar(filaLer().filter(x=>!(x.os&&x.os===cFilaAtual.os) && x.em!==cFilaAtual.em)); cFilaAtual=null; filaDesenhar() } /* saiu da fila do APP Técnico */
     /* 12/10/2026: sem a janela da senha (o dono manda o acesso pelo botão do WhatsApp do cartão); a lista vai para "Criados hoje" */
     toast('Cliente criado: '+nome+'. Para mandar o acesso, use o botão do WhatsApp no cartão.',6000);
     filtroCli='hoje'; try{localStorage.setItem('rg_cli_filtro','hoje')}catch(er){}
