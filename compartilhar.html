@@ -17,6 +17,8 @@
   compartilhou ainda tem o veículo.
   Modo "técnico a caminho" (tipo "tec", gerado pelo APP Técnico): mostra o nome e a foto do técnico (nunca o nome nem a
   placa do veículo dele), o endereço do cliente, a rota pelas ruas e a previsão de chegada (serviço público OSRM; estimativa).
+  Modo "serviço a caminho" (tipo "frota", 12/10/2026, gerado no app por cliente frotista): mesmo visual do técnico, com o
+  título que o frotista escolheu (ex.: "Reboque a caminho"), o motorista, o veículo e a empresa; destino e previsão iguais.
 -->
 <style>
 :root{
@@ -116,7 +118,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 </button>
 
 <section class="cartao" id="cartao" style="display:none">
-  <div class="tec" id="tec"><div class="foto" id="tecFoto"></div><div><div class="t1" id="tecTit"></div><div class="t2">Técnico da Rastreando GPS</div></div></div>
+  <div class="tec" id="tec"><div class="foto" id="tecFoto"></div><div><div class="t1" id="tecTit"></div><div class="t2" id="tecSub">Técnico da Rastreando GPS</div></div></div>
   <div class="eta" id="eta"><div class="min" id="etaMin"></div><div class="info" id="etaInfo"></div></div>
   <div class="nome" id="nome"></div>
   <div class="placa" id="placa"></div>
@@ -225,21 +227,31 @@ async function endereco(lat, lon) {
 }
 
 /* ===== técnico a caminho: foto, destino (endereço do cliente), rota e tempo estimado ===== */
-const ehTec = () => !!(dados && dados.tipo === 'tec');
+const ehTec = () => !!(dados && (dados.tipo === 'tec' || dados.tipo === 'frota')); /* "a caminho": técnico ou serviço do frotista */
+const quem = () => (dados && dados.tipo === 'frota') ? (dados.motorista ? 'o motorista' : 'o veículo') : 'o técnico';
 function prepararTec(d) {
   if ($('tec').classList.contains('show')) return;
-  document.title = d.tecnico + ' está a caminho · Rastreando GPS';
   $('tec').classList.add('show');
   $('nome').style.display = 'none'; $('placa').style.display = 'none';
-  $('tecTit').textContent = d.tecnico + ' está a caminho';
   const foto = $('tecFoto');
-  foto.textContent = (d.tecnico || '?').charAt(0).toUpperCase();
-  const img = new Image();
-  img.alt = '';
-  img.onload = () => { foto.textContent = ''; foto.appendChild(img); };
-  img.src = FOTOS + String(d.tecnico || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '') + '.jpg';
+  if (d.tipo === 'frota') { /* serviço a caminho do frotista: título escolhido, motorista, veículo e empresa */
+    const tit = d.titulo || 'Serviço a caminho';
+    document.title = tit + ' · ' + (d.empresa || 'Rastreando GPS');
+    $('tecTit').textContent = tit;
+    $('tecSub').textContent = [d.motorista ? 'Motorista: ' + d.motorista : '', d.nome || '', d.empresa || ''].filter(Boolean).join(' · ');
+    foto.textContent = (d.motorista || d.empresa || tit).charAt(0).toUpperCase();
+  } else {
+    document.title = d.tecnico + ' está a caminho · Rastreando GPS';
+    $('tecTit').textContent = d.tecnico + ' está a caminho';
+    foto.textContent = (d.tecnico || '?').charAt(0).toUpperCase();
+    const img = new Image();
+    img.alt = '';
+    img.onload = () => { foto.textContent = ''; foto.appendChild(img); };
+    img.src = FOTOS + String(d.tecnico || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '') + '.jpg';
+  }
   document.querySelector('.botoes').style.display = 'none';
-  $('btnCentro').setAttribute('aria-label', 'Mostrar o técnico'); $('btnCentro').title = 'Mostrar o técnico';
+  const q = 'Mostrar ' + quem();
+  $('btnCentro').setAttribute('aria-label', q); $('btnCentro').title = q;
 }
 function iconeCasa() {
   return L.divIcon({ html: '<div class="casa"><div><svg viewBox="0 0 24 24"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/></svg></div></div>', className: '', iconSize: [40, 40], iconAnchor: [20, 38] });
@@ -274,14 +286,14 @@ function mostrarEta() {
   if (reta < 150) {
     box.classList.add('chegou');
     $('etaMin').textContent = 'Chegou';
-    $('etaInfo').innerHTML = '<b>O técnico chegou ao local.</b><br>Se ainda não te encontrou, ele deve chamar em instantes.';
+    $('etaInfo').innerHTML = (dados.tipo === 'frota' ? '<b>Chegou ao local.</b><br>Se ainda não te encontrou, deve chamar em instantes.' : '<b>O técnico chegou ao local.</b><br>Se ainda não te encontrou, ele deve chamar em instantes.');
     if (linhaRota) { linhaRota.remove(); linhaRota = null; }
     return;
   }
   box.classList.remove('chegou');
   if (p.gpsMs && Date.now() - p.gpsMs > 15 * 60000) { /* posição velha: previsão seria enganosa */
     $('etaMin').innerHTML = '—';
-    $('etaInfo').innerHTML = '<b>Aguardando a posição atual do técnico.</b><br>A previsão de chegada aparece assim que o rastreador atualizar.';
+    $('etaInfo').innerHTML = '<b>Aguardando a posição atual d' + quem() + '.</b><br>A previsão de chegada aparece assim que o rastreador atualizar.';
     return;
   }
   if (rota && rotaDe && distM(rotaDe, [p.lat, p.lon]) < 400) {
@@ -299,21 +311,21 @@ function desenhar(d) {
   dados = d;
   $('telaCarrega').classList.remove('show');
   $('cartao').style.display = '';
-  if (d.tipo === 'tec') prepararTec(d);
+  if (d.tipo === 'tec' || d.tipo === 'frota') prepararTec(d);
   $('nome').textContent = d.nome;
   $('placa').textContent = d.placa ? d.placa.replace(/^([A-Z]{3})(\d)/, '$1-$2') : '';
-  $('placa').style.display = d.placa && d.tipo !== 'tec' ? '' : 'none';
+  $('placa').style.display = d.placa && !ehTec() ? '' : 'none';
   const p = d.pos;
   const chips = [];
   if (!p) {
-    $('end').textContent = d.tipo === 'tec' ? 'Aguardando a posição do técnico.' : 'O rastreador ainda não enviou nenhuma posição.';
+    $('end').textContent = ehTec() ? 'Aguardando a posição d' + quem() + '.' : 'O rastreador ainda não enviou nenhuma posição.';
     $('hora').textContent = '';
     $('chips').innerHTML = '';
     $('btnRota').style.visibility = $('btnMaps').style.visibility = 'hidden';
   } else {
     const anda = p.kmh > 3 && p.gpsOk && p.gpsMs && Date.now() - p.gpsMs <= 600000; /* velocidade de GPS antigo não conta */
     chips.push('<span class="chip ' + (anda ? 'mov' : 'par') + '"><i></i>' + (anda ? 'Em movimento · ' + p.kmh + ' km/h' : 'Parado') + '</span>');
-    if (p.ignicao !== null && d.tipo !== 'tec') chips.push('<span class="chip ' + (p.ignicao ? 'on' : '') + '"><i></i>Ignição ' + (p.ignicao ? 'ligada' : 'desligada') + '</span>');
+    if (p.ignicao !== null && !ehTec()) chips.push('<span class="chip ' + (p.ignicao ? 'on' : '') + '"><i></i>Ignição ' + (p.ignicao ? 'ligada' : 'desligada') + '</span>');
     $('chips').innerHTML = chips.join('');
     const velho = p.gpsMs && Date.now() - p.gpsMs > 600000;
     $('hora').textContent = p.gpsMs ? (velho ? 'Posição de ' + diaHora(p.gpsMs) + ' (há ' + tempo(Date.now() - p.gpsMs) + ')' : 'Posição atualizada às ' + hora(p.gpsMs)) : '';
@@ -338,7 +350,7 @@ function desenhar(d) {
         }
       }
     }
-    if (d.tipo === 'tec' && d.destino) {
+    if (ehTec() && d.destino) {
       const dl = [d.destino.lat, d.destino.lon];
       if (!casa) casa = L.marker(dl, { icon: iconeCasa(), zIndexOffset: -100, title: 'Seu endereço' }).addTo(mapa);
       else casa.setLatLng(dl);
@@ -388,7 +400,7 @@ function atualizarValidade() {
   if (!dados) return;
   const falta = dados.expiraMs - Date.now();
   if (falta <= 0) {
-    if (ehTec()) erro('Acompanhamento encerrado', 'O link para acompanhar o técnico venceu. Se precisar, fale com a Rastreando GPS.');
+    if (ehTec()) erro('Acompanhamento encerrado', 'O link para acompanhar ' + quem() + ' venceu. Se precisar, fale com ' + (dados.tipo === 'frota' && dados.empresa ? dados.empresa : 'a Rastreando GPS') + '.');
     else erro('Link expirado', 'O prazo deste compartilhamento acabou. Peça um novo link para quem te enviou.');
     return;
   }
