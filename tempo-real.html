@@ -857,6 +857,11 @@ nav button{padding:9px 0 8px;display:flex;flex-direction:column;align-items:cent
 nav button.on{color:var(--txt)}
 nav button.on svg{stroke:var(--red2)}
 nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+nav .nemo{font-size:20px;line-height:22px;height:22px;display:block;transition:transform .15s}
+nav .nemo.txt{font-size:22px;color:var(--mut)}
+nav button.on{color:var(--red2);font-weight:700}
+nav button.on .nemo{transform:scale(1.12)}
+nav button.on .nemo.txt{color:var(--red2)}
 
 /* Janelas */
 .modal{position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.6);display:none;align-items:flex-end;justify-content:center}
@@ -1453,14 +1458,14 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
 </main>
 
 <nav>
-  <button class="on" data-tab="Mapa"><svg viewBox="0 0 24 24"><path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg>Mapa</button>
-  <button data-tab="Veículos"><svg viewBox="0 0 24 24"><path d="M4 16v-4l2-5h12l2 5v4"/><path d="M4 12h16"/><circle cx="7.5" cy="16.5" r="1.5"/><circle cx="16.5" cy="16.5" r="1.5"/></svg>Veículos</button>
-  <button data-tab="Histórico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Histórico</button>
-  <button data-tab="Cercas"><svg viewBox="0 0 24 24"><path d="M12 3l8 4v6c0 4-3.5 7-8 8-4.5-1-8-4-8-8V7l8-4z"/></svg>Cercas</button>
-  <button data-tab="Alertas"><svg viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 1112 0v5l2 2H4l2-2z"/><path d="M10 21h4"/></svg>Alertas<span class="nbadge" id="alBadge"></span></button>
-  <button data-tab="Faturas" style="display:none"><svg viewBox="0 0 24 24"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6M9 13h8M9 17h8"/></svg>Faturas</button>
-  <button data-tab="Mais" style="display:none"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg>Mais<span class="nbadge" id="maisBadge">!</span></button>
-  <button data-tab="Admin" style="display:none"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1.1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1.1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.8.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8V9a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"/></svg>Admin</button>
+  <button class="on" data-tab="Mapa"><span class="nemo" aria-hidden="true">🗺️</span>Mapa</button>
+  <button data-tab="Veículos"><span class="nemo" aria-hidden="true">🚗</span>Veículos</button>
+  <button data-tab="Histórico"><span class="nemo" aria-hidden="true">🕘</span>Histórico</button>
+  <button data-tab="Cercas"><span class="nemo" aria-hidden="true">🛡️</span>Cercas</button>
+  <button data-tab="Alertas"><span class="nemo" aria-hidden="true">🔔</span>Alertas<span class="nbadge" id="alBadge"></span></button>
+  <button data-tab="Faturas" style="display:none"><span class="nemo" aria-hidden="true">🧾</span>Faturas</button>
+  <button data-tab="Mais" style="display:none"><span class="nemo txt" aria-hidden="true">☰</span>Mais<span class="nbadge" id="maisBadge">!</span></button>
+  <button data-tab="Admin" style="display:none"><span class="nemo" aria-hidden="true">⚙️</span>Admin</button>
 </nav>
 
 <!-- Confirmar comando -->
