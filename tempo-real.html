@@ -1614,7 +1614,7 @@ nav button.on .nemo.txt{color:var(--red2)}
         <label class="flbl" for="camTit">Título que o cliente vê</label>
         <input class="fld" id="camTit" maxlength="40" autocomplete="off" placeholder="Ex.: Reboque a caminho">
         <label class="flbl" for="camEnd">Endereço do cliente (destino)</label>
-        <div class="cbusca"><input class="fld" id="camEnd" placeholder="Rua, número, bairro, cidade" autocomplete="off" enterkeyhint="search"><button class="mini" id="camBuscar" type="button">Buscar</button></div>
+        <div class="cbusca"><input class="fld" id="camEnd" placeholder="Endereço, link do Google Maps ou -22.78, -43.31" autocomplete="off" enterkeyhint="search"><button class="mini" id="camBuscar" type="button">Buscar</button></div>
         <div class="cres" id="camRes"></div>
         <div id="camDest" style="font-size:12.5px;color:var(--mut);margin:0 0 10px 2px"></div>
         <label class="flbl" for="camWpp">WhatsApp do cliente (opcional): ele recebe o link automaticamente</label>
@@ -4060,8 +4060,31 @@ function camMostrar(v){
   const m=motLer(v.id); $('camMot').textContent=m&&m.nome?'Motorista: '+m.nome+' (o cliente vê esse nome).':'Sem motorista cadastrado: cadastre no lápis do veículo para o cliente ver o nome.';
 }
 $('camOn').addEventListener('change',()=>{ $('camBox').style.display=$('camOn').checked?'':'none'; if($('camOn').checked) setTimeout(()=>$('camEnd').focus(),100) });
+/* coordenadas em qualquer texto: "-22.78, -43.31" ou link do Google Maps (@lat,lon / ?q=lat,lon / !3d..!4d..) — 12/10/2026 */
+function coordLivre(t){
+  const x=String(t||'');
+  const m=x.match(/!3d(-?\d{1,3}\.\d+)!4d(-?\d{1,3}\.\d+)/)||x.match(/@(-?\d{1,3}\.\d+),(-?\d{1,3}\.\d+)/)||x.match(/[?&](?:q|query|ll|destination|center|daddr)=(-?\d{1,3}\.\d+)\s*(?:,|%2C)\s*\+?(-?\d{1,3}\.\d+)/i);
+  return m?lerCoordenadas(m[1]+', '+m[2]):lerCoordenadas(x);
+}
+const ehLinkCurto=t=>/(maps\.app\.goo\.gl|goo\.gl\/maps)/i.test(String(t||''));
 async function camBuscarEnd(){
   const q=$('camEnd').value.trim(), box=$('camRes'); camSel=null; $('camDest').textContent='';
+  if(ehLinkCurto(q)){ box.innerHTML='<div class="vazio">Esse link curto (maps.app.goo.gl) não traz a posição. No Google Maps, segure o dedo no lugar e copie os números (ex.: -22.78, -43.31).</div>'; box.classList.add('show'); return }
+  const cc=coordLivre(q);
+  if(cc){
+    if(!(cc.lat<=6 && cc.lat>=-34 && cc.lng<=-28 && cc.lng>=-74)){ box.innerHTML='<div class="vazio">Essa posição fica fora do Brasil. Confira o sinal de menos (no Rio as duas começam com \u2212).</div>'; box.classList.add('show'); return }
+    const la=+cc.lat.toFixed(6), lo=+cc.lng.toFixed(6), ver='https://www.google.com/maps/search/?api=1&query='+la+','+lo;
+    camSel={lat:la,lon:lo,endereco:''};
+    box.classList.remove('show'); $('camEnd').blur();
+    $('camDest').innerHTML='Destino: <b>'+la.toFixed(5)+', '+lo.toFixed(5)+'</b> (localização exata) · <a href="'+ver+'" target="_blank" rel="noopener">conferir no mapa</a>';
+    try{ /* nome da rua só para o texto; o destino fica na posição colada */
+      const r=await fetch('https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=18&accept-language=pt-BR&lat='+la+'&lon='+lo);
+      const j=r.ok?await r.json():null, a=(j&&j.address)||{};
+      const end=[a.road,a.house_number,a.suburb||a.neighbourhood,a.city||a.town].filter(Boolean).join(', ');
+      if(end && camSel && camSel.lat===la && camSel.lon===lo){ camSel.endereco=end.slice(0,120); $('camDest').innerHTML='Destino: <b>'+esc(end)+'</b> (localização exata) · <a href="'+ver+'" target="_blank" rel="noopener">conferir no mapa</a>' }
+    }catch(e){}
+    return;
+  }
   if(q.length<3){ box.innerHTML='<div class="vazio">Digite pelo menos 3 letras.</div>'; box.classList.add('show'); return }
   if(Date.now()-camBuscaAnt<1200) return; camBuscaAnt=Date.now();
   box.innerHTML='<div class="vazio">Buscando...</div>'; box.classList.add('show');
@@ -4092,7 +4115,7 @@ $('camEnd').addEventListener('input',()=>{ if(camSel && $('camEnd').value.trim()
 function camDados(){
   if(!$('camOn').checked || $('shareCam').style.display==='none') return null;
   const titulo=$('camTit').value.trim()||'Serviço a caminho';
-  if($('camEnd').value.trim() && !camSel) throw new Error('Toque em Buscar e escolha o endereço do cliente na lista.');
+  if($('camEnd').value.trim() && !camSel) throw new Error('Toque em Buscar e escolha o endereço do cliente na lista (ou cole a localização do Google Maps).');
   const w=normWpp($('camWpp').value); if(w===null) throw new Error('WhatsApp do cliente inválido. Digite o DDD e o número.');
   lsSet('rg_cam_tit',titulo);
   return {titulo:titulo, destino:camSel, cliWpp:w||'', linkBase:COMP_BASE};
