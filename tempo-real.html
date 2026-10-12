@@ -123,6 +123,10 @@ body.mapa-google #map .leaflet-top.leaflet-left .leaflet-control-attribution{mar
 .ljitem .ljt small{display:block;font-size:12.5px;color:var(--mut);line-height:1.4;margin-top:3px}
 .ljitem .ljp{display:block;margin-top:6px;font-size:14px;font-weight:800;color:var(--txt)}
 .ljitem .ljp i{font-style:normal;font-size:12px;font-weight:600;color:var(--mut)}
+.ljmes{display:inline-block;margin-top:4px;padding:2px 8px;border-radius:999px;background:rgba(45,50,119,.12);color:#4f56c9;font-size:11.5px;font-weight:700}
+:root:not([data-tema="claro"]) .ljmes{background:rgba(129,140,248,.16);color:#a5b4fc}
+.ljrlin.mes span:last-child{color:#4f56c9;font-weight:800}
+:root:not([data-tema="claro"]) .ljrlin.mes span:last-child{color:#a5b4fc}
 .ljbtn{height:38px;padding:0 12px;border-radius:10px;background:#16a34a;color:#fff;font-weight:700;font-size:13px;display:inline-flex;align-items:center;gap:6px}
 .ljbtn svg{width:16px;height:16px;fill:currentColor}
 .ljwpp{position:absolute;top:12px;right:12px;width:40px;height:40px;border-radius:50%;background:#25d366;color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.25)}
@@ -1819,7 +1823,8 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
     <div class="ljrlin"><span id="ljrItem"></span><span id="ljrValor"></span></div>
     <div class="ljrlin"><span>Entrega</span><span>Combinada pelo WhatsApp</span></div>
     <div class="ljrlin tot"><span>Total no PIX</span><span id="ljrTotal"></span></div>
-    <p class="ljrnota">Ao tocar em <b>Gerar PIX de pagamento</b>, criamos a cobrança no seu CPF. Depois de pagar, você combina a entrega com a gente pelo WhatsApp. Se não pagar, a cobrança é cancelada sozinha em 24 horas.</p>
+    <div class="ljrlin mes" id="ljrMesLin" style="display:none"><span>Na mensalidade</span><span id="ljrMes"></span></div>
+    <p class="ljrnota" id="ljrNota">Ao tocar em <b>Gerar PIX de pagamento</b>, criamos a cobrança no seu CPF. Depois de pagar, você combina a entrega com a gente pelo WhatsApp. Se não pagar, a cobrança é cancelada sozinha em 24 horas.</p>
     <div class="ljracoes">
       <button class="btn btn-out" id="ljrVoltar" type="button">Voltar</button>
       <button id="ljrGerar" type="button">Gerar PIX de pagamento</button>
@@ -6475,20 +6480,21 @@ const LOJA_ITENS=[
                'Não usa bateria e não precisa carregar.',
                'Pequeno e discreto: cole na carteira, na capinha do celular ou do documento.',
                'Comprando 2 ou mais, sai por R$ 24,95 cada. Dá para deixar um com alguém da família.']}},
-  {k:'ktag', img:'ktag.jpg', n:'K-tag', d:'Localizador auxiliar do rastreador. Bateria com duração de até 1 ano e meio.', v:99.00,
+  {k:'ktag', img:'ktag.jpg', n:'K-tag', d:'Localizador auxiliar do rastreador. Bateria com duração de até 1 ano e meio.', v:99.00, mensal:9.90,
    det:{int:'Um localizador extra, pequeno e discreto, que trabalha como reforço do seu rastreador principal.',
         itens:['Mais uma forma de encontrar o veículo, além do rastreador já instalado.',
                'Pequeno: pode ficar escondido em outro ponto do veículo.',
                'Bateria com duração de até 1 ano e meio.',
+               'Acrescenta R$ 9,90 por mês na sua mensalidade.',
                'Dúvidas sobre o uso e a instalação? Fale com a gente pelo WhatsApp.']}},
-  {k:'portatil', img:'portatil.jpg', n:'Rastreador portátil', d:'Bateria de aproximadamente 25 dias e ímã de fixação. Para moto, carga, bolsa ou o que você quiser acompanhar.', v:320.00,
+  {k:'portatil', img:'portatil.jpg', n:'Rastreador portátil', d:'Bateria de aproximadamente 25 dias e ímã de fixação. Para moto, carga, bolsa ou o que você quiser acompanhar.', v:320.00, mensal:39.90,
    det:{int:'Um rastreador com bateria própria, que não depende da instalação no veículo. Você leva para onde quiser acompanhar.',
         itens:['Sem fios: funciona com a bateria dele.',
                'Bateria com duração de aproximadamente 25 dias.',
                'Com ímã de fixação: gruda em qualquer superfície de metal, sem ferramenta.',
                'Para moto, bicicleta, carga, bolsa, mala ou qualquer objeto de valor.',
                'Você acompanha a localização pelo mesmo app da Rastreando GPS.',
-               'Funciona com um chip de dados fornecido por nós. Consulte os valores da conectividade pelo WhatsApp.',
+               'O rastreamento do portátil acrescenta R$ 39,90 por mês na sua mensalidade (já com o chip de dados fornecido por nós).',
                'Dúvidas sobre ativação e uso? Fale com a gente pelo WhatsApp.']}},
 ];
 function lojaPreco(it,q){ return q*Math.round((it.de2&&q>=2?it.de2:it.v)*100)/100 }
@@ -6508,6 +6514,7 @@ function lojaDesenhar(){
     '<div class="ljfoto"><img class="ljimg" src="'+LOJA_FOTO+it.img+'" alt="'+esc(it.n)+'" loading="lazy" data-zoom="'+i+'"><button class="ljdet" type="button" data-det="'+i+'">Ver detalhes</button></div>'+
     '<div class="ljt"><b>'+esc(it.n)+'</b><small>'+esc(it.d)+'</small>'+
     '<span class="ljp">'+brl(it.v)+(it.de2?' <i>· 2 ou mais: '+brl(it.de2)+' cada</i>':'')+'</span>'+
+    (it.mensal?'<span class="ljmes">+ '+brl(it.mensal)+'/mês na mensalidade</span>':'')+
     '<button class="ljcomprar" type="button" data-compra="'+i+'">Comprar</button></div></div>').join('');
   $('lojaPedidos').innerHTML='';
   lojaPedidosDesenhar();
@@ -6537,7 +6544,7 @@ let lojaDetI=-1;
 function lojaDetalhe(i){
   const it=LOJA_ITENS[i]; if(!it||!it.det) return; lojaDetI=i;
   $('ldImg').src=LOJA_FOTO+it.img; $('ldImg').alt=it.n; $('ldNome').textContent=it.n;
-  $('ldPreco').innerHTML=brl(it.v)+(it.de2?' <i>· 2 ou mais: '+brl(it.de2)+' cada</i>':'');
+  $('ldPreco').innerHTML=brl(it.v)+(it.de2?' <i>· 2 ou mais: '+brl(it.de2)+' cada</i>':'')+(it.mensal?'<br><span class="ljmes">+ '+brl(it.mensal)+'/mês na mensalidade</span>':'');
   $('ldInt').textContent=it.det.int;
   $('ldLista').innerHTML=it.det.itens.map(x=>'<li>'+esc(x)+'</li>').join('');
   $('ldWpp').innerHTML=LOJA_SVG_WPP;
@@ -6569,6 +6576,9 @@ function lojaResPintar(){
   $('ljrMenos').disabled=q<=1; $('ljrMais').disabled=q>=LOJA_QTD_MAX;
   $('ljrItem').textContent=it.n+' · '+q+(q>1?' unidades':' unidade');
   $('ljrValor').textContent=brl(tot); $('ljrTotal').textContent=brl(tot);
+  const mes=it.mensal?Math.round(it.mensal*q*100)/100:0;
+  $('ljrMesLin').style.display=mes?'':'none'; $('ljrMes').textContent=mes?'+ '+brl(mes)+'/mês':'';
+  $('ljrNota').innerHTML='Ao tocar em <b>Gerar PIX de pagamento</b>, criamos a cobrança no seu CPF.'+(mes?' A partir da ativação, sua mensalidade passa a ter <b>+ '+brl(mes)+' por mês</b>.':'')+' Depois de pagar, você combina a entrega com a gente pelo WhatsApp. Se não pagar, a cobrança é cancelada sozinha em 24 horas.';
 }
 $('ljrMenos').onclick=()=>{ if(lojaResQ>1){ lojaResQ--; lojaResPintar() } };
 $('ljrMais').onclick=()=>{ if(lojaResQ<LOJA_QTD_MAX){ lojaResQ++; lojaResPintar() } else toast('Para mais de '+LOJA_QTD_MAX+' unidades, fale com a gente pelo WhatsApp.') };
@@ -6617,7 +6627,7 @@ async function lojaComprarPix(k,btn,q){
 function lojaAbrirPix(r){
   lojaPed=r;
   $('ljpTit').textContent='Pagar com PIX';
-  $('ljpInfo').textContent=r.nome+' · '+brl(r.valor)+'. Abra o app do seu banco e escaneie o QR Code, ou copie o código.';
+  $('ljpInfo').textContent=r.nome+' · '+brl(r.valor)+(Number(r.mensal)>0?' (+ '+brl(Number(r.mensal))+'/mês na mensalidade)':'')+'. Abra o app do seu banco e escaneie o QR Code, ou copie o código.';
   $('ljpQr').src='data:image/png;base64,'+r.imagem;
   $('ljpCode').textContent=r.copiaCola;
   $('ljpCopiar').onclick=()=>copiar(r.copiaCola).then(()=>toast('Código PIX copiado')).catch(()=>toast('Não foi possível copiar'));
