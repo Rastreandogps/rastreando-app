@@ -367,6 +367,14 @@ main{position:relative;flex:1;min-height:0;overflow:hidden}
 .leaflet-control-attribution{background:rgba(15,17,21,.7)!important;color:var(--mut)!important;font-size:9px}
 .leaflet-control-attribution a{color:var(--mut)!important}
 .car{width:44px;height:44px;transition:transform .25s linear}
+/* grupo de veículos no mesmo lugar (12/10/2026): bolinha com o número; tocar abre os veículos em volta */
+.grpmk{display:flex;align-items:center;justify-content:center}
+.grpmk .grpbol{width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.96);border:3px solid #e0a020;box-shadow:0 0 0 4px rgba(224,160,32,.22),0 2px 6px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;line-height:1;color:#1f2937;cursor:pointer}
+.grpmk.c-mov .grpbol{border-color:#16a34a;box-shadow:0 0 0 4px rgba(22,163,74,.22),0 2px 6px rgba(0,0,0,.35)}
+.grpmk.c-sem .grpbol{border-color:#475569;box-shadow:0 0 0 4px rgba(71,85,105,.22),0 2px 6px rgba(0,0,0,.35)}
+.grpmk.aberto .grpbol{width:14px;height:14px;border-width:2px;font-size:0;box-shadow:0 1px 3px rgba(0,0,0,.35)}
+.leaflet-marker-icon.grpesc{display:none!important}
+.leaflet-marker-icon.grpabre{transition:translate .22s ease-out;z-index:1200!important}
 /* cor da setinha (regra do dono, 11/10/2026): cinza = rastreador SEM COMUNICAÇÃO NENHUMA com o servidor há mais de 3 min (offline de tudo);
    verde = andando (GPS atual); amarela = comunicando, mas parado ou com o GPS sem atualizar */
 .car .anel{fill:rgba(255,255,255,.92);stroke:#e0a020;stroke-width:2.5px}
@@ -2373,6 +2381,89 @@ function criarMarcador(v){
   v.marker.on('click',()=>{ selId = v.id; recolhido = false; atualizar(); });
   if(v.visivel) v.marker.addTo(map);
 }
+
+/* ===== GRUPOS: veículos muito juntos no mapa viram uma bolinha com o número (12/10/2026, pedido do dono) =====
+   Só mexe no desenho: os marcadores continuam no mapa (a animação e o resto do app não mudam); os do grupo ficam escondidos.
+   Tocar na bolinha abre os veículos em volta (com uma linha até o lugar); tocar num deles escolhe o veículo; tocar no mapa fecha. */
+const GRP_PX=34, GRP_ABRIR_MAX=10;
+const grp={camada:L.layerGroup().addTo(map), linhas:L.layerGroup().addTo(map), mk:new Map(), aberto:null, t:0};
+function grpMembrosVisiveis(){ return veiculos.filter(v=>v.marker && v.visivel && map.hasLayer(v.marker) && v.pos) }
+function grpCor(vs){ const c=vs.map(corSeta); return c.includes('c-mov')?'c-mov':(c.includes('c-par')?'c-par':'c-sem') }
+function grpFechar(){
+  if(!grp.aberto) return;
+  grp.aberto=null; grp.linhas.clearLayers();
+  veiculos.forEach(v=>{ const el=v.marker&&v.marker.getElement&&v.marker.getElement(); if(el){ el.classList.remove('grpabre'); el.style.translate='' } });
+  agruparAgora();
+}
+function grpAbrir(chave,vs){
+  const z=map.getZoom(), lat=vs.reduce((a,v)=>a+v.pos[0],0)/vs.length, lon=vs.reduce((a,v)=>a+v.pos[1],0)/vs.length;
+  if(vs.length>GRP_ABRIR_MAX && z<map.getMaxZoom()){ seguir=false; try{ $('follow').classList.remove('on') }catch(e){} map.fitBounds(L.latLngBounds(vs.map(v=>v.pos)),{padding:[60,60],maxZoom:map.getMaxZoom()}); return }
+  grp.aberto={chave, ids:vs.map(v=>v.id), centro:[lat,lon]};
+  agruparAgora();
+}
+function grpEspalhar(){
+  grp.linhas.clearLayers();
+  const a=grp.aberto; if(!a) return;
+  const vs=a.ids.map(id=>veiculos.find(v=>v.id===id)).filter(v=>v&&v.marker&&map.hasLayer(v.marker));
+  const c=map.latLngToContainerPoint(a.centro), n=vs.length, r=n===2?72:Math.max(64,Math.round(26*n/Math.PI+40));
+  vs.forEach((v,i)=>{
+    const ang=(n===2?Math.PI:-Math.PI/2)+i*2*Math.PI/n, alvo=L.point(c.x+r*Math.cos(ang), c.y+r*Math.sin(ang));
+    const p=map.latLngToContainerPoint(v.pos), el=v.marker.getElement();
+    if(el){ el.classList.remove('grpesc'); el.classList.add('grpabre'); el.style.translate=Math.round(alvo.x-p.x)+'px '+Math.round(alvo.y-p.y)+'px' }
+    L.polyline([a.centro,map.containerPointToLatLng(alvo)],{color:'#64748b',weight:1.5,opacity:.75,interactive:false}).addTo(grp.linhas);
+  });
+}
+function agruparAgora(){
+  grp.t=Date.now();
+  const hist=document.body.classList.contains('hist-on');
+  const vs=hist?[]:grpMembrosVisiveis();
+  /* junta por proximidade na tela (grade de células para continuar rápido com muitos veículos) */
+  const pts=vs.map(v=>({v,p:map.latLngToContainerPoint(v.pos)})), cel=new Map(), key=(x,y)=>x+'|'+y;
+  pts.forEach((o,i)=>{ const k=key(Math.floor(o.p.x/GRP_PX),Math.floor(o.p.y/GRP_PX)); if(!cel.has(k)) cel.set(k,[]); cel.get(k).push(i) });
+  const usado=new Array(pts.length).fill(false), grupos=[];
+  pts.forEach((o,i)=>{
+    if(usado[i]) return; usado[i]=true; const g=[i];
+    for(let q=0;q<g.length;q++){
+      const a=pts[g[q]], cx=Math.floor(a.p.x/GRP_PX), cy=Math.floor(a.p.y/GRP_PX);
+      for(let dx=-1;dx<=1;dx++) for(let dy=-1;dy<=1;dy++){
+        (cel.get(key(cx+dx,cy+dy))||[]).forEach(j=>{ if(!usado[j] && a.p.distanceTo(pts[j].p)<GRP_PX){ usado[j]=true; g.push(j) } });
+      }
+    }
+    if(g.length>1) grupos.push(g.map(j=>pts[j].v));
+  });
+  /* o grupo aberto continua aberto enquanto os mesmos veículos estiverem juntos */
+  if(grp.aberto){
+    const ainda=grupos.find(g=>g.length===grp.aberto.ids.length && g.every(v=>grp.aberto.ids.includes(v.id)));
+    if(!ainda){ grp.aberto=null; grp.linhas.clearLayers(); veiculos.forEach(v=>{ const el=v.marker&&v.marker.getElement&&v.marker.getElement(); if(el){ el.classList.remove('grpabre'); el.style.translate='' } }) }
+  }
+  const noGrupo=new Set(), vivos=new Set();
+  grupos.forEach(g=>{
+    const ids=g.map(v=>v.id).sort((a,b)=>a-b), chave=ids.join(','), aberto=!!(grp.aberto && grp.aberto.chave===chave);
+    vivos.add(chave);
+    const lat=g.reduce((a,v)=>a+v.pos[0],0)/g.length, lon=g.reduce((a,v)=>a+v.pos[1],0)/g.length, cor=grpCor(g);
+    const html='<div class="grpbol" title="'+g.length+' veículos aqui">'+g.length+'</div>', cls='grpmk '+cor+(aberto?' aberto':'');
+    let m=grp.mk.get(chave);
+    if(!m){
+      m=L.marker([lat,lon],{icon:L.divIcon({className:cls,html,iconSize:[44,44],iconAnchor:[22,22]}),zIndexOffset:1100,bubblingMouseEvents:false,keyboard:false});
+      m.on('click',()=>{ const atual=grupoPorChave(chave); if(grp.aberto && grp.aberto.chave===chave) grpFechar(); else if(atual) grpAbrir(chave,atual) });
+      m.addTo(grp.camada); grp.mk.set(chave,m);
+    } else {
+      m.setLatLng([lat,lon]);
+      const el=m.getElement(); if(el && el.dataset.grp!==cls){ el.dataset.grp=cls; ['c-mov','c-par','c-sem','aberto'].forEach(c=>el.classList.remove(c)); cls.split(' ').forEach(c=>el.classList.add(c)) }
+      const b=el && el.querySelector('.grpbol'); if(b && b.textContent!==String(g.length)) b.textContent=g.length;
+    }
+    if(!aberto) g.forEach(v=>noGrupo.add(v.id));
+  });
+  grp.ultimos=grupos;
+  grp.mk.forEach((m,k)=>{ if(!vivos.has(k)){ grp.camada.removeLayer(m); grp.mk.delete(k) } });
+  veiculos.forEach(v=>{ const el=v.marker&&v.marker.getElement&&v.marker.getElement(); if(el) el.classList.toggle('grpesc',noGrupo.has(v.id)) });
+  if(grp.aberto) grpEspalhar();
+}
+function grupoPorChave(chave){ return (grp.ultimos||[]).find(g=>g.map(v=>v.id).sort((a,b)=>a-b).join(',')===chave) }
+map.on('zoomend moveend',()=>agruparAgora());
+map.on('zoomstart',()=>{ if(grp.aberto){ grp.aberto=null; grp.linhas.clearLayers(); veiculos.forEach(v=>{ const el=v.marker&&v.marker.getElement&&v.marker.getElement(); if(el){ el.classList.remove('grpabre'); el.style.translate='' } }) } });
+map.on('click',()=>grpFechar());
+setInterval(()=>{ if(document.visibilityState==='visible' && Date.now()-grp.t>900) agruparAgora() },1000);
 
 /* ===== MINHA POSIÇÃO (só administrador): bolinha azul + distância até o veículo =====
    A posição do celular fica só no navegador: não é enviada para servidor nenhum. */
