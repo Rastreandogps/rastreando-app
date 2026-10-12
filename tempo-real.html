@@ -374,7 +374,10 @@ main{position:relative;flex:1;min-height:0;overflow:hidden}
 /* setinha mais visível no mapa claro/bege (10/10/2026): disco branco, contorno colorido e sombra */
 .car svg{overflow:visible;filter:drop-shadow(0 1px 3px rgba(0,0,0,.45))}
 .carlabel .lbnome{padding:0 2px}
-.carlabel .lbchip{display:inline-flex;align-items:center;gap:3px;margin-left:5px;padding:2px 7px;border-radius:999px;font-weight:800;font-size:12px;line-height:1.25;letter-spacing:.01em;box-shadow:0 1px 4px rgba(0,0,0,.25)}
+.carlabel.comchips{display:flex;flex-direction:column;align-items:center;gap:3px;padding:3px 4px}
+.carlabel.sochips{display:flex;flex-direction:column;align-items:center;gap:3px}
+.carlabel .lbic{width:12px;height:12px;flex:none}
+.carlabel .lbchip{display:inline-flex;align-items:center;gap:3px;margin-left:0;padding:2px 7px;border-radius:999px;font-weight:800;font-size:12px;line-height:1.25;letter-spacing:.01em;box-shadow:0 1px 4px rgba(0,0,0,.25)}
 .carlabel .lbchip:first-child{margin-left:0}
 .carlabel .lbchip.comb{background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#3b2300}
 .carlabel .lbchip.meta{background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff}
@@ -386,7 +389,7 @@ main{position:relative;flex:1;min-height:0;overflow:hidden}
 
 /* ===== HISTÓRICO DE ROTAS (10/10/2026) ===== */
 #map.hist-on .leaflet-marker-icon:not(.hmk){visibility:hidden;pointer-events:none}
-body.hist-on #follow,body.hist-on #btnEu,body.hist-on #btnTodos,body.hist-on #btnSat{display:none!important}
+body.hist-on #follow,body.hist-on #btnEu,body.hist-on #btnTodos,body.hist-on #btnSat,body.hist-on #btnAncora{display:none!important}
 /* carrinho no topo do mapa: aparece quando o cliente tem pedido da loja esperando pagamento (11/10/2026) */
 #mapCar{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:420;width:52px;height:52px;border-radius:50%;background:#ffe600;border:none;display:none;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(0,0,0,.4);cursor:pointer;animation:mapCarPulso 1.8s ease-in-out infinite}
 #mapCar.show{display:flex}
@@ -537,10 +540,12 @@ body.hist-on #mapCar{display:none!important}
 .stat small{display:block;font-size:10px;color:var(--mut);margin-top:1px}
 .stat span{font-size:11px;color:var(--mut)}
 /* calculadora de combustível (11/10/2026): o quadro do Odômetro vira botão */
-.statcomb{border:0;font:inherit;color:inherit;cursor:pointer;position:relative;width:100%}
-.statcomb .combico{font-style:normal;font-size:10px;position:absolute;top:3px;right:4px;line-height:1}
-.statcomb:active{transform:scale(.97)}
-.statcomb::after{content:"";position:absolute;inset:0;border-radius:12px;border:1px solid rgba(245,158,11,.35);pointer-events:none}
+.statbtn{border:0;font:inherit;color:inherit;cursor:pointer;position:relative;width:100%}
+.statbtn:active{transform:scale(.97)}
+.statbtn::after{content:"";position:absolute;inset:0;border-radius:12px;pointer-events:none}
+.statbtn.odo::after{border:1px solid rgba(34,197,94,.40)}
+.statbtn.comb::after{border:1px solid rgba(245,158,11,.45)}
+.statbtn.comb b{color:#f59e0b}
 #mComb .cbin{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:8px 0 4px}
 #mComb .cbin label{font-size:12px;color:var(--mut);display:block}
 #mComb .cbin .fld{margin:4px 0 0}
@@ -548,7 +553,11 @@ body.hist-on #mapCar{display:none!important}
 #mComb .cbodo span{font-size:12.5px;color:var(--mut)}
 #mComb .cbodo b{font-size:18px}
 #mComb .cbsec{border:1px solid var(--line);border-radius:16px;padding:12px;margin-top:12px}
-#mComb .cbsect{font-weight:800;font-size:15px;margin-bottom:2px}
+#mComb .cbsect{font-weight:800;font-size:15px;margin-bottom:2px;display:flex;align-items:center;gap:6px}
+#mComb .cbsic{width:18px;height:18px;color:#16a34a}
+#mComb.modo-comb #cbSecMeta,#mComb.modo-comb #cbOdoRow{display:none}
+#mComb.modo-odo #cbSecComb{display:none}
+#mComb .cbsec{margin-top:10px}
 #mComb .cbtot{border-radius:14px;padding:12px 10px;text-align:center;margin:10px 0 6px}
 #mComb .cbtot span{display:block;font-size:12px;opacity:.85}
 #mComb .cbtot b{display:block;font-size:28px;margin-top:2px;letter-spacing:.01em}
@@ -590,9 +599,16 @@ body.hist-on #mapCar{display:none!important}
 #smsCusto{font-size:11.5px;color:var(--mut);margin-top:6px;text-align:center}
 #btnRenome{margin-left:6px;width:28px;height:28px;border-radius:8px;border:1px solid var(--line);background:var(--card2);color:var(--mut);display:none;align-items:center;justify-content:center;vertical-align:middle}
 #btnRenome svg{width:14px;height:14px}
-#btnAncora{margin-left:6px;width:28px;height:28px;border-radius:8px;border:1px solid var(--line);background:var(--card2);color:var(--mut);display:none;align-items:center;justify-content:center;vertical-align:middle}
-#btnAncora svg{width:15px;height:15px}
-#btnAncora.on{color:#e3262f;border-color:#e3262f}
+#btnAncora{display:none;top:118px}
+#btnAncora.on{color:#e3262f;border-color:#e3262f;background:rgba(227,38,47,.12)}
+/* ignição ao lado do nome (11/10/2026): chave verde (ligada) ou vermelha (desligada) */
+.vign{display:none;margin-left:8px;width:30px;height:30px;border-radius:50%;align-items:center;justify-content:center;flex:none;color:#fff;background:#6b7280;transition:background .3s,box-shadow .3s}
+.vign svg{width:16px;height:16px}
+.vign.on{display:inline-flex;background:radial-gradient(circle at 35% 30%,#4ade80,#16a34a);box-shadow:0 0 0 3px rgba(34,197,94,.22),0 0 14px rgba(34,197,94,.55);animation:ignPulsa 2s ease-in-out infinite}
+.vign.off{display:inline-flex;background:radial-gradient(circle at 35% 30%,#f87171,#dc2626);box-shadow:0 0 0 3px rgba(220,38,38,.20),0 0 10px rgba(220,38,38,.40)}
+.vign.nd{display:inline-flex;background:var(--card2);color:var(--mut);border:1px solid var(--line)}
+@keyframes ignPulsa{0%,100%{box-shadow:0 0 0 3px rgba(34,197,94,.22),0 0 10px rgba(34,197,94,.45)}50%{box-shadow:0 0 0 5px rgba(34,197,94,.10),0 0 18px rgba(34,197,94,.70)}}
+@media (prefers-reduced-motion:reduce){.vign.on{animation:none}}
 .ancopt{display:block;width:100%;text-align:left;margin:8px 0;padding:12px 14px;border-radius:14px;border:1.5px solid var(--line);background:var(--card2);color:inherit;font:inherit;cursor:pointer}
 .ancopt b{display:block;font-size:15px}.ancopt small{display:block;color:var(--mut);font-size:12.5px;margin-top:2px}
 .ancopt.bl{border-color:#e3262f}
@@ -1194,6 +1210,7 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-7 9 7-9 7z"/><path d="M3 12l9 7 9-7"/></svg>
     <span class="lbl">Satélite</span>
   </button>
+  <button class="follow" id="btnAncora" aria-label="Cerca rápida (âncora)" title="Cerca rápida (âncora)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="2.2"/><path d="M12 7.2V21"/><path d="M8 11h8"/><path d="M5 14c0 4 3 7 7 7s7-3 7-7"/></svg><span class="lbl">Âncora</span></button>
 
   <button id="mapCar" type="button" aria-label="Você tem pedido aguardando pagamento" title="Pedido aguardando pagamento"><svg viewBox="0 0 24 24"><path d="M6 6h15l-1.5 9h-12z"/><path d="M6 6L5 3H2"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/></svg><span class="mcn" id="mapCarN">1</span></button>
   <div class="vazio" id="vazio">Nenhum veículo selecionado<small>Abra a aba Veículos para escolher.</small></div>
@@ -1203,7 +1220,7 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
       <div class="handlewrap"><span class="handle"></span></div>
       <div class="row">
         <div>
-          <div class="vname"><button id="vPick" class="vpick" type="button" aria-label="Trocar de veículo" title="Trocar de veículo"><span id="vName"></span><svg class="pickseta" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button><button id="btnRenome" aria-label="Editar nome do veículo" title="Editar nome"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></button><button id="btnAncora" aria-label="Cerca rápida (âncora)" title="Cerca rápida (âncora)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="2.2"/><path d="M12 7.2V21"/><path d="M8 11h8"/><path d="M5 14c0 4 3 7 7 7s7-3 7-7"/></svg></button></div>
+          <div class="vname"><button id="vPick" class="vpick" type="button" aria-label="Trocar de veículo" title="Trocar de veículo"><span id="vName"></span><svg class="pickseta" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button><span class="vign" id="vIgn" title="Ignição" aria-label="Ignição"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="4"/><path d="M10.4 12.6 20 3"/><path d="M16 7l3 3"/><path d="M14 9l2 2"/></svg></span><button id="btnRenome" aria-label="Editar nome do veículo" title="Editar nome"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></button></div>
           <div class="plate" id="vPlate"></div>
           <div class="chiprow" id="chipRow"><span>Chip</span><b id="vChip"></b><button type="button" id="btnCopiaChip" aria-label="Copiar número do chip" title="Copiar número do chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg></button><button type="button" id="btnWppCli" aria-label="Abrir WhatsApp do cliente" title="Abrir WhatsApp do cliente"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2a9.9 9.9 0 0 0-8.47 15.03L2 22l5.1-1.34A9.9 9.9 0 1 0 12.04 2zm0 1.8a8.1 8.1 0 1 1-4.13 15.07l-.3-.18-3.02.8.81-2.95-.2-.31A8.1 8.1 0 0 1 12.04 3.8zM8.6 7.4c-.17 0-.45.06-.69.32-.24.26-.9.88-.9 2.14s.92 2.48 1.05 2.65c.13.17 1.8 2.86 4.45 3.9 2.2.87 2.65.7 3.12.65.48-.04 1.55-.63 1.77-1.24.22-.6.22-1.13.15-1.24-.06-.1-.24-.17-.5-.3-.27-.13-1.55-.77-1.79-.86-.24-.09-.41-.13-.59.13-.17.26-.68.86-.83 1.03-.15.18-.3.2-.56.07-.27-.13-1.1-.4-2.1-1.3-.78-.69-1.3-1.55-1.45-1.8-.15-.27-.02-.4.11-.53.12-.12.27-.3.4-.45.13-.15.17-.26.26-.43.09-.18.04-.33-.02-.46-.07-.13-.6-1.44-.82-1.97-.22-.52-.44-.45-.6-.46h-.5z"/></svg>WhatsApp</button></div>
         </div>
@@ -1213,10 +1230,10 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
     <div class="banner" id="banner">Veículo bloqueado</div>
     <div class="grid">
       <div class="stat"><span>Velocidade</span><b id="sSpeed"></b></div>
-      <div class="stat"><span>Ignição</span><b id="sIgn"></b></div>
       <div class="stat"><span>Bateria</span><b id="sBat"></b></div>
       <div class="stat"><span>Voltagem</span><b id="sVolt"></b><small id="sVoltAge"></small></div>
-      <button type="button" class="stat statcomb" id="sOdoBtn" aria-label="Odômetro e calculadora de combustível" title="Toque para calcular o combustível"><span>Odômetro <i class="combico">⛽</i></span><b id="sOdo"></b></button>
+      <button type="button" class="stat statbtn odo" id="sOdoBtn" aria-label="Odômetro e meta de quilometragem" title="Toque para a meta de quilometragem"><span>Odômetro</span><b id="sOdo"></b></button>
+      <button type="button" class="stat statbtn comb" id="sCombBtn" aria-label="Combustível" title="Toque para calcular o combustível"><span>Combustível</span><b id="sComb">—</b></button>
     </div>
     <div class="addr" id="addrRow"><strong id="vAddr"></strong><span id="vAgo"></span></div>
     <div class="addr" id="distRow" style="display:none"><strong id="vDist"></strong></div>
@@ -1843,9 +1860,9 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
 <div class="modal alsheet" id="mComb">
   <div class="box2">
     <h3 id="cbTit">Odômetro</h3>
-    <div class="cbodo"><span>Odômetro agora</span><b id="cbOdo">—</b></div>
+    <div class="cbodo" id="cbOdoRow"><span>Odômetro agora</span><b id="cbOdo">—</b></div>
 
-    <div class="cbsec">
+    <div class="cbsec" id="cbSecComb">
       <div class="cbsect">⛽ Combustível</div>
       <div class="cbin">
         <div><label for="cbKml">Consumo (km por litro)</label><input class="fld" id="cbKml" type="text" autocomplete="off" inputmode="decimal" placeholder="ex.: 12"></div>
@@ -1855,8 +1872,8 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
       <label class="fchk" id="cbMapaLbl"><input type="checkbox" id="cbMapa"> Mostrar no mapa</label>
     </div>
 
-    <div class="cbsec">
-      <div class="cbsect">🔧 Meta de quilometragem</div>
+    <div class="cbsec" id="cbSecMeta">
+      <div class="cbsect"><svg class="cbsic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 17a8.5 8.5 0 1 1 15 0"/><path d="M12 13l4-4"/><circle cx="12" cy="13" r="1.3" fill="currentColor"/></svg> Meta de quilometragem</div>
       <div class="cbin">
         <div><label for="mtKm">A cada (km)</label><input class="fld" id="mtKm" type="text" autocomplete="off" inputmode="numeric" placeholder="ex.: 10000"></div>
         <div><label for="mtNome">Para quê? (opcional)</label><input class="fld" id="mtNome" type="text" autocomplete="off" maxlength="30" placeholder="ex.: troca de óleo"></div>
@@ -1867,7 +1884,7 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
     </div>
 
     <label class="fchk" id="snLbl" style="margin-top:10px"><input type="checkbox" id="snNome"> Esconder o nome no mapa (mostrar só os valores)</label>
-    <p class="cbnota">Tudo acompanha o odômetro do veículo: conforme ele anda, o gasto sobe e a meta desce. A meta fica verde e passa a vermelha quando faltam 10%. São estimativas. Fica salvo neste aparelho, por veículo.</p>
+    <p class="cbnota" id="cbNota"></p>
     <button class="btn btn-out alfechar" data-close type="button">Fechar</button>
   </div>
 </div>
@@ -2228,17 +2245,17 @@ function rotuloHtml(v){
   let chips='';
   try{
     const g=cbMapaTxt(v); if(g) chips+='<span class="lbchip comb">⛽ '+esc(g)+'</span>';
-    const m=metaMapaInfo(v); if(m) chips+='<span class="lbchip meta'+(m.alerta?' alerta':'')+'">🔧 '+esc(m.txt)+'</span>';
+    const m=metaMapaInfo(v); if(m) chips+='<span class="lbchip meta'+(m.alerta?' alerta':'')+'"><svg class="lbic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 17a8.5 8.5 0 1 1 15 0"/><path d="M12 13l4-4"/><circle cx="12" cy="13" r="1.3" fill="currentColor"/></svg>'+esc(m.txt)+'</span>';
   }catch(e){}
   const semNome=chips && semNomeLigado(v.id);
   return (semNome?'':'<span class="lbnome">'+esc(v.nome)+'</span>')+chips;
 }
-function rotuloClasse(v){ const h=rotuloHtml(v); return h.indexOf('lbnome')<0 ? 'carlabel sochips' : 'carlabel' }
+function rotuloClasse(v){ const h=rotuloHtml(v); return h.indexOf('lbnome')<0 ? 'carlabel sochips' : (h.indexOf('lbchip')>=0?'carlabel comchips':'carlabel') }
 function rotularMarcador(v){
   try{
     const h=rotuloHtml(v); v.rotuloHtml=h;
     const ic=v.marker.options && v.marker.options.icon;
-    const cl=h.indexOf('lbnome')<0?'carlabel sochips':'carlabel';
+    const cl=h.indexOf('lbnome')<0?'carlabel sochips':(h.indexOf('lbchip')>=0?'carlabel comchips':'carlabel');
     if(ic && ic.options) ic.options.html='<div class="car">'+carSvg+'</div><div class="'+cl+'">'+h+'</div>';
     const el=v.marker.getElement && v.marker.getElement();
     const l=el && el.querySelector('.carlabel'); if(l){ l.innerHTML=h; l.className=cl }
@@ -2353,11 +2370,13 @@ function mapaBotoes(){
   const sb=$('btnSat'); if(!sb) return;
   const google=(typeof gmEstado!=='undefined' && gmEstado==='google');
   sb.style.display=google?'flex':'none';
-  if(!google) return;
-  let top=14; if($('btnEu').style.display==='flex') top=66;
-  if($('btnTodos').style.display==='flex') top+=52;
-  sb.style.top=(top+52)+'px';
-  sb.classList.toggle('active',gmTipo==='hybrid'); sb.setAttribute('aria-pressed',gmTipo==='hybrid'?'true':'false');
+  if(google){ sb.classList.toggle('active',gmTipo==='hybrid'); sb.setAttribute('aria-pressed',gmTipo==='hybrid'?'true':'false') }
+  mapaColuna();
+}
+/* coluna de botões redondos do mapa, de cima para baixo, só os visíveis: Seguir, Minha posição, Mostrar todos, Satélite, Âncora */
+function mapaColuna(){
+  let top=14;
+  ['follow','btnEu','btnTodos','btnSat','btnAncora'].forEach(id=>{ const b=$(id); if(!b) return; if(b.style.display==='none' || (b.style.display==='' && getComputedStyle(b).display==='none')) return; b.style.top=top+'px'; top+=52 });
 }
 $('btnTodos').onclick=()=>{
   const vs=visiveis().filter(v=>v.pos);
@@ -2695,7 +2714,8 @@ function atualizar(){
     } else cr.style.display='none';
     $('vStatus').textContent=txt; $('vStatus').className='status '+cls;
     $('sSpeed').textContent=sp?'—':v.vel+' km/h';
-    $('sIgn').textContent=v.ign===null?'—':(v.ign?'Ligada':'Desligada');
+    { const ig=$('vIgn'); ig.className='vign '+(v.ign===null?'nd':(v.ign?'on':'off')); ig.title=v.ign===null?'Ignição: sem informação':(v.ign?'Ignição ligada':'Ignição desligada'); ig.setAttribute('aria-label',ig.title) }
+    try{ const g=cbGasto(v); $('sComb').textContent=g?cbBrl(g.rs):'—' }catch(e){}
     $('sBat').textContent=v.bat===null?'—':v.bat+'%';
     $('sVolt').textContent=v.volt===null?'—':v.volt.toFixed(1).replace('.',',')+' V';
     $('sOdo').textContent=fmtOdo(v.odo);
@@ -3152,7 +3172,8 @@ function mostrarBotoesSms(){
   $('btnBlock').style.display=podeApp?'':'none'; $('btnUnblock').style.display=podeApp?'':'none';
   const acts=$('btnBlock').parentElement; if(acts) acts.style.gridTemplateColumns=podeApp?'':'52px';
   const semSinal=(()=>{ const c=cartao(); return !!(c && !c.pos) })();
-  $('btnAncora').style.display=(!semSinal && (ehAdmin||permCli.cercaRapida))?'inline-flex':'none';
+  $('btnAncora').style.display=(!semSinal && (ehAdmin||permCli.cercaRapida))?'flex':'none';
+  try{ mapaColuna() }catch(e){}
   const verEu=ehAdmin||permCli.minhaPosicao;
   $('btnEu').style.display=verEu?'flex':'none';
   if(!verEu && eu.on) euDesligar();
@@ -3433,15 +3454,21 @@ function cbPintar(){
   $('snNome').checked=!!(v&&semNomeLigado(v.id));
 }
 function cbRotular(){ if(!cbVeic) return; const v=veiculos.find(x=>x.id===cbVeic.id); if(v) rotularMarcador(v) }
-function abrirComb(){
+function abrirComb(modo){
   const v=cartao(); if(!v){ toast('Escolha um veículo.'); return }
-  cbVeic=v; $('cbTit').textContent='Odômetro · '+v.nome;
+  modo=modo==='odo'?'odo':'comb';
+  cbVeic=v; $('cbTit').textContent=(modo==='odo'?'Odômetro · ':'Combustível · ')+v.nome;
+  $('mComb').classList.toggle('modo-odo',modo==='odo'); $('mComb').classList.toggle('modo-comb',modo==='comb');
+  $('cbNota').textContent = modo==='odo'
+    ? 'A meta acompanha o odômetro: conforme o veículo anda, o que falta desce. Verde enquanto tem folga, vermelho quando faltam 10% ou menos. Fica salvo neste aparelho, por veículo.'
+    : 'O valor acompanha o odômetro: conforme o veículo anda, sobe; se o odômetro for zerado, zera junto. É uma estimativa pelo consumo informado. Fica salvo neste aparelho, por veículo.';
   const c=cbLer(v.id); $('cbKml').value=c.kml||''; $('cbPreco').value=c.preco||'';
   const m=metaLer(v.id); $('mtKm').value=m&&m.km?String(m.km):''; $('mtNome').value=m&&m.nome||'';
   cbPintar(); abrir('mComb');
 }
-$('sOdoBtn').onclick=abrirComb;
-['cbKml','cbPreco'].forEach(k=>$(k).addEventListener('input',()=>{ cbGravar(); cbPintar(); cbRotular() }));
+$('sOdoBtn').onclick=()=>abrirComb('odo');
+$('sCombBtn').onclick=()=>abrirComb('comb');
+['cbKml','cbPreco'].forEach(k=>$(k).addEventListener('input',()=>{ cbGravar(); cbPintar(); cbRotular(); try{ const v=cbVeic&&veiculos.find(x=>x.id===cbVeic.id), g=cbGasto(v); if(v&&v.id===selId) $('sComb').textContent=g?cbBrl(g.rs):'—' }catch(e){} }));
 $('cbMapa').addEventListener('change',()=>{ if(!cbVeic) return; lsFlagSet('rg_comb_mapa_'+cbVeic.id,$('cbMapa').checked); cbPintar(); cbRotular() });
 $('mtComecar').onclick=()=>{
   const v=cbVeic&&veiculos.find(x=>x.id===cbVeic.id); if(!v) return;
