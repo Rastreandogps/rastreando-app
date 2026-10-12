@@ -401,7 +401,7 @@ main{position:relative;flex:1;min-height:0;overflow:hidden}
 
 /* ===== HISTÓRICO DE ROTAS (10/10/2026) ===== */
 #map.hist-on .leaflet-marker-icon:not(.hmk){visibility:hidden;pointer-events:none}
-body.hist-on #follow,body.hist-on #btnEu,body.hist-on #btnTodos,body.hist-on #btnSat,body.hist-on #btnAncora{display:none!important}
+body.hist-on #follow,body.hist-on #btnEu,body.hist-on #btnTodos,body.hist-on #btnGrupo,body.hist-on #btnSat,body.hist-on #btnAncora{display:none!important}
 /* carrinho no topo do mapa: aparece quando o cliente tem pedido da loja esperando pagamento (11/10/2026) */
 #mapCar{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:420;width:52px;height:52px;border-radius:50%;background:#ffe600;border:none;display:none;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(0,0,0,.4);cursor:pointer;animation:mapCarPulso 1.8s ease-in-out infinite}
 #mapCar.show{display:flex}
@@ -504,6 +504,7 @@ body.hist-on #mapCar{display:none!important}
 #mScan .scanmsg.er{color:#e11d48;font-weight:600}
 #btnTodos.abaixo{top:118px}
 #btnSat{top:66px;display:none}
+#btnGrupo{top:66px;display:none}
 #btnEu.buscando svg{animation:euPulsa 1s ease-in-out infinite}
 @keyframes euPulsa{0%,100%{opacity:1}50%{opacity:.35}}
 @media (prefers-reduced-motion:reduce){#btnEu.buscando svg{animation:none}}
@@ -1277,6 +1278,10 @@ nav button.on .nemo.txt{color:var(--red2)}
   <button class="follow" id="btnTodos" title="Mostrar todos os veículos marcados" aria-label="Mostrar todos os veículos marcados">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V5a1 1 0 0 1 1-1h4M15 4h4a1 1 0 0 1 1 1v4M20 15v4a1 1 0 0 1-1 1h-4M9 20H5a1 1 0 0 1-1-1v-4"/><circle cx="12" cy="12" r="2.5"/></svg>
     <span class="lbl">Mostrar todos</span>
+  </button>
+  <button class="follow" id="btnGrupo" aria-pressed="true" title="Juntar veículos próximos (ligado)" aria-label="Juntar veículos próximos">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="9" r="4"/><circle cx="16" cy="9" r="4"/><circle cx="12" cy="16" r="4"/></svg>
+    <span class="lbl">Juntar veículos próximos</span>
   </button>
   <button class="follow" id="btnSat" aria-pressed="false" title="Satélite (mapa do Google)" aria-label="Satélite">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-7 9 7-9 7z"/><path d="M3 12l9 7 9-7"/></svg>
@@ -2386,6 +2391,8 @@ function criarMarcador(v){
    Só mexe no desenho: os marcadores continuam no mapa (a animação e o resto do app não mudam); os do grupo ficam escondidos.
    Tocar na bolinha abre os veículos em volta (com uma linha até o lugar); tocar num deles escolhe o veículo; tocar no mapa fecha. */
 const GRP_PX=34, GRP_ABRIR_MAX=10;
+let grpLigado=lsGet('rg_grupo')!=='0';   /* botão da coluna do mapa: ligado = junta; desligado = nunca junta (lembrado no aparelho) */
+function grpBotao(){ const b=$('btnGrupo'); if(!b) return; b.classList.toggle('active',grpLigado); b.setAttribute('aria-pressed',grpLigado?'true':'false'); b.title=grpLigado?'Juntar veículos próximos (ligado)':'Juntar veículos próximos (desligado)' }
 const grp={camada:L.layerGroup().addTo(map), linhas:L.layerGroup().addTo(map), mk:new Map(), aberto:null, t:0};
 function grpMembrosVisiveis(){ return veiculos.filter(v=>v.marker && v.visivel && map.hasLayer(v.marker) && v.pos) }
 function grpCor(vs){ const c=vs.map(corSeta); return c.includes('c-mov')?'c-mov':(c.includes('c-par')?'c-par':'c-sem') }
@@ -2416,7 +2423,7 @@ function grpEspalhar(){
 function agruparAgora(){
   grp.t=Date.now();
   const hist=document.body.classList.contains('hist-on');
-  const vs=hist?[]:grpMembrosVisiveis();
+  const vs=(hist||!grpLigado)?[]:grpMembrosVisiveis();
   /* junta por proximidade na tela (grade de células para continuar rápido com muitos veículos) */
   const pts=vs.map(v=>({v,p:map.latLngToContainerPoint(v.pos)})), cel=new Map(), key=(x,y)=>x+'|'+y;
   pts.forEach((o,i)=>{ const k=key(Math.floor(o.p.x/GRP_PX),Math.floor(o.p.y/GRP_PX)); if(!cel.has(k)) cel.set(k,[]); cel.get(k).push(i) });
@@ -2461,6 +2468,12 @@ function agruparAgora(){
 }
 function grupoPorChave(chave){ return (grp.ultimos||[]).find(g=>g.map(v=>v.id).sort((a,b)=>a-b).join(',')===chave) }
 map.on('zoomend moveend',()=>agruparAgora());
+$('btnGrupo').onclick=()=>{
+  grpLigado=!grpLigado; lsSet('rg_grupo',grpLigado?'1':'0'); grpBotao();
+  if(!grpLigado) grpFechar();
+  agruparAgora();
+  toast(grpLigado?'Juntar veículos próximos: ligado. Toque no número para ver os veículos.':'Juntar veículos próximos: desligado.');
+};
 map.on('zoomstart',()=>{ if(grp.aberto){ grp.aberto=null; grp.linhas.clearLayers(); veiculos.forEach(v=>{ const el=v.marker&&v.marker.getElement&&v.marker.getElement(); if(el){ el.classList.remove('grpabre'); el.style.translate='' } }) } });
 map.on('click',()=>grpFechar());
 setInterval(()=>{ if(document.visibilityState==='visible' && Date.now()-grp.t>900) agruparAgora() },1000);
@@ -2556,6 +2569,7 @@ function ajBtnTodos(){
   const b=$('btnTodos'); if(!b) return;
   const n=visiveis().filter(v=>v.pos).length;
   b.style.display = n>=1 ? 'flex' : 'none';
+  const bg=$('btnGrupo'); if(bg){ bg.style.display = n>=2 ? 'flex' : 'none'; grpBotao() }
   b.classList.toggle('abaixo', $('btnEu').style.display==='flex');
   mapaBotoes();
 }
@@ -2570,7 +2584,7 @@ function mapaBotoes(){
 /* coluna de botões redondos do mapa, de cima para baixo, só os visíveis: Seguir, Minha posição, Mostrar todos, Satélite, Âncora */
 function mapaColuna(){
   let top=14;
-  ['follow','btnEu','btnTodos','btnSat','btnAncora'].forEach(id=>{ const b=$(id); if(!b) return; if(b.style.display==='none' || (b.style.display==='' && getComputedStyle(b).display==='none')) return; b.style.top=top+'px'; top+=52 });
+  ['follow','btnEu','btnTodos','btnGrupo','btnSat','btnAncora'].forEach(id=>{ const b=$(id); if(!b) return; if(b.style.display==='none' || (b.style.display==='' && getComputedStyle(b).display==='none')) return; b.style.top=top+'px'; top+=52 });
 }
 $('btnTodos').onclick=()=>{
   const vs=visiveis().filter(v=>v.pos);
