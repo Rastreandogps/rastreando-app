@@ -545,6 +545,21 @@ body.hist-on #mapCar{display:none!important}
 .statbtn.odo{background:linear-gradient(160deg,rgba(34,197,94,.22),rgba(22,163,74,.10));border:1.5px solid rgba(34,197,94,.65);box-shadow:0 3px 0 rgba(22,163,74,.55),0 6px 14px rgba(22,163,74,.18)}
 .statbtn.comb{background:linear-gradient(160deg,rgba(251,191,36,.24),rgba(245,158,11,.10));border:1.5px solid rgba(245,158,11,.70);box-shadow:0 3px 0 rgba(217,119,6,.60),0 6px 14px rgba(245,158,11,.18)}
 .statbtn.odo span{color:#16a34a;font-weight:700}
+/* bateria e voltagem no mesmo quadro (11/10, 21h38) */
+.stat.bv{display:flex;flex-direction:column;justify-content:center;gap:4px;padding:6px 2px}
+.stat.bv .bvl{display:flex;align-items:center;justify-content:center;gap:3px;white-space:nowrap}
+.stat.bv .bvl i{font-style:normal;font-size:12px;line-height:1}
+.stat.bv .bvl b{display:inline;margin:0;font-size:13px}
+.stat.bv .bvl b.velha{opacity:.6}
+@media(max-width:480px){.stat.bv .bvl b{font-size:12px}.stat.bv .bvl i{font-size:11px}}
+/* Loja no quadro (11/10, 21h38) */
+.statbtn.loja{background:linear-gradient(160deg,rgba(124,58,237,.26),rgba(79,70,229,.12));border:1.5px solid rgba(139,92,246,.70);box-shadow:0 3px 0 rgba(109,40,217,.60),0 6px 14px rgba(124,58,237,.20)}
+.statbtn.loja span{color:#8b5cf6;font-weight:700}
+.statbtn.loja::after{color:#8b5cf6}
+.statbtn.loja b svg{width:22px;height:22px;color:#a78bfa;display:inline-block;vertical-align:middle}
+.statbtn.loja .lojabadge{position:absolute;top:-6px;left:-4px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#e11d48;color:#fff;font-style:normal;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;border:2px solid var(--card)}
+.statbtn.loja .lojabadge[hidden]{display:none}
+:root[data-tema="claro"] .statbtn.loja{background:linear-gradient(160deg,#ede9fe,#f5f3ff)}
 .statbtn.comb span{color:#d97706;font-weight:700}
 .statbtn.comb b{color:#f59e0b}
 .statbtn.comb b .rs{display:inline;color:inherit;font-size:.68em;font-weight:700;margin-right:1px;opacity:.85}
@@ -1243,10 +1258,10 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
     <div class="banner" id="banner">Veículo bloqueado</div>
     <div class="grid">
       <div class="stat"><span>Velocidade</span><b id="sSpeed"></b></div>
-      <div class="stat"><span>Bateria</span><b id="sBat"></b></div>
-      <div class="stat"><span>Voltagem</span><b id="sVolt"></b><small id="sVoltAge"></small></div>
+      <div class="stat bv" id="sBvBox" title="Bateria do rastreador e voltagem do veículo"><div class="bvl"><i aria-label="Bateria">🔋</i><b id="sBat"></b></div><div class="bvl"><i aria-label="Voltagem">⚡</i><b id="sVolt"></b></div><small id="sVoltAge" hidden></small></div>
       <button type="button" class="stat statbtn odo" id="sOdoBtn" aria-label="Odômetro e meta de quilometragem" title="Toque para a meta de quilometragem"><span>Odômetro</span><b id="sOdo"></b></button>
       <button type="button" class="stat statbtn comb" id="sCombBtn" aria-label="Combustível" title="Toque para calcular o combustível"><span>Combustível</span><b id="sComb">—</b></button>
+      <button type="button" class="stat statbtn loja" id="sLojaBtn" aria-label="Loja" title="Loja: tag de emergência, rastreador portátil e mais"><span>Loja</span><b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6h15l-1.5 9h-12z"/><path d="M6 6L5 3H2"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/></svg></b><em class="lojabadge" id="sLojaN" hidden></em></button>
     </div>
     <div class="addr" id="addrRow"><strong id="vAddr"></strong><span id="vAgo"></span></div>
     <div class="addr" id="distRow" style="display:none"><strong id="vDist"></strong></div>
@@ -2753,6 +2768,8 @@ function atualizar(){
     $('sVolt').textContent=v.volt===null?'—':v.volt.toFixed(1).replace('.',',')+' V';
     $('sOdo').textContent=fmtOdo(v.odo);
     $('sVoltAge').textContent=(v.volt!==null && v.voltEm && Date.now()-v.voltEm>VALIDADE_ST)?tempo(Date.now()-v.voltEm):'';
+    $('sBvBox').title='Bateria do rastreador: '+$('sBat').textContent+' · Voltagem do veículo: '+$('sVolt').textContent+($('sVoltAge').textContent?' (lida '+$('sVoltAge').textContent+')':'');
+    $('sVolt').classList.toggle('velha',!!$('sVoltAge').textContent);
     /* dois horários: GSM = último contato do rastreador com o servidor; GPS = última posição de satélite */
     const ult = v.ultimo || v.fix, gpsVelhoT = v.gpsT && Date.now()-v.gpsT>600000;
     $('vUpd').innerHTML = (ult ? 'GSM '+horaAtual(ult) : '')+
@@ -6697,6 +6714,7 @@ async function lojaManter(ped,btn){
 function lojaMapaPintar(lista){
   const n=(lista||[]).filter(p=>p.estado==='aguardando').length, b=$('mapCar'); if(!b) return;
   $('mapCarN').textContent=n; b.classList.toggle('show', n>0 && !ehAdmin);
+  try{ const q=$('sLojaN'); q.textContent=n; q.hidden=!(n>0 && !ehAdmin) }catch(e){}
 }
 async function lojaMapaAtualizar(){
   if(ehAdmin||!lsGet('rg_token')){ lojaMapaPintar([]); return }
@@ -6711,6 +6729,7 @@ $('lojaCarBtn').onclick=()=>{ lojaCarAberto=true; const c=$('lojaCar'); if(c) c.
 $('maisFat').onclick=()=>irPara('Faturas');
 $('maisServ').onclick=()=>abrir('mServ');
 $('maisLoja').onclick=()=>{ lojaDesenhar(); abrir('mLoja') };
+$('sLojaBtn').onclick=()=>{ lojaDesenhar(); abrir('mLoja') };
 $('maisIndique').onclick=()=>window.open(INDICACAO_URL,'_blank'); /* página de indicação do dono: o cliente digita o CPF e pega o link dele */
 $('maisConta').onclick=()=>$('btnSair').onclick();
 $('fVoltar').onclick=()=>irPara('Mais');
