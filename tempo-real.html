@@ -932,6 +932,34 @@ body.desenhando .follow,body.desenhando .sheet,body.desenhando .vazio{display:no
 .kmdel{flex:none;min-width:40px;height:36px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--mut);display:flex;align-items:center;justify-content:center;padding:0 10px;font-size:12.5px;font-weight:700}
 .kmdel svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .kmdel.conf{color:#fff;background:var(--red);border-color:var(--red)}
+/* 12/10/2026: links ativos em cartão destacado, com contagem regressiva e "+ tempo" */
+.lkcard{background:var(--card);border:1px solid var(--line);border-left:4px solid #2563eb;border-radius:14px;padding:12px 12px 10px;margin:0 0 10px;box-shadow:0 4px 14px rgba(0,0,0,.08)}
+.lkcard.frota{border-left-color:#f59e0b}
+.lkcard.acabando{border-left-color:var(--red)}
+.lkcard .lktop{display:flex;align-items:flex-start;gap:10px}
+.lkcard .lkic{flex:none;width:34px;height:34px;border-radius:10px;background:rgba(37,99,235,.12);color:#2563eb;display:flex;align-items:center;justify-content:center}
+.lkcard.frota .lkic{background:rgba(245,158,11,.14);color:#d97706}
+.lkcard .lkic svg{width:18px;height:18px}
+.lkcard .lkt{flex:1;min-width:0}
+.lkcard .lkt b{display:block;font-size:14.5px;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lkcard .lkt small{display:block;font-size:12px;color:var(--mut);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lkcard .lkcd{flex:none;text-align:right}
+.lkcard .lkcd b{display:block;font-size:20px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.05;letter-spacing:-.01em}
+.lkcard .lkcd small{display:block;font-size:11px;color:var(--mut);margin-top:2px}
+.lkcard.acabando .lkcd b{color:var(--red2)}
+.lkcard .lkbar{height:4px;border-radius:4px;background:var(--line);margin:10px 0 10px;overflow:hidden}
+.lkcard .lkbar i{display:block;height:100%;background:#2563eb;border-radius:4px;transition:width .9s linear}
+.lkcard.frota .lkbar i{background:#f59e0b}
+.lkcard.acabando .lkbar i{background:var(--red)}
+.lkcard .lkbtns{display:flex;gap:8px}
+.lkcard .lkbtns button{flex:1;height:36px;border-radius:10px;border:1px solid var(--line);background:var(--card2);color:var(--txt);font-size:12.5px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer}
+.lkcard .lkbtns button svg{width:15px;height:15px}
+.lkcard .lkbtns .lkmais{color:#2563eb;border-color:rgba(37,99,235,.35);background:rgba(37,99,235,.08)}
+.lkcard .lkbtns .lkfim{color:#fff;background:var(--red);border-color:var(--red)}
+.lkcard .lkbtns .lkfim.conf{background:#991b1b;border-color:#991b1b}
+.lkcard .lkext{display:none;gap:6px;margin-top:8px}
+.lkcard .lkext.on{display:flex}
+.lkcard .lkext button{flex:1;height:34px;border-radius:9px;border:1px solid rgba(37,99,235,.35);background:var(--card);color:#2563eb;font-size:12.5px;font-weight:800;cursor:pointer}
 .arow .mini.perigo{color:var(--red2)}
 
 /* Navegação */
@@ -4024,22 +4052,57 @@ let shareMin=60, shareTexto='', shareUrl='', tpUnid=60;
 const compLink = c => COMP_BASE+'?c='+encodeURIComponent(c);
 const compQuando = ms => new Date(ms).toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}).replace(',',' às');
 function veicShare(){ return veiculos.find(x=>x.id===selId) || null }
+/* contagem regressiva: "47:12" abaixo de 1 hora, "2 h 15 min", "3 dias 4 h" */
+function tempoFalta(ms){
+  if(ms<=0) return 'acabou';
+  const t=Math.floor(ms/1000), d=Math.floor(t/86400), h=Math.floor(t%86400/3600), m=Math.floor(t%3600/60), sg=t%60;
+  if(d) return d+(d>1?' dias ':' dia ')+(h?h+' h':'');
+  if(h) return h+' h '+String(m).padStart(2,'0')+' min';
+  return m+':'+String(sg).padStart(2,'0');
+}
+let shareLista=[], shareTimer=null;
+function shareTick(){
+  if(!$('mShare').classList.contains('show')){ clearInterval(shareTimer); shareTimer=null; return }
+  const agora=Date.now(); let mudou=false;
+  document.querySelectorAll('#shareAtivos .lkcard').forEach(el=>{
+    const x=shareLista.find(y=>y.codigo===el.dataset.c); if(!x) return;
+    const falta=x.expiraMs-agora, tot=Math.max(1,x.expiraMs-x.criadoMs);
+    if(falta<=0){ mudou=true; return }
+    el.querySelector('.lkcd b').textContent=tempoFalta(falta);
+    el.querySelector('.lkbar i').style.width=Math.max(2,Math.min(100,falta/tot*100))+'%';
+    el.classList.toggle('acabando',falta<10*60000);
+  });
+  if(mudou) shareCarregarAtivos();
+}
+const IC_LINK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg>';
+const IC_CAMINHAO='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h11v10H3z"/><path d="M14 10h4l3 3v3h-7"/><circle cx="7" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/></svg>';
 async function shareCarregarAtivos(){
   const v=veicShare(), box=$('shareAtivos'); if(!v){ box.innerHTML=''; return }
   try{
-    const j=await fnAl('compLista',{deviceId:v.id}); const l=j.lista||[];
-    box.innerHTML = l.length ? '<div class="alsec" style="margin-top:14px">Links ativos deste veículo</div><div class="algrupo">'+
-      l.map(x=>'<div class="kmitem"><div class="kminfo"><div class="kmt">'+(x.tipo==='frota'?esc(x.titulo||'Serviço a caminho')+' · ':'')+'Válido até '+esc(compQuando(x.expiraMs))+'</div><div class="kms">Criado '+esc(compQuando(x.criadoMs))+'</div></div>'+
-        '<button class="kmdel" type="button" data-cpcopy="'+esc(x.codigo)+'" aria-label="Copiar link" title="Copiar link"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 012-2h10"/></svg></button>'+
-        '<button class="kmdel" type="button" data-cpfim="'+esc(x.codigo)+'">Encerrar</button></div>').join('')+'</div>' : '';
+    const j=await fnAl('compLista',{deviceId:v.id}); const l=j.lista||[]; shareLista=l;
+    const agora=Date.now();
+    box.innerHTML = l.length ? '<div class="alsec" style="margin-top:14px">Links ativos deste veículo ('+l.length+')</div>'+
+      l.map(x=>{ const fr=x.tipo==='frota', falta=x.expiraMs-agora, tot=Math.max(1,x.expiraMs-x.criadoMs);
+        return '<div class="lkcard'+(fr?' frota':'')+(falta<10*60000?' acabando':'')+'" data-c="'+esc(x.codigo)+'">'+
+          '<div class="lktop"><span class="lkic">'+(fr?IC_CAMINHAO:IC_LINK)+'</span>'+
+            '<span class="lkt"><b>'+esc(fr?(x.titulo||'Serviço a caminho'):'Localização compartilhada')+'</b><small>'+esc(fr&&x.destEnd?'Destino: '+x.destEnd:'Criado '+compQuando(x.criadoMs))+'</small></span>'+
+            '<span class="lkcd"><b>'+esc(tempoFalta(falta))+'</b><small>até '+esc(new Date(x.expiraMs).toDateString()===new Date().toDateString()?compQuando(x.expiraMs).replace(/^\d\d\/\d\d às /,''):compQuando(x.expiraMs))+'</small></span></div>'+
+          '<div class="lkbar"><i style="width:'+Math.max(2,Math.min(100,falta/tot*100))+'%"></i></div>'+
+          '<div class="lkbtns">'+
+            '<button type="button" data-cpcopy="'+esc(x.codigo)+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 012-2h10"/></svg>Copiar</button>'+
+            '<button type="button" class="lkmais" data-cpmais="'+esc(x.codigo)+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Tempo</button>'+
+            '<button type="button" class="lkfim" data-cpfim="'+esc(x.codigo)+'">Encerrar</button>'+
+          '</div>'+
+          '<div class="lkext"><button type="button" data-cpext="15">+15 min</button><button type="button" data-cpext="30">+30 min</button><button type="button" data-cpext="60">+1 h</button><button type="button" data-cpext="180">+3 h</button></div>'+
+        '</div>' }).join('') : '';
+    if(l.length && !shareTimer) shareTimer=setInterval(shareTick,1000);
   }catch(e){ box.innerHTML='' }
 }
-let shareWppPara='';
 function shareMostrarResultado(url,expiraMs,nome,cam){
   shareUrl=url; shareWppPara='';
   const st=$('shareWppSt'); st.style.display='none';
   if(cam){
-    shareTexto=cam.titulo+(cam.empresa?' - '+cam.empresa:'')+(cam.motorista?'\nMotorista: '+cam.motorista:'')+'\nAcompanhe em tempo real: '+url+'\nLink válido até '+compQuando(expiraMs)+'.';
+    shareTexto=cam.titulo+(cam.empresa?' - '+cam.empresa:'')+(cam.motorista?'\nMotorista: '+cam.motorista+(cam.motFone?' · WhatsApp '+fmtWpp(cam.motFone):''):'')+'\nAcompanhe em tempo real: '+url+'\nLink válido até '+compQuando(expiraMs)+'.';
     shareWppPara=cam.cliWpp||'';
     if(cam.cliWpp){
       const ok=cam.wpp&&cam.wpp.ok;
@@ -4168,7 +4231,7 @@ $('shareGerar').onclick=async()=>{
   try{
     const cam=camDados();
     const j=await fnAl('compCriar',Object.assign({deviceId:v.id,minutos:shareMin},cam?{caminho:cam}:{}));
-    shareMostrarResultado(compLink(j.codigo),j.expiraMs,v.nome,cam?{titulo:cam.titulo,empresa:j.empresa||'',motorista:(j.motorista&&j.motorista.nome)||'',cliWpp:cam.cliWpp,wpp:j.wpp}:null);
+    shareMostrarResultado(compLink(j.codigo),j.expiraMs,v.nome,cam?{titulo:cam.titulo,empresa:j.empresa||'',motorista:(j.motorista&&j.motorista.nome)||'',motFone:(j.motorista&&j.motorista.fone)||'',cliWpp:cam.cliWpp,wpp:j.wpp}:null);
     b.textContent='Gerar outro link'; shareCarregarAtivos();
   }catch(e){ $('shareErro').textContent=e.message||'Não consegui gerar o link.'; b.textContent='Gerar link' }
   b.disabled=false;
@@ -4183,6 +4246,15 @@ $('shareNativo').onclick=async()=>{ try{ await navigator.share({title:'Localiza�
 $('shareAtivos').addEventListener('click',async e=>{
   const c=e.target.closest('button[data-cpcopy]');
   if(c){ toast(await copiarTexto(compLink(c.dataset.cpcopy))?'Link copiado.':'Não consegui copiar.'); return }
+  const mx=e.target.closest('button[data-cpmais]');
+  if(mx){ const ext=mx.closest('.lkcard').querySelector('.lkext'); ext.classList.toggle('on'); return }
+  const ex=e.target.closest('button[data-cpext]');
+  if(ex){ /* adicionar tempo ao link (12/10/2026): quem tem o link continua vendo, sem precisar mandar de novo */
+    const card=ex.closest('.lkcard'), cod=card.dataset.c; card.querySelectorAll('.lkext button').forEach(x=>x.disabled=true);
+    try{ const j=await fnAl('compEstender',{codigo:cod,minutos:+ex.dataset.cpext}); const x=shareLista.find(y=>y.codigo===cod); if(x) x.expiraMs=j.expiraMs;
+      toast((j.limite?'Chegou no máximo de 7 dias. ':'')+'Agora o link vale até '+compQuando(j.expiraMs)+'. Quem tem o link continua vendo.',5000) }
+    catch(err){ toast(err.message||'Não consegui adicionar tempo.') }
+    shareCarregarAtivos(); return }
   const b=e.target.closest('button[data-cpfim]'); if(!b) return;
   if(!b.classList.contains('conf')){ b.classList.add('conf'); b.textContent='Encerrar?'; setTimeout(()=>{ if(b.isConnected){ b.classList.remove('conf'); b.textContent='Encerrar' } },4000); return }
   b.disabled=true;
