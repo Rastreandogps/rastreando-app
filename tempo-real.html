@@ -2846,7 +2846,7 @@ function mesclar(ds,ps){
   if(!selId || !veiculos.find(v=>v.id===selId)) selId = veiculos.length ? veiculos[0].id : null;
   const sig = veiculos.map(v=>v.id+':'+v.nome+':'+v.placa+':'+v.fone+':'+v.contato).join('|');
   if(sig!==assinaturaLista){ assinaturaLista=sig; desenharLista(); if(ehAdmin && $('aview').classList.contains('show') && abaAdmin==='equip') desenharEquip() }
-  if(primeiraCarga){ primeiraCarga=false; mudouSelecao() }
+  if(primeiraCarga){ primeiraCarga=false; mudouSelecao(); setTimeout(()=>{ try{ vcSincronizar() }catch(e){} },400) }
   atualizarContagem(); atualizar();
   try{ cbMapaAtualizar() }catch(e){}
   if(ehAdmin && $('aview').classList.contains('show') && abaAdmin==='equip') equipStatusAtualizar();
@@ -3689,7 +3689,7 @@ const lsJset=(k,v)=>{ try{ v==null?localStorage.removeItem(k):localStorage.setIt
 const lsFlag=k=>{ try{ return localStorage.getItem(k)==='1' }catch(e){ return false } };
 const lsFlagSet=(k,on)=>{ try{ on?localStorage.setItem(k,'1'):localStorage.removeItem(k) }catch(e){} };
 function cbLer(id){ return lsJ('rg_comb_'+id,null) || lsJ('rg_comb_ultimo',{}) || {} }
-function cbGravar(){ if(!cbVeic) return; const d={kml:$('cbKml').value,preco:$('cbPreco').value}; lsJset('rg_comb_'+cbVeic.id,d); lsJset('rg_comb_ultimo',d) }
+function cbGravar(){ if(!cbVeic) return; const d={kml:$('cbKml').value,preco:$('cbPreco').value}; lsJset('rg_comb_'+cbVeic.id,d); lsJset('rg_comb_ultimo',d); vcEnviar(cbVeic.id) }
 const cbMapaLigado=id=>lsFlag('rg_comb_mapa_'+id);
 const metaMapaLigado=id=>lsFlag('rg_meta_mapa_'+id);
 const semNomeLigado=id=>lsFlag('rg_semnome_'+id);
@@ -3755,8 +3755,8 @@ function abrirComb(modo){
   cbVeic=v; $('cbTit').textContent=(modo==='odo'?'Odômetro · ':'Combustível · ')+v.nome;
   $('mComb').classList.toggle('modo-odo',modo==='odo'); $('mComb').classList.toggle('modo-comb',modo==='comb');
   $('cbNota').textContent = modo==='odo'
-    ? 'A meta acompanha o odômetro: conforme o veículo anda, o que falta desce. Verde enquanto tem folga, vermelho quando faltam 10% ou menos. Fica salvo neste aparelho, por veículo.'
-    : 'O valor acompanha o odômetro: conforme o veículo anda, sobe; se o odômetro for zerado, zera junto. É uma estimativa pelo consumo informado. Fica salvo neste aparelho, por veículo.';
+    ? 'A meta acompanha o odômetro: conforme o veículo anda, o que falta desce. Verde enquanto tem folga, vermelho quando faltam 10% ou menos. Fica salvo no veículo: vale para todos que veem este veículo.'
+    : 'O valor acompanha o odômetro: conforme o veículo anda, sobe; se o odômetro for zerado, zera junto. É uma estimativa pelo consumo informado. Fica salvo no veículo: vale para todos que veem este veículo.';
   const c=cbLer(v.id); $('cbKml').value=c.kml||''; $('cbPreco').value=c.preco||'';
   const m=metaLer(v.id); $('mtKm').value=m&&m.km?String(m.km):''; $('mtNome').value=m&&m.nome||'';
   cbPintar(); abrir('mComb');
@@ -3793,12 +3793,12 @@ $('ozSim').onclick=async()=>{
     }
     const antes=odoKm(v)||0;
     v.odo=0; v.odoPos=v.posId;
-    const m=metaLer(v.id); if(m){ m.odo0=(m.odo0||0)-antes; m.ult=0; lsJset('rg_meta_'+v.id,m) } /* a meta mantém o que faltava */
+    const m=metaLer(v.id); if(m){ m.odo0=(m.odo0||0)-antes; m.ult=0; lsJset('rg_meta_'+v.id,m); vcEnviar(v.id) } /* a meta mantém o que faltava */
     $('mOdoZerar').classList.remove('show');
     cbPintar(); rotularMarcador(v); atualizar(); toast('Odômetro zerado.');
   }catch(e){ if(!e.sessao){ $('ozErro').textContent=e.message||'Não consegui zerar.'; $('ozSim').disabled=false; $('ozSim').textContent='Sim, zerar' } }
 };
-$('cbMapa').addEventListener('change',()=>{ if(!cbVeic) return; lsFlagSet('rg_comb_mapa_'+cbVeic.id,$('cbMapa').checked); cbPintar(); cbRotular() });
+$('cbMapa').addEventListener('change',()=>{ if(!cbVeic) return; lsFlagSet('rg_comb_mapa_'+cbVeic.id,$('cbMapa').checked); vcEnviar(cbVeic.id); cbPintar(); cbRotular() });
 $('mtComecar').onclick=()=>{
   const v=cbVeic&&veiculos.find(x=>x.id===cbVeic.id); if(!v) return;
   const km=Math.round(cbNum($('mtKm').value)), o=odoKm(v);
@@ -3806,14 +3806,67 @@ $('mtComecar').onclick=()=>{
   if(o==null){ toast('O odômetro deste veículo ainda não tem valor.'); return }
   lsJset('rg_meta_'+v.id,{km,odo0:o,ult:o,nome:$('mtNome').value.trim()});
   if(!metaMapaLigado(v.id)) lsFlagSet('rg_meta_mapa_'+v.id,true);
+  vcEnviar(v.id);
   cbPintar(); cbRotular(); toast('Contagem começou: faltam '+kmTxt(km)+'.');
 };
 ['mtKm','mtNome'].forEach(k=>$(k).addEventListener('change',()=>{
   const v=cbVeic&&veiculos.find(x=>x.id===cbVeic.id); const m=v&&metaLer(v.id); if(!m) return;
-  const km=Math.round(cbNum($('mtKm').value)); if(km>=1) m.km=km; m.nome=$('mtNome').value.trim(); lsJset('rg_meta_'+v.id,m); cbPintar(); cbRotular();
+  const km=Math.round(cbNum($('mtKm').value)); if(km>=1) m.km=km; m.nome=$('mtNome').value.trim(); lsJset('rg_meta_'+v.id,m); vcEnviar(v.id); cbPintar(); cbRotular();
 }));
-$('mtMapa').addEventListener('change',()=>{ if(!cbVeic) return; lsFlagSet('rg_meta_mapa_'+cbVeic.id,$('mtMapa').checked); cbPintar(); cbRotular() });
+$('mtMapa').addEventListener('change',()=>{ if(!cbVeic) return; lsFlagSet('rg_meta_mapa_'+cbVeic.id,$('mtMapa').checked); vcEnviar(cbVeic.id); cbPintar(); cbRotular() });
 $('snNome').addEventListener('change',()=>{ if(!cbVeic) return; lsFlagSet('rg_semnome_'+cbVeic.id,$('snNome').checked); cbRotular() });
+/* ===== META E COMBUSTÍVEL POR VEÍCULO NO SERVIDOR (12/10/2026, pedido do dono, pensando em frota) =====
+   O celular continua guardando uma cópia (o resto do código lê dela); o servidor é a referência para todos os aparelhos/logins.
+   Lê ao abrir e a cada 2 min (1 consulta para todos os veículos); grava só quando alguém muda. "Esconder o nome" continua por aparelho. */
+const VC={pend:{}, rodando:false};
+function vcLocal(id){
+  const m=metaLer(id);
+  return {comb:lsJ('rg_comb_'+id,null), meta:m&&m.km>0?{km:m.km,odo0:Number(m.odo0)||0,nome:m.nome||''}:null, combMapa:cbMapaLigado(id), metaMapa:metaMapaLigado(id)};
+}
+function vcEnviar(id){
+  if(!id) return;
+  clearTimeout(VC.pend[id]);
+  VC.pend[id]=setTimeout(async()=>{
+    delete VC.pend[id];
+    const tok=lsGet('rg_token'); if(!tok) return;
+    try{
+      const r=await fetch(DESB_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',body:JSON.stringify({acao:'vcfgSalvar',token:tok,deviceId:id,cfg:vcLocal(id)})});
+      let j={}; try{ j=await r.json() }catch(e){}
+      if(r.ok){ lsSet('rg_vcfg_em_'+id,String(j.em||Date.now())); lsSet('rg_vcfg_mig_'+id,'1') }
+    }catch(e){}
+  },700);
+}
+function vcAplicar(id,c){
+  lsJset('rg_comb_'+id,c.comb&&(c.comb.kml||c.comb.preco)?c.comb:null);
+  if(c.meta && c.meta.km>0){ const old=metaLer(id); lsJset('rg_meta_'+id,{km:c.meta.km,odo0:Number(c.meta.odo0)||0,nome:c.meta.nome||'',ult:(old&&Number(old.odo0)===Number(c.meta.odo0)&&isFinite(old.ult))?old.ult:null}) }
+  else lsJset('rg_meta_'+id,null);
+  lsFlagSet('rg_comb_mapa_'+id,!!c.combMapa); lsFlagSet('rg_meta_mapa_'+id,!!c.metaMapa);
+  lsSet('rg_vcfg_em_'+id,String(c.em||0)); lsSet('rg_vcfg_mig_'+id,'1');
+}
+async function vcSincronizar(){
+  if(VC.rodando || document.visibilityState!=='visible' || !veiculos.length) return;
+  const tok=lsGet('rg_token'); if(!tok) return;
+  VC.rodando=true;
+  try{
+    const ids=veiculos.map(v=>v.id).slice(0,300);
+    const r=await fetch(DESB_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',body:JSON.stringify({acao:'vcfgLer',token:tok,ids})});
+    if(!r.ok) return;
+    const j=await r.json(), cfg=j.cfg||{}; let mudou=false;
+    ids.forEach(id=>{
+      if(VC.pend[id]) return;                                   /* mudança deste aparelho ainda indo para o servidor */
+      const c=cfg[String(id)], emLocal=+(lsGet('rg_vcfg_em_'+id)||0);
+      if(c){ if((c.em||0)>emLocal){ vcAplicar(id,c); mudou=true } }
+      else if(!lsGet('rg_vcfg_mig_'+id)){                       /* 1ª vez: leva para o servidor o que já estava neste aparelho */
+        const l=vcLocal(id);
+        if(lsJ('rg_comb_'+id,null) || l.meta || l.combMapa || l.metaMapa) vcEnviar(id); else lsSet('rg_vcfg_mig_'+id,'1');
+      }
+    });
+    if(mudou){ try{ cbMapaAtualizar(); const v=cartao(); if(v) cbQuadro(v) }catch(e){} }
+  }catch(e){} finally{ VC.rodando=false }
+}
+setTimeout(vcSincronizar,3500);
+setInterval(vcSincronizar,120000);
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') setTimeout(vcSincronizar,1500) });
 /* chamado a cada atualização: troca o rótulo do mapa só se mudou; com a janela aberta, atualiza os valores */
 function cbMapaAtualizar(){
   veiculos.forEach(v=>{ if(!v.marker) return; const h=rotuloHtml(v); if(h!==v.rotuloHtml) rotularMarcador(v) });
