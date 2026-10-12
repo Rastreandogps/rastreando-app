@@ -547,6 +547,9 @@ body.hist-on #mapCar{display:none!important}
 .statbtn.odo span{color:#16a34a;font-weight:700}
 .statbtn.comb span{color:#d97706;font-weight:700}
 .statbtn.comb b{color:#f59e0b}
+.statbtn.comb b .rs{display:inline;color:inherit;font-size:.68em;font-weight:700;margin-right:1px;opacity:.85}
+.statbtn.comb b.longo{font-size:12px}
+@media(max-width:480px){.statbtn span{font-size:9.5px;letter-spacing:-.1px}.statbtn.comb b.longo{font-size:11px}}
 .statbtn::after{content:"›";position:absolute;top:2px;right:6px;font-size:15px;font-weight:800;line-height:1;opacity:.75}
 .statbtn.odo::after{color:#16a34a}
 .statbtn.comb::after{color:#d97706}
@@ -559,7 +562,9 @@ body.hist-on #mapCar{display:none!important}
 #mComb .cbin .fld{margin:4px 0 0}
 #mComb .cbodo{display:flex;justify-content:space-between;align-items:baseline;background:var(--card2);border-radius:12px;padding:10px 14px;margin:6px 0 4px}
 #mComb .cbodo span{font-size:12.5px;color:var(--mut)}
-#mComb .cbodo b{font-size:18px}
+#mComb .cbodo b{font-size:18px;margin-left:auto;margin-right:10px}
+#mComb .cbodo{flex-wrap:wrap;gap:6px;align-items:center}
+#mComb .odozerar{flex:none;height:32px;padding:0 12px;border-radius:999px;border:1.5px solid rgba(227,38,47,.55);background:rgba(227,38,47,.10);color:#e3262f;font:inherit;font-size:12.5px;font-weight:700;cursor:pointer}
 #mComb .cbsec{border:1px solid var(--line);border-radius:16px;padding:12px;margin-top:12px}
 #mComb .cbsect{font-weight:800;font-size:15px;margin-bottom:2px;display:flex;align-items:center;gap:6px}
 #mComb .cbsic{width:18px;height:18px;color:#16a34a}
@@ -1868,7 +1873,7 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
 <div class="modal alsheet" id="mComb">
   <div class="box2">
     <h3 id="cbTit">Odômetro</h3>
-    <div class="cbodo" id="cbOdoRow"><span>Odômetro agora</span><b id="cbOdo">—</b></div>
+    <div class="cbodo" id="cbOdoRow"><span>Odômetro agora</span><b id="cbOdo">—</b><button type="button" class="odozerar" id="odoZerarBtn">Zerar odômetro</button></div>
 
     <div class="cbsec" id="cbSecComb">
       <div class="cbsect">⛽ Combustível</div>
@@ -1894,6 +1899,19 @@ nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke
     <label class="fchk" id="snLbl" style="margin-top:10px"><input type="checkbox" id="snNome"> Esconder o nome no mapa (mostrar só os valores)</label>
     <p class="cbnota" id="cbNota"></p>
     <button class="btn btn-out alfechar" data-close type="button">Fechar</button>
+  </div>
+</div>
+<!-- confirmação para zerar o odômetro (11/10/2026) -->
+<div class="modal" id="mOdoZerar" style="z-index:1150;align-items:center">
+  <div class="box2" style="max-width:380px;width:calc(100% - 32px);border-radius:20px;text-align:center">
+    <div style="font-size:34px;line-height:1;margin:4px 0 8px">⚠️</div>
+    <h3>Deseja mesmo zerar o odômetro?</h3>
+    <p id="ozTexto" style="font-size:13.5px;color:var(--mut);margin:6px 0 14px;line-height:1.45"></p>
+    <div class="ferr" id="ozErro"></div>
+    <div class="actions2">
+      <button class="btn btn-out" id="ozNao" type="button">Cancelar</button>
+      <button class="btn btn-red" id="ozSim" type="button">Sim, zerar</button>
+    </div>
   </div>
 </div>
 <div class="modal alsheet" id="mConta">
@@ -2730,7 +2748,7 @@ function atualizar(){
     $('vStatus').textContent=txt; $('vStatus').className='status '+cls;
     $('sSpeed').textContent=sp?'—':v.vel+' km/h';
     { const ig=$('vIgn'); ig.className='vign '+(v.ign===null?'nd':(v.ign?'on':'off')); ig.title=v.ign===null?'Ignição: sem informação':(v.ign?'Ignição ligada':'Ignição desligada'); ig.setAttribute('aria-label',ig.title) }
-    try{ const g=cbGasto(v); $('sComb').textContent=g?cbBrl(g.rs):'—' }catch(e){}
+    try{ cbQuadro(v) }catch(e){}
     $('sBat').textContent=v.bat===null?'—':v.bat+'%';
     $('sVolt').textContent=v.volt===null?'—':v.volt.toFixed(1).replace('.',',')+' V';
     $('sOdo').textContent=fmtOdo(v.odo);
@@ -3430,7 +3448,10 @@ function cbMapaTxt(v){ if(!v || !cbMapaLigado(v.id)) return ''; const g=cbGasto(
 function metaLer(id){ return lsJ('rg_meta_'+id,null) }
 function metaInfo(v){
   const m=v&&metaLer(v.id), km=odoKm(v); if(!m || !(m.km>0) || km==null) return null;
-  if(km<m.odo0){ m.odo0=0; lsJset('rg_meta_'+v.id,m) } /* odômetro zerado: conta a partir do zero */
+  /* odômetro reduzido/zerado (por aqui ou por outro lugar): mantém o que faltava, como o lembrete do servidor */
+  const ult=isFinite(m.ult)?m.ult:km;
+  if(km<ult-0.1){ m.odo0=(m.odo0||0)+(km-ult); m.ult=km; lsJset('rg_meta_'+v.id,m) }
+  else if(Math.abs(km-ult)>=0.5 || !isFinite(m.ult)){ m.ult=km; lsJset('rg_meta_'+v.id,m) }
   const falta=m.km-(km-m.odo0), pct=Math.max(0,Math.min(1,falta/m.km));
   return {m,falta,pct,alerta:falta<=m.km*0.10};
 }
@@ -3483,14 +3504,48 @@ function abrirComb(modo){
 }
 $('sOdoBtn').onclick=()=>abrirComb('odo');
 $('sCombBtn').onclick=()=>abrirComb('comb');
-['cbKml','cbPreco'].forEach(k=>$(k).addEventListener('input',()=>{ cbGravar(); cbPintar(); cbRotular(); try{ const v=cbVeic&&veiculos.find(x=>x.id===cbVeic.id), g=cbGasto(v); if(v&&v.id===selId) $('sComb').textContent=g?cbBrl(g.rs):'—' }catch(e){} }));
+['cbKml','cbPreco'].forEach(k=>$(k).addEventListener('input',()=>{ cbGravar(); cbPintar(); cbRotular(); try{ const v=cbVeic&&veiculos.find(x=>x.id===cbVeic.id); if(v&&v.id===selId) cbQuadro(v) }catch(e){} }));
+/* valor no quadro Combustível: "R$" pequeno e letra menor quando o número é grande (não estoura o quadro) */
+function cbQuadro(v){
+  const g=cbGasto(v), b=$('sComb');
+  if(!g){ b.textContent='—'; b.classList.remove('longo'); return }
+  const n=g.rs.toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+  b.innerHTML='<small class="rs">R$</small>'+n; b.classList.toggle('longo',n.length>6);
+}
+/* --- zerar o odômetro (com confirmação) --- */
+$('odoZerarBtn').onclick=()=>{
+  const v=cbVeic&&veiculos.find(x=>x.id===cbVeic.id); if(!v) return;
+  $('ozErro').textContent=''; $('ozSim').disabled=false; $('ozSim').textContent='Sim, zerar';
+  $('ozTexto').textContent='O odômetro de '+v.nome+' ('+(v.odo!=null?fmtOdo(v.odo):'—')+') volta para 0 km. O gasto de combustível também zera. A meta de quilometragem continua com o que falta.';
+  $('mOdoZerar').classList.add('show');
+};
+$('ozNao').onclick=()=>$('mOdoZerar').classList.remove('show');
+$('ozSim').onclick=async()=>{
+  const v=cbVeic&&veiculos.find(x=>x.id===cbVeic.id); if(!v) return;
+  $('ozSim').disabled=true; $('ozSim').textContent='Zerando...'; $('ozErro').textContent='';
+  try{
+    if(ehAdmin){
+      const r=await api('/api/devices/'+v.id+'/accumulators',{method:'PUT',headers:JSONH,body:JSON.stringify({deviceId:v.id,totalDistance:0})});
+      if(!r.ok) throw new Error(await msgErro(r,'Não consegui zerar o odômetro'));
+    } else {
+      const r=await fetch(DESB_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',body:JSON.stringify({acao:'odoZerar',token:lsGet('rg_token'),deviceId:v.id})});
+      let j={}; try{ j=await r.json() }catch(e){}
+      if(!r.ok) throw new Error(j.erro||('Não consegui zerar o odômetro (erro '+r.status+').'));
+    }
+    const antes=odoKm(v)||0;
+    v.odo=0; v.odoPos=v.posId;
+    const m=metaLer(v.id); if(m){ m.odo0=(m.odo0||0)-antes; m.ult=0; lsJset('rg_meta_'+v.id,m) } /* a meta mantém o que faltava */
+    $('mOdoZerar').classList.remove('show');
+    cbPintar(); rotularMarcador(v); atualizar(); toast('Odômetro zerado.');
+  }catch(e){ if(!e.sessao){ $('ozErro').textContent=e.message||'Não consegui zerar.'; $('ozSim').disabled=false; $('ozSim').textContent='Sim, zerar' } }
+};
 $('cbMapa').addEventListener('change',()=>{ if(!cbVeic) return; lsFlagSet('rg_comb_mapa_'+cbVeic.id,$('cbMapa').checked); cbPintar(); cbRotular() });
 $('mtComecar').onclick=()=>{
   const v=cbVeic&&veiculos.find(x=>x.id===cbVeic.id); if(!v) return;
   const km=Math.round(cbNum($('mtKm').value)), o=odoKm(v);
   if(!(km>=1&&km<=1000000)){ toast('Informe a cada quantos km (ex.: 10000).'); $('mtKm').focus(); return }
   if(o==null){ toast('O odômetro deste veículo ainda não tem valor.'); return }
-  lsJset('rg_meta_'+v.id,{km,odo0:o,nome:$('mtNome').value.trim()});
+  lsJset('rg_meta_'+v.id,{km,odo0:o,ult:o,nome:$('mtNome').value.trim()});
   if(!metaMapaLigado(v.id)) lsFlagSet('rg_meta_mapa_'+v.id,true);
   cbPintar(); cbRotular(); toast('Contagem começou: faltam '+kmTxt(km)+'.');
 };
