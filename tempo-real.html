@@ -52,6 +52,16 @@ body.mapa-google #map .leaflet-top.leaflet-left .leaflet-control-attribution{mar
 .demo.saldo{display:inline-flex;flex-direction:column;align-items:center;line-height:1.1;padding:3px 9px;cursor:pointer;border-radius:14px}
 .demo.saldo small{font-size:9px;font-weight:700;color:var(--mut);letter-spacing:.02em}
 .demo.saldo small.baixo{color:var(--red2)}
+.demo.saldo small b{font-weight:800;color:inherit}
+/* computador (tela larga): a tarja vira uma fileira, com os números grandes e os rótulos pequenos */
+@media (min-width:760px){
+  .demo.saldo{flex-direction:row;align-items:stretch;gap:0;padding:0;overflow:hidden;border-radius:14px;line-height:1.1}
+  .demo.saldo .lv{display:flex;align-items:center;padding:0 14px;font-size:11px;letter-spacing:.06em}
+  .demo.saldo small{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:78px;padding:5px 14px;border-left:1px solid rgba(51,209,122,.25);background:rgba(51,209,122,.06);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+  .demo.saldo small b{font-size:17px;letter-spacing:0;color:var(--txt);line-height:1.05;margin-bottom:1px}
+  .demo.saldo small.baixo{background:rgba(227,38,47,.08);border-left-color:rgba(227,38,47,.3)}
+  .demo.saldo small.baixo b{color:var(--red2)}
+}
 .login{display:none;position:fixed;inset:0;z-index:2000;background:var(--bg);align-items:center;justify-content:center;padding:24px}
 .login.show{display:flex}
 /* trava com digital / Face ID */
@@ -2779,7 +2789,7 @@ function status(v){
 }
 function indicador(texto,ok){
   const e=$('live'); e.classList.toggle('ok',!!ok);
-  if(ok && texto==='TEMPO REAL' && saldoSms && ehAdmin){ e.innerHTML='TEMPO REAL<small class="'+(saldoSms.sms<200?'baixo':'')+'">'+fmtN(saldoSms.sms)+' SMS</small><small class="'+(saldoSms.whatsapp<50?'baixo':'')+'">'+fmtN(saldoSms.whatsapp)+' WhatsApp</small>'; e.classList.add('saldo') }
+  if(ok && texto==='TEMPO REAL' && saldoSms && ehAdmin){ e.innerHTML='<span class="lv">TEMPO REAL</span><small class="'+(saldoSms.sms<200?'baixo':'')+'"><b>'+fmtN(saldoSms.sms)+'</b> SMS</small><small class="'+(saldoSms.whatsapp<50?'baixo':'')+'"><b>'+fmtN(saldoSms.whatsapp)+'</b> WhatsApp</small>'; e.classList.add('saldo') }
   else { e.textContent=texto; e.classList.remove('saldo') }
 }
 /* saldo do SMS Market na tarja do administrador (12/10/2026): lê ao abrir e a cada 10 min; o servidor guarda por 10 min */
