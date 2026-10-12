@@ -2105,7 +2105,11 @@ const map = L.map('map',{zoomControl:false,attributionControl:false}).setView([-
 L.control.attribution({position:'topleft',prefix:false}).addTo(map);
 const camadaOsm=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
   maxZoom:19,attribution:'© OpenStreetMap'
-}).addTo(map);
+});
+/* sem piscar o mapa grátis antes do Google (11/10, 21h11): o app lembra neste aparelho qual mapa foi usado por último;
+   se foi o Google, já abre carregando o Google e só mostra o grátis se o Google falhar */
+const MAPA_LOCAL=(()=>{ try{ return localStorage.getItem('rg_mapa_pref')==='google'?'google':'gratis' }catch(e){ return 'gratis' } })();
+if(MAPA_LOCAL!=='google') camadaOsm.addTo(map);
 
 /* ===== Mapa do Google por cliente (4.49, 11/10/2026) =====
    Todo mundo começa no mapa grátis. O administrador marca "Google Maps" no cliente (Permissões do app) ou em
@@ -2201,6 +2205,7 @@ async function mapaGoogleLigar(){
 }
 function mapaAplicar(pref){
   gmPref=pref==='google'?'google':'gratis';
+  try{ localStorage.setItem('rg_mapa_pref',gmPref) }catch(e){}
   if(gmPref==='google') mapaGoogleLigar(); else { gmFalhou(''); }
 }
 /* lê no cadastro do usuário (Traccar) qual mapa ele usa; chamado depois de entrar */
@@ -2234,6 +2239,8 @@ $('contaMapaSel').addEventListener('change',async()=>{
   }catch(e){ if(!e.sessao) toast(e.message||'Não consegui salvar',5000); $('contaMapaSel').value=(meuUsuario.attributes&&meuUsuario.attributes.mapa==='google')?'google':'gratis' }
 });
 try{ new ResizeObserver(()=>mapaPe()).observe($('sheet')) }catch(e){}
+/* começa o Google já na abertura, se foi o último mapa usado neste aparelho (a escolha do cadastro confirma depois) */
+if(MAPA_LOCAL==='google'){ gmPref='google'; mapaGoogleLigar(); setTimeout(()=>{ if(gmEstado!=='google' && !map.hasLayer(camadaOsm) && !gmCamada) camadaOsm.addTo(map) },12000) }
 window.addEventListener('resize',mapaPe);
 
 const carSvg = '<svg viewBox="0 0 44 44" width="44" height="44"><circle class="anel" cx="22" cy="22" r="18" stroke-width="1.5"/><path class="seta" d="M22 8 L31 32 L22 27 L13 32 Z" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></svg>';
