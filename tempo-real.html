@@ -2790,11 +2790,13 @@ async function carregarSaldo(agora){
   if(!agora && Date.now()-saldoUlt<10*60000) return; saldoUlt=Date.now();
   try{
     const r=await fetch(DESB_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',body:JSON.stringify({acao:'smsSaldo',token:lsGet('rg_token'),agora:!!agora})});
-    if(!r.ok) return; const j=await r.json(); if(j && j.sms!=null){ saldoSms=j; if($('live').classList.contains('ok')) indicador('TEMPO REAL',true) }
+    let j={}; try{ j=await r.json() }catch(e){}
+    if(!r.ok){ if(j&&j.erro){ saldoSms=Object.assign(saldoSms||{sms:0,whatsapp:0},{erro:j.erro}) } return }
+    if(j && j.sms!=null){ saldoSms=j; if($('live').classList.contains('ok')) indicador('TEMPO REAL',true) }
   }catch(e){}
 }
 setInterval(()=>carregarSaldo(false),60000);
-$('live').addEventListener('click',()=>{ if(!ehAdmin||!saldoSms) return; const v=saldoSms.expiration?' · créditos valem até '+String(saldoSms.expiration).slice(0,10).split('-').reverse().join('/'):''; const zero=!saldoSms.sms && !saldoSms.whatsapp && saldoSms.bruto; toast('SMS Market: '+fmtN(saldoSms.sms)+' SMS e '+fmtN(saldoSms.whatsapp)+' WhatsApp'+v+'. Atualizado '+fmtHora(saldoSms.em)+'.'+(zero?' Resposta do SMS Market: '+String(saldoSms.bruto).slice(0,300):''),zero?15000:6000); carregarSaldo(true) });
+$('live').addEventListener('click',()=>{ if(!ehAdmin||!saldoSms) return; const v=saldoSms.expiration?' · créditos valem até '+String(saldoSms.expiration).slice(0,10).split('-').reverse().join('/'):''; const zero=!saldoSms.sms && !saldoSms.whatsapp; toast('SMS Market: '+fmtN(saldoSms.sms)+' SMS e '+fmtN(saldoSms.whatsapp)+' WhatsApp'+v+'. Atualizado '+(saldoSms.em?fmtHora(saldoSms.em):'nunca')+'.'+(saldoSms.erro?' '+saldoSms.erro:'')+(zero?' Resposta do SMS Market: '+(saldoSms.bruto?String(saldoSms.bruto).slice(0,300):'(vazia)'):''),zero?20000:6000); carregarSaldo(true) });
 
 /* ===== COMUNICAÇÃO COM O SERVIDOR ===== */
 /* cadastro do próprio usuário. O Traccar só responde GET /api/session com o token no endereço (?token=);
