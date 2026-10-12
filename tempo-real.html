@@ -6126,6 +6126,8 @@ function filaEntrar(){
 }
 filaEntrar();
 window.addEventListener('hashchange',()=>{ filaEntrar(); if(ehAdmin) filaDesenhar() });
+/* o APP Técnico grava direto na fila (mesmo endereço, mesma memória): com o Tempo Real aberto em outra aba, aparece na hora */
+window.addEventListener('storage',e=>{ if(e.key==='rg_cli_fila' && ehAdmin){ try{ filaDesenhar(); const n=filaLer().length; if(n) toast(n===1?'1 cliente chegou do APP Técnico (veja no + da aba Admin).':n+' clientes do APP Técnico esperando no + da aba Admin.') }catch(er){} } });
 function filaDesenhar(){
   const f=filaLer(), b=$('aNovoFila'), box=$('aFila'); if(!b||!box) return;
   const n=ehAdmin?f.length:0;
