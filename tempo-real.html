@@ -1115,6 +1115,8 @@ nav button.on .nemo.txt{color:var(--red2)}
 #aview details.cli .gav{padding:4px 16px 16px}
 #aview details.cli .cbox{border-left:0;background:var(--card2);border-color:transparent;border-radius:14px}
 @media (max-width:420px){#aview .vtop{padding:16px 14px 6px}#aview .vlist{padding:8px 14px 20px}#aview .ficha{gap:10px}}
+/* 13/10/2026 (pedido do dono): no celular o nome do cliente ficava espremido ao lado dos botões; agora a 1ª linha tem a sigla + botões e o nome ocupa a largura toda embaixo */
+@media (max-width:480px){#aview details.cli .ctopo{flex-wrap:wrap;padding-right:0;row-gap:10px}#aview details.cli .cnome{flex-basis:100%}}
 #aview details.eq summary{display:block;position:relative;padding:14px 14px 12px}
 #aview details.eq .etopo{display:flex;align-items:center;gap:12px;padding-right:146px;min-height:40px}
 #aview details.eq .etopo .einfo{min-width:0;flex:1}
@@ -1266,7 +1268,7 @@ nav button.on .nemo.txt{color:var(--red2)}
 #aview .flink{display:flex;align-items:center;gap:4px;margin-top:6px;padding:0;border:0;background:none;font:inherit;font-size:12px;font-weight:600;color:#3b82f6;cursor:pointer;text-align:left}
 #aview .flink svg{width:13px;height:13px;flex:none}
 #aview .flink:hover{text-decoration:underline}
-#aview .cbloqagora{display:inline-block;margin-left:6px;padding:1px 8px;border-radius:999px;font-size:11px;font-weight:700;vertical-align:2px;background:rgba(227,38,47,.10);color:var(--red2)}
+#aview .cbloqagora{display:inline-block;white-space:nowrap;margin-left:6px;padding:1px 8px;border-radius:999px;font-size:11px;font-weight:700;vertical-align:2px;background:rgba(227,38,47,.10);color:var(--red2)}
 #aview .uso{padding:12px;border-radius:14px;background:var(--card2)}
 #aview details.cli[open] .uso{background:var(--card)}
 #aview .ustats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
