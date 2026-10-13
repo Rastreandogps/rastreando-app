@@ -2352,7 +2352,7 @@ if(MAPA_LOCAL!=='google') camadaOsm.addTo(map);
    Jeito técnico: o mapa do Google (Maps JavaScript API, cobrado por abertura) fica por baixo do Leaflet pelo
    plugin GoogleMutant; setinhas, cercas, histórico e âncora continuam iguais. O logo e os créditos do Google ficam
    nos cantos de baixo do mapa, acima do cartão. Se a chave falhar ou o Google não carregar, volta para o grátis. */
-const GOOGLE_MAPS_CHAVE='AIzaSyCJqHbTiW6ve7X4uVV9p29ngWvh0iw_qoI'; /* chave restrita ao site rastreandogps.github.io e só à Maps JavaScript API */
+const GOOGLE_MAPS_CHAVE='AIzaSyCJqHbTiW6ve7X4uVV9p29ngWvh0iw_qoI'; /* chave restrita aos sites gps.rastreandogpsbr.com.br e rastreandogps.github.io, só à Maps JavaScript API */
 const GM_PLUGIN=['https://cdn.jsdelivr.net/npm/leaflet.gridlayer.googlemutant@0.16.0/dist/Leaflet.GoogleMutant.js','https://unpkg.com/leaflet.gridlayer.googlemutant@0.16.0/dist/Leaflet.GoogleMutant.js'];
 /* estilo noturno (exemplo oficial do Google, "night mode") para o tema escuro do app */
 const GM_ESCURO=[{elementType:'geometry',stylers:[{color:'#242f3e'}]},{elementType:'labels.text.stroke',stylers:[{color:'#242f3e'}]},{elementType:'labels.text.fill',stylers:[{color:'#746855'}]},
@@ -5039,7 +5039,7 @@ const SENHA_PADRAO='123456';
 function msgAcesso(login){
   return '\u{1F697} Bem-vindo à Rastreando GPS!\n\nAgora você acompanha seu veículo em tempo real, de onde estiver. \u{1F4CD}\n\n'+
     '\u{1F510} Seus dados de acesso\n\u{1F464} Login: '+login+'\n\u{1F511} Senha: '+SENHA_PADRAO+'\n\n'+
-    '\u{1F4F2} Instale o aplicativo no seu celular:\nhttps://rastreandogps.github.io/rastreando-app/instalar.html\n\n'+
+    '\u{1F4F2} Instale o aplicativo no seu celular:\nhttps://gps.rastreandogpsbr.com.br/instalar.html\n\n'+
     'Qualquer dúvida, é só chamar aqui. Boa viagem! \u{1F680}';
 }
 const ICO_UNLINK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 7H7a5 5 0 0 0 0 10h2M15 7h2a5 5 0 0 1 4 8M8 12h3"/><path d="M3 3l18 18"/></svg>';
@@ -7148,7 +7148,7 @@ const INDICACAO_URL='https://app.rastreandogpsbr.com.br/indicacao.html';
 const LOJA_WPP='5521980886087'; /* WhatsApp de atendimento da Rastreando GPS (pedidos da loja e indicações) */
 /* Produtos da loja (11/10/2026). As fotos ficam na pasta loja/ do repositório. Os PREÇOS DE VERDADE ficam no
    servidor (rastreamento-desbloqueio.js, LOJA_PRODUTOS): o app só mostra; mudou o preço, mudar nos dois lugares. */
-const LOJA_FOTO='https://rastreandogps.github.io/rastreando-app/loja/';
+const LOJA_FOTO='https://gps.rastreandogpsbr.com.br/loja/'; /* 13/10/2026: endereço próprio do app */
 const LOJA_QTD_MAX=10;
 /* v = preço da unidade; de2 = preço de cada unidade comprando 2 ou mais (cartão NFC). Os valores que valem são os do servidor (LOJA_PRODUTOS). */
 const LOJA_ITENS=[
