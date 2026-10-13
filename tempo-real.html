@@ -2277,6 +2277,7 @@ nav button.on .nemo.txt{color:var(--red2)}
   <div class="box2">
     <h3>Alertas de ignição</h3>
     <p>Avisa quando a ignição liga ou desliga. Ligue nos veículos que quiser.</p>
+    <div class="apbusca"><input class="fld" id="alIgnBusca" type="search" placeholder="Buscar veículo" autocomplete="off"><small id="alIgnBuscaN"></small></div>
     <div class="algrupo" id="alIgn"></div>
     <p class="alnota">Os alertas de cerca já vêm ligados em toda cerca criada.</p>
     <button class="btn btn-out alfechar" data-close type="button">Fechar</button>
@@ -2286,6 +2287,7 @@ nav button.on .nemo.txt{color:var(--red2)}
   <div class="box2">
     <h3>Avisar quando voltar o sinal</h3>
     <p>Para rastreador que perde o sinal (estrada, área rural). Se ele ficar 30 minutos ou mais sem posição e voltar, você recebe um aviso.</p>
+    <div class="apbusca"><input class="fld" id="alVoltaBusca" type="search" placeholder="Buscar veículo" autocomplete="off"><small id="alVoltaBuscaN"></small></div>
     <div class="algrupo" id="alVolta"></div>
     <p class="alnota">Depois de avisar, a chave desliga sozinha. Ligue de novo quando quiser outro aviso.</p>
     <button class="btn btn-out alfechar" data-close type="button">Fechar</button>
@@ -7065,8 +7067,17 @@ function desenharIgn(){
   const ign=alCfg.ign||{}, lista=veiculos.slice().sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
   const n=lista.filter(v=>ign[String(v.id)]).length;
   $('alIgnResumo').textContent=n?(n+(n===1?' veículo':' veículos')):'Desligado'; $('alTIgn').classList.toggle('on',n>0);
-  $('alIgn').innerHTML=lista.map(v=>'<div class="igrow"><span>'+esc(v.nome)+'</span><label class="sw"><input type="checkbox" data-ign="'+v.id+'"'+(ign[String(v.id)]?' checked':'')+'><span></span></label></div>').join('') || '<div class="igrow"><span>Nenhum veículo.</span></div>';
+  $('alIgn').innerHTML=lista.map(v=>'<div class="igrow" data-busca="'+esc((v.nome+' '+(v.placa||'')+' '+(v.imei||'')).toLowerCase())+'"><span>'+esc(v.nome)+'</span><label class="sw"><input type="checkbox" data-ign="'+v.id+'"'+(ign[String(v.id)]?' checked':'')+'><span></span></label></div>').join('') || '<div class="igrow"><span>Nenhum veículo.</span></div>';
+  alFiltrar('alIgn');
 }
+/* 13/10/2026 (pedido do dono): buscador nas listas de Ignição e Volta do sinal (a lista já ficou grande) */
+function alFiltrar(id){
+  const i=$(id+'Busca'); if(!i) return;
+  const q=i.value.trim().toLowerCase(); let n=0,tot=0;
+  $(id).querySelectorAll('.igrow[data-busca]').forEach(el=>{ tot++; const ok=!q||el.dataset.busca.includes(q); el.style.display=ok?'':'none'; if(ok) n++ });
+  const c=$(id+'BuscaN'); if(c) c.textContent=q?(n+' de '+tot):'';
+}
+['alIgn','alVolta'].forEach(id=>{ const i=$(id+'Busca'); if(!i) return; i.addEventListener('input',()=>alFiltrar(id)); i.addEventListener('keydown',e=>{ if(e.key==='Enter') e.preventDefault() }) });
 $('alIgn').addEventListener('change',async e=>{
   const i=e.target.closest('input[data-ign]'); if(!i) return;
   i.disabled=true;
@@ -7080,7 +7091,8 @@ function desenharVolta(){
   const vo=alCfg.volta||{}, lista=veiculos.slice().sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
   const n=lista.filter(v=>vo[String(v.id)]).length;
   $('alVoltaResumo').textContent=n?(n+(n===1?' veículo':' veículos')):'Desligado'; $('alTVolta').classList.toggle('on',n>0);
-  $('alVolta').innerHTML=lista.map(v=>'<div class="igrow"><span>'+esc(v.nome)+'</span><label class="sw"><input type="checkbox" data-volta="'+v.id+'"'+(vo[String(v.id)]?' checked':'')+'><span></span></label></div>').join('') || '<div class="igrow"><span>Nenhum veículo.</span></div>';
+  $('alVolta').innerHTML=lista.map(v=>'<div class="igrow" data-busca="'+esc((v.nome+' '+(v.placa||'')+' '+(v.imei||'')).toLowerCase())+'"><span>'+esc(v.nome)+'</span><label class="sw"><input type="checkbox" data-volta="'+v.id+'"'+(vo[String(v.id)]?' checked':'')+'><span></span></label></div>').join('') || '<div class="igrow"><span>Nenhum veículo.</span></div>';
+  alFiltrar('alVolta');
 }
 $('alVolta').addEventListener('change',async e=>{
   const i=e.target.closest('input[data-volta]'); if(!i) return;
