@@ -1795,6 +1795,7 @@ nav button.on .nemo.txt{color:var(--red2)}
       </div>
       <div id="imP2" style="display:none">
         <div class="imres" id="imRes"></div>
+        <div class="apbusca" id="imBuscaBox"><input class="fld" id="imBusca" type="search" placeholder="Buscar na lista: IMEI, chip ou nome" autocomplete="off"><small id="imBuscaN"></small></div>
         <div class="imwrap" id="imCorpo"></div>
         <div class="improg" id="imProg"></div>
         <div class="imsms" id="imSms" style="display:none">
@@ -5919,6 +5920,7 @@ async function imConferir(){
     l.erros=e; l.estado=e.length?'erro':'ok';
   });
   imLinhas=r.linhas; imFase='previa';
+  try{ $('imBusca').value='' }catch(e){}
   imDesenhar();
   $('imP1').style.display='none'; $('imP2').style.display='';
   const ok=imLinhas.filter(l=>l.estado==='ok').length;
@@ -5933,8 +5935,25 @@ function imDesenhar(){
     const st={ok:'Pronto',feito:'Cadastrado ✓',erro:l.erros.join('; '),falhou:'Não cadastrado: '+(l.falha||'erro'),indo:'Cadastrando…'}[l.estado]||'';
     const cls=(l.estado==='erro'||l.estado==='falhou')?'er':'ok';
     const det=['IMEI '+(l.imeiTxt||'—'), 'Chip '+(l.chip?fmtFone(l.chip):'—'), l.placa?'Placa '+l.placa:'', l.user?'Cliente '+(l.user.name||loginDe(l.user)):'Sem cliente'].filter(Boolean).join(' · ');
-    return '<div class="imli '+cls+'"><span class="imn">'+l.n+'</span><span class="imt"><b>'+esc(l.nome||'(sem nome)')+'</b><small>'+esc(det)+'</small><span class="imst">'+esc(st)+(l.vincFalhou?' (não vinculou ao cliente)':'')+'</span></span></div>'}).join('');
+    const busca=String(l.nome||'')+' '+String(l.imeiTxt||'')+' '+String(l.chip||'')+' '+(l.chip?fmtFone(l.chip):'')+' '+String(l.placa||'');
+    return '<div class="imli '+cls+'" data-busca="'+esc(busca.toLowerCase())+'"><span class="imn">'+l.n+'</span><span class="imt"><b>'+esc(l.nome||'(sem nome)')+'</b><small>'+esc(det)+'</small><span class="imst">'+esc(st)+(l.vincFalhou?' (não vinculou ao cliente)':'')+'</span></span></div>'}).join('');
+  imFiltrar();
 }
+/* 13/10/2026 (pedido do dono): buscar na lista da prévia pelo IMEI, chip ou nome (só esconde; não muda o que será cadastrado) */
+function imFiltrar(){
+  const i=$('imBusca'); if(!i) return;
+  const q=i.value.trim().toLowerCase(), qd=q.replace(/\D/g,'');
+  let n=0, tot=0;
+  $('imCorpo').querySelectorAll('.imli').forEach(el=>{
+    tot++;
+    const b=el.dataset.busca||'', bd=b.replace(/\D/g,'');
+    const ok=!q || b.includes(q) || (qd.length>=3 && bd.includes(qd));
+    el.style.display=ok?'':'none'; if(ok) n++;
+  });
+  $('imBuscaN').textContent=q?(n+' de '+tot):'';
+}
+$('imBusca').addEventListener('input',imFiltrar);
+$('imBusca').addEventListener('keydown',e=>{ if(e.key==='Enter') e.preventDefault() });
 async function imCadastrar(){
   const fila=imLinhas.filter(l=>l.estado==='ok'); if(!fila.length) return;
   imOcupado=true; $('imOk').disabled=true; $('imVoltar').disabled=true;
