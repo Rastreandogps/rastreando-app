@@ -1198,6 +1198,40 @@ nav button.on .nemo.txt{color:var(--red2)}
 #mImport .imsalvo .imsseta{margin-left:auto;flex:none;color:var(--mut);font-size:20px}
 #mImport .imsalvo .imsnum{flex:none;width:34px;height:34px;border-radius:50%;background:rgba(225,29,72,.1);color:#e11d48;font-weight:800;display:flex;align-items:center;justify-content:center}
 #mImport .improg{font-size:14px;font-weight:700;margin:10px 0}
+#mSmsM{align-items:center;padding:12px}
+#mSmsM .box2{max-width:640px;border-radius:18px;max-height:92vh;display:flex;flex-direction:column;overflow:hidden}
+#mSmsM .smtopo{flex:none;display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}
+#mSmsM .smtopo h3{font-size:19px}
+#mSmsM .smrola{flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+#mSmsM .smsec{font-size:12px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--mut);margin:12px 0 6px}
+#mSmsM .smsec b{color:var(--txt);text-transform:none;letter-spacing:0;margin-left:6px}
+#mSmsM .smcmds{display:grid;gap:6px}
+#mSmsM .smcmds label{display:flex;align-items:flex-start;gap:10px;padding:9px 12px;border:1px solid var(--line);border-radius:12px;background:var(--card2);cursor:pointer;font-size:14px;font-weight:600}
+#mSmsM .smcmds label:has(input:checked){border-color:#2f6fe4;box-shadow:0 0 0 1px #2f6fe4 inset}
+#mSmsM .smcmds label.perigo span{color:var(--red2)}
+#mSmsM .smcmds input{margin-top:3px;width:18px;height:18px;flex:none}
+#mSmsM .smcmds small{display:block;font-size:11.5px;font-weight:500;color:var(--mut);margin-top:1px;word-break:break-all}
+#mSmsM .smfil{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+#mSmsM .smfil button{padding:6px 11px;border-radius:999px;border:1px solid var(--line);background:var(--card2);color:var(--txt);font-size:12.5px;font-weight:600;cursor:pointer}
+#mSmsM .smfil button.on{background:#2f6fe4;border-color:#2f6fe4;color:#fff}
+#mSmsM .smmarca{display:flex;gap:8px;margin:2px 0 8px}
+#mSmsM .smlista{border:1px solid var(--line);border-radius:12px;max-height:40vh;overflow-y:auto}
+#mSmsM .smli{display:flex;align-items:center;gap:10px;padding:9px 12px;border-bottom:1px solid var(--line);cursor:pointer}
+#mSmsM .smli:last-child{border-bottom:none}
+#mSmsM .smli input{width:18px;height:18px;flex:none}
+#mSmsM .smli .t{flex:1;min-width:0}
+#mSmsM .smli .t b{display:block;font-size:14px}
+#mSmsM .smli .t small{display:block;font-size:12px;color:var(--mut)}
+#mSmsM .smli.semchip{opacity:.5;cursor:default}
+#mSmsM .smli .st{flex:none;font-size:11.5px;font-weight:700}
+#mSmsM .smli .st.on{color:var(--green)} #mSmsM .smli .st.off{color:var(--red2)}
+#mSmsM .smli .st.ok{color:var(--green)} #mSmsM .smli .st.er{color:var(--red2)}
+#mSmsM .imacoes{flex:none;display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+#mSmsM .imx{width:38px;height:38px;flex:none;border-radius:50%;background:var(--card2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;cursor:pointer}
+#mSmsM .imx svg{width:18px;height:18px;stroke:currentColor;stroke-width:2.2;fill:none}
+#mSmsM .smprog{font-size:13.5px;margin-top:10px;line-height:1.45}
+#mSmsM .smprog:empty{display:none}
+#mSmsM .smprog .er{color:var(--red2)}
 #mImport .imsms{margin-top:14px;padding:12px;border-radius:14px;background:var(--card2);border:1px solid var(--line)}
 #mImport .imsms h4{font-size:15px;margin-bottom:6px}
 #mImport .imsms label{display:flex;align-items:flex-start;gap:8px;font-size:13.5px;padding:6px 0;cursor:pointer}
@@ -1512,6 +1546,7 @@ nav button.on .nemo.txt{color:var(--red2)}
         <input class="search" id="aSearch" type="search" placeholder="Buscar" autocomplete="off">
         <button class="aico" id="aFinAtualizar" style="display:none" title="Atualizar situação financeira" aria-label="Atualizar situação financeira"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg></button>
         <button class="aico" id="aImportar" title="Importar equipamentos em lista" aria-label="Importar equipamentos em lista"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 9v12M15 9v12"/></svg><b class="imbadge" id="imBadge"></b></button>
+        <button class="aico" id="aSmsMassa" title="SMS em massa" aria-label="SMS em massa"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v11H9l-5 4z"/><path d="M8 9h8M8 12h5"/></svg></button>
         <button class="aico anovo" id="aNovo" title="Novo equipamento" aria-label="Novo equipamento"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span class="fila" id="aNovoFila"></span></button>
       </div>
       <div class="ameta"><b id="aCount"></b><span id="aFinTxt"></span><span id="aTabNome" hidden></span></div>
@@ -1811,6 +1846,33 @@ nav button.on .nemo.txt{color:var(--red2)}
     <div class="imacoes" id="imAcoes">
       <button class="btn btn-out" id="imVoltar" type="button">Cancelar</button>
       <button class="btn btn-red" id="imOk" type="button">Conferir</button>
+    </div>
+  </div>
+</div>
+
+<!-- SMS em massa (13/10/2026, pedido do dono): escolher o comando e os equipamentos -->
+<div class="modal" id="mSmsM">
+  <div class="box2">
+    <div class="smtopo"><h3>SMS em massa</h3><button class="imx" id="smX" type="button" aria-label="Fechar" title="Fechar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <div class="smrola">
+      <div class="smsec">1. Comando</div>
+      <div class="smcmds" id="smCmds">
+        <label><input type="radio" name="smCmd" value="ip"><span>IP/Porta<small>SERVER,0,179.199.150.156,5023,0#</small></span></label>
+        <label><input type="radio" name="smCmd" value="apn"><span>APN (Vivo)<small>APN,ss.vivo.com.br,vivo,vivo#</small></span></label>
+        <label><input type="radio" name="smCmd" value="imediato"><span>Bloqueio imediato<small>SZCS#SOURCE_OFF_TYPE=1 · corta em qualquer velocidade</small></span></label>
+        <label><input type="radio" name="smCmd" value="reset"><span>Reset<small>RESET# · reinicia o rastreador</small></span></label>
+        <label class="perigo"><input type="radio" name="smCmd" value="fabrica"><span>Padrão de fábrica<small>FACTORYALL# · pode apagar IP/Porta e APN</small></span></label>
+      </div>
+      <div class="smsec">2. Equipamentos <b id="smN"></b></div>
+      <div class="smfil" id="smFil"></div>
+      <div class="apbusca"><input class="fld" id="smBusca" type="search" placeholder="Buscar: nome, IMEI ou chip" autocomplete="off"><small id="smBuscaN"></small></div>
+      <div class="smmarca"><button type="button" class="mini" id="smTodos">Marcar os da lista</button><button type="button" class="mini" id="smNenhum">Desmarcar tudo</button></div>
+      <div class="smlista" id="smLista"></div>
+      <div class="smprog" id="smProg"></div>
+    </div>
+    <div class="imacoes">
+      <button class="btn btn-out" id="smCancelar" type="button">Fechar</button>
+      <button class="btn btn-red" id="smEnviar" type="button" disabled>Enviar</button>
     </div>
   </div>
 </div>
@@ -5026,6 +5088,7 @@ function desenharAdmin(){
   abaAnt=abaAdmin;
   $('aFinAtualizar').style.display = abaAdmin==='cli' ? '' : 'none';
   $('aImportar').style.display = abaAdmin==='equip' ? '' : 'none';
+  $('aSmsMassa').style.display = abaAdmin==='equip' ? '' : 'none';
   $('aProteger').style.display = 'none'; /* botão aposentado: cliente novo já nasce com os comandos liberados */
   if($('aFiltros')) $('aFiltros').hidden = abaAdmin!=='cli';
   if($('aFiltrosEq')) $('aFiltrosEq').hidden = abaAdmin!=='equip';
@@ -5874,6 +5937,81 @@ function imFechar(){
 $('imX').onclick=imFechar;
 imBadge();
 $('aImportar').onclick=imAbrir;
+/* ===== SMS EM MASSA (13/10/2026, pedido do dono) =====
+   Escolhe UM comando e marca os equipamentos. Envia um por um pelo servidor (ação smsConfig, a mesma do botão
+   "Mais SMS" do cartão; vale o limite diário por equipamento). Só o administrador vê o botão (aba Equipamentos). */
+const SM_NOMES={ip:'IP/Porta',apn:'APN',imediato:'Bloqueio imediato',reset:'Reset',fabrica:'Padrão de fábrica'};
+const SM_FILTROS=['todos','hoje','on','off','nunca'];
+let smSel=new Set(), smFiltro='todos', smEnv=null, smRes={};
+function smCmd(){ const r=document.querySelector('input[name="smCmd"]:checked'); return r?r.value:'' }
+function smAbrir(){
+  if(smEnv) { abrir('mSmsM'); return }
+  smSel=new Set(); smRes={}; smFiltro='todos'; $('smBusca').value=''; $('smProg').innerHTML='';
+  document.querySelectorAll('input[name="smCmd"]').forEach(r=>r.checked=false);
+  smDesenhar(); abrir('mSmsM');
+}
+function smBase(){
+  const f=FILTROS_EQ.find(x=>x.id===smFiltro)||FILTROS_EQ[0];
+  return veiculos.filter(f.ok).sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
+}
+function smDesenhar(){
+  $('smFil').innerHTML=SM_FILTROS.map(id=>{ const f=FILTROS_EQ.find(x=>x.id===id); if(!f) return ''; const n=veiculos.filter(f.ok).length; return '<button type="button" data-sf="'+id+'" class="'+(smFiltro===id?'on':'')+'">'+esc(f.t)+' '+n+'</button>' }).join('');
+  const q=$('smBusca').value.trim().toLowerCase(), qd=q.replace(/\D/g,'');
+  const lista=smBase().filter(v=>{ if(!q) return true; const b=(v.nome+' '+(v.imei||'')+' '+(v.fone||'')+' '+(v.fone?fmtFone(v.fone):'')+' '+(v.placa||'')).toLowerCase(); return b.includes(q) || (qd.length>=3 && b.replace(/\D/g,'').includes(qd)) });
+  $('smBuscaN').textContent=q?lista.length+' de '+smBase().length:'';
+  $('smLista').innerHTML=lista.map(v=>{
+    const tem=!!v.fone, st=estEquip(v)[1], r=smRes[v.id];
+    const stTxt=r?(r.ok?'Enviado ✓':'Falhou'):(tem?(st==='on'?'Online':st==='off'?'Offline':'Nunca pontuou'):'Sem chip');
+    const stCls=r?(r.ok?'ok':'er'):(tem?(st==='on'?'on':'off'):'');
+    return '<label class="smli'+(tem?'':' semchip')+'" data-v="'+v.id+'"'+(r&&!r.ok?' title="'+esc(r.erro||'')+'"':'')+'><input type="checkbox" data-v="'+v.id+'"'+(smSel.has(v.id)?' checked':'')+(tem&&!smEnv?'':' disabled')+'><span class="t"><b>'+esc(v.nome)+'</b><small>'+esc((v.imei?'IMEI '+v.imei:'')+(v.fone?' · Chip '+fmtFone(v.fone):''))+'</small></span><span class="st '+stCls+'">'+esc(stTxt)+'</span></label>' }).join('') || '<div class="vempty" style="padding:14px">Nenhum equipamento.</div>';
+  smBotoes();
+}
+function smBotoes(){
+  const n=[...smSel].filter(id=>{ const v=veiculos.find(x=>x.id===id); return v&&v.fone }).length, c=smCmd();
+  $('smN').textContent=n?n+(n===1?' marcado':' marcados'):'';
+  const b=$('smEnviar');
+  if(smEnv){ b.disabled=false; b.textContent=smEnv.parar?'Parando...':'Parar'; $('smCancelar').disabled=true; return }
+  $('smCancelar').disabled=false;
+  b.disabled=!(n&&c); b.textContent=!c?'Escolha o comando':!n?'Marque os equipamentos':'Enviar '+SM_NOMES[c]+' para '+n;
+}
+$('smFil').addEventListener('click',e=>{ const b=e.target.closest('[data-sf]'); if(!b||smEnv) return; smFiltro=b.dataset.sf; smDesenhar() });
+$('smBusca').addEventListener('input',()=>smDesenhar());
+$('smBusca').addEventListener('keydown',e=>{ if(e.key==='Enter') e.preventDefault() });
+$('smCmds').addEventListener('change',()=>smBotoes());
+$('smLista').addEventListener('change',e=>{ const i=e.target.closest('input[data-v]'); if(!i) return; const id=+i.dataset.v; if(i.checked) smSel.add(id); else smSel.delete(id); smBotoes() });
+$('smTodos').onclick=()=>{ if(smEnv) return; $('smLista').querySelectorAll('input[data-v]:not(:disabled)').forEach(i=>{ i.checked=true; smSel.add(+i.dataset.v) }); smBotoes() };
+$('smNenhum').onclick=()=>{ if(smEnv) return; smSel.clear(); smDesenhar() };
+$('smCancelar').onclick=()=>{ if(!smEnv) fechar() };
+$('smX').onclick=()=>{ if(smEnv){ toast('Envio em andamento. Toque em "Parar" para interromper.'); return } fechar() };
+$('smEnviar').onclick=async()=>{
+  if(smEnv){ smEnv.parar=true; smBotoes(); return }
+  const c=smCmd(), alvos=veiculos.filter(v=>smSel.has(v.id)&&v.fone).sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
+  if(!c||!alvos.length) return;
+  const aviso=c==='fabrica'?'\n\nATENÇÃO: o padrão de fábrica pode apagar o IP/Porta e o APN. Depois será preciso mandar os dois de novo.':'';
+  if(!confirm('Enviar "'+SM_NOMES[c]+'" por SMS para '+alvos.length+(alvos.length===1?' equipamento':' equipamentos')+'?\n\nCada equipamento gasta 1 SMS do saldo.'+aviso)) return;
+  smEnv={parar:false}; smRes={}; let ok=0, i=0; const falhas=[];
+  smDesenhar();
+  for(const v of alvos){
+    if(smEnv.parar) break;
+    i++; $('smProg').innerHTML='Enviando '+i+' de '+alvos.length+'… <b>'+ok+' ok</b>'+(falhas.length?' · <span class="er">'+falhas.length+' falharam</span>':'');
+    try{
+      const r=await fetch(DESB_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',body:JSON.stringify({acao:'smsConfig',tipo:c,token:lsGet('rg_token'),deviceId:v.id})});
+      let j={}; try{ j=await r.json() }catch(e){}
+      if(!r.ok) throw new Error(j.erro||('erro '+r.status));
+      ok++; smRes[v.id]={ok:true};
+    }catch(e){ smRes[v.id]={ok:false,erro:e.message||'erro'}; falhas.push(v.nome+': '+(e.message||'erro')) }
+    smDesenhar();
+    await new Promise(r=>setTimeout(r,400));
+  }
+  const parou=smEnv.parar && i<alvos.length;
+  smEnv=null;
+  $('smProg').innerHTML='<b>'+SM_NOMES[c]+': '+ok+' de '+alvos.length+' enviados.</b>'+(parou?' (Parado no meio.)':'')+(falhas.length?'<br><span class="er">Falharam: '+falhas.map(esc).join('<br>')+'</span>':'');
+  smSel=new Set(alvos.filter(v=>smRes[v.id]&&!smRes[v.id].ok).map(v=>v.id)); /* os que falharam ficam marcados para tentar de novo */
+  smDesenhar();
+  try{ carregarSaldo&&carregarSaldo(true) }catch(e){}
+  toast(ok+' SMS enviados'+(falhas.length?', '+falhas.length+' falharam':'')+'.');
+};
+$('aSmsMassa').onclick=smAbrir;
 /* monta as linhas juntando as listas pela posição (1º IMEI com o 1º chip, a 1ª placa...) */
 function imLer(){
   if(imCol!=='cliente') imListas[imCol]=$('imTexto').value;
