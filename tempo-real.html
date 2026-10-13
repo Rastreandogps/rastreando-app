@@ -30,7 +30,7 @@ try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'){document.do
 :root[data-tema="claro"] .leaflet-tile-pane{filter:none}
 /* mapa do Google (4.49): sem o filtro escuro (o Google tem o próprio tema) e logo/créditos do Google acima do cartão */
 body.mapa-google .leaflet-tile-pane{filter:none!important}
-body.mapa-google #map .leaflet-top.leaflet-left{left:var(--mapa-lado,0px)}
+body.mapa-google #map .leaflet-top.leaflet-left{left:var(--mapa-lado,0px);z-index:590} /* 13/10/2026: abaixo das telas Admin/Veículos/etc. (600); antes (1000) o logo do Google aparecia por cima delas */
 body.mapa-google #map .leaflet-top.leaflet-left .gmlogo{margin:6px 0 0 8px}
 body.mapa-google #map .leaflet-top.leaflet-left .leaflet-control-attribution{margin:2px 0 0 6px!important;height:auto!important;font-size:10px}
 .contamapa{display:none;align-items:center;gap:10px;margin:0 0 14px;font-size:14px}
