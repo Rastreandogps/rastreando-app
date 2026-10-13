@@ -6323,7 +6323,7 @@ async function filaServidor(forcar){
   if(!ehAdmin || filaSrvRodando || (!forcar && Date.now()-filaSrvUlt<20000)) return;
   filaSrvRodando=true; filaSrvUlt=Date.now();
   try{
-    const j=await fnFila('filaCliLer'), srv=(j.lista||[]).map(x=>({os:String(x.os||''),nome:String(x.nome||'').slice(0,80),tel:String(x.tel||'').replace(/\D/g,''),veic:String(x.veic||'').slice(0,80),data:String(x.data||''),tec:String(x.tec||''),em:Number(x.em)||Date.now(),sid:String(x.id)}));
+    const j=await fnFila('filaCliLer'), srv=(j.lista||[]).map(x=>({os:String(x.os||''),nome:String(x.nome||'').slice(0,80),tel:String(x.tel||'').replace(/\D/g,''),veic:String(x.veic||'').slice(0,80),data:String(x.data||''),tec:String(x.tec||''),em:Number(x.em)||Date.now(),sid:String(x.id),cpf:String(x.cpf||'').replace(/\D/g,'')}));
     const antes=filaLer(), osSrv=new Set(srv.filter(x=>x.os).map(x=>x.os));
     const locais=antes.filter(x=>!x.sid && !(x.os && osSrv.has(x.os))); /* vindos pelo link antigo e ainda não no servidor */
     const nova=locais.concat(srv).sort((a,b)=>a.em-b.em);
@@ -6367,9 +6367,10 @@ function abrirCliente(pre){
   const o=$('cOrigem'); o.classList.toggle('on',!!pre);
   if(pre){
     $('cNome').value=pre.nome; $('cEmail').value=loginSugerido(pre.nome); $('cSenha').value='123456'; $('cWpp').value=fmtWpp(pre.tel||'');
+    if(pre.cpf && (pre.cpf.length===11||pre.cpf.length===14)) $('cCpf').value=fmtCpf(pre.cpf); /* 13/10/2026: CPF que o cliente digitou no agendamento */
     const d=/^\d{4}-\d{2}-\d{2}$/.test(pre.data)?pre.data:''; if(d && d<=hojeISO()) $('cDesde').value=d;
     const dp=filaDuplicado(pre);
-    o.innerHTML='<b>Vindo do card do APP Técnico</b>'+(pre.veic?'<br>'+esc(pre.veic):'')+(pre.tec?'<br>Técnico: '+esc(pre.tec):'')+(dp?'<span class="dup">⚠ '+esc(dupTexto(dp))+' Confira antes de criar outro.</span>':'')+'<br><span style="color:var(--mut)">Senha padrão 123456. Confira o login, digite o CPF e marque o aparelho.</span>';
+    o.innerHTML='<b>Vindo do card do APP Técnico</b>'+(pre.veic?'<br>'+esc(pre.veic):'')+(pre.tec?'<br>Técnico: '+esc(pre.tec):'')+(dp?'<span class="dup">⚠ '+esc(dupTexto(dp))+' Confira antes de criar outro.</span>':'')+'<br><span style="color:var(--mut)">Senha padrão 123456. Confira o login, '+(pre.cpf?'CPF já veio do agendamento: confira e marque o aparelho.':'digite o CPF e marque o aparelho.')+'</span>';
   }
   abrir('mCliente');
   if(pre) setTimeout(()=>{ try{ $('cCpf').focus() }catch(e){} },150);
