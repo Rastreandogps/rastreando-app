@@ -5030,6 +5030,7 @@ function desenharAdmin(){
   if($('aFiltrosEq')) $('aFiltrosEq').hidden = abaAdmin!=='equip';
   if(abaAdmin==='equip') desenharEquip(); else desenharClientes();
   try{ filaDesenhar() }catch(e){}
+  try{ filaServidor() }catch(e){} /* 13/10/2026: busca a fila do APP Técnico no servidor (no máximo a cada 20 s) */
 }
 let buscaAdmin={equip:'',cli:''}, abaAnt=null;
 const ICO_PEN='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg>';
@@ -6141,8 +6142,35 @@ function filaDesenhar(){
   $('aFilaSub').textContent=['Vindo do APP Técnico'+(x.tec?' ('+x.tec+')':''),x.veic?x.veic.split(' · ')[0]:'',n>1?'e mais '+(n-1):''].filter(Boolean).join(' · ');
   const d=filaDuplicado(x); if(d){ const e=document.createElement('span'); e.className='dup'; e.textContent='⚠ '+dupTexto(d); $('aFilaSub').appendChild(e) }
 }
+/* 13/10/2026: a fila também vem do SERVIDOR (o boneco do APP Técnico grava lá; com o endereço novo os dois apps
+   não dividem mais a memória do navegador). Só o administrador lê. Os itens do servidor têm "sid". */
+async function fnFila(acao,extra){
+  const tok=lsGet('rg_token'); if(!tok) throw new Error('sem token');
+  const r=await fetch(DESB_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',body:JSON.stringify(Object.assign({acao:acao,token:tok},extra||{}))});
+  let j={}; try{ j=await r.json() }catch(e){}
+  if(!r.ok) throw new Error(j.erro||('Erro '+r.status));
+  return j;
+}
+let filaSrvUlt=0, filaSrvRodando=false;
+async function filaServidor(forcar){
+  if(!ehAdmin || filaSrvRodando || (!forcar && Date.now()-filaSrvUlt<20000)) return;
+  filaSrvRodando=true; filaSrvUlt=Date.now();
+  try{
+    const j=await fnFila('filaCliLer'), srv=(j.lista||[]).map(x=>({os:String(x.os||''),nome:String(x.nome||'').slice(0,80),tel:String(x.tel||'').replace(/\D/g,''),veic:String(x.veic||'').slice(0,80),data:String(x.data||''),tec:String(x.tec||''),em:Number(x.em)||Date.now(),sid:String(x.id)}));
+    const antes=filaLer(), osSrv=new Set(srv.filter(x=>x.os).map(x=>x.os));
+    const locais=antes.filter(x=>!x.sid && !(x.os && osSrv.has(x.os))); /* vindos pelo link antigo e ainda não no servidor */
+    const nova=locais.concat(srv).sort((a,b)=>a.em-b.em);
+    const sidsAntes=new Set(antes.filter(x=>x.sid).map(x=>x.sid)), chegaram=srv.filter(x=>!sidsAntes.has(x.sid)).length;
+    if(JSON.stringify(nova)!==JSON.stringify(antes)){ filaGravar(nova); filaDesenhar() }
+    if(chegaram) toast(chegaram===1?'1 cliente chegou do APP Técnico (veja no + da aba Admin).':chegaram+' clientes chegaram do APP Técnico (veja no + da aba Admin).');
+  }catch(e){}
+  filaSrvRodando=false;
+}
+function filaTirarServidor(x){ if(x && x.sid) fnFila('filaCliTirar',{ids:[x.sid]}).catch(()=>{}) }
+setInterval(()=>{ if(ehAdmin && !document.hidden) filaServidor() },60000);
+document.addEventListener('visibilitychange',()=>{ if(!document.hidden && ehAdmin) filaServidor() });
 $('aFilaIr').onclick=()=>{ const f=filaLer(); if(f.length) abrirCliente(f[0]) };
-$('aFilaFora').onclick=()=>{ const f=filaLer(); if(!f.length) return; if(!confirm('Descartar "'+f[0].nome+'" sem criar o cliente?')) return; f.shift(); filaGravar(f); filaDesenhar() };
+$('aFilaFora').onclick=()=>{ const f=filaLer(); if(!f.length) return; if(!confirm('Descartar "'+f[0].nome+'" sem criar o cliente?')) return; filaTirarServidor(f[0]); f.shift(); filaGravar(f); filaDesenhar() };
 /* já existe cliente com o mesmo WhatsApp ou o mesmo nome? (12/10/2026, pergunta do dono) */
 const nomeChave=t=>String(t||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
 function filaDuplicado(x){
@@ -6328,7 +6356,7 @@ $('cSalvar').onclick=async ()=>{
       try{ await fn('vincular',{userId:novo.id,cpf:cpf}); await carregarCpfs() }
       catch(e){ toast('Cliente criado, mas o CPF não foi vinculado: '+e.message+' (use o botão CPF do cliente)') }
     }
-    if(cFilaAtual){ filaGravar(filaLer().filter(x=>!(x.os&&x.os===cFilaAtual.os) && x.em!==cFilaAtual.em)); cFilaAtual=null; filaDesenhar() } /* saiu da fila do APP Técnico */
+    if(cFilaAtual){ filaTirarServidor(cFilaAtual); filaGravar(filaLer().filter(x=>!(x.os&&x.os===cFilaAtual.os) && x.em!==cFilaAtual.em)); cFilaAtual=null; filaDesenhar() } /* saiu da fila do APP Técnico */
     /* 12/10/2026: sem a janela da senha (o dono manda o acesso pelo botão do WhatsApp do cartão); a lista vai para "Criados hoje" */
     toast('Cliente criado: '+nome+'. Para mandar o acesso, use o botão do WhatsApp no cartão.',6000);
     filtroCli='hoje'; try{localStorage.setItem('rg_cli_filtro','hoje')}catch(er){}
