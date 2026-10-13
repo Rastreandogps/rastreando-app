@@ -1302,6 +1302,14 @@ nav button.on .nemo.txt{color:var(--red2)}
 #aview .flink{display:flex;align-items:center;gap:4px;margin-top:6px;padding:0;border:0;background:none;font:inherit;font-size:12px;font-weight:600;color:#3b82f6;cursor:pointer;text-align:left}
 #aview .flink svg{width:13px;height:13px;flex:none}
 #aview .flink:hover{text-decoration:underline}
+/* 13/10/2026 (pedido do dono): cartão do cliente FECHADO esconde a ficha bege; mostra só o financeiro (e "acesso desativado") no título e os veículos. Aberto: ficha completa, como antes. */
+#aview details.cli:not([open]) .ficha{display:none}
+#aview details.cli[open] .cfinmini{display:none}
+#aview details.cli .cinfo .t{flex-wrap:wrap;row-gap:4px}
+#aview .cinfo .t .cfinmini,#aview .cinfo .t .cbloqagora{margin-left:0}
+#aview .cfinmini{display:inline-block;white-space:nowrap;margin-left:6px;padding:1px 8px;border-radius:999px;font-size:11px;font-weight:700;vertical-align:2px}
+#aview .cdesat{background:rgba(227,38,47,.10);color:var(--red2)}
+#aview details.cli:not([open]) .vchips{margin-top:10px}
 #aview .cbloqagora{display:inline-block;white-space:nowrap;margin-left:6px;padding:1px 8px;border-radius:999px;font-size:11px;font-weight:700;vertical-align:2px;background:rgba(227,38,47,.10);color:var(--red2)}
 #aview .uso{padding:12px;border-radius:14px;background:var(--card2)}
 #aview details.cli[open] .uso{background:var(--card)}
@@ -5347,7 +5355,7 @@ function desenharClientes(){
     const temWpp=u.phone&&normWpp(u.phone);
     return '<details class="cli" data-u="'+u.id+'"'+(abertos[u.id]?' open':'')+'><summary>'+
       '<div class="cinfo">'+
-        '<div class="ctopo"><span class="cav">'+esc(iniciais)+'</span><div class="cnome"><div class="t">'+esc(u.name)+icoEstrela(u,fm)+(acessosMapa&&usoDados(u).desde?'<span class="cbloqagora">bloqueado</span>':'')+'</div><div class="clog">'+esc(loginDe(u).replace(EMAIL_FALSO,''))+' <span class="cdesde">· '+(fmtDesde(u)?'cliente desde '+fmtDesde(u):'sem data de cadastro')+'</span></div></div></div>'+
+        '<div class="ctopo"><span class="cav">'+esc(iniciais)+'</span><div class="cnome"><div class="t">'+esc(u.name)+icoEstrela(u,fm)+(acessosMapa&&usoDados(u).desde?'<span class="cbloqagora">bloqueado</span>':'')+'<span class="cfinmini pill '+(fin.c||'neutro')+'" title="Financeiro">'+esc(fin.t)+'</span>'+(u.disabled?'<span class="cfinmini cdesat" title="Acesso ao app desativado">acesso desativado</span>':'')+'</div><div class="clog">'+esc(loginDe(u).replace(EMAIL_FALSO,''))+' <span class="cdesde">· '+(fmtDesde(u)?'cliente desde '+fmtDesde(u):'sem data de cadastro')+'</span></div></div></div>'+
         '<div class="ficha">'+
           '<div class="fi"><span class="fl">CPF</span><span class="fv">'+(cpf?esc(fmtCpf(cpf)):'<span class="fmut">não cadastrado</span>')+'</span></div>'+
           '<div class="fi"><span class="fl">WhatsApp</span><span class="fv">'+(temWpp?esc(fmtWpp(u.phone)):'<span class="bd-mal">não cadastrado</span>')+'</span></div>'+
