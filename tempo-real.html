@@ -771,6 +771,21 @@ body.hist-on #mapCar{display:none!important}
 .smsopt.aviso .smsic{background:rgba(245,184,61,.20);color:var(--amber)}
 .smsopt:last-child:nth-child(odd){grid-column:1/-1}
 @media (min-width:900px){#mSmsCmds{align-items:center}#mSmsCmds .box2{border-radius:18px}}
+/* Catálogo de comandos (14/10/2026) */
+#mSmsCat .catlista{max-height:42vh;overflow-y:auto;margin:10px 0 12px;padding-right:2px}
+#mSmsCat .catg{font-size:11px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;color:var(--mut);margin:12px 0 6px}
+#mSmsCat .catg:first-child{margin-top:2px}
+#mSmsCat .catit{padding:9px 10px;border:1px solid var(--line);border-radius:12px;background:var(--card2);margin-bottom:6px}
+#mSmsCat .catit.av{border-color:rgba(245,184,61,.45)}
+#mSmsCat .catit b{display:block;font-size:13.5px}
+#mSmsCat .catit small{display:block;font-size:11.5px;color:var(--mut);margin-top:2px;line-height:1.3}
+#mSmsCat .catops{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px}
+#mSmsCat .catop{padding:4px 10px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--txt);font:inherit;font-size:12px;font-weight:700;cursor:pointer}
+#mSmsCat .catop.sel{border-color:var(--cyan);color:var(--cyan)}
+#mSmsCat .cattexto{height:auto;padding:10px 12px;margin-bottom:0;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:14px;resize:vertical;min-height:52px}
+#mSmsCat .catdica{font-size:11.5px;color:var(--mut);margin-top:4px;line-height:1.35}
+#mSmsCat .catvazio{font-size:13px;color:var(--mut);padding:10px 2px}
+@media (min-width:900px){#mSmsCat{align-items:center}#mSmsCat .box2{border-radius:18px}}
 
 /* Aba Veículos */
 .vview{position:absolute;inset:0;z-index:600;background:var(--bg);display:none;flex-direction:column}
@@ -1904,6 +1919,20 @@ nav button.on .nemo.txt{color:var(--red2)}
     <div class="smsfone" id="smsFone"></div>
     <div class="smsgrid" id="smsGrid"></div>
     <div class="actions2" style="grid-template-columns:1fr"><button class="btn btn-out" data-close>Fechar</button></div>
+  </div>
+</div>
+
+<!-- Catálogo de comandos por SMS (14/10/2026) -->
+<div class="modal" id="mSmsCat">
+  <div class="box2">
+    <div class="smshead"><h3>Catálogo de comandos</h3><span id="catVeic"></span></div>
+    <input class="fld" id="catBusca" placeholder="Buscar (ex.: timer, sono, jammer)" autocomplete="off">
+    <div class="catlista" id="catLista"></div>
+    <label class="flbl" for="catTexto">Comando que vai no SMS</label>
+    <textarea class="fld cattexto" id="catTexto" rows="2" spellcheck="false" autocapitalize="characters" autocomplete="off" placeholder="Ex.: TIMER,30,3600#"></textarea>
+    <div class="catdica" id="catDica"></div>
+    <div class="ferr" id="catErro"></div>
+    <div class="actions2"><button class="btn btn-out" data-close>Fechar</button><button class="btn btn-red" id="catEnviar">Enviar SMS</button></div>
   </div>
 </div>
 
@@ -3703,7 +3732,8 @@ const SMS_CARD=[
   {t:'apn',nome:'APN',desc:'Internet do chip (Vivo)',cls:''},
   {t:'reset',nome:'Reset',desc:'Reinicia o rastreador',cls:''},
   {t:'imediato',nome:'Bloq. imediato',desc:'Corta em qualquer velocidade',cls:'alerta'},
-  {t:'fabrica',nome:'Fábrica',desc:'Volta ao padrão de fábrica',cls:'aviso'}
+  {t:'fabrica',nome:'Fábrica',desc:'Volta ao padrão de fábrica',cls:'aviso'},
+  {t:'catalogo',nome:'Catálogo',desc:'Outros comandos (timer, sono, alarmes…)',cls:''} /* 14/10/2026 */
 ];
 function abrirCartaoSms(){
   const v=cartao(); if(!v || !ehAdmin) return;
@@ -3718,7 +3748,7 @@ $('smsGrid').addEventListener('click',e=>{
   const b=e.target.closest('.smsopt'); if(!b || b.disabled) return;
   const v=cartao(); if(!v) return;
   const t=b.dataset.t; fechar();
-  if(t==='reset') abrirReset(); else smsConfig(v,t);
+  if(t==='reset') abrirReset(); else if(t==='catalogo') abrirCatalogoSms(); else smsConfig(v,t);
 });
 function atualizarBotaoReset(){ $('rsOk').textContent=($('rsPlatRow').style.display!=='none' && !$('rsPlat').checked)?'Enviar pelo meu celular':'Enviar pela plataforma' }
 $('rsPlat').addEventListener('change',atualizarBotaoReset);
@@ -5136,6 +5166,7 @@ const IC={
   apn:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0M12 19.5h.01"/></svg>',
   reset:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>',
   imediato:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg>',
+  catalogo:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><path d="M9 7h7M9 11h5"/></svg>',
   fabrica:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 2 18a2 2 0 0 0 1.7 3h16.6A2 2 0 0 0 22 18L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>'
 };
 /* a quem o equipamento está ligado: vínculo real do Traccar; se ainda não carregou, o login gravado no equipamento */
@@ -5508,6 +5539,113 @@ function smsConfig(v,tipo){
     toast('SMS de '+nome+' enviado para '+v.nome+'.',5000);
   },{perigo:tipo==='imediato'||tipo==='fabrica'});
 }
+
+
+/* ===== CATÁLOGO DE COMANDOS POR SMS (14/10/2026, pedido do dono; substitui o Catalogo_j16.html) =====
+   Só administrador. Escolhe um comando (ou digita), pode editar na caixa (ex.: tempos do TIMER) e manda pelo SMS Market
+   (ação smsConfig, tipo "catalogo"). Várias linhas = vários SMS, um depois do outro. IP/Porta, APN, Reset, Bloqueio
+   imediato, Fábrica e bloquear/desbloquear ficam nos botões de sempre (não repetem aqui). */
+const CATALOGO_SMS=[
+ {g:'Transmissão e rede',itens:[
+  {n:'Timer de transmissão',d:'Intervalo de envio de posições: TIMER,ligada,desligada# (segundos; mín 5, máx 18000). Depois mande Reset.',op:[['Moto','TIMER,60,7200#'],['Carro','TIMER,60,3600#']],ed:1},
+  {n:'Heartbeat (pulso de vida)',d:'Intervalo do "estou vivo": HBT,ligada,desligada# (segundos).',op:[['Definir','HBT,900,900#']],ed:1},
+  {n:'Envio por ângulo de curva',d:'Melhora o traçado da rota. 2 primeiros dígitos = intervalo mínimo (s), 3 últimos = ângulo (°).',op:[['Definir','SZCS#ANGLEVALUE=10-045']],ed:1},
+  {n:'GPRS (internet do rastreador)',d:'Liga ou desliga o envio de dados pela rede.',op:[['Ligar','GPRSON,1#'],['Desligar','GPRSON,0#']]},
+  {n:'Rede 2G / 4G',d:'Automático é o recomendado.',op:[['Automático','SZCS#NETSELECT=0'],['Só 4G','SZCS#NETSELECT=1'],['Só 2G','SZCS#NETSELECT=2']]},
+  {n:'Fuso horário',d:'0,0 usa o horário do servidor (recomendado no Brasil).',op:[['Enviar','GMT,W,0,0#']]},
+  {n:'Desativar APN automática',d:'Impede o rastreador de trocar a APN sozinho. Use antes de configurar a APN.',op:[['Enviar','ASETAPN,OFF#']]}
+ ]},
+ {g:'Economia de bateria',itens:[
+  {n:'Desligar GPS com ignição desligada',d:'Desliga o GPS ~3 min depois de desligar a ignição. Principal para não descarregar a bateria.',op:[['Ativar','SZCS#GPS_DISSLP=0'],['Desativar','SZCS#GPS_DISSLP=1']]},
+  {n:'Desconectar com ignição desligada',d:'Para de falar com a plataforma parado; acorda com vibração, movimento ou corte de energia.',op:[['Modo 1 (SMS continua)','SZCS#SLPDISCONNECT=1'],['Modo 2 (forte)','SZCS#SLPDISCONNECT=2'],['Desativar','SZCS#SLPDISCONNECT=0']]},
+  {n:'Deep Sleep (sono profundo)',d:'Manda os dois comandos juntos (2 SMS).',op:[['Ativar','SZCS#GPS_DISSLP=0\nSZCS#SLPDISCONNECT=1'],['Desativar','SZCS#GPS_DISSLP=1\nSZCS#SLPDISCONNECT=0']]},
+  {n:'Super Sleep (último recurso)',d:'Desliga todos os módulos. Atenção: neste modo o rastreador pode não responder SMS.',op:[['Ativar','SZCS#MTK_DISSLP=0'],['Desativar','SZCS#MTK_DISSLP=1']],av:1},
+  {n:'Tempo de defesa',d:'Segundos que espera depois de desligar a ignição antes do modo defesa/sono.',op:[['Moto','DEFENSE,5#'],['Carro','DEFENSE,10#']],ed:1},
+  {n:'Reinício automático diário',d:'Reinicia 1 vez por dia para evitar travamento.',op:[['Ativar','SZCS#TIMING_RESET=1'],['Desativar','SZCS#TIMING_RESET=0']]}
+ ]},
+ {g:'Alarmes',itens:[
+  {n:'Corte de alimentação',d:'Avisa quando cortam a energia do rastreador (furto/remoção).',op:[['Ativar','POWERALM,ON,1,2,1#'],['Desativar','POWERALM,OFF#']]},
+  {n:'Bateria interna fraca',d:'Avisa quando a bateria de backup do rastreador está baixa.',op:[['Ativar','BATALM,ON,0#'],['Desativar','BATALM,OFF#']]},
+  {n:'Vibração / sensor',d:'Avisa quando o sensor detecta choque ou movimento.',op:[['Ativar','SENALM,ON#'],['Desativar','SENALM,OFF#']]},
+  {n:'Sensibilidade da vibração',d:'Nível de 1 (menos sensível) a 6 (mais sensível). Padrão 3.',op:[['Definir','SZCS#VIBL=3'],['Consultar','CXCS#VIBL']],ed:1},
+  {n:'Ignição ligada',d:'Avisa a plataforma quando a ignição liga.',op:[['Ativar','ACCALM,ON,0#'],['Desativar','ACCALM,OFF#']]},
+  {n:'Ignição desligada',d:'Avisa a plataforma quando a ignição desliga.',op:[['Ativar','ACCOFFALM,ON,0#'],['Desativar','ACCOFFALM,OFF#']]},
+  {n:'Jammer (bloqueador de sinal)',d:'Detecta aparelho que tenta bloquear o sinal.',op:[['Ativar','JAMMER,ON,1#'],['Desativar','JAMMER,OFF#'],['Consultar','SZCS#GL_MONI=0']]},
+  {n:'Velocidade',d:'Avisa acima do limite em km/h (troque o 80). 0 desliga.',op:[['Ativar','SPEED,80#'],['Desativar','SPEED,0#']],ed:1}
+ ]},
+ {g:'Ignição, tensão e protocolo',itens:[
+  {n:'Ignição virtual (moto)',d:'0 = ignição pelo movimento (acelerômetro); 1 = pelo fio (pós-chave).',op:[['Ativar','SZCS#ACCLINE=0'],['Desativar','SZCS#ACCLINE=1']]},
+  {n:'Protocolo estendido GT06',d:'Manda hodômetro, tensão e ICCID. Necessário para recursos avançados.',op:[['Ativar','SZCS#GT06SEL=1'],['Desativar','SZCS#GT06SEL=0']]},
+  {n:'Tensão da bateria do veículo',d:'Leitura da tensão externa (já liga o protocolo estendido junto).',op:[['Ativar','SZCS#GT06SEL=1#GT06IEXVOL=2'],['Desativar','SZCS#GT06SEL=1#GT06IEXVOL=0'],['Ativar (modo 1)','SZCS#GT06IEXVOL=1']]},
+  {n:'Leitura ADT (tensão)',d:'Parâmetro de leitura de tensão ADT.',op:[['Ativar','ADT,on#'],['Desativar','ADT,off#']]},
+  {n:'Verificação de bateria',d:'Verificação contínua da bateria externa (leitura mais precisa).',op:[['Ativar','SZCS#BATT_VERIFY=1'],['Desativar','SZCS#BATT_VERIFY=0']]},
+  {n:'Hodômetro e horímetro internos',d:'Contagem de km e horas pelo próprio rastreador.',op:[['Ativar','SZCS#GT06SEL=1#GT06METER=1'],['Desativar','SZCS#GT06METER=0']]},
+  {n:'Zerar hodômetro do rastreador',d:'Atenção: zera a quilometragem guardada no rastreador. Não tem volta.',op:[['Zerar','MILEAGE=0#']],av:1},
+  {n:'ICCID do chip no protocolo',d:'Inclui o número do chip nos dados enviados.',op:[['Ativar','SZCS#GT06ICCID=1'],['Desativar','SZCS#GT06ICCID=0']]}
+ ]},
+ {g:'Memória',itens:[
+  {n:'Memória de posições guardadas',d:'Consulta ou apaga as posições guardadas sem sinal.',op:[['Consultar','BLINDINFO#'],['Limpar','CLEAR#']]}
+ ]},
+ {g:'Consultas (a resposta volta para o número do SMS Market)',itens:[
+  {n:'Todas as configurações',d:'Completo, simples ou só GPRS.',op:[['Completo','PARAM#'],['Simples','SCXSZ#'],['Só GPRS','GPRSSET#']]},
+  {n:'Status do equipamento',d:'GPS, GPRS, bateria e ignição.',op:[['Consultar','STATUS#']]},
+  {n:'Posição atual',d:'Última posição conhecida.',op:[['Consultar','POSITION#'],['Alternativo','WHERE#']]},
+  {n:'Versão do firmware',d:'',op:[['Consultar','VERSION#']]},
+  {n:'Modo de sono',d:'Estado atual de cada economia.',op:[['Padrão','CXCS#SLPDISCONNECT'],['Super Sleep','CXCS#MTK_DISSLP'],['GPS','CXCS#GPS_DISSLP']]}
+ ]}
+];
+const catNorm=t=>String(t||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
+let catAviso=false;
+function catDesenhar(){
+  const q=catNorm($('catBusca').value.trim());
+  const html=CATALOGO_SMS.map((g,gi)=>{
+    const itens=g.itens.map((it,ii)=>({it,ii})).filter(x=>!q||catNorm(x.it.n+' '+x.it.d+' '+x.it.op.map(o=>o[0]+' '+o[1]).join(' ')).includes(q));
+    if(!itens.length) return '';
+    return '<div class="catg">'+esc(g.g)+'</div>'+itens.map(({it,ii})=>'<div class="catit'+(it.av?' av':'')+'"><b>'+esc(it.n)+'</b>'+(it.d?'<small>'+esc(it.d)+'</small>':'')+
+      '<div class="catops">'+it.op.map((o,oi)=>'<button type="button" class="catop" data-g="'+gi+'" data-i="'+ii+'" data-o="'+oi+'">'+esc(o[0])+'</button>').join('')+'</div></div>').join('');
+  }).join('');
+  $('catLista').innerHTML=html||'<div class="catvazio">Nada encontrado. Você pode digitar o comando direto na caixa abaixo.</div>';
+}
+function abrirCatalogoSms(){
+  const v=cartao(); if(!v || !ehAdmin) return;
+  if(!v.fone){ toast('Este equipamento não tem número de chip cadastrado.'); return }
+  $('catVeic').textContent=v.nome+' · Chip '+fmtFone(v.fone);
+  $('catBusca').value=''; $('catTexto').value=''; $('catDica').textContent='Escolha um comando acima ou digite. Pode editar antes de enviar (ex.: os tempos do TIMER). Uma linha por SMS.';
+  $('catErro').textContent=''; $('catEnviar').disabled=false; catAviso=false;
+  catDesenhar(); abrir('mSmsCat');
+}
+$('catBusca').addEventListener('input',catDesenhar);
+$('catLista').addEventListener('click',e=>{
+  const b=e.target.closest('.catop'); if(!b) return;
+  const it=CATALOGO_SMS[+b.dataset.g].itens[+b.dataset.i], o=it.op[+b.dataset.o];
+  $('catTexto').value=o[1]; catAviso=!!it.av;
+  $('catDica').textContent=it.n+' · '+o[0]+(it.ed?' — pode editar os números na caixa antes de enviar.':'');
+  $('catLista').querySelectorAll('.catop.sel').forEach(x=>x.classList.remove('sel')); b.classList.add('sel');
+  if(it.ed){ const t=$('catTexto'); t.focus(); try{ t.setSelectionRange(t.value.length,t.value.length) }catch(_){} }
+});
+$('catEnviar').onclick=()=>{
+  const v=cartao(); if(!v) return;
+  const linhas=$('catTexto').value.split(/\n+/).map(x=>x.trim()).filter(Boolean);
+  $('catErro').textContent='';
+  if(!linhas.length){ $('catErro').textContent='Escolha ou digite um comando.'; return }
+  if(linhas.length>5){ $('catErro').textContent='No máximo 5 comandos por vez.'; return }
+  const ruim=linhas.find(l=>!/^[A-Za-z0-9#=,.:;_\-+*]{2,100}$/.test(l));
+  if(ruim){ $('catErro').textContent='Comando inválido: "'+ruim+'". Sem espaço; só letras, números e # = , . : ; -'; return }
+  fechar();
+  pedirConfirmacao('Enviar '+(linhas.length>1?linhas.length+' comandos':'comando'),'Enviar agora por SMS para o chip de '+v.nome+' ('+fmtFone(v.fone)+'):\n'+linhas.join('\n')+(linhas.length>1?'\n\nVão um depois do outro, com alguns segundos entre eles.':'')+(catAviso?'\n\nAtenção: confira se é isso mesmo antes de enviar.':''),linhas.length>1?'Enviar '+linhas.length+' SMS':'Enviar SMS',async()=>{
+    let ok=0;
+    for(let i=0;i<linhas.length;i++){
+      if(i) await sleep(3000);
+      const r=await fetch(DESB_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',
+        body:JSON.stringify({acao:'smsConfig',tipo:'catalogo',texto:linhas[i],token:lsGet('rg_token'),deviceId:v.id})});
+      let j={}; try{ j=await r.json() }catch(e){}
+      if(!r.ok) throw new Error((ok?ok+' de '+linhas.length+' enviados. ':'')+'Falhou em "'+linhas[i]+'": '+(j.erro||('erro '+r.status)));
+      ok++;
+    }
+    toast((ok>1?ok+' SMS enviados':'SMS enviado')+' para '+v.nome+'.',5000);
+    try{ carregarSaldo(true) }catch(e){}
+  },{perigo:catAviso});
+};
 
 /* --- Aparelhos de um cliente --- */
 function htmlAparelhos(excluirIds){
