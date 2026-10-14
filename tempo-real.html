@@ -772,19 +772,19 @@ body.hist-on #mapCar{display:none!important}
 .smsopt:last-child:nth-child(odd){grid-column:1/-1}
 @media (min-width:900px){#mSmsCmds{align-items:center}#mSmsCmds .box2{border-radius:18px}}
 /* Catálogo de comandos (14/10/2026) */
-#mSmsCat .catlista{max-height:42vh;overflow-y:auto;margin:10px 0 12px;padding-right:2px}
-#mSmsCat .catg{font-size:11px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;color:var(--mut);margin:12px 0 6px}
-#mSmsCat .catg:first-child{margin-top:2px}
-#mSmsCat .catit{padding:9px 10px;border:1px solid var(--line);border-radius:12px;background:var(--card2);margin-bottom:6px}
-#mSmsCat .catit.av{border-color:rgba(245,184,61,.45)}
-#mSmsCat .catit b{display:block;font-size:13.5px}
-#mSmsCat .catit small{display:block;font-size:11.5px;color:var(--mut);margin-top:2px;line-height:1.3}
-#mSmsCat .catops{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px}
-#mSmsCat .catop{padding:4px 10px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--txt);font:inherit;font-size:12px;font-weight:700;cursor:pointer}
-#mSmsCat .catop.sel{border-color:var(--cyan);color:var(--cyan)}
-#mSmsCat .cattexto{height:auto;padding:10px 12px;margin-bottom:0;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:14px;resize:vertical;min-height:52px}
-#mSmsCat .catdica{font-size:11.5px;color:var(--mut);margin-top:4px;line-height:1.35}
-#mSmsCat .catvazio{font-size:13px;color:var(--mut);padding:10px 2px}
+:is(#mSmsCat,#mSmsM) .catlista{max-height:42vh;overflow-y:auto;margin:10px 0 12px;padding-right:2px}
+:is(#mSmsCat,#mSmsM) .catg{font-size:11px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;color:var(--mut);margin:12px 0 6px}
+:is(#mSmsCat,#mSmsM) .catg:first-child{margin-top:2px}
+:is(#mSmsCat,#mSmsM) .catit{padding:9px 10px;border:1px solid var(--line);border-radius:12px;background:var(--card2);margin-bottom:6px}
+:is(#mSmsCat,#mSmsM) .catit.av{border-color:rgba(245,184,61,.45)}
+:is(#mSmsCat,#mSmsM) .catit b{display:block;font-size:13.5px}
+:is(#mSmsCat,#mSmsM) .catit small{display:block;font-size:11.5px;color:var(--mut);margin-top:2px;line-height:1.3}
+:is(#mSmsCat,#mSmsM) .catops{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px}
+:is(#mSmsCat,#mSmsM) .catop{padding:4px 10px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--txt);font:inherit;font-size:12px;font-weight:700;cursor:pointer}
+:is(#mSmsCat,#mSmsM) .catop.sel{border-color:var(--cyan);color:var(--cyan)}
+:is(#mSmsCat,#mSmsM) .cattexto{height:auto;padding:10px 12px;margin-bottom:0;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:14px;resize:vertical;min-height:52px}
+:is(#mSmsCat,#mSmsM) .catdica{font-size:11.5px;color:var(--mut);margin-top:4px;line-height:1.35}
+:is(#mSmsCat,#mSmsM) .catvazio{font-size:13px;color:var(--mut);padding:10px 2px}
 @media (min-width:900px){#mSmsCat{align-items:center}#mSmsCat .box2{border-radius:18px}}
 
 /* Aba Veículos */
@@ -1229,6 +1229,9 @@ nav button.on .nemo.txt{color:var(--red2)}
 #mSmsM .smsec{font-size:12px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--mut);margin:12px 0 6px}
 #mSmsM .smsec b{color:var(--txt);text-transform:none;letter-spacing:0;margin-left:6px}
 #mSmsM .smcmds{display:grid;gap:6px}
+#mSmsM .smcat{margin-top:8px;padding:10px;border:1px solid #2f6fe4;border-radius:12px;background:var(--card)}
+#mSmsM .smcat .catlista{max-height:240px;margin:8px 0 10px}
+#mSmsM .smcat .fld{margin-bottom:0}
 #mSmsM .smcmds label{display:flex;align-items:flex-start;gap:10px;padding:9px 12px;border:1px solid var(--line);border-radius:12px;background:var(--card2);cursor:pointer;font-size:14px;font-weight:600}
 #mSmsM .smcmds label:has(input:checked){border-color:#2f6fe4;box-shadow:0 0 0 1px #2f6fe4 inset}
 #mSmsM .smcmds label.perigo span{color:var(--red2)}
@@ -1902,6 +1905,13 @@ nav button.on .nemo.txt{color:var(--red2)}
         <label><input type="radio" name="smCmd" value="imediato"><span>Bloqueio imediato<small>SZCS#SOURCE_OFF_TYPE=1 · corta em qualquer velocidade</small></span></label>
         <label><input type="radio" name="smCmd" value="reset"><span>Reset<small>RESET# · reinicia o rastreador</small></span></label>
         <label class="perigo"><input type="radio" name="smCmd" value="fabrica"><span>Padrão de fábrica<small>FACTORYALL# · pode apagar IP/Porta e APN</small></span></label>
+        <label><input type="radio" name="smCmd" value="catalogo"><span>Catálogo<small>Outros comandos (timer, sono, alarmes…) · escolha abaixo</small></span></label>
+      </div>
+      <div class="smcat" id="smCat" hidden>
+        <input class="fld" id="smCatBusca" type="search" placeholder="Buscar comando (ex.: timer, sono, alarme)" autocomplete="off">
+        <div class="catlista" id="smCatLista"></div>
+        <textarea class="fld cattexto" id="smCatTexto" rows="1" placeholder="Ou digite o comando, ex.: TIMER,30,180#" autocomplete="off" spellcheck="false"></textarea>
+        <div class="catdica" id="smCatDica">Escolha um comando acima (Ativar, Desativar…) ou digite. Pode editar antes de enviar. Um comando só.</div>
       </div>
       <div class="smsec">2. Equipamentos <b id="smN"></b></div>
       <div class="smfil" id="smFil"></div>
@@ -6137,7 +6147,32 @@ $('aImportar').onclick=imAbrir;
 /* ===== SMS EM MASSA (13/10/2026, pedido do dono) =====
    Escolhe UM comando e marca os equipamentos. Envia um por um pelo servidor (ação smsConfig, a mesma do botão
    "Mais SMS" do cartão; vale o limite diário por equipamento). Só o administrador vê o botão (aba Equipamentos). */
-const SM_NOMES={ip:'IP/Porta',apn:'APN',imediato:'Bloqueio imediato',reset:'Reset',fabrica:'Padrão de fábrica'};
+const SM_NOMES={ip:'IP/Porta',apn:'APN',imediato:'Bloqueio imediato',reset:'Reset',fabrica:'Padrão de fábrica',catalogo:'Catálogo'};
+/* 14/10/2026 (pedido do dono): Catálogo também no SMS em massa (lista compacta, com busca; um comando por vez) */
+let smCatAviso=false;
+const smCatCmd=()=>$('smCatTexto').value.trim();
+const smCatOk=t=>/^[A-Za-z0-9#=,.:;_\-+*]{2,100}$/.test(t);
+function smCatDesenhar(){
+  const q=catNorm($('smCatBusca').value.trim());
+  const html=CATALOGO_SMS.map((g,gi)=>{
+    const itens=g.itens.map((it,ii)=>({it,ii})).filter(x=>!q||catNorm(x.it.n+' '+x.it.d+' '+x.it.op.map(o=>o[0]+' '+o[1]).join(' ')).includes(q));
+    if(!itens.length) return '';
+    return '<div class="catg">'+esc(g.g)+'</div>'+itens.map(({it,ii})=>'<div class="catit'+(it.av?' av':'')+'"><b>'+esc(it.n)+'</b>'+(it.d?'<small>'+esc(it.d)+'</small>':'')+
+      '<div class="catops">'+it.op.map((o,oi)=>'<button type="button" class="catop'+($('smCatTexto').value===o[1]?' sel':'')+'" data-g="'+gi+'" data-i="'+ii+'" data-o="'+oi+'">'+esc(o[0])+'</button>').join('')+'</div></div>').join('');
+  }).join('');
+  $('smCatLista').innerHTML=html||'<div class="catvazio">Nada encontrado. Digite o comando direto na caixa abaixo.</div>';
+}
+$('smCatBusca').addEventListener('input',smCatDesenhar);
+$('smCatBusca').addEventListener('keydown',e=>{ if(e.key==='Enter') e.preventDefault() });
+$('smCatLista').addEventListener('click',e=>{
+  const b=e.target.closest('.catop'); if(!b||smEnv) return;
+  const it=CATALOGO_SMS[+b.dataset.g].itens[+b.dataset.i], o=it.op[+b.dataset.o];
+  $('smCatTexto').value=o[1]; smCatAviso=!!it.av;
+  $('smCatDica').textContent=it.n+' · '+o[0]+(it.ed?' — pode editar os números na caixa antes de enviar.':'');
+  $('smCatLista').querySelectorAll('.catop.sel').forEach(x=>x.classList.remove('sel')); b.classList.add('sel');
+  smBotoes();
+});
+$('smCatTexto').addEventListener('input',()=>{ $('smCatTexto').value=$('smCatTexto').value.replace(/\n/g,''); smBotoes() });
 const SM_FILTROS=['todos','hoje','on','off','nunca'];
 let smSel=new Set(), smFiltro='todos', smEnv=null, smRes={};
 function smCmd(){ const r=document.querySelector('input[name="smCmd"]:checked'); return r?r.value:'' }
@@ -6145,6 +6180,7 @@ function smAbrir(){
   if(smEnv) { abrir('mSmsM'); return }
   smSel=new Set(); smRes={}; smFiltro='todos'; $('smBusca').value=''; $('smProg').innerHTML='';
   document.querySelectorAll('input[name="smCmd"]').forEach(r=>r.checked=false);
+  $('smCat').hidden=true; $('smCatBusca').value=''; $('smCatTexto').value=''; smCatAviso=false;
   smDesenhar(); abrir('mSmsM');
 }
 function smBase(){
@@ -6169,12 +6205,13 @@ function smBotoes(){
   const b=$('smEnviar');
   if(smEnv){ b.disabled=false; b.textContent=smEnv.parar?'Parando...':'Parar'; $('smCancelar').disabled=true; return }
   $('smCancelar').disabled=false;
-  b.disabled=!(n&&c); b.textContent=!c?'Escolha o comando':!n?'Marque os equipamentos':'Enviar '+SM_NOMES[c]+' para '+n;
+  const catTxt=c==='catalogo'?smCatCmd():'', catBom=c!=='catalogo'||smCatOk(catTxt);
+  b.disabled=!(n&&c&&catBom); b.textContent=!c?'Escolha o comando':(c==='catalogo'&&!catTxt)?'Escolha o comando do catálogo':!catBom?'Comando inválido (sem espaço)':!n?'Marque os equipamentos':'Enviar '+(c==='catalogo'?catTxt:SM_NOMES[c])+' para '+n;
 }
 $('smFil').addEventListener('click',e=>{ const b=e.target.closest('[data-sf]'); if(!b||smEnv) return; smFiltro=b.dataset.sf; smDesenhar() });
 $('smBusca').addEventListener('input',()=>smDesenhar());
 $('smBusca').addEventListener('keydown',e=>{ if(e.key==='Enter') e.preventDefault() });
-$('smCmds').addEventListener('change',()=>smBotoes());
+$('smCmds').addEventListener('change',()=>{ const cat=smCmd()==='catalogo'; $('smCat').hidden=!cat; if(cat&&!$('smCatLista').innerHTML) smCatDesenhar(); smBotoes() });
 $('smLista').addEventListener('change',e=>{ const i=e.target.closest('input[data-v]'); if(!i) return; const id=+i.dataset.v; if(i.checked) smSel.add(id); else smSel.delete(id); smBotoes() });
 $('smTodos').onclick=()=>{ if(smEnv) return; $('smLista').querySelectorAll('input[data-v]:not(:disabled)').forEach(i=>{ i.checked=true; smSel.add(+i.dataset.v) }); smBotoes() };
 $('smNenhum').onclick=()=>{ if(smEnv) return; smSel.clear(); smDesenhar() };
@@ -6184,15 +6221,17 @@ $('smEnviar').onclick=async()=>{
   if(smEnv){ smEnv.parar=true; smBotoes(); return }
   const c=smCmd(), alvos=veiculos.filter(v=>smSel.has(v.id)&&v.fone).sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
   if(!c||!alvos.length) return;
-  const aviso=c==='fabrica'?'\n\nATENÇÃO: o padrão de fábrica pode apagar o IP/Porta e o APN. Depois será preciso mandar os dois de novo.':'';
-  if(!confirm('Enviar "'+SM_NOMES[c]+'" por SMS para '+alvos.length+(alvos.length===1?' equipamento':' equipamentos')+'?\n\nCada equipamento gasta 1 SMS do saldo.'+aviso)) return;
+  const catTxt=c==='catalogo'?smCatCmd():'';
+  if(c==='catalogo'&&!smCatOk(catTxt)) return;
+  const aviso=c==='fabrica'?'\n\nATENÇÃO: o padrão de fábrica pode apagar o IP/Porta e o APN. Depois será preciso mandar os dois de novo.':(c==='catalogo'&&smCatAviso?'\n\nAtenção: confira se é isso mesmo antes de enviar.':'');
+  if(!confirm('Enviar "'+(c==='catalogo'?catTxt:SM_NOMES[c])+'" por SMS para '+alvos.length+(alvos.length===1?' equipamento':' equipamentos')+'?\n\nCada equipamento gasta 1 SMS do saldo.'+aviso)) return;
   smEnv={parar:false}; smRes={}; let ok=0, i=0; const falhas=[];
   smDesenhar();
   for(const v of alvos){
     if(smEnv.parar) break;
     i++; $('smProg').innerHTML='Enviando '+i+' de '+alvos.length+'… <b>'+ok+' ok</b>'+(falhas.length?' · <span class="er">'+falhas.length+' falharam</span>':'');
     try{
-      const r=await fetch(DESB_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',body:JSON.stringify({acao:'smsConfig',tipo:c,token:lsGet('rg_token'),deviceId:v.id})});
+      const r=await fetch(DESB_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',body:JSON.stringify(Object.assign({acao:'smsConfig',tipo:c,token:lsGet('rg_token'),deviceId:v.id},c==='catalogo'?{texto:catTxt}:{}))});
       let j={}; try{ j=await r.json() }catch(e){}
       if(!r.ok) throw new Error(j.erro||('erro '+r.status));
       ok++; smRes[v.id]={ok:true};
@@ -6202,7 +6241,7 @@ $('smEnviar').onclick=async()=>{
   }
   const parou=smEnv.parar && i<alvos.length;
   smEnv=null;
-  $('smProg').innerHTML='<b>'+SM_NOMES[c]+': '+ok+' de '+alvos.length+' enviados.</b>'+(parou?' (Parado no meio.)':'')+(falhas.length?'<br><span class="er">Falharam: '+falhas.map(esc).join('<br>')+'</span>':'');
+  $('smProg').innerHTML='<b>'+esc(c==='catalogo'?catTxt:SM_NOMES[c])+': '+ok+' de '+alvos.length+' enviados.</b>'+(parou?' (Parado no meio.)':'')+(falhas.length?'<br><span class="er">Falharam: '+falhas.map(esc).join('<br>')+'</span>':'');
   smSel=new Set(alvos.filter(v=>smRes[v.id]&&!smRes[v.id].ok).map(v=>v.id)); /* os que falharam ficam marcados para tentar de novo */
   smDesenhar();
   try{ carregarSaldo&&carregarSaldo(true) }catch(e){}
