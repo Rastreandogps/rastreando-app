@@ -1877,7 +1877,7 @@ nav button.on .nemo.txt{color:var(--red2)}
           <h4>Enviar a configuração por SMS</h4>
           <p style="margin-bottom:4px">Para os equipamentos cadastrados agora que têm chip. Sai pelo servidor (SMS Market).</p>
           <label><input type="checkbox" id="imSApn" checked><span>APN<small>APN,ss.vivo.com.br,vivo,vivo#</small></span></label>
-          <label><input type="checkbox" id="imSIp" checked><span>IP e Porta<small>SERVER,0,179.199.150.156,5023,0# · o rastreador deixa de aparecer na plataforma antiga</small></span></label>
+          <label><input type="checkbox" id="imSIp" checked><span>IP e Porta<small>SERVER,1,tcp.rastreandogpsbr.com.br,5023,0# · o rastreador deixa de aparecer na plataforma antiga</small></span></label>
           <label><input type="checkbox" id="imSImed" checked><span class="perigo">Bloqueio imediato<small>SZCS#SOURCE_OFF_TYPE=1 · corta em qualquer velocidade</small></span></label>
           <div class="imconta" id="imConta"></div>
         </div>
@@ -1897,7 +1897,7 @@ nav button.on .nemo.txt{color:var(--red2)}
     <div class="smrola">
       <div class="smsec">1. Comando</div>
       <div class="smcmds" id="smCmds">
-        <label><input type="radio" name="smCmd" value="ip"><span>IP/Porta<small>SERVER,0,179.199.150.156,5023,0#</small></span></label>
+        <label><input type="radio" name="smCmd" value="ip"><span>IP/Porta<small>SERVER,1,tcp.rastreandogpsbr.com.br,5023,0#</small></span></label>
         <label><input type="radio" name="smCmd" value="apn"><span>APN (Vivo)<small>APN,ss.vivo.com.br,vivo,vivo#</small></span></label>
         <label><input type="radio" name="smCmd" value="imediato"><span>Bloqueio imediato<small>SZCS#SOURCE_OFF_TYPE=1 · corta em qualquer velocidade</small></span></label>
         <label><input type="radio" name="smCmd" value="reset"><span>Reset<small>RESET# · reinicia o rastreador</small></span></label>
@@ -5542,7 +5542,7 @@ $('aList').addEventListener('click',e=>{
 /* SMS de configuração pelo SMS Market (o texto fica fixo no servidor) */
 function smsConfig(v,tipo){
   const nome = {ip:'IP e Porta',apn:'APN',reset:'Reset',imediato:'Bloqueio imediato',fabrica:'Padrão de fábrica'}[tipo];
-  const txt = {ip:'SERVER,0,179.199.150.156,5023,0#',apn:'APN,ss.vivo.com.br,vivo,vivo#',reset:'RESET#',imediato:'SZCS#SOURCE_OFF_TYPE=1',fabrica:'FACTORYALL#'}[tipo];
+  const txt = {ip:'SERVER,1,tcp.rastreandogpsbr.com.br,5023,0#',apn:'APN,ss.vivo.com.br,vivo,vivo#',reset:'RESET#',imediato:'SZCS#SOURCE_OFF_TYPE=1',fabrica:'FACTORYALL#'}[tipo];
   const extra = {
     ip:'\n\nAtenção: ao receber, o rastreador passa a mandar posição para este servidor e deixa de aparecer na plataforma antiga.',
     imediato:'\n\nAtenção: com esta função ativa, o rastreador corta assim que receber o bloqueio, em qualquer velocidade. Com o veículo andando rápido, o corte pode causar acidente.',
@@ -5569,6 +5569,7 @@ const CATALOGO_SMS=[
   {n:'Envio por ângulo de curva',d:'Melhora o traçado da rota. 2 primeiros dígitos = intervalo mínimo (s), 3 últimos = ângulo (°).',op:[['Definir','SZCS#ANGLEVALUE=10-045']],ed:1},
   {n:'GPRS (internet do rastreador)',d:'Liga ou desliga o envio de dados pela rede.',op:[['Ligar','GPRSON,1#'],['Desligar','GPRSON,0#']]},
   {n:'Rede 2G / 4G',d:'Automático é o recomendado.',op:[['Automático','SZCS#NETSELECT=0'],['Só 4G','SZCS#NETSELECT=1'],['Só 2G','SZCS#NETSELECT=2']]},
+  {n:'Servidor pelo IP direto (reserva)',d:'Só se o nome tcp.rastreandogpsbr.com.br não funcionar. O botão IP/Porta já usa o nome (recomendado).',op:[['IP direto','SERVER,0,179.199.150.156,5023,0#\nRESET#']],av:1},
   {n:'Fuso horário',d:'0,0 usa o horário do servidor (recomendado no Brasil).',op:[['Enviar','GMT,W,0,0#']]},
   {n:'Desativar APN automática',d:'Impede o rastreador de trocar a APN sozinho. Use antes de configurar a APN.',op:[['Enviar','ASETAPN,OFF#']]}
  ]},
