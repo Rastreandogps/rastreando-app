@@ -1211,6 +1211,14 @@ nav button.on .nemo.txt{color:var(--red2)}
 #mImport .imsalvo b{display:block;font-size:14.5px}
 #mImport .imsalvo small{display:block;font-size:12.5px;color:var(--mut);margin-top:2px;line-height:1.4}
 #mImport .imsalvo .imsseta{margin-left:auto;flex:none;color:var(--mut);font-size:20px}
+#mImport .imsrow{display:flex;align-items:stretch;gap:6px;margin-bottom:8px}
+#mImport .imsrow .imsalvo{margin-bottom:0;flex:1;min-width:0}
+#mImport .imsdel{flex:none;width:44px;border:1px solid rgba(227,38,47,.35);border-radius:12px;background:rgba(227,38,47,.08);color:var(--red2);font-size:18px;cursor:pointer}
+/* 14/10/2026: escolher quais equipamentos recebem o SMS (fase "feito") */
+#mImport .imli .imck{flex:none;width:20px;height:20px;margin:2px 6px 0 0;accent-color:#2563eb;cursor:pointer}
+#mImport .imli.fora{opacity:.45}
+#mImport .imsel{display:flex;gap:12px;font-size:12.5px;margin:0 0 8px}
+#mImport .imsel a{color:#2563eb;font-weight:700;cursor:pointer;text-decoration:underline}
 #mImport .imsalvo .imsnum{flex:none;width:34px;height:34px;border-radius:50%;background:rgba(225,29,72,.1);color:#e11d48;font-weight:800;display:flex;align-items:center;justify-content:center}
 #mImport .improg{font-size:14px;font-weight:700;margin:10px 0}
 #mSmsM{align-items:center;padding:12px}
@@ -1266,6 +1274,12 @@ nav button.on .nemo.txt{color:var(--red2)}
 .afila.on{display:flex;flex-direction:column;gap:8px}
 .afila .afrow{display:flex;align-items:center;gap:10px}
 .afila .afrow+.afrow{padding-top:8px;border-top:1px dashed rgba(37,99,235,.25)}
+/* 14/10/2026: fila "engavetada": só o primeiro aparece; tocar no nome abre o resto */
+.afila.fechada .afrow+.afrow{display:none}
+.afila .t.abre{cursor:pointer}
+.afila .amais{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:999px;background:#2563eb;color:#fff;font-size:11px;font-weight:800;vertical-align:1px}
+.afila.fechada .amais::after{content:' ▾'}
+.afila:not(.fechada) .amais::after{content:' ▴'}
 .afila .t{flex:1;min-width:0}
 .afila .t b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .afila .t small{color:var(--mut);font-size:12px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -1856,6 +1870,7 @@ nav button.on .nemo.txt{color:var(--red2)}
       <div id="imP2" style="display:none">
         <div class="imres" id="imRes"></div>
         <div class="apbusca" id="imBuscaBox"><input class="fld" id="imBusca" type="search" placeholder="Buscar na lista: IMEI, chip ou nome" autocomplete="off"><small id="imBuscaN"></small></div>
+        <div class="imsel" id="imSel" style="display:none"><span>SMS para:</span><a onclick="imMarcarTodos(true)">marcar todos</a><a onclick="imMarcarTodos(false)">desmarcar todos</a></div><!-- 14/10/2026 -->
         <div class="imwrap" id="imCorpo"></div>
         <div class="improg" id="imProg"></div>
         <div class="imsms" id="imSms" style="display:none">
@@ -6038,12 +6053,22 @@ function imMostrarSalvos(){
   imPrepararModal(); imFase='salvos'; imLoteAtual=null; imReaberto=false;
   $('imTit').textContent='Importações para terminar';
   $('imSalvosLista').innerHTML=a.map(l=>{ const n=l.criados.filter(x=>x.chip).length;
-    return '<button type="button" class="imsalvo" data-lote="'+esc(l.id)+'"><span class="imsnum">'+n+'</span><span><b>'+n+(n===1?' equipamento':' equipamentos')+' · salvo em '+esc(imQuando(l.quando))+'</b><small>'+esc(l.criados.map(x=>x.nome).join(', '))+'</small>'+imStatusLote(l)+'</span><span class="imsseta">›</span></button>' }).join('');
+    return '<div class="imsrow"><button type="button" class="imsalvo" data-lote="'+esc(l.id)+'"><span class="imsnum">'+n+'</span><span><b>'+n+(n===1?' equipamento':' equipamentos')+' · salvo em '+esc(imQuando(l.quando))+'</b><small>'+esc(l.criados.map(x=>x.nome).join(', '))+'</small>'+imStatusLote(l)+'</span><span class="imsseta">›</span></button>'+
+      (imEnv && imEnv.loteId===l.id ? '' : '<button type="button" class="imsdel" data-del="'+esc(l.id)+'" title="Excluir esta importação salva (os equipamentos continuam cadastrados; só não manda o SMS por aqui)">🗑</button>')+'</div>' }).join('');
   $('imP0').style.display='';
   $('imVoltar').textContent='Fechar'; $('imOk').textContent='Nova importação';
   if(!$('mImport').classList.contains('show')) abrir('mImport');
 }
-$('imSalvosLista').addEventListener('click',e=>{ const b=e.target.closest('[data-lote]'); if(b) imAbrirLote(b.dataset.lote) });
+$('imSalvosLista').addEventListener('click',e=>{
+  const d=e.target.closest('[data-del]');
+  if(d){ /* 14/10/2026 (pedido do dono): excluir uma importação salva sem precisar mandar o SMS */
+    const l=imSalvosLer().find(x=>x.id===d.dataset.del); if(!l) return;
+    if(!confirm('Excluir esta importação salva ('+l.criados.length+(l.criados.length===1?' equipamento':' equipamentos')+')?\n\nOs equipamentos continuam cadastrados; só a lembrança de mandar o SMS é apagada.')) return;
+    imRemoverLote(l.id); toast('Importação salva excluída.');
+    if(imSalvosLer().length) imMostrarSalvos(); else $('mImport').classList.remove('show');
+    return;
+  }
+  const b=e.target.closest('[data-lote]'); if(b) imAbrirLote(b.dataset.lote) });
 function imStatusLote(l){
   if(imEnv && imEnv.loteId===l.id) return '<small style="color:#2563eb;font-weight:700">Enviando agora...</small>';
   if(l.envio){ const f=l.envio.tipos.filter(t=>l.envio.feitos.indexOf(t)<0).map(imTipoNome); return '<small style="color:#d97706;font-weight:700">Envio interrompido'+(f.length?': falta '+esc(f.join(', ')):'')+'</small>' }
@@ -6052,7 +6077,7 @@ function imStatusLote(l){
 function imAbrirLote(id){
   const l=imSalvosLer().find(x=>x.id===id); if(!l){ imMostrarSalvos(); return }
   imPrepararModal(); imFase='feito'; imLoteAtual=id; imReaberto=true;
-  imLinhas=l.linhas||[]; imCriados=l.criados||[];
+  imLinhas=l.linhas||[]; imCriados=l.criados||[]; imForaSms=new Set((l.envio&&l.envio.fora)||[]);
   IM_TIPOS.forEach(x=>{ $(x[0]).checked=!l.tipos || l.tipos.indexOf(x[1])>=0 });
   $('imTit').textContent='Terminar configuração';
   $('imP2').style.display=''; $('imSms').style.display='';
@@ -6071,7 +6096,7 @@ function imAbrirLote(id){
 }
 function imNova(){
   imPrepararModal();
-  imLinhas=[]; imCriados=[]; imFase='colar'; imLoteAtual=null; imReaberto=false;
+  imLinhas=[]; imCriados=[]; imFase='colar'; imLoteAtual=null; imReaberto=false; imForaSms=new Set();
   imListas={imei:'',chip:'',placa:'',cliente:'',nome:''}; imCol='nome'; imCliId=imPrefLer();
   const r=imRascLer();
   if(r){ Object.keys(imListas).forEach(k=>{ imListas[k]=String(r.listas[k]||'') }); imCliId=r.cliId||'' }
@@ -6231,9 +6256,17 @@ function imDesenhar(){
     const cls=(l.estado==='erro'||l.estado==='falhou')?'er':'ok';
     const det=['IMEI '+(l.imeiTxt||'—'), 'Chip '+(l.chip?fmtFone(l.chip):'—'), l.placa?'Placa '+l.placa:'', l.user?'Cliente '+(l.user.name||loginDe(l.user)):'Sem cliente'].filter(Boolean).join(' · ');
     const busca=String(l.nome||'')+' '+String(l.imeiTxt||'')+' '+String(l.chip||'')+' '+(l.chip?fmtFone(l.chip):'')+' '+String(l.placa||'');
-    return '<div class="imli '+cls+'" data-busca="'+esc(busca.toLowerCase())+'"><span class="imn">'+l.n+'</span><span class="imt"><b>'+esc(l.nome||'(sem nome)')+'</b><small>'+esc(det)+'</small><span class="imst">'+esc(st)+(l.vincFalhou?' (não vinculou ao cliente)':'')+'</span></span></div>'}).join('');
+    const comCk=feito && l.estado==='feito' && l.chip && l.devId; /* 14/10/2026: na fase de enviar, cada equipamento com chip tem uma caixinha */
+    const marcado=comCk && !imForaSms.has(String(l.devId));
+    return '<div class="imli '+cls+(comCk&&!marcado?' fora':'')+'" data-busca="'+esc(busca.toLowerCase())+'">'+(comCk?'<input type="checkbox" class="imck" data-dev="'+esc(String(l.devId))+'"'+(marcado?' checked':'')+' title="Mandar SMS para este equipamento">':'')+'<span class="imn">'+l.n+'</span><span class="imt"><b>'+esc(l.nome||'(sem nome)')+'</b><small>'+esc(det)+'</small><span class="imst">'+esc(st)+(l.vincFalhou?' (não vinculou ao cliente)':'')+'</span></span></div>'}).join('');
   imFiltrar();
+  const sel=$('imSel'); if(sel){ const tem=feito && imLinhas.some(l=>l.estado==='feito'&&l.chip&&l.devId); sel.style.display=tem?'':'none' }
 }
+/* 14/10/2026 (pedido do dono): quais equipamentos ficam FORA do envio do SMS (todos vêm marcados; dá para tirar um ou outro) */
+let imForaSms=new Set();
+function imAlvosSms(){ return imCriados.filter(x=>x.chip && !imForaSms.has(String(x.id))) }
+$('imCorpo').addEventListener('change',e=>{ const c=e.target.closest('.imck'); if(!c) return; if(c.checked) imForaSms.delete(c.dataset.dev); else imForaSms.add(c.dataset.dev); c.closest('.imli').classList.toggle('fora',!c.checked); imContar() });
+function imMarcarTodos(sim){ imForaSms=new Set(sim?[]:imCriados.filter(x=>x.chip).map(x=>String(x.id))); imDesenhar(); imContar() }
 /* 13/10/2026 (pedido do dono): buscar na lista da prévia pelo IMEI, chip ou nome (só esconde; não muda o que será cadastrado) */
 function imFiltrar(){
   const i=$('imBusca'); if(!i) return;
@@ -6281,9 +6314,9 @@ async function imCadastrar(){
 }
 const IM_TIPOS=[['imSApn','apn','APN'],['imSIp','ip','IP e Porta'],['imSImed','imediato','Bloqueio imediato']];
 function imContar(){
-  const n=imCriados.filter(x=>x.chip).length, t=IM_TIPOS.filter(x=>$(x[0]).checked).length, total=n*t;
-  $('imConta').innerHTML=total?(n+(n===1?' equipamento':' equipamentos')+' × '+t+' SMS = <b>'+total+' SMS</b> (cerca de R$ '+(total*0.10).toFixed(2).replace('.',',')+').'+
-    (total>100?' <b class="perigo">Passa do limite de 100 SMS do administrador por dia: o que passar será recusado; mande o resto amanhã.</b>':'')+' Envio em etapas: primeiro APN para todos, espera 30 s, IP e Porta, espera 30 s, Bloqueio imediato. Pode fechar a tela que continua.'):'Marque pelo menos um SMS.';
+  const n=imAlvosSms().length, t=IM_TIPOS.filter(x=>$(x[0]).checked).length, total=n*t;
+  $('imConta').innerHTML=total?(n+(n===1?' equipamento':' equipamentos')+(imForaSms.size?' (marcados)':'')+' × '+t+' SMS = <b>'+total+' SMS</b> (cerca de R$ '+(total*0.10).toFixed(2).replace('.',',')+').'+
+    (total>100?' <b class="perigo">Passa do limite de 100 SMS do administrador por dia: o que passar será recusado; mande o resto amanhã.</b>':'')+' Envio em etapas: primeiro APN para todos, espera 30 s, IP e Porta, espera 30 s, Bloqueio imediato. Pode fechar a tela que continua.'):(n?'Marque pelo menos um SMS.':'Marque pelo menos um equipamento na lista.');
   if(imFase==='feito') $('imOk').disabled=!total;
 }
 IM_TIPOS.forEach(x=>$(x[0]).addEventListener('change',imContar));
@@ -6300,11 +6333,12 @@ function imLoteAtualizar(id,fn){ const a=imSalvosLer(), l=a.find(x=>x.id===id); 
 function imLote(id){ return imSalvosLer().find(x=>x.id===id)||null }
 function imEnviarSms(){
   if(imEnv){ toast('Já tem um envio em andamento. Espere terminar ou cancele.',5000); return }
-  const tipos=IM_TIPOS.filter(x=>$(x[0]).checked).map(x=>x[1]), alvos=imCriados.filter(x=>x.chip);
+  const tipos=IM_TIPOS.filter(x=>$(x[0]).checked).map(x=>x[1]), alvos=imAlvosSms();
   if(!tipos.length||!alvos.length) return;
   imSalvarLote();
   const id=imLoteAtual; if(!id) return;
-  imLoteAtualizar(id,l=>{ l.tipos=tipos; l.envio={tipos:tipos,feitos:[],ultimoMs:0,ok:0,falhas:[],falhouIds:[]} });
+  const fora=Array.from(imForaSms);
+  imLoteAtualizar(id,l=>{ l.tipos=tipos; l.envio={tipos:tipos,feitos:[],ultimoMs:0,ok:0,falhas:[],falhouIds:[],fora:fora} });
   imIniciarEnvio(id);
 }
 function imIniciarEnvio(id){
@@ -6312,7 +6346,8 @@ function imIniciarEnvio(id){
   const l=imLote(id); if(!l||!l.envio) return;
   const e=l.envio;
   if(!e.tipos.some(t=>e.feitos.indexOf(t)<0)){ imConcluirEnvio(id); return }
-  imEnv={loteId:id, alvos:(l.criados||[]).filter(x=>x.chip), proxEm:e.ultimoMs?Math.max(Date.now(),e.ultimoMs+IM_ESPERA):Date.now(), enviando:false, cancelar:false, n:0, tipo:''};
+  const foraSet=new Set((e.fora||[]).map(String));
+  imEnv={loteId:id, alvos:(l.criados||[]).filter(x=>x.chip && !foraSet.has(String(x.id))), proxEm:e.ultimoMs?Math.max(Date.now(),e.ultimoMs+IM_ESPERA):Date.now(), enviando:false, cancelar:false, n:0, tipo:''};
   imEnv.tick=setInterval(imEnvTick,1000);
   if(imLoteAtual===id && $('mImport').classList.contains('show')) imTelaEnviando();
   imBadge(); imEnvTick();
@@ -6451,9 +6486,10 @@ function filaDesenhar(){
   b.textContent=n; b.classList.toggle('on',n>0);
   box.classList.toggle('on',n>0 && abaAdmin==='cli');
   if(!n){ box.innerHTML=''; return }
+  box.classList.toggle('fechada', n>1 && !filaAberta);
   box.innerHTML=f.map((x,i)=>{
     const d=filaDuplicado(x);
-    return '<div class="afrow"><div class="t"><b>'+esc(x.nome)+'</b><small>'+esc(['Vindo do APP Técnico'+(x.tec?' ('+x.tec+')':''),x.veic?x.veic.split(' · ')[0]:'',x.cpf?'CPF informado':''].filter(Boolean).join(' · '))+(d?'<span class="dup">⚠ '+esc(dupTexto(d))+'</span>':'')+'</small></div>'+
+    return '<div class="afrow"><div class="t'+(n>1&&i===0?' abre" data-fila="abrir':'')+'"><b>'+esc(x.nome)+(n>1&&i===0?'<span class="amais">+'+(n-1)+'</span>':'')+'</b><small>'+esc(['Vindo do APP Técnico'+(x.tec?' ('+x.tec+')':''),x.veic?x.veic.split(' · ')[0]:'',x.cpf?'CPF informado':''].filter(Boolean).join(' · '))+(d?'<span class="dup">⚠ '+esc(dupTexto(d))+'</span>':'')+'</small></div>'+
       '<button type="button" class="fora" data-fila="fora" data-i="'+i+'">Descartar</button><button type="button" class="ir" data-fila="ir" data-i="'+i+'">Criar agora</button></div>';
   }).join('');
 }
@@ -6484,8 +6520,10 @@ async function filaServidor(forcar){
 function filaTirarServidor(x){ if(x && x.sid) fnFila('filaCliTirar',{ids:[x.sid]}).catch(()=>{}) }
 setInterval(()=>{ if(ehAdmin && !document.hidden) filaServidor() },60000);
 document.addEventListener('visibilitychange',()=>{ if(!document.hidden && ehAdmin) filaServidor() });
+let filaAberta=false;
 $('aFila').addEventListener('click',e=>{
   const b=e.target.closest('[data-fila]'); if(!b) return;
+  if(b.dataset.fila==='abrir'){ filaAberta=!filaAberta; filaDesenhar(); return }
   const f=filaLer(), x=f[+b.dataset.i]; if(!x) return;
   if(b.dataset.fila==='ir'){ abrirCliente(x); return }
   if(!confirm('Descartar "'+x.nome+'" sem criar o cliente?')) return;
