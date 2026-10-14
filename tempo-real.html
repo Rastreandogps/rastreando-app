@@ -3750,6 +3750,7 @@ const SMS_CARD=[
   {t:'reset',nome:'Reset',desc:'Reinicia o rastreador',cls:''},
   {t:'imediato',nome:'Bloq. imediato',desc:'Corta em qualquer velocidade',cls:'alerta'},
   {t:'fabrica',nome:'Fábrica',desc:'Volta ao padrão de fábrica',cls:'aviso'},
+  {t:'nob',nome:'Plataforma NOB',desc:'Transfere o aparelho para a NOB',cls:'aviso'}, /* 14/10/2026 (pedido do dono) */
   {t:'catalogo',nome:'Catálogo',desc:'Outros comandos (timer, sono, alarmes…)',cls:''} /* 14/10/2026 */
 ];
 function abrirCartaoSms(){
@@ -3765,8 +3766,20 @@ $('smsGrid').addEventListener('click',e=>{
   const b=e.target.closest('.smsopt'); if(!b || b.disabled) return;
   const v=cartao(); if(!v) return;
   const t=b.dataset.t; fechar();
-  if(t==='reset') abrirReset(); else if(t==='catalogo') abrirCatalogoSms(); else smsConfig(v,t);
+  if(t==='reset') abrirReset(); else if(t==='catalogo') abrirCatalogoSms(); else if(t==='nob') smsPlataformaNob(v); else smsConfig(v,t);
 });
+/* 14/10/2026 (pedido do dono): manda o aparelho para a plataforma NOB (sai do nosso servidor). Vai pelo mesmo caminho do Catálogo. */
+const SMS_NOB='SERVER,0,45.55.218.97,6023,0#';
+function smsPlataformaNob(v){
+  pedirConfirmacao('Transferir para a plataforma NOB','Enviar agora por SMS para o chip de '+v.nome+' ('+fmtFone(v.fone)+'):\n'+SMS_NOB+'\n\nAtenção: depois disso o aparelho deixa de aparecer aqui e passa a falar só com a NOB. Para voltar, use o botão IP/Porta.','Enviar SMS',async()=>{
+    const r=await fetch(DESB_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',
+      body:JSON.stringify({acao:'smsConfig',tipo:'catalogo',texto:SMS_NOB,token:lsGet('rg_token'),deviceId:v.id})});
+    let j={}; try{ j=await r.json() }catch(e){}
+    if(!r.ok) throw new Error(j.erro||('Erro '+r.status));
+    toast('SMS da plataforma NOB enviado para '+v.nome+'.',5000);
+    try{ carregarSaldo(true) }catch(e){}
+  },{perigo:true});
+}
 function atualizarBotaoReset(){ $('rsOk').textContent=($('rsPlatRow').style.display!=='none' && !$('rsPlat').checked)?'Enviar pelo meu celular':'Enviar pela plataforma' }
 $('rsPlat').addEventListener('change',atualizarBotaoReset);
 $('rsOk').onclick=async()=>{
@@ -5178,6 +5191,7 @@ const ICO_COP='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke
 const ICO_EQ='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="10" r="3"/><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/></svg>';
 const ICO_USR='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>';
 const IC={
+  nob:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h13l-3-3M20 17H7l3 3"/></svg>',
   sms:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
   ip:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="7" rx="2"/><rect x="3" y="13" width="18" height="7" rx="2"/><path d="M7 7.5h.01M7 16.5h.01"/></svg>',
   apn:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0M12 19.5h.01"/></svg>',
