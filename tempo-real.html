@@ -3313,10 +3313,12 @@ function aplicarVisibilidade(){
 function mudouSelecao(){
   aplicarVisibilidade();
   const vs=comPos();
-  if(vs.length===1){ selId=vs[0].id; setSeguir(true) }
+  /* 14/10/2026 (pedido do dono): escolher um veículo NÃO trava mais o mapa; só centraliza uma vez. Travar é no botão Seguir. */
+  if(vs.length===1){ selId=vs[0].id; setSeguir(false) }
   else if(vs.length>1){ setSeguir(false); atualizar(); ajustarTodos(vs) }
   else setSeguir(false);
   atualizarContagem(); atualizar();
+  if(vs.length===1 && vs[0].pos){ try{ centralizar(vs[0].pos) }catch(e){} }
 }
 $('vList').addEventListener('change',e=>{
   const r=e.target.closest('.vrow'); if(!r) return;
@@ -3336,7 +3338,7 @@ function escolherVeiculo(v,irMapa){
     v.visivel=true; aplicarVisibilidade(); selId=v.id; semPosId=null; recolhido=false;
     sincronizarChecks(); atualizarContagem();
     if(irMapa) irPara('Mapa');
-    setSeguir(true); atualizar();
+    setSeguir(false); atualizar(); try{ centralizar(v.pos) }catch(e){} /* 14/10/2026: centraliza uma vez, mapa livre */
   } else {
     v.visivel=true; selId=v.id; semPosId=v.id; recolhido=false;
     setSeguir(false);
