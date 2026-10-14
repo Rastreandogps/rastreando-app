@@ -3551,6 +3551,8 @@ async function desbVerificar(){
   desbMostrar();
 }
 setInterval(desbVerificar,20000);
+/* 13/10/2026 (pedido do dono): com desbloqueio pendente, confere a cada 5 s (o servidor confere na hora com o rastreador) */
+setInterval(()=>{ if(Object.keys(desbPendente).length) desbVerificar() },5000);
 /* ===== SITUAÇÃO DE BLOQUEIO NO SERVIDOR (check-up de 10/10/2026, item 1.3) =====
    Quando a posição do rastreador não diz se está bloqueado, o app usava uma anotação só deste celular.
    Agora a última situação CONFIRMADA fica no servidor (rastreamento_bloq_estado) e todos os celulares leem igual.
