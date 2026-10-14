@@ -1960,7 +1960,7 @@ nav button.on .nemo.txt{color:var(--red2)}
     <div class="corigem" id="cOrigem"></div>
     <label class="flbl" for="cNome">Nome</label>
     <input class="fld" id="cNome" autocomplete="off">
-    <label class="flbl" for="cEmail">Login do cliente (e-mail ou um nome de usuário, ex: joao.silva)</label>
+    <label class="flbl" for="cEmail">Login do cliente (e-mail ou um nome de usuário, ex: joaosilva)</label>
     <input class="fld" id="cEmail" name="rg-login-do-cliente" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" data-lpignore="true" data-1p-ignore>
     <label class="flbl" for="cSenha" id="cSenhaLbl">Senha</label>
     <input class="fld" id="cSenha" name="rg-senha-do-cliente" autocomplete="new-password" data-lpignore="true" data-1p-ignore>
@@ -6544,7 +6544,7 @@ const dupTexto=d=>'Já existe: '+(d.u.name||loginDe(d.u))+' ('+loginDe(d.u)+'), 
 function loginSugerido(nome){
   const p=String(nome||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z ]+/g,' ').trim().split(/\s+/).filter(w=>w.length>1 && !['de','da','do','dos','das','e'].includes(w));
   if(!p.length) return '';
-  let base=p.length>1?p[0]+'.'+p[p.length-1]:p[0], l=base, i=2;
+  let base=p.length>1?p[0]+p[p.length-1]:p[0], l=base, i=2; // 14/10/2026 (pedido do dono): nome+sobrenome juntos, sem ponto
   while(usuarios.some(x=>casaUsuario(x,l))) l=base+i++;
   return l;
 }
