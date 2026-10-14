@@ -3,29 +3,83 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0f1115">
+<meta name="theme-color" content="#0b0d11">
 <meta name="robots" content="noindex">
-<title>Rastreando GPS</title>
+<title>Rastreando GPS · Emergência</title>
 <!--
-  Página do cartão/adesivo NFC (14/10/2026). O link gravado nas tags é SEMPRE este:
-  https://gps.rastreandogpsbr.com.br/nfc.html
-  Ela só leva para o app (tela de entrada). Se um dia o app mudar de endereço, ou se virar a página
-  "FUI ROUBADO", muda-se só ESTE arquivo: as tags já entregues continuam funcionando.
+  Página do cartão/adesivo NFC (14/10/2026, pedido do dono). O link gravado nas fitinhas é SEMPRE:
+    https://gps.rastreandogpsbr.com.br/nfc.html            (genérico)
+    https://gps.rastreandogpsbr.com.br/nfc.html?u=LOGIN    (já abre o app com o login do cliente preenchido)
+  O botão "FUI ROUBADO" leva para a tela de entrada do app (a senha o cliente digita: NUNCA gravar senha na fitinha).
+  Se o app mudar de endereço, ou quando o botão passar a avisar a central, muda-se só ESTE arquivo.
 -->
-<script>location.replace('./tempo-real.html' + (location.search || ''));</script>
 <style>
-  html,body{margin:0;height:100%;background:#0f1115;color:#f2f4f7;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
-  .c{min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px;text-align:center}
-  a{display:inline-block;padding:14px 22px;border-radius:12px;background:#e3262f;color:#fff;font-weight:700;text-decoration:none}
-  small{color:#9aa3b2}
+  :root{--bg:#0b0d11;--txt:#f2f4f7;--mut:#9aa3b2;--red:#e3262f;--red2:#ff3b44;--cyan:#38e1e6}
+  *{box-sizing:border-box}
+  html,body{margin:0;min-height:100%;background:var(--bg);color:var(--txt);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-tap-highlight-color:transparent}
+  body{background:radial-gradient(120% 80% at 50% 45%,#2a0d10 0%,#140a0c 38%,var(--bg) 70%)}
+  .tela{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:28px 16px calc(22px + env(safe-area-inset-bottom));text-align:center}
+  .topo{display:flex;flex-direction:column;align-items:center;gap:10px}
+  .topo img{width:64px;height:64px;border-radius:50%;object-fit:cover;box-shadow:0 0 0 2px rgba(56,225,230,.35)}
+  .topo b{font-size:15px;letter-spacing:.18em;font-weight:800}
+  .topo small{font-size:12px;color:var(--mut);letter-spacing:.06em;text-transform:uppercase}
+  .meio{display:flex;flex-direction:column;align-items:center;gap:22px;margin:24px 0}
+  .alvo{position:relative;width:min(74vw,290px);aspect-ratio:1;display:flex;align-items:center;justify-content:center}
+  .onda{position:absolute;inset:0;border-radius:50%;border:2px solid rgba(255,59,68,.55);animation:onda 2.2s ease-out infinite}
+  .onda.b{animation-delay:.73s}.onda.c{animation-delay:1.46s}
+  @keyframes onda{0%{transform:scale(.72);opacity:1}100%{transform:scale(1.18);opacity:0}}
+  .botao{position:relative;width:78%;aspect-ratio:1;border-radius:50%;border:none;cursor:pointer;color:#fff;text-decoration:none;
+    background:radial-gradient(circle at 35% 30%,#ff6a70 0%,var(--red2) 28%,var(--red) 62%,#9e1118 100%);
+    box-shadow:0 0 0 6px rgba(227,38,47,.25),0 18px 50px rgba(227,38,47,.55),inset 0 -10px 24px rgba(0,0,0,.35),inset 0 8px 18px rgba(255,255,255,.25);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;animation:pulsa 1.6s ease-in-out infinite;transition:transform .12s}
+  .botao:active{transform:scale(.94)}
+  @keyframes pulsa{0%,100%{box-shadow:0 0 0 6px rgba(227,38,47,.25),0 18px 50px rgba(227,38,47,.55),inset 0 -10px 24px rgba(0,0,0,.35),inset 0 8px 18px rgba(255,255,255,.25)}
+    50%{box-shadow:0 0 0 14px rgba(227,38,47,.12),0 18px 70px rgba(255,59,68,.8),inset 0 -10px 24px rgba(0,0,0,.35),inset 0 8px 18px rgba(255,255,255,.25)}}
+  .botao svg{width:28%;height:auto}
+  .botao span{font-size:clamp(22px,7.4vw,30px);font-weight:900;letter-spacing:.04em;line-height:1.05;text-shadow:0 2px 8px rgba(0,0,0,.35)}
+  .sub{font-size:15px;color:#e9ecf1;max-width:320px;line-height:1.4;margin:0}
+  .sub b{color:#fff}
+  .baixo{display:flex;flex-direction:column;align-items:center;gap:12px;width:100%;max-width:360px}
+  .wpp{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:14px 16px;border-radius:14px;background:#1db954;background:#25D366;color:#06210f;font-weight:800;font-size:15px;text-decoration:none}
+  .wpp svg{width:20px;height:20px}
+  .rod{font-size:11.5px;color:var(--mut)}
+  @media (prefers-reduced-motion:reduce){.onda,.botao{animation:none}}
 </style>
 </head>
 <body>
-  <div class="c">
-    <b style="font-size:18px">Rastreando GPS</b>
-    <small>Abrindo o aplicativo...</small>
-    <a href="./tempo-real.html">Abrir o aplicativo</a>
-    <small>Atendimento: (21) 98088-6087</small>
-  </div>
+  <main class="tela">
+    <div class="topo">
+      <img src="./logo.jpeg" alt="Rastreando GPS" onerror="this.style.display='none'">
+      <b>RASTREANDO GPS</b>
+      <small>Cartão de emergência</small>
+    </div>
+
+    <div class="meio">
+      <div class="alvo">
+        <div class="onda"></div><div class="onda b"></div><div class="onda c"></div>
+        <a class="botao" id="btnRoubo" href="./tempo-real.html" aria-label="Fui roubado: abrir o aplicativo e localizar o veículo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.5l8 3.2v5.6c0 5-3.4 8.9-8 10.2-4.6-1.3-8-5.2-8-10.2V5.7z"/><path d="M12 8v4.5"/><circle cx="12" cy="16" r=".6" fill="#fff"/></svg>
+          <span>FUI<br>ROUBADO</span>
+        </a>
+      </div>
+      <p class="sub">Toque no botão para <b>abrir o aplicativo</b> e localizar o seu veículo agora.</p>
+    </div>
+
+    <div class="baixo">
+      <a class="wpp" href="https://wa.me/5521980886087?text=Preciso%20de%20ajuda%3A%20meu%20ve%C3%ADculo%20foi%20roubado." target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="#06210f" aria-hidden="true"><path d="M17.47 14.38c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.16-.17.2-.35.22-.64.07-.3-.15-1.26-.46-2.39-1.48-.88-.79-1.48-1.76-1.65-2.06-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.03-.52-.07-.15-.67-1.61-.92-2.21-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48s1.07 2.88 1.21 3.07c.15.2 2.1 3.2 5.08 4.49.71.31 1.26.49 1.7.63.71.23 1.36.2 1.87.12.57-.09 1.76-.72 2-1.41.25-.7.25-1.29.17-1.41-.07-.12-.27-.2-.57-.35z"/><path d="M12 0C5.37 0 0 5.37 0 12c0 2.12.55 4.12 1.52 5.85L.06 23.89a.5.5 0 00.61.61l6-1.46A11.95 11.95 0 0012 24c6.63 0 12-5.37 12-12S18.63 0 12 0zm0 21.6a9.56 9.56 0 01-4.91-1.35l-.35-.21-3.64.89.91-3.54-.23-.36A9.56 9.56 0 012.4 12C2.4 6.7 6.7 2.4 12 2.4s9.6 4.3 9.6 9.6-4.3 9.6-9.6 9.6z"/></svg>
+        Falar com a central agora
+      </a>
+      <div class="rod">Central Rastreando GPS · (21) 98088-6087</div>
+    </div>
+  </main>
+<script>
+  // Leva o login do cliente (nfc.html?u=LOGIN) para a tela de entrada do app. Senha nunca vai no link.
+  (function () {
+    var b = document.getElementById('btnRoubo');
+    try { var q = location.search || ''; if (q) b.href = './tempo-real.html' + q; } catch (e) {}
+    b.addEventListener('click', function () { try { if (navigator.vibrate) navigator.vibrate([60, 40, 60]); } catch (e) {} });
+  })();
+</script>
 </body>
 </html>
