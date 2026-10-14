@@ -1786,6 +1786,8 @@ nav button.on .nemo.txt{color:var(--red2)}
       <span>Entre com seu e-mail ou usuário e senha</span>
     </div>
     <input type="text" id="lEmail" placeholder="E-mail ou usuário" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" required>
+    <script>/* 14/10/2026: cartão NFC (nfc.html?u=login) já chega com o login preenchido; a senha o cliente digita */
+    try{var _u=new URLSearchParams(location.search).get('u');if(_u){var _e=document.getElementById('lEmail');if(_e&&!_e.value)_e.value=String(_u).trim().slice(0,80)}}catch(e){}</script>
     <input type="password" id="lSenha" placeholder="Senha" autocomplete="current-password" required>
     <div class="lerr" id="lErr"></div>
     <button class="btn btn-red" id="lBtn" type="submit">Entrar</button>
