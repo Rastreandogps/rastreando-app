@@ -7628,14 +7628,14 @@ const LOJA_FOTO='https://gps.rastreandogpsbr.com.br/loja/'; /* 13/10/2026: ender
 const LOJA_QTD_MAX=10;
 /* v = preço da unidade; de2 = preço de cada unidade comprando 2 ou mais (cartão NFC). Os valores que valem são os do servidor (LOJA_PRODUTOS). */
 const LOJA_ITENS=[
-  {k:'nfc', img:'nfc.jpg', n:'Cartão de emergência (NFC)', d:'Encoste no celular e abra o app na hora, sem procurar nada. Ideal para roubo ou emergência.', v:29.90, de2:24.95,
+  {k:'nfc', img:'nfc.jpg', n:'Adesivo de emergência (NFC)', d:'Encoste no celular e abra o app na hora, sem procurar nada. Ideal para roubo ou emergência.', v:35.00, de2:24.95, /* 14/10/2026: 1 = R$ 35,00; 2 = R$ 49,90 */
    det:{int:'Um adesivo inteligente que abre o app da Rastreando GPS na hora, só de encostar o celular nele. Feito para os momentos em que cada segundo conta.',
         itens:['Encoste o celular (iPhone ou Android com NFC) e o app abre sozinho, sem procurar ícone nem digitar endereço.',
                'Ideal em caso de roubo ou emergência: abriu, entrou e já pode agir pelo app.',
                'Funciona até no celular de outra pessoa: é só entrar com o seu login e senha.',
                'Não usa bateria e não precisa carregar.',
                'Pequeno e discreto: cole na carteira, na capinha do celular ou do documento.',
-               'Comprando 2 ou mais, sai por R$ 24,95 cada. Dá para deixar um com alguém da família.']}},
+               'Comprando 2, sai por R$ 49,90 (R$ 24,95 cada). Dá para deixar um com alguém da família.']}},
   {k:'ktag', img:'ktag.jpg', n:'K-tag', d:'Localizador auxiliar do rastreador. Bateria com duração de até 1 ano e meio.', v:99.00, mensal:9.90,
    det:{int:'Um localizador extra, pequeno e discreto, que trabalha como reforço do seu rastreador principal.',
         itens:['Mais uma forma de encontrar o veículo, além do rastreador já instalado.',
@@ -7847,7 +7847,7 @@ async function lojaPedidosDesenhar(){ /* pedidos dos últimos 7 dias (aguardando
 /* ----- cancelar pedido não pago: o servidor cancela 2 h depois; até lá o PIX vale (estratégia do dono) ----- */
 let lojaCancPed='', lojaCancProd='', lojaCancQ=1;
 /* como o produto aparece no texto ("a sua K-tag", "os seus 2 Cartões de emergência (NFC)") */
-const LOJA_ART={nfc:['o seu','os seus','Cartão de emergência (NFC)','Cartões de emergência (NFC)'],ktag:['a sua','as suas','K-tag','K-tags'],portatil:['o seu','os seus','Rastreador portátil','Rastreadores portáteis']};
+const LOJA_ART={nfc:['o seu','os seus','Adesivo de emergência (NFC)','Adesivos de emergência (NFC)'],ktag:['a sua','as suas','K-tag','K-tags'],portatil:['o seu','os seus','Rastreador portátil','Rastreadores portáteis']};
 function lojaProdTxt(k,q){ const a=LOJA_ART[String(k).replace(/[12]$/,'')]; if(!a) return 'o seu produto'; return q>1?a[1]+' '+q+' '+a[3]:a[0]+' '+a[2] }
 function lojaCancAbrir(ped,nome,prod,q){
   lojaCancPed=ped; lojaCancProd=prod||''; lojaCancQ=q||1;
