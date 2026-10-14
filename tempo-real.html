@@ -1263,7 +1263,9 @@ nav button.on .nemo.txt{color:var(--red2)}
 #aview .aico.anovo .fila{position:absolute;top:-5px;right:-5px;min-width:19px;height:19px;padding:0 5px;border-radius:10px;background:#dc2626;color:#fff;font-size:11px;font-weight:800;display:none;align-items:center;justify-content:center;border:2px solid var(--bg)}
 #aview .aico.anovo .fila.on{display:inline-flex}
 .afila{display:none;align-items:center;gap:10px;margin:8px 0 2px;padding:10px 12px;border-radius:12px;background:rgba(37,99,235,.08);border:1px solid rgba(37,99,235,.25);font-size:13px}
-.afila.on{display:flex}
+.afila.on{display:flex;flex-direction:column;gap:8px}
+.afila .afrow{display:flex;align-items:center;gap:10px}
+.afila .afrow+.afrow{padding-top:8px;border-top:1px dashed rgba(37,99,235,.25)}
 .afila .t{flex:1;min-width:0}
 .afila .t b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .afila .t small{color:var(--mut);font-size:12px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -1573,7 +1575,7 @@ nav button.on .nemo.txt{color:var(--red2)}
         <button class="aico anovo" id="aNovo" title="Novo equipamento" aria-label="Novo equipamento"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span class="fila" id="aNovoFila"></span></button>
       </div>
       <div class="ameta"><b id="aCount"></b><span id="aFinTxt"></span><span id="aTabNome" hidden></span></div>
-      <div class="afila" id="aFila"><div class="t"><b id="aFilaNome"></b><small id="aFilaSub"></small></div><button type="button" class="fora" id="aFilaFora">Descartar</button><button type="button" class="ir" id="aFilaIr">Criar agora</button></div>
+      <div class="afila" id="aFila"></div><!-- 14/10/2026: uma linha por cliente na fila (antes só o primeiro aparecia) -->
       <div class="afiltros" id="aFiltros" hidden></div>
       <div class="afiltros" id="aFiltrosEq" hidden></div>
       <button class="linkbtn" id="aProteger" style="display:none">Proteger comandos dos clientes</button>
@@ -6448,11 +6450,12 @@ function filaDesenhar(){
   const n=ehAdmin?f.length:0;
   b.textContent=n; b.classList.toggle('on',n>0);
   box.classList.toggle('on',n>0 && abaAdmin==='cli');
-  if(!n) return;
-  const x=f[0];
-  $('aFilaNome').textContent=x.nome;
-  $('aFilaSub').textContent=['Vindo do APP Técnico'+(x.tec?' ('+x.tec+')':''),x.veic?x.veic.split(' · ')[0]:'',n>1?'e mais '+(n-1):''].filter(Boolean).join(' · ');
-  const d=filaDuplicado(x); if(d){ const e=document.createElement('span'); e.className='dup'; e.textContent='⚠ '+dupTexto(d); $('aFilaSub').appendChild(e) }
+  if(!n){ box.innerHTML=''; return }
+  box.innerHTML=f.map((x,i)=>{
+    const d=filaDuplicado(x);
+    return '<div class="afrow"><div class="t"><b>'+esc(x.nome)+'</b><small>'+esc(['Vindo do APP Técnico'+(x.tec?' ('+x.tec+')':''),x.veic?x.veic.split(' · ')[0]:'',x.cpf?'CPF informado':''].filter(Boolean).join(' · '))+(d?'<span class="dup">⚠ '+esc(dupTexto(d))+'</span>':'')+'</small></div>'+
+      '<button type="button" class="fora" data-fila="fora" data-i="'+i+'">Descartar</button><button type="button" class="ir" data-fila="ir" data-i="'+i+'">Criar agora</button></div>';
+  }).join('');
 }
 /* 13/10/2026: a fila também vem do SERVIDOR (o boneco do APP Técnico grava lá; com o endereço novo os dois apps
    não dividem mais a memória do navegador). Só o administrador lê. Os itens do servidor têm "sid". */
@@ -6481,8 +6484,13 @@ async function filaServidor(forcar){
 function filaTirarServidor(x){ if(x && x.sid) fnFila('filaCliTirar',{ids:[x.sid]}).catch(()=>{}) }
 setInterval(()=>{ if(ehAdmin && !document.hidden) filaServidor() },60000);
 document.addEventListener('visibilitychange',()=>{ if(!document.hidden && ehAdmin) filaServidor() });
-$('aFilaIr').onclick=()=>{ const f=filaLer(); if(f.length) abrirCliente(f[0]) };
-$('aFilaFora').onclick=()=>{ const f=filaLer(); if(!f.length) return; if(!confirm('Descartar "'+f[0].nome+'" sem criar o cliente?')) return; filaTirarServidor(f[0]); f.shift(); filaGravar(f); filaDesenhar() };
+$('aFila').addEventListener('click',e=>{
+  const b=e.target.closest('[data-fila]'); if(!b) return;
+  const f=filaLer(), x=f[+b.dataset.i]; if(!x) return;
+  if(b.dataset.fila==='ir'){ abrirCliente(x); return }
+  if(!confirm('Descartar "'+x.nome+'" sem criar o cliente?')) return;
+  filaTirarServidor(x); filaGravar(f.filter(y=>y!==x)); filaDesenhar();
+});
 /* já existe cliente com o mesmo WhatsApp ou o mesmo nome? (12/10/2026, pergunta do dono) */
 const nomeChave=t=>String(t||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
 function filaDuplicado(x){
