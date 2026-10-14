@@ -3456,12 +3456,15 @@ $('cmdOk').onclick=async ()=>{
       buscando=false; await buscarSeguro();
       if(v.posId!==posAntes && v.result){
         respondeu=true;
-        if(/success/i.test(v.result)){
+        const rel=relayDaResposta(v.result); /* 13/10/2026: alguns J16 respondem "RELAY=1"/"Relay:0" em vez de "Success" */
+        if(/success/i.test(v.result) || rel===(bloquear?1:0)){
           v.bloq=bloquear; marcarBloq(v.id,bloquear,true);
-          toast(bloquear?'Bloqueio confirmado pelo aparelho':'Desbloqueio confirmado pelo aparelho');
+          toast(bloquear?'Pronto! O rastreador confirmou: veículo bloqueado.':'Pronto! O rastreador confirmou: veículo desbloqueado.',6000);
+          if(!bloquear && desbPendente[v.id]) setTimeout(()=>{ try{ desbVerificar() }catch(e){} },1500);
         } else if(bloquear && /will stop/i.test(v.result)) toast('Bloqueio programado: o rastreador recebeu o comando e vai cortar o motor assim que o veículo reduzir a velocidade ou for desligado.',8000); /* resposta "OK,engine will stop after..." do J16 (check-up 10/10) */
-        else if(bloquear) toast('O aparelho respondeu: "'+String(v.result).slice(0,120)+'". Confira no mapa se o veículo ficou bloqueado.',9000); /* 13/10/2026: antes dizia "sem sinal" mesmo com o aparelho respondendo; agora mostra a resposta real */
-        else toast('O aparelho respondeu: '+v.result);
+        else if(rel===1) toast('O rastreador respondeu que o veículo continua bloqueado.',7000);
+        else if(rel===0) toast('O rastreador respondeu que o veículo está desbloqueado.',7000);
+        else toast('O rastreador respondeu, mas não confirmou '+(bloquear?'o bloqueio':'o desbloqueio')+'. Confira no mapa em instantes.'+(ehAdmin?' (resposta: '+String(v.result).slice(0,80)+')':''),8000); /* 13/10/2026: texto simples para o cliente; a resposta técnica só para o administrador */
       }
     }
     if(!respondeu) toast(smsFoi ? 'O rastreador não respondeu pela internet. O bloqueio também foi enviado por SMS: confira no mapa em alguns minutos.' : !bloquear && desbPendente[v.id]
@@ -4969,6 +4972,8 @@ $('aFinAtualizar').onclick=async ()=>{ const b=$('aFinAtualizar'); b.disabled=tr
    O cliente só pode enviar Bloquear/Desbloquear (comandos salvos no Traccar). Comando livre fica barrado pelo servidor
    (campo limitCommands do usuário). Quem cria/ajusta isso é o administrador. */
 const CMD_FIXOS={bloquear:'RELAY,1#',desbloquear:'RELAY,0#'};
+/* 13/10/2026: lê respostas tipo "RELAY=1", "Relay:0", "relay 1" (1 = bloqueado, 0 = desbloqueado); null se não for isso */
+function relayDaResposta(t){ const m=/\brelay\s*[:=,]?\s*([01])\b/i.exec(String(t||'')); return m?Number(m[1]):null }
 const acharCmd=(lista,data)=>(lista||[]).find(c=>c.type==='custom'&&c.attributes&&c.attributes.data===data);
 let cmdIds=null;
 async function garantirComandos(){
