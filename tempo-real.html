@@ -3761,6 +3761,8 @@ const SMS_CARD=[
   {t:'imediato',nome:'Bloq. imediato',desc:'Corta em qualquer velocidade',cls:'alerta'},
   {t:'fabrica',nome:'Fábrica',desc:'Volta ao padrão de fábrica',cls:'aviso'},
   {t:'nob',nome:'Plataforma NOB',desc:'Transfere o aparelho para a NOB',cls:'aviso'}, /* 14/10/2026 (pedido do dono) */
+  {t:'gpsOn',nome:'GPS desliga c/ ignição',desc:'Ativar a economia da bateria',cls:''}, /* 14/10/2026 (pedido do dono) */
+  {t:'gpsOff',nome:'GPS sempre ligado',desc:'Desativar a economia do GPS',cls:''},
   {t:'catalogo',nome:'Catálogo',desc:'Outros comandos (timer, sono, alarmes…)',cls:''} /* 14/10/2026 */
 ];
 function abrirCartaoSms(){
@@ -3776,10 +3778,25 @@ $('smsGrid').addEventListener('click',e=>{
   const b=e.target.closest('.smsopt'); if(!b || b.disabled) return;
   const v=cartao(); if(!v) return;
   const t=b.dataset.t; fechar();
-  if(t==='reset') abrirReset(); else if(t==='catalogo') abrirCatalogoSms(); else if(t==='nob') smsPlataformaNob(v); else smsConfig(v,t);
+  if(t==='reset') abrirReset(); else if(t==='catalogo') abrirCatalogoSms(); else if(t==='nob') smsPlataformaNob(v); else if(SMS_FIXOS[t]) smsTextoFixo(v,SMS_FIXOS[t]); else smsConfig(v,t);
 });
 /* 14/10/2026 (pedido do dono): manda o aparelho para a plataforma NOB (sai do nosso servidor). Vai pelo mesmo caminho do Catálogo. */
 const SMS_NOB='SERVER,0,45.55.218.97,6023,0#';
+/* 14/10/2026: comandos fixos do cartão que vão pelo caminho do Catálogo (desligar GPS com ignição desligada) */
+const SMS_FIXOS={
+  gpsOn:{titulo:'GPS desliga com a ignição',cmd:'SZCS#GPS_DISSLP=0',nota:'Ativa a economia: o GPS desliga uns 3 min depois de desligar a ignição (poupa a bateria do veículo).'},
+  gpsOff:{titulo:'GPS sempre ligado',cmd:'SZCS#GPS_DISSLP=1',nota:'Desativa a economia: o GPS fica ligado mesmo com a ignição desligada.'}
+};
+function smsTextoFixo(v,f){
+  pedirConfirmacao(f.titulo,'Enviar agora por SMS para o chip de '+v.nome+' ('+fmtFone(v.fone)+'):\n'+f.cmd+'\n\n'+f.nota,'Enviar SMS',async()=>{
+    const r=await fetch(DESB_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',
+      body:JSON.stringify({acao:'smsConfig',tipo:'catalogo',texto:f.cmd,token:lsGet('rg_token'),deviceId:v.id})});
+    let j={}; try{ j=await r.json() }catch(e){}
+    if(!r.ok) throw new Error(j.erro||('Erro '+r.status));
+    toast('SMS enviado para '+v.nome+': '+f.cmd,5000);
+    try{ carregarSaldo(true) }catch(e){}
+  });
+}
 function smsPlataformaNob(v){
   pedirConfirmacao('Transferir para a plataforma NOB','Enviar agora por SMS para o chip de '+v.nome+' ('+fmtFone(v.fone)+'):\n'+SMS_NOB+'\n\nAtenção: depois disso o aparelho deixa de aparecer aqui e passa a falar só com a NOB. Para voltar, use o botão IP/Porta.','Enviar SMS',async()=>{
     const r=await fetch(DESB_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',
@@ -5201,6 +5218,8 @@ const ICO_COP='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke
 const ICO_EQ='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="10" r="3"/><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/></svg>';
 const ICO_USR='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>';
 const IC={
+  gpsOn:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.1-7-11a7 7 0 0114 0c0 4.9-7 11-7 11z"/><path d="M9 9.5l6 3M15 9.5l-6 3"/></svg>',
+  gpsOff:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.1-7-11a7 7 0 0114 0c0 4.9-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>',
   nob:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h13l-3-3M20 17H7l3 3"/></svg>',
   sms:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
   ip:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="7" rx="2"/><rect x="3" y="13" width="18" height="7" rx="2"/><path d="M7 7.5h.01M7 16.5h.01"/></svg>',
