@@ -4153,7 +4153,9 @@ async function fnSmsStatus(corpo){
   if(!r.ok) throw new Error(j.erro||('Erro '+r.status));
   return j.veiculos||{};
 }
-function smsSituacao(st){ /* [classe, ícone, texto] */
+const SMS_SEM_RESPOSTA_MS=60*60000; /* 15/10/2026: sem confirmação em 1 h -> "não chegou no chip" (não fica "aguardando" para sempre) */
+function smsSituacao(st,enviadoMs){ /* [classe, ícone, texto] */
+  if(st!==1 && !SMS_FINAL_ERRO.includes(st) && enviadoMs && Date.now()-enviadoMs>SMS_SEM_RESPOSTA_MS) return ['er','❌','não chegou no chip (sem confirmação há '+tempo(Date.now()-enviadoMs).replace(/^há /,'')+')'];
   if(st===1) return ['ok','✅','recebido pelo chip'];
   if(SMS_FINAL_ERRO.includes(st)) return ['er','❌','NÃO recebido ('+(SMS_TXT[String(st)]||('status '+st))+')'];
   return ['ag','⏳','aguardando o chip receber'];
@@ -4213,8 +4215,8 @@ async function smsAcCiclo(){
 function smsUltPintar(){
   const el=$('smsUlt'); if(!el) return;
   const l=ehAdmin && selId ? smsUltCache[String(selId)] : null, x=l && l[0];
-  if(!x){ el.classList.remove('on'); return }
-  const [c,ic,t]=smsSituacao(x.status), h=x.status===1&&x.statusMs ? ' às '+horaAtual(x.statusMs) : (SMS_FINAL_ERRO.includes(x.status)?'':' (enviado '+horaAtual(x.enviadoMs)+')');
+  if(!x || Date.now()-(x.enviadoMs||0)>24*3600000){ el.classList.remove('on'); return } /* 15/10/2026: depois de 24 h a linha some (qualquer resultado) */
+  const [c,ic,t]=smsSituacao(x.status,x.enviadoMs), h=x.status===1&&x.statusMs ? ' às '+horaAtual(x.statusMs) : (c==='er'?'':' (enviado '+horaAtual(x.enviadoMs)+')');
   el.innerHTML='<span>SMS</span><b>'+esc(x.texto)+'</b><em class="'+c+'">'+ic+' '+esc(t)+h+'</em>';
   el.classList.add('on');
 }
@@ -4230,7 +4232,7 @@ async function smsUltCarregar(){
 setInterval(()=>{ try{ smsUltCarregar(); smsUltPintar() }catch(e){} },3000);
 $('smsUlt').onclick=()=>{
   const l=smsUltCache[String(selId)]||[];
-  const linhas=l.map(x=>{ const [c,ic,t]=smsSituacao(x.status); return ic+' '+horaAtual(x.enviadoMs)+' · '+x.texto+'\n     '+t+(x.status===1&&x.statusMs?' às '+horaAtual(x.statusMs):'') }).join('\n');
+  const linhas=l.map(x=>{ const [c,ic,t]=smsSituacao(x.status,x.enviadoMs); return ic+' '+horaAtual(x.enviadoMs)+' · '+x.texto+'\n     '+t+(x.status===1&&x.statusMs?' às '+horaAtual(x.statusMs):'') }).join('\n');
   pedirConfirmacao('Últimos SMS deste veículo', linhas||'Nenhum SMS registrado ainda.', 'Fechar', async()=>{}, {fechar:'Fechar'});
 };
 
