@@ -1155,6 +1155,19 @@ header nav .nl-pc{display:inline} header nav .nl-cel{display:none}
 #cpLista .lkcard{margin-bottom:10px}
 .lkveic{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:-2px 0 8px;font-size:12.5px;color:var(--mut)}
 .lkveic b{color:var(--txt);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* 15/10/2026: rota do link dentro da aba Compartilhados (um mapinha por vez, mapa grátis) */
+.lkveic .lkvb{display:flex;gap:6px;flex:none}
+.lkveic button.lkrbt{background:rgba(47,107,255,.10);border-color:rgba(47,107,255,.45);color:#2f6bff}
+.lkveic button.lkrbt.on{background:#2f6bff;border-color:#2f6bff;color:#fff}
+.lkrota{margin:10px 0 2px}
+.lkmapa{height:260px;border-radius:12px;overflow:hidden;border:1px solid var(--line);background:var(--card2)}
+.lketa{display:flex;align-items:center;gap:12px;margin-top:8px;font-size:12.5px;color:var(--mut);line-height:1.4}
+.lketa b.min{flex:none;font-size:22px;color:var(--txt);font-weight:800}
+.lketa b.min small{font-size:12px;font-weight:700;margin-left:2px}
+.lketa.chegou b.min{color:#16a34a}
+.lkcasa div{width:34px;height:34px;border-radius:50% 50% 50% 4px;transform:rotate(-45deg);background:#16a34a;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center}
+.lkcasa svg{width:16px;height:16px;transform:rotate(45deg);fill:none;stroke:#fff;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+.lkcarro{width:18px;height:18px;border-radius:50%;background:#e3262f;border:3px solid #fff;box-shadow:0 0 0 4px rgba(227,38,47,.25),0 2px 6px rgba(0,0,0,.35)}
 .lkveic button{flex:none;border:1px solid var(--line);background:var(--card2);color:var(--txt);border-radius:999px;padding:3px 10px;font:inherit;font-size:12px;font-weight:600;cursor:pointer}
 .cpvazio{padding:40px 16px;text-align:center;color:var(--mut);font-size:14px}
 .alsec{font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--mut);margin:18px 4px 8px}
@@ -5306,7 +5319,7 @@ function compCardHtml(x,agora,comVeic){
   const tit = tc ? 'Técnico a caminho'+(x.tecnico?' · '+x.tecnico:'') : (fr?(x.titulo||'Serviço a caminho'):'Localização compartilhada');
   const sub = tc ? (x.os?'OS '+x.os+' · ':'')+'Criado '+compQuando(x.criadoMs) : (fr&&x.destEnd?'Destino: '+x.destEnd:'Criado '+compQuando(x.criadoMs));
   return '<div class="lkcard'+(fr?' frota':'')+(falta<10*60000?' acabando':'')+'" data-c="'+esc(x.codigo)+'">'+
-          (comVeic?'<div class="lkveic"><b>'+esc(vv?vv.nome:('Veículo '+x.deviceId))+'</b>'+(vv?'<button type="button" data-cpver="'+x.deviceId+'">Ver no mapa</button>':'')+'</div>':'')+
+          (comVeic?'<div class="lkveic"><b>'+esc(vv?vv.nome:('Veículo '+x.deviceId))+'</b><span class="lkvb">'+(vv&&x.destLat!=null?'<button type="button" class="lkrbt'+(CPR.cod===x.codigo?' on':'')+'" data-cprota="'+esc(x.codigo)+'">Ver rota</button>':'')+(vv?'<button type="button" data-cpver="'+x.deviceId+'">Ver no mapa</button>':'')+'</span></div>':'')+
           '<div class="lktop"><span class="lkic">'+(fr?IC_CAMINHAO:IC_LINK)+'</span>'+
             '<span class="lkt"><b>'+esc(tit)+'</b><small>'+esc(sub)+'</small></span>'+
             '<span class="lkcd"><b>'+esc(tempoFalta(falta))+'</b><small>até '+esc(new Date(x.expiraMs).toDateString()===new Date().toDateString()?compQuando(x.expiraMs).replace(/^\d\d\/\d\d às /,''):compQuando(x.expiraMs))+'</small></span></div>'+
@@ -5341,11 +5354,79 @@ async function cpCarregar(){
   }catch(e){} finally{ cpCarregando=false }
 }
 function cpDesenhar(){
-  const agora=Date.now();
+  const agora=Date.now(); cprGuardar();
   $('cpSub').textContent = cpLista.length ? cpLista.length+(cpLista.length===1?' link ativo':' links ativos')+' · os que acabam primeiro aparecem em cima' : 'Links de localização ativos';
   $('cpLista').innerHTML = cpLista.length ? cpLista.map(x=>compCardHtml(x,agora,true)).join('')
     : '<div class="cpvazio">Nenhum link ativo agora.<br>Para compartilhar, abra um veículo e toque em Compartilhar.</div>';
   if(cpLista.length && !cpTimer) cpTimer=setInterval(cpTick,1000);
+  cprRecolocar();
+}
+/* ===== ROTA DO LINK NA ABA COMPARTILHADOS (15/10/2026) =====
+   Um mapinha por vez, sempre com o mapa grátis (não conta carregamento do Google). Veículo = posição que o app já tem;
+   rota pelas ruas no mesmo serviço da página do cliente (OSRM), no máximo 1 vez por minuto e só com o card aberto e a aba na tela. */
+const CPR={cod:null, el:null, mapa:null, carro:null, casa:null, linha:null, rota:null, rotaDe:null, rotaMs:0, busca:false, timer:null, ajustou:false};
+function cprPos(v){ const p=v&&(v.para||v.pos); return p&&isFinite(p[0])&&isFinite(p[1])?p:null }
+function cprDist(a,b){ const R=6371000,t=Math.PI/180,dLa=(b[0]-a[0])*t,dLo=(b[1]-a[1])*t,x=Math.sin(dLa/2)**2+Math.cos(a[0]*t)*Math.cos(b[0]*t)*Math.sin(dLo/2)**2; return 2*R*Math.asin(Math.sqrt(x)) }
+const cprKm=m=>m<1000?Math.round(m/10)*10+' m':(m/1000).toFixed(m<10000?1:0).replace('.',',')+' km';
+function cprFechar(){
+  clearInterval(CPR.timer); CPR.timer=null;
+  try{ if(CPR.mapa) CPR.mapa.remove() }catch(e){}
+  if(CPR.el&&CPR.el.parentNode) CPR.el.parentNode.removeChild(CPR.el);
+  Object.assign(CPR,{cod:null,el:null,mapa:null,carro:null,casa:null,linha:null,rota:null,rotaDe:null,rotaMs:0,busca:false,ajustou:false});
+  document.querySelectorAll('#cpLista .lkrbt.on').forEach(b=>b.classList.remove('on'));
+}
+function cprGuardar(){ if(CPR.el&&CPR.el.parentNode) CPR.el.parentNode.removeChild(CPR.el) } /* a lista vai ser redesenhada: tira o mapinha antes */
+function cprRecolocar(){ /* depois de redesenhar, põe o mesmo mapinha de volta no card (ou fecha se o link sumiu) */
+  if(!CPR.cod) return;
+  const card=document.querySelector('#cpLista .lkcard[data-c="'+CSS.escape(CPR.cod)+'"]');
+  if(!card){ cprFechar(); return }
+  card.querySelector('.lkbar').insertAdjacentElement('afterend',CPR.el);
+  setTimeout(()=>{ try{ CPR.mapa.invalidateSize() }catch(e){} },30);
+}
+function cprAbrir(cod){
+  if(CPR.cod===cod){ cprFechar(); return }
+  cprFechar();
+  const x=cpLista.find(y=>y.codigo===cod), card=document.querySelector('#cpLista .lkcard[data-c="'+CSS.escape(cod)+'"]');
+  if(!x||!card||x.destLat==null) return;
+  const el=document.createElement('div'); el.className='lkrota';
+  el.innerHTML='<div class="lkmapa"></div><div class="lketa"><b class="min">—</b><span>Calculando a rota...</span></div>';
+  card.querySelector('.lkbar').insertAdjacentElement('afterend',el);
+  const mapa=L.map(el.querySelector('.lkmapa'),{zoomControl:false,attributionControl:false}).setView([x.destLat,x.destLon],14);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(mapa);
+  const casa=L.marker([x.destLat,x.destLon],{icon:L.divIcon({className:'lkcasa',html:'<div><svg viewBox="0 0 24 24"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/></svg></div>',iconSize:[34,34],iconAnchor:[17,34]})}).addTo(mapa);
+  Object.assign(CPR,{cod,el,mapa,casa});
+  const b=card.querySelector('.lkrbt'); if(b) b.classList.add('on');
+  cprAtualizar(); CPR.timer=setInterval(cprAtualizar,15000);
+}
+async function cprAtualizar(){
+  if(!CPR.cod) return;
+  if(!$('cpview').classList.contains('show')){ cprFechar(); return }
+  if(document.visibilityState==='hidden') return;
+  const x=cpLista.find(y=>y.codigo===CPR.cod); if(!x){ cprFechar(); return }
+  const v=veiculos.find(q=>q.id===x.deviceId), p=cprPos(v), dest=[x.destLat,x.destLon], eta=CPR.el.querySelector('.lketa');
+  if(!p){ eta.innerHTML='<b class="min">—</b><span>Sem posição do veículo agora.</span>'; return }
+  if(!CPR.carro) CPR.carro=L.marker(p,{icon:L.divIcon({className:'',html:'<div class="lkcarro"></div>',iconSize:[18,18],iconAnchor:[9,9]})}).addTo(CPR.mapa); else CPR.carro.setLatLng(p);
+  if(!CPR.ajustou){ CPR.mapa.fitBounds(L.latLngBounds([p,dest]),{padding:[36,36],maxZoom:16}); CPR.ajustou=true }
+  const reta=cprDist(p,dest);
+  if(reta<150){ eta.classList.add('chegou'); eta.innerHTML='<b class="min">Chegou</b><span>O veículo está no local de destino.</span>'; if(CPR.linha){ CPR.linha.remove(); CPR.linha=null } return }
+  eta.classList.remove('chegou');
+  if(!CPR.busca && (!CPR.rota || Date.now()-CPR.rotaMs>60000 || cprDist(CPR.rotaDe,p)>150) && Date.now()-CPR.rotaMs>20000){
+    CPR.busca=true; CPR.rotaMs=Date.now(); const cod=CPR.cod;
+    try{
+      const r=await fetch('https://router.project-osrm.org/route/v1/driving/'+p[1]+','+p[0]+';'+dest[1]+','+dest[0]+'?overview=simplified&geometries=geojson');
+      const j=await r.json(), rt=j&&j.routes&&j.routes[0];
+      if(rt && CPR.cod===cod){
+        CPR.rota={m:rt.distance,s:rt.duration,ll:rt.geometry.coordinates.map(c=>[c[1],c[0]])}; CPR.rotaDe=p;
+        if(!CPR.linha) CPR.linha=L.polyline(CPR.rota.ll,{color:'#2f6bff',weight:5,opacity:.85}).addTo(CPR.mapa); else CPR.linha.setLatLngs(CPR.rota.ll);
+      }
+    }catch(e){ /* sem rota: mostra a distância em linha reta */ }
+    CPR.busca=false; if(CPR.cod!==cod) return;
+  }
+  if(CPR.rota && CPR.rotaDe && cprDist(CPR.rotaDe,p)<400){
+    const min=Math.max(1,Math.round(CPR.rota.s*1.25/60)); /* +25% por causa do trânsito (estimativa, igual à página do cliente) */
+    const chega=new Date(Date.now()+min*60000).toLocaleTimeString('pt-BR',{timeZone:'America/Sao_Paulo',hour:'2-digit',minute:'2-digit'});
+    eta.innerHTML='<b class="min">'+(min<60?min+'<small>min</small>':Math.floor(min/60)+'<small>h</small>'+(min%60?' '+(min%60)+'<small>min</small>':''))+'</b><span>Previsão de chegada <b>'+chega+'</b><br>'+cprKm(CPR.rota.m)+' pelas ruas · estimativa, pode variar com o trânsito</span>';
+  } else eta.innerHTML='<b class="min">'+cprKm(reta)+'</b><span>de distância em linha reta até o destino</span>';
 }
 function cpTick(){
   if(!$('cpview').classList.contains('show')){ clearInterval(cpTimer); cpTimer=null; return }
@@ -5528,6 +5609,8 @@ $('shareCopy').onclick=async()=>{ toast(await copiarTexto(shareTexto)?'Link copi
 $('shareWpp').onclick=()=>{ window.open('https://wa.me/'+(shareWppPara||'')+'?text='+encodeURIComponent(shareTexto),'_blank') };
 $('shareNativo').onclick=async()=>{ try{ await navigator.share({title:'Localização compartilhada',text:shareTexto}) }catch(e){} };
 async function compClique(e,lista){
+  const rb=e.target.closest('button[data-cprota]');
+  if(rb){ cprAbrir(rb.dataset.cprota); return }
   const vb=e.target.closest('button[data-cpver]');
   if(vb){ const vv=veiculos.find(q=>q.id===+vb.dataset.cpver); if(vv){ irPara('Mapa'); escolherVeiculo(vv,true) } return }
   const c=e.target.closest('button[data-cpcopy]');
