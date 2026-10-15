@@ -804,6 +804,15 @@ body.hist-on #mapCar{display:none!important}
 .fchk.apagada{opacity:.4;pointer-events:none}
 /* número do chip do rastreador: só administrador (10/10/2026) */
 .chiprow{display:none;align-items:center;gap:6px;margin-top:3px;font-size:12px;color:var(--mut)}
+/* 15/10/2026: último SMS do veículo e se o chip recebeu (só administrador) */
+.smsult{display:none;align-items:center;gap:6px;margin-top:4px;font-size:12px;color:var(--mut);cursor:pointer;max-width:100%;background:none;border:0;padding:0;font-family:inherit;text-align:left}
+.smsult.on{display:inline-flex}
+.smsult b{color:var(--txt);font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px}
+.smsult em{font-style:normal;font-weight:700;white-space:nowrap}
+.smsult .ok{color:var(--green)} .smsult .er{color:var(--red2)} .smsult .ag{color:var(--amber)}
+.smsult{flex-wrap:wrap;row-gap:1px}
+.smsult span{white-space:nowrap}
+main #sheet .smsult b{max-width:120px}
 .chiprow b{color:var(--txt);font-weight:650;letter-spacing:.2px}
 .chiprow.sem b{color:var(--amber);font-weight:600}
 #btnCopiaChip{width:24px;height:24px;border-radius:7px;border:1px solid var(--line);background:var(--card2);color:var(--mut);display:inline-flex;align-items:center;justify-content:center;padding:0;cursor:pointer}
@@ -1748,6 +1757,7 @@ nav button.on .nemo.txt{color:var(--red2)}
           <div class="plate" id="vPlate"></div>
           <div class="vmot" id="vMot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><b id="vMotNome"></b><a id="vMotWpp" href="#" target="_blank" rel="noopener" aria-label="WhatsApp do motorista" title="WhatsApp do motorista" style="display:none"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.2-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.6.8-.8 1-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.3-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.8 12 12 0 0 0 4.6 4c.6.3 1.1.4 1.5.5a3.6 3.6 0 0 0 1.6.1 2.6 2.6 0 0 0 1.7-1.2 2.1 2.1 0 0 0 .2-1.2c-.1-.1-.3-.2-.5-.3z"/></svg></a></div>
           <div class="chiprow" id="chipRow"><span>Chip</span><b id="vChip"></b><button type="button" id="btnCopiaChip" aria-label="Copiar número do chip" title="Copiar número do chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg></button><button type="button" id="btnWppCli" aria-label="Abrir WhatsApp do cliente" title="Abrir WhatsApp do cliente"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2a9.9 9.9 0 0 0-8.47 15.03L2 22l5.1-1.34A9.9 9.9 0 1 0 12.04 2zm0 1.8a8.1 8.1 0 1 1-4.13 15.07l-.3-.18-3.02.8.81-2.95-.2-.31A8.1 8.1 0 0 1 12.04 3.8zM8.6 7.4c-.17 0-.45.06-.69.32-.24.26-.9.88-.9 2.14s.92 2.48 1.05 2.65c.13.17 1.8 2.86 4.45 3.9 2.2.87 2.65.7 3.12.65.48-.04 1.55-.63 1.77-1.24.22-.6.22-1.13.15-1.24-.06-.1-.24-.17-.5-.3-.27-.13-1.55-.77-1.79-.86-.24-.09-.41-.13-.59.13-.17.26-.68.86-.83 1.03-.15.18-.3.2-.56.07-.27-.13-1.1-.4-2.1-1.3-.78-.69-1.3-1.55-1.45-1.8-.15-.27-.02-.4.11-.53.12-.12.27-.3.4-.45.13-.15.17-.26.26-.43.09-.18.04-.33-.02-.46-.07-.13-.6-1.44-.82-1.97-.22-.52-.44-.45-.6-.46h-.5z"/></svg></button></div>
+          <button type="button" class="smsult" id="smsUlt" title="Últimos SMS deste veículo"></button>
         </div>
         <div class="stwrap"><span class="status" id="vStatus"></span><div class="upd" id="vUpd"></div></div>
       </div>
@@ -4031,8 +4041,10 @@ function desbTexto(v,d){
   if((d.naoN||0)>=2) return 'Instabilidade de sinal: o sistema está tentando o desbloqueio automaticamente. Tente ligar o veículo de tempos em tempos.'; /* sem prazo para o cliente (pedido do dono) */
   if((d.naoN||0)===1){
     if(!d.smsAgendaFeito && d.smsAgendaMs){ const f=Math.max(0,Math.ceil((d.smsAgendaMs-Date.now())/1000)); return f>0 ? 'Enviando o desbloqueio por SMS em 0:'+String(f).padStart(2,'0')+'.' : 'Enviando o desbloqueio por SMS...' }
+    if(d.ultSmsStatus===1) return 'O rastreador recebeu o desbloqueio'+(d.ultSmsStatusMs?' às '+horaAtual(d.ultSmsStatusMs):'')+'. Tente ligar o veículo.'; /* 15/10/2026: o chip confirmou */
     return 'SMS de desbloqueio enviado'+(d.smsExtraUltMs?' às '+horaAtual(d.smsExtraUltMs):'')+'. Aguardando o rastreador receber.';
   }
+  if(d.smsEnviado && d.ultSmsStatus===1) return 'O rastreador recebeu o SMS de desbloqueio'+(d.ultSmsStatusMs?' às '+horaAtual(d.ultSmsStatusMs):'')+'. Aguardando ele confirmar.'; /* 15/10/2026 */
   if(d.smsEnviado) return 'SMS de desbloqueio enviado'+(d.smsEmMs?' às '+horaAtual(d.smsEmMs):'')+'. Aguardando o rastreador receber.';
   const erro=String(d.smsErro||'');
   if(/chip/i.test(erro) || (ehAdmin && v && !v.fone)) return base+' pela internet. Este aparelho não tem chip cadastrado: o SMS não será enviado.';
@@ -4063,6 +4075,101 @@ async function desbVerificar(){
 setInterval(desbVerificar,20000);
 /* 13/10/2026 (pedido do dono): com desbloqueio pendente, confere a cada 5 s (o servidor confere na hora com o rastreador) */
 setInterval(()=>{ if(Object.keys(desbPendente).length) desbVerificar() },5000);
+/* ===== STATUS DE ENTREGA DOS SMS — só administrador (15/10/2026) =====
+   O SMS Market avisa o servidor se o chip recebeu. Depois de QUALQUER SMS mandado pelo app (bloquear/desbloquear,
+   reset, catálogo, NOB, GPS, SMS em massa), o app acompanha e avisa: recebido / não recebido / ainda aguardando.
+   Um SMS sozinho: aviso detalhado. Vários de uma vez (massa): um resumo. No cartão: o último SMS do veículo. */
+const SMS_FINAL_ERRO=[-2,-3,-4,-5,-6,-8,-9,-10,-11,7,8,9];
+const SMS_TXT={'-1':'na fila','3':'preparando','6':'pausada','0':'enviado','1':'recebido','7':'expirou','8':'rejeitado','9':'não recebido no aparelho','-2':'falha de rede','-3':'número inválido','-4':'número fixo','-5':'lista negra','-6':'cancelado','-8':'conteúdo bloqueado','-9':'sem cobertura','-10':'pagamento restrito','-11':'limite atingido'};
+const smsAc={itens:[],rodando:false};
+let smsUltCache={}, smsUltSel=null, smsUltMs=0;
+async function fnSmsStatus(corpo){
+  const r=await fetch(DESB_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',body:JSON.stringify(Object.assign({acao:'smsStatus',token:lsGet('rg_token')},corpo))});
+  let j={}; try{ j=await r.json() }catch(e){}
+  if(!r.ok) throw new Error(j.erro||('Erro '+r.status));
+  return j.veiculos||{};
+}
+function smsSituacao(st){ /* [classe, ícone, texto] */
+  if(st===1) return ['ok','✅','recebido pelo chip'];
+  if(SMS_FINAL_ERRO.includes(st)) return ['er','❌','NÃO recebido ('+(SMS_TXT[String(st)]||('status '+st))+')'];
+  return ['ag','⏳','aguardando o chip receber'];
+}
+function smsAcompanhar(camp,dev,texto){
+  if(!ehAdmin || !camp) return;
+  smsAc.itens.push({camp:camp, dev:+dev, texto:texto||'', ini:Date.now(), st:null, avisado:false, avisou3:false, lote:false});
+  if(!smsAc.rodando){ smsAc.rodando=true; setTimeout(smsAcCiclo,6000) }
+  if(+dev===selId){ smsUltSel=null } /* recarrega a linha do cartão */
+}
+async function smsAcCiclo(){
+  const agora=Date.now();
+  smsAc.itens=smsAc.itens.filter(x=>agora-x.ini<35*60000 && !(x.avisado && x.final));
+  const pend=smsAc.itens.filter(x=>!x.final);
+  if(!pend.length){ smsAc.rodando=false; return }
+  try{
+    const vs=await fnSmsStatus({campanhas:pend.map(x=>x.camp)});
+    pend.forEach(x=>{ const it=(vs[String(x.dev)]||[]).find(e=>e.camp===x.camp); if(it){ x.st=it.status; x.final = it.status===1 || SMS_FINAL_ERRO.includes(it.status) } });
+    Object.keys(vs).forEach(k=>{ smsUltCache[k]=vs[k] }); smsUltPintar();
+  }catch(e){}
+  /* lotes: SMS mandados com menos de 20 s de diferença contam como "em massa" */
+  smsAc.itens.forEach(x=>{ x.lote = smsAc.itens.filter(y=>Math.abs(y.ini-x.ini)<20000).length>1 });
+  const nome=id=>{ const v=veiculos.find(q=>q.id===id); return v?v.nome:('veículo '+id) };
+  smsAc.itens.filter(x=>!x.lote && !x.avisado).forEach(x=>{
+    if(x.final){ x.avisado=true; const [c,ic,t]=smsSituacao(x.st); toast(ic+' SMS '+t+' · '+nome(x.dev)+(x.texto?' ('+x.texto+')':''), c==='ok'?6000:9000) }
+    else if(!x.avisou3 && agora-x.ini>3*60000){ x.avisou3=true; toast('⏳ O SMS para '+nome(x.dev)+' ainda não chegou no chip (rastreador sem sinal de celular?). Continuo acompanhando.',9000) }
+    if(!x.final && agora-x.ini>30*60000){ x.avisado=true; x.final=true }
+  });
+  /* resumo do lote: quando todos terminarem ou depois de 3 min */
+  const lotes={}; smsAc.itens.filter(x=>x.lote && !x.avisado).forEach(x=>{ const k=Math.floor(x.ini/20000); (lotes[k]=lotes[k]||[]).push(x) });
+  Object.values(lotes).forEach(l=>{
+    const todos=l.every(x=>x.final), velho=agora-Math.max(...l.map(x=>x.ini))>3*60000;
+    if(!todos && !velho) return;
+    const ok=l.filter(x=>x.st===1).length, er=l.filter(x=>SMS_FINAL_ERRO.includes(x.st)).length, ag=l.length-ok-er;
+    toast('SMS em massa ('+l.length+'): ✅ '+ok+' recebidos · ❌ '+er+' não recebidos'+(ag?' · ⏳ '+ag+' aguardando':'')+'. Veja cada um no cartão do veículo.',10000);
+    l.forEach(x=>{ x.avisado=true; x.final=true });
+  });
+  setTimeout(smsAcCiclo,8000);
+}
+/* qualquer SMS mandado pelo app passa por aqui (sem mexer em cada botão) */
+(function(){
+  const f0=window.fetch;
+  window.fetch=async function(u,o){
+    const r=await f0.apply(this,arguments);
+    try{
+      if(ehAdmin && String(u)===DESB_URL && o && typeof o.body==='string' && r.ok){
+        const b=JSON.parse(o.body);
+        if(b.acao==='smsBloquear'||b.acao==='smsDesbloquear'||b.acao==='smsConfig'){
+          r.clone().json().then(j=>{ if(j && j.campanha) smsAcompanhar(j.campanha,b.deviceId,j.texto||(b.acao==='smsBloquear'?'RELAY,1#':b.acao==='smsDesbloquear'?'RELAY,0#':'')) }).catch(()=>{});
+        }
+      }
+    }catch(e){}
+    return r;
+  };
+})();
+/* linha "Último SMS" no cartão (administrador) */
+function smsUltPintar(){
+  const el=$('smsUlt'); if(!el) return;
+  const l=ehAdmin && selId ? smsUltCache[String(selId)] : null, x=l && l[0];
+  if(!x){ el.classList.remove('on'); return }
+  const [c,ic,t]=smsSituacao(x.status), h=x.status===1&&x.statusMs ? ' às '+horaAtual(x.statusMs) : (SMS_FINAL_ERRO.includes(x.status)?'':' (enviado '+horaAtual(x.enviadoMs)+')');
+  el.innerHTML='<span>SMS</span><b>'+esc(x.texto)+'</b><em class="'+c+'">'+ic+' '+esc(t)+h+'</em>';
+  el.classList.add('on');
+}
+async function smsUltCarregar(){
+  if(!ehAdmin || !selId || document.visibilityState!=='visible') return;
+  const l=smsUltCache[String(selId)], x=l&&l[0];
+  const pendente = x && !(x.status===1 || SMS_FINAL_ERRO.includes(x.status)) && Date.now()-x.enviadoMs<2*3600000;
+  if(smsUltSel===selId && !(pendente && Date.now()-smsUltMs>15000)) return;
+  smsUltSel=selId; smsUltMs=Date.now();
+  try{ const vs=await fnSmsStatus({deviceId:selId}); Object.keys(vs).forEach(k=>{ smsUltCache[k]=vs[k] }) }catch(e){}
+  smsUltPintar();
+}
+setInterval(()=>{ try{ smsUltCarregar(); smsUltPintar() }catch(e){} },3000);
+$('smsUlt').onclick=()=>{
+  const l=smsUltCache[String(selId)]||[];
+  const linhas=l.map(x=>{ const [c,ic,t]=smsSituacao(x.status); return ic+' '+horaAtual(x.enviadoMs)+' · '+x.texto+'\n     '+t+(x.status===1&&x.statusMs?' às '+horaAtual(x.statusMs):'') }).join('\n');
+  pedirConfirmacao('Últimos SMS deste veículo', linhas||'Nenhum SMS registrado ainda.', 'Fechar', async()=>{}, {fechar:'Fechar'});
+};
+
 /* ===== "O VEÍCULO JÁ LIGA?" (14/10/2026, pedido do dono: o cliente não precisar ligar para a central) =====
    15 s depois do Desbloquear o app pergunta ao cliente.
      Sim                -> encerra.
@@ -4076,7 +4183,7 @@ const DP_IC_SMS='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stro
 const DP_IC_SINAL='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 8.5a15 15 0 0 1 20 0"/><path d="M5.5 12a10 10 0 0 1 13 0"/><path d="M9 15.5a5 5 0 0 1 6 0"/><circle cx="12" cy="19" r="1" fill="currentColor"/></svg>';
 let dp=null; /* etapa em andamento: {id, nome, rodada, timer} */
 function dpNome(id){ const v=veiculos.find(x=>x.id===id); return v?v.nome:'seu veículo' }
-function dpCancelar(id){ if(!dp || (id && dp.id!==id)) return; clearTimeout(dp.timer); clearInterval(dp.tick); dp=null; $('mDesbP').classList.remove('show') }
+function dpCancelar(id){ if(!dp || (id && dp.id!==id)) return; clearTimeout(dp.timer); clearInterval(dp.tick); clearInterval(dp.vigia); dp=null; $('mDesbP').classList.remove('show') }
 function dpAgendar(id){
   dpCancelar();
   dp={id:id, nome:dpNome(id), rodada:1, timer:0, tick:0};
@@ -4096,7 +4203,7 @@ function dpPerguntar(rodada){
   dp.rodada=rodada;
   dpTela(DP_IC_CARRO,'','O veículo já liga?',
     rodada===1 ? 'Tente ligar <b>'+esc(dp.nome)+'</b> agora e nos diga se funcionou.'
-               : 'Enviamos o desbloqueio por SMS direto para o rastreador. Tente ligar <b>'+esc(dp.nome)+'</b> de novo.',
+               : (dp.recebeu ? 'O rastreador recebeu o desbloqueio. Tente ligar <b>'+esc(dp.nome)+'</b> de novo.' : 'Enviamos o desbloqueio por SMS direto para o rastreador. Tente ligar <b>'+esc(dp.nome)+'</b> de novo.'),
     '<button type="button" class="dpsim" data-dp="sim">Sim, já liga</button><button type="button" class="dpnao" data-dp="nao">Ainda não</button>', true);
 }
 async function dpResponder(resp){
@@ -4127,7 +4234,15 @@ async function dpResponder(resp){
     let k=null; try{ k=await fnDesb('smsAgora',id) }catch(e){}
     if(k && k.estado==='pendente'){ desbPendente[id]=k; desbMostrar() }
     const ok = k && (k.smsAgoraEnviado || (k.smsAgendaFeito && !k.smsExtraErro));
-    dpContar(DP_AGUARDA_MS, DP_IC_SMS, ok?'SMS de desbloqueio enviado':'Enviando o desbloqueio', ok?'Aguarde o rastreador receber o SMS. Em seguida, tente ligar o veículo.':'O sistema está enviando o desbloqueio. Aguarde um instante.', ()=>dpPerguntar(2));
+    dpContar(DP_AGUARDA_MS, DP_IC_SMS, ok?'SMS de desbloqueio enviado':'Enviando o desbloqueio', ok?'Aguarde o rastreador receber o SMS. Em seguida, tente ligar o veículo.':'O sistema está enviando o desbloqueio. Aguarde um instante.', ()=>{ if(dp) clearInterval(dp.vigia); dpPerguntar(2) });
+    /* 15/10/2026: o SMS Market avisou que o chip RECEBEU -> conta para o cliente e pergunta logo (sem esperar o minuto inteiro) */
+    if(dp){ clearInterval(dp.vigia); dp.vigia=setInterval(()=>{
+      const d=desbPendente[id];
+      if(!dp || dp.recebeu || !d || d.ultSmsStatus!==1) return;
+      dp.recebeu=true; clearInterval(dp.vigia);
+      $('dpTit').textContent='O rastreador recebeu o desbloqueio'; $('dpTxt').textContent='Tente ligar o veículo agora.';
+      setTimeout(()=>{ if(dp && dp.rodada===1){ clearInterval(dp.tick); dpPerguntar(2) } },5000);
+    },1000) }
   });
   desbMostrar();
 }
