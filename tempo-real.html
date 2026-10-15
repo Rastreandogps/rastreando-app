@@ -929,6 +929,8 @@ main #sheet .smsult b{max-width:120px}
 #mComb .cbodo span{font-size:12.5px;color:var(--mut)}
 #mComb .cbodo b{font-size:18px;margin-left:auto;margin-right:10px}
 #mComb .cbodo{flex-wrap:wrap;gap:6px;align-items:center}
+#mComb .odobts{display:inline-flex;gap:6px;flex-wrap:wrap}
+#mComb .odoajustar{border-color:rgba(34,211,238,.55)!important;background:rgba(34,211,238,.10)!important;color:var(--cyan)!important}
 #mComb .odozerar{flex:none;height:32px;padding:0 12px;border-radius:999px;border:1.5px solid rgba(227,38,47,.55);background:rgba(227,38,47,.10);color:#e3262f;font:inherit;font-size:12.5px;font-weight:700;cursor:pointer}
 #mComb .cbsec{border:1px solid var(--line);border-radius:16px;padding:12px;margin-top:12px}
 #mComb .cbsect{font-weight:800;font-size:15px;margin-bottom:2px;display:flex;align-items:center;gap:6px}
@@ -2623,13 +2625,13 @@ nav button.on .nemo.txt{color:var(--red2)}
 <div class="modal alsheet" id="mComb">
   <div class="box2">
     <h3 id="cbTit">Odômetro</h3>
-    <div class="cbodo" id="cbOdoRow"><span>Odômetro agora</span><b id="cbOdo">—</b><button type="button" class="odozerar" id="odoZerarBtn">Zerar odômetro</button></div>
+    <div class="cbodo" id="cbOdoRow"><span>Odômetro agora</span><b id="cbOdo">—</b><span class="odobts"><button type="button" class="odozerar odoajustar" id="odoAjustarBtn">Ajustar</button><button type="button" class="odozerar" id="odoZerarBtn">Zerar odômetro</button></span></div>
 
     <div class="cbsec" id="cbSecComb">
       <div class="cbsect">⛽ Combustível</div>
       <div class="cbin">
-        <div><label for="cbKml">Consumo (km por litro)</label><input class="fld" id="cbKml" type="text" autocomplete="off" inputmode="decimal" placeholder="ex.: 12"></div>
-        <div><label for="cbPreco">Preço do litro (R$)</label><input class="fld" id="cbPreco" type="text" autocomplete="off" inputmode="decimal" placeholder="ex.: 6,29"></div>
+        <div><label for="cbKml">Consumo (km por litro)</label><input class="fld" id="cbKml" type="text" autocomplete="off" inputmode="text" placeholder="ex.: 12 ou 2,4"></div>
+        <div><label for="cbPreco">Preço do litro (R$)</label><input class="fld" id="cbPreco" type="text" autocomplete="off" inputmode="text" placeholder="ex.: 6,29"></div>
       </div>
       <div class="cbtot comb"><span>Gasto pelo odômetro</span><b id="cbValor">—</b><small id="cbDet"></small></div>
       <label class="fchk" id="cbMapaLbl"><input type="checkbox" id="cbMapa"> Mostrar no mapa</label>
@@ -2661,6 +2663,19 @@ nav button.on .nemo.txt{color:var(--red2)}
     <div class="actions2">
       <button class="btn btn-out" id="ozNao" type="button">Cancelar</button>
       <button class="btn btn-red" id="ozSim" type="button">Sim, zerar</button>
+    </div>
+  </div>
+</div>
+<!-- 15/10/2026: colocar o odômetro real do veículo (para conferir se o rastreador está medindo certo) -->
+<div class="modal" id="mOdoAjustar" style="z-index:1150;align-items:center">
+  <div class="box2" style="max-width:380px;width:calc(100% - 32px);border-radius:20px">
+    <h3>Odômetro real do veículo</h3>
+    <p id="oaTexto" style="font-size:13.5px;color:var(--mut);margin:6px 0 12px;line-height:1.45"></p>
+    <input class="fld" id="oaKm" type="text" inputmode="numeric" autocomplete="off" placeholder="ex.: 285.430">
+    <div class="ferr" id="oaErro"></div>
+    <div class="actions2">
+      <button class="btn btn-out" id="oaNao" type="button">Cancelar</button>
+      <button class="btn btn-red" id="oaSim" type="button" style="background:#0891b2">Salvar</button>
     </div>
   </div>
 </div>
@@ -4072,7 +4087,7 @@ function fechar(){ try{ if(scanAtivo) scanParar() }catch(e){} document.querySele
 document.querySelectorAll('[data-close]').forEach(b=>b.onclick=fechar);
 /* 15/10/2026: X no topo de toda janela que já tem um botão de fechar (o X faz o mesmo que esse botão) */
 document.querySelectorAll('.modal').forEach(m=>{
-  const proprio={mScan:'scanFechar',mBio:'bioNao',mImport:'imVoltar',mSmsM:'smCancelar',mLojaCanc:'lcVoltar',mOdoZerar:'ozNao',mCercaBloq:'cbqNao'}; /* janelas com botão de fechar próprio */
+  const proprio={mScan:'scanFechar',mBio:'bioNao',mImport:'imVoltar',mSmsM:'smCancelar',mLojaCanc:'lcVoltar',mOdoZerar:'ozNao',mOdoAjustar:'oaNao',mCercaBloq:'cbqNao'}; /* janelas com botão de fechar próprio */
   const box=m.querySelector('.box2'), fc=(proprio[m.id] && document.getElementById(proprio[m.id])) || m.querySelector('[data-close]');
   if(!box || !fc || m.querySelector('.almx,.ldx,.mxauto')) return;
   const x=document.createElement('button'); x.type='button'; x.className='mxauto'; x.title='Fechar'; x.setAttribute('aria-label','Fechar');
@@ -4991,6 +5006,35 @@ $('ozSim').onclick=async()=>{
     $('mOdoZerar').classList.remove('show');
     cbPintar(); rotularMarcador(v); atualizar(); toast('Odômetro zerado.');
   }catch(e){ if(!e.sessao){ $('ozErro').textContent=e.message||'Não consegui zerar.'; $('ozSim').disabled=false; $('ozSim').textContent='Sim, zerar' } }
+};
+/* --- 15/10/2026: ajustar o odômetro para o valor real do painel do veículo --- */
+$('odoAjustarBtn').onclick=()=>{
+  const v=cbVeic&&veiculos.find(x=>x.id===cbVeic.id); if(!v) return;
+  $('oaErro').textContent=''; $('oaSim').disabled=false; $('oaSim').textContent='Salvar'; $('oaKm').value='';
+  $('oaTexto').textContent='Digite o que aparece no painel de '+v.nome+' agora (só os km, sem vírgula). O app passa a contar a partir daí: depois de rodar, compare com o painel para ver se o rastreador está medindo certo. Hoje: '+(v.odo!=null?fmtOdo(v.odo):'—')+'.';
+  $('mOdoAjustar').classList.add('show'); setTimeout(()=>$('oaKm').focus(),60);
+};
+$('oaNao').onclick=()=>$('mOdoAjustar').classList.remove('show');
+$('oaSim').onclick=async()=>{
+  const v=cbVeic&&veiculos.find(x=>x.id===cbVeic.id); if(!v) return;
+  const km=Math.round(cbNum($('oaKm').value));
+  if(!($('oaKm').value.trim()) || !(km>=0 && km<=5000000)){ $('oaErro').textContent='Digite os km do painel (ex.: 285430).'; return }
+  $('oaSim').disabled=true; $('oaSim').textContent='Salvando...'; $('oaErro').textContent='';
+  try{
+    if(ehAdmin && !lsGet('rg_token')){ /* sem sessão por token: grava direto (os lembretes de manutenção não andam junto) */
+      const r=await api('/api/devices/'+v.id+'/accumulators',{method:'PUT',headers:JSONH,body:JSON.stringify({deviceId:v.id,totalDistance:km*1000})});
+      if(!r.ok) throw new Error(await msgErro(r,'Não consegui ajustar o odômetro'));
+    } else {
+      const r=await fetch(DESB_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',body:JSON.stringify({acao:'odoAjustar',token:lsGet('rg_token'),deviceId:v.id,km})});
+      let j={}; try{ j=await r.json() }catch(e){}
+      if(!r.ok) throw new Error(j.erro||('Não consegui ajustar o odômetro (erro '+r.status+').'));
+    }
+    const antes=odoKm(v)||0;
+    v.odo=km*1000; v.odoPos=v.posId;
+    const m=metaLer(v.id); if(m){ m.odo0=(m.odo0||0)+(km-antes); m.ult=km; lsJset('rg_meta_'+v.id,m); vcEnviar(v.id) } /* a meta mantém o que faltava */
+    $('mOdoAjustar').classList.remove('show');
+    cbPintar(); rotularMarcador(v); atualizar(); toast('Odômetro ajustado para '+km.toLocaleString('pt-BR')+' km.');
+  }catch(e){ if(!e.sessao){ $('oaErro').textContent=e.message||'Não consegui ajustar.'; $('oaSim').disabled=false; $('oaSim').textContent='Salvar' } }
 };
 $('cbMapa').addEventListener('change',()=>{ if(!cbVeic) return; lsFlagSet('rg_comb_mapa_'+cbVeic.id,$('cbMapa').checked); vcEnviar(cbVeic.id); cbPintar(); cbRotular() });
 $('mtComecar').onclick=()=>{
