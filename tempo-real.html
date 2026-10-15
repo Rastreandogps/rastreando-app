@@ -559,6 +559,8 @@ body.hist-on #mapCar{display:none!important}
 /* Aviso sem veículo */
 .vazio{display:none;position:absolute;left:16px;right:16px;bottom:24px;z-index:450;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;text-align:center;font-weight:600}
 .vazio small{display:block;font-weight:400;color:var(--mut);margin-top:4px}
+.vazio .vz-pc{display:none}
+@media (min-width:900px){.vazio .vz-pc{display:inline}}
 
 /* Cartão do veículo (arrastável) */
 .sheet{position:absolute;left:0;right:0;bottom:0;z-index:450;margin:0 auto;max-width:520px;background:var(--card);border:1px solid var(--line);border-bottom:0;border-radius:18px 18px 0 0;padding:0 16px 14px;box-shadow:0 -8px 24px rgba(0,0,0,.45);transition:transform .22s ease;will-change:transform}
@@ -620,49 +622,83 @@ body.hist-on #mapCar{display:none!important}
   .ladope button:hover{color:var(--txt)}
   .ladoaba{position:absolute;left:var(--lado);top:50%;transform:translateY(-50%);z-index:456;width:18px;height:56px;border:1px solid var(--line);border-left:none;border-radius:0 8px 8px 0;background:var(--card);color:var(--mut);font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
   .ladoaba:hover{color:var(--txt)}
-  /* cartão do veículo embaixo do mapa (14/10/2026, liberdade criativa pedida pelo dono):
-     3 blocos separados por linhas verticais finas — IDENTIFICAÇÃO | ENDEREÇO + NÚMEROS | AÇÕES */
-  .sheet{left:var(--lado);right:0;bottom:0;margin:0;width:auto;max-width:none;border-radius:0;border-left:none;border-right:none;box-shadow:0 -1px 0 var(--line);padding:14px 24px;max-height:300px;overflow-y:auto;transform:none!important;
-    display:grid;grid-template-columns:280px minmax(0,1fr) 350px;grid-auto-flow:row dense;column-gap:0;row-gap:0;align-content:start;
-    background-image:linear-gradient(var(--line),var(--line)),linear-gradient(var(--line),var(--line));background-repeat:no-repeat;
-    background-size:1px calc(100% - 28px),1px calc(100% - 28px);background-position:304px 14px,calc(100% - 374px) 14px}
-  .sheet > *{grid-column:2;margin:0;padding:0 24px}
-  .sheet .dragzone{grid-column:1;grid-row:1 / span 30;padding:0 24px 0 0;cursor:default}
-  .sheet .handlewrap{display:none}
-  .sheet .actions{grid-column:3;padding:0 0 0 24px;margin-bottom:8px}
-  .sheet .actions:last-child{margin-bottom:0}
-  .sheet .banner{display:none!important} /* 14/10/2026: a situação "Bloqueado" já aparece embaixo do nome */
-  .sheet .addr{order:1;margin:0 0 6px;font-size:13.5px;line-height:1.35;align-items:baseline}
-  .sheet .addr strong{font-size:14px}
-  .sheet .addr span{white-space:nowrap;flex:none}
-  .sheet #smsCusto{order:3}
-  /* identificação: nome grande, placa, motorista, chip; a situação vem logo abaixo, com as horas de GSM/GPS ao lado */
-  .sheet .dragzone .row{flex-direction:column;align-items:flex-start;gap:10px}
-  .sheet .vname{font-size:20px;line-height:1.15}
-  .sheet .plate{font-size:12.5px;margin-top:3px}
-  .sheet .stwrap{flex-direction:row;align-items:center;gap:10px}
-  .sheet .upd{font-size:11px;line-height:1.3}
-  /* números: uma faixa única, cada medida separada por uma linha vertical (sem caixinhas coloridas) */
-  .sheet .grid{order:2;display:flex;gap:0;margin:0;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--card2)}
-  .sheet .grid .stat{flex:1 1 0;min-width:0;border-radius:0;background:none;border:0;border-left:1px solid var(--line);box-shadow:none;padding:9px 6px 8px;transition:background .12s}
-  .sheet .grid .stat:first-child{border-left:0}
-  .sheet .grid .statbtn:hover{filter:none;background:rgba(56,225,230,.07)}
-  .sheet .grid .statbtn:active{transform:none;box-shadow:none}
-  .sheet .grid .statbtn::after{top:5px;right:8px;font-size:13px;opacity:.5}
-  .sheet .grid .stat b{font-size:15px}
-  .sheet .grid .stat span{font-size:10.5px;text-transform:uppercase;letter-spacing:.06em}
-  .sheet .grid .statbtn.odo span,.sheet .grid .statbtn.comb span,.sheet .grid .statbtn.loja span{color:var(--mut);font-weight:600}
-  .sheet .grid .statbtn.loja .lojabadge{top:4px;left:6px}
-  /* ações: Bloquear | Desbloquear | SMS | compartilhar ; depois Navegar | Ver a rua */
-  .sheet .actions .btn{height:44px;font-size:14px;border-radius:12px}
-  /* 14/10/2026 (pedido do dono): Bloquear e Desbloquear só com o cadeado (fechado vermelho, aberto verde), sem o texto */
-  #sheet .actions:not(.dois){grid-template-columns:repeat(4,minmax(0,1fr))!important}
-  #sheet #btnBlock,#sheet #btnUnblock{font-size:0;gap:0}
-  #sheet #btnBlock::before,#sheet #btnUnblock::before{width:22px;height:22px}
-  .sheet .actions.dois{margin-top:0}
-  .sheet .actions.navrow .btn{height:50px}
+  /* ===== CARTÃO DO VEÍCULO NO COMPUTADOR · Opção B (14/10/2026, escolhida pelo dono) =====
+     Cartão FLUTUANTE sobre o mapa, cantos arredondados, em 2 linhas:
+       linha 1: veículo + situação | Navegar | Ver a rua | SMS | Compartilhar | bloqueio (botão duplo: o estado atual fica aceso)
+       linha 2: endereço | velocidade · bateria · odômetro · combustível · loja
+     Só muda o visual: são os mesmos botões e as mesmas funções de antes. O celular não muda. */
+  main #sheet{left:calc(var(--lado) + 16px);right:16px;bottom:16px;margin:0 auto;width:auto;max-width:1120px;max-height:calc(100% - 32px);overflow:auto;
+    border:1px solid var(--line);border-radius:20px;padding:0;transform:none!important;background-image:none;
+    box-shadow:0 18px 50px rgba(0,0,0,.30),0 2px 8px rgba(0,0,0,.12);
+    display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto auto auto auto auto auto;column-gap:0;row-gap:0;align-items:center}
+  /* colunas: [identificação ocupa 1+2] [Navegar][Ver a rua][SMS][Compartilhar][🔒][🔓]; embaixo: endereço na 1, números da 2 até o fim */
+  main #sheet > *{margin:0;padding:0;grid-column:1 / -1}
+  main #sheet .handlewrap{display:none}
+  main #sheet .banner{display:none!important} /* a situação "Bloqueado" já aparece ao lado do nome */
+  main #sheet .actions:not(#admSmsRow){display:contents}
+  /* linha 1 · identificação */
+  main #sheet .dragzone{grid-column:1 / 3;grid-row:1;padding:14px 14px 12px 18px;cursor:default;min-width:0}
+  main #sheet .dragzone .row{flex-direction:row;align-items:center;justify-content:flex-start;gap:14px;flex-wrap:nowrap}
+  main #sheet .dragzone .row > div:first-of-type{min-width:0}
+  main #sheet .dragzone .row::before{content:"";width:46px;height:46px;border-radius:50%;flex:none;background:rgba(154,163,178,.14) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239aa3b2' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 16v-5l2-5h10l2 5v5'/%3E%3Cpath d='M3 16h18v3H3z'/%3E%3Ccircle cx='7.5' cy='16' r='1.5'/%3E%3Ccircle cx='16.5' cy='16' r='1.5'/%3E%3C/svg%3E") center/22px no-repeat}
+  main #sheet:has(#vStatus.st-move) .dragzone .row::before{background:rgba(51,209,122,.15) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2322c55e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 16v-5l2-5h10l2 5v5'/%3E%3Cpath d='M3 16h18v3H3z'/%3E%3Ccircle cx='7.5' cy='16' r='1.5'/%3E%3Ccircle cx='16.5' cy='16' r='1.5'/%3E%3C/svg%3E") center/22px no-repeat}
+  main #sheet:has(#vStatus.st-stop) .dragzone .row::before{background:rgba(56,225,230,.13) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2322b8c4' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 16v-5l2-5h10l2 5v5'/%3E%3Cpath d='M3 16h18v3H3z'/%3E%3Ccircle cx='7.5' cy='16' r='1.5'/%3E%3Ccircle cx='16.5' cy='16' r='1.5'/%3E%3C/svg%3E") center/22px no-repeat}
+  main #sheet:has(#vStatus.st-block) .dragzone .row::before{background:rgba(227,38,47,.13) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23e3262f' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 16v-5l2-5h10l2 5v5'/%3E%3Cpath d='M3 16h18v3H3z'/%3E%3Ccircle cx='7.5' cy='16' r='1.5'/%3E%3Ccircle cx='16.5' cy='16' r='1.5'/%3E%3C/svg%3E") center/22px no-repeat}
+  main #sheet .vname{font-size:18px;line-height:1.2;display:flex;align-items:center;flex-wrap:nowrap;white-space:nowrap}
+  main #sheet .vname .vign{width:26px;height:26px;margin-left:6px}
+  main #sheet .vname .vign svg{width:14px;height:14px}
+  main #sheet #btnRenome{width:26px;height:26px;border:0;background:transparent;margin-left:2px}
+  main #sheet .plate{font-size:12px;margin-top:2px}
+  main #sheet .chiprow{margin-top:3px}
+  main #sheet #btnCopiaChip{border:0;background:transparent}
+  main #sheet #btnWppCli{border:0;background:transparent;margin-left:0;width:26px}
+  main #sheet .stwrap{flex-direction:row;align-items:center;gap:10px;flex:none;margin-left:4px}
+  main #sheet .status{font-size:12px;padding:5px 11px}
+  main #sheet .upd{font-size:11px;line-height:1.35;text-align:left}
+  /* linha 1 · ações (sem texto pequeno, mais enxutas) */
+  main #sheet #btnNav{grid-column:3;grid-row:1}
+  main #sheet #btnRua{grid-column:4;grid-row:1}
+  main #sheet #btnSmsMenu{grid-column:5;grid-row:1}
+  main #sheet #btnShare{grid-column:6;grid-row:1}
+  main #sheet #btnBlock{grid-column:7;grid-row:1}
+  main #sheet #btnUnblock{grid-column:8;grid-row:1}
+  main #sheet .navbtn{height:40px;padding:0 14px 0 6px;border-radius:12px;gap:6px;margin-right:6px;background:var(--card2);border:1px solid var(--line)}
+  main #sheet .navbtn .navic{width:28px;height:28px;border-radius:9px;background:none;opacity:1}
+  main #sheet .navbtn .navic svg{width:18px;height:18px}
+  main #sheet .navbtn .navtx small{display:none}
+  main #sheet .navbtn .navtx b{font-size:13px;white-space:nowrap}
+  main #sheet #btnSmsMenu,main #sheet #btnShare{width:40px;height:40px;border-radius:12px;margin-right:6px;padding:0}
+  main #sheet #btnSmsMenu span{font-size:8.5px}
+  main #sheet #btnSmsMenu svg{width:15px;height:15px}
+  main #sheet #btnShare svg{width:18px;height:18px}
+  /* bloqueio: botão duplo [cadeado fechado | cadeado aberto]; o estado atual do veículo fica aceso */
+  main #sheet #btnBlock,main #sheet #btnUnblock{width:48px;height:40px;font-size:0;gap:0;padding:0;box-shadow:none;transition:background .2s,color .2s}
+  main #sheet #btnBlock::before,main #sheet #btnUnblock::before{width:20px;height:20px}
+  main #sheet #btnBlock{border-radius:12px 0 0 12px;margin-left:6px;background:rgba(227,38,47,.08);color:#e3262f;border:1px solid rgba(227,38,47,.30);border-right:0}
+  main #sheet #btnUnblock{border-radius:0 12px 12px 0;margin-right:16px;background:linear-gradient(180deg,#22c55e,#16a34a);color:#fff;border:1px solid #16a34a}
+  main #sheet.blq #btnBlock{background:linear-gradient(180deg,#ef3b43,#c81e26);color:#fff;border-color:#c81e26}
+  main #sheet.blq #btnUnblock{background:rgba(22,163,74,.08);color:var(--green);border-color:rgba(22,163,74,.30);border-left:0}
+  main #sheet #btnBlock:disabled,main #sheet #btnUnblock:disabled{opacity:.45}
+  /* linha 2 · faixa de baixo: endereço + números, separados por linhas finas */
+  main #sheet #addrRow{grid-column:1;grid-row:2;align-self:stretch;flex-direction:column;align-items:flex-start;justify-content:center;gap:3px;
+    padding:10px 16px 11px 18px;border-top:1px solid var(--line);background:rgba(127,127,127,.05);font-size:13px;line-height:1.3;min-width:0}
+  main #sheet #addrRow strong{font-size:13.5px;font-weight:650}
+  main #sheet #addrRow span{font-size:12px;color:var(--amber);font-weight:600;white-space:normal}
+  main #sheet #addrRow span:empty{display:none}
+  main #sheet .grid{grid-column:2 / -1;grid-row:2;align-self:stretch;display:flex;gap:0;margin:0;border:0;border-top:1px solid var(--line);border-radius:0;background:rgba(127,127,127,.05);overflow:hidden}
+  main #sheet .grid .stat{flex:1 1 0;min-width:84px;border-radius:0;background:none;border:0;border-left:1px solid var(--line);box-shadow:none;padding:9px 6px 8px;transition:background .12s;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  main #sheet .grid .statbtn:hover{filter:none;background:rgba(56,225,230,.07)}
+  main #sheet .grid .statbtn:active{transform:none;box-shadow:none}
+  main #sheet .grid .statbtn::after{top:5px;right:8px;font-size:13px;opacity:.45}
+  main #sheet .grid .stat b{font-size:15.5px}
+  main #sheet .grid .stat span{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--mut);font-weight:700}
+  main #sheet .grid .stat.bv{gap:2px}
+  main #sheet .grid .statbtn.loja .lojabadge{top:4px;left:6px}
+  /* linha 3 (só quando aparece): distância, aviso de desbloqueio, fileira de SMS */
+  main #sheet #distRow,main #sheet #desbRow,main #sheet #admSmsRow,main #sheet #smsCusto{grid-column:1 / -1;padding:8px 18px;border-top:1px solid var(--line)}
   .hpanel{left:calc(var(--lado) + 16px)}
   .vazio{left:calc(var(--lado) + 16px);right:auto;width:360px}
+  .vazio .vz-cel{display:none}
 }
 .dragzone{touch-action:none;cursor:grab;user-select:none;-webkit-user-select:none}
 .handlewrap{padding:10px 0 12px}
@@ -1595,7 +1631,7 @@ nav button.on .nemo.txt{color:var(--red2)}
   <button class="follow" id="btnAncora" aria-label="Cerca rápida (âncora)" title="Cerca rápida (âncora)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="2.2"/><path d="M12 7.2V21"/><path d="M8 11h8"/><path d="M5 14c0 4 3 7 7 7s7-3 7-7"/></svg><span class="lbl">Âncora</span></button>
 
   <button id="mapCar" type="button" aria-label="Você tem pedido aguardando pagamento" title="Pedido aguardando pagamento"><svg viewBox="0 0 24 24"><path d="M6 6h15l-1.5 9h-12z"/><path d="M6 6L5 3H2"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/></svg><span class="mcn" id="mapCarN">1</span></button>
-  <div class="vazio" id="vazio">Nenhum veículo selecionado<small>Abra a aba Veículos para escolher.</small></div>
+  <div class="vazio" id="vazio">Nenhum veículo selecionado<small><span class="vz-cel">Abra a aba Veículos para escolher.</span><span class="vz-pc">Escolha um veículo na lista ao lado.</span></small></div>
 
   <section class="sheet" id="sheet">
     <div class="dragzone" id="dragzone">
@@ -3356,6 +3392,7 @@ function atualizar(){
     $('vAgo').textContent = sp ? 'Sem posição no mapa' : (gpsVelho ? 'Sem sinal de GPS '+tempo(Date.now()-v.fix) : '');
     $('addrRow').style.display = (endereco || gpsVelho) ? 'flex' : 'none';
     $('banner').classList.toggle('show',v.bloq);
+    sheet.classList.toggle('blq',!!v.bloq); /* 14/10/2026: no computador acende o lado certo do botão duplo de bloqueio */
     /* sem sinal ainda: Bloquear/Desbloquear pela internet não fazem sentido (os botões de SMS ficam ativos) */
     $('btnBlock').disabled=cmdAndamento||sp;
     mostrarBotoesSms();
@@ -3460,7 +3497,7 @@ function ladoAtualizar(){
 let ladoCartaoUlt=-1;
 function ladoCartao(){
   const m=$('main'); if(!telaLarga()){ m.style.removeProperty('--cartao'); if(ladoCartaoUlt!==0){ ladoCartaoUlt=0; try{ map.invalidateSize() }catch(e){} } return }
-  const h = sheet.style.display!=='none' ? Math.min(300, sheet.offsetHeight) : 0;
+  const h = 0; /* 14/10/2026 (opção B): o cartão flutua sobre o mapa, então o mapa vai até embaixo */
   if(h===ladoCartaoUlt) return; ladoCartaoUlt=h;
   m.style.setProperty('--cartao', h+'px');
   setTimeout(()=>{ try{ map.invalidateSize() }catch(e){} },60);
