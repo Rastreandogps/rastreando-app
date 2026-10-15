@@ -1239,6 +1239,24 @@ nav button.on .nemo.txt{color:var(--red2)}
 .box2{width:100%;max-width:520px;background:var(--card);border:1px solid var(--line);border-radius:18px 18px 0 0;padding:20px 16px calc(16px + env(safe-area-inset-bottom))}
 .box2 h3{font-size:18px;margin-bottom:8px}
 .box2 p{font-size:14px;color:var(--mut);line-height:1.45;margin-bottom:12px}
+/* "O veículo já liga?" (14/10/2026): pergunta ao cliente depois do desbloqueio */
+#mDesbP{align-items:center;padding:16px;z-index:1500}
+#mDesbP .box2{border-radius:22px;max-width:400px;text-align:center;padding:24px 20px 18px}
+#mDesbP .dpic{width:64px;height:64px;border-radius:50%;margin:0 auto 12px;display:flex;align-items:center;justify-content:center;background:rgba(22,163,74,.12);color:#16a34a}
+#mDesbP .dpic svg{width:32px;height:32px}
+#mDesbP .dpic.am{background:rgba(245,184,61,.14);color:var(--amber)}
+#mDesbP h3{font-size:20px;font-weight:800;margin-bottom:6px}
+#mDesbP p{font-size:14.5px;line-height:1.5;margin-bottom:16px}
+#mDesbP p b{color:var(--txt)}
+#mDesbP .dpbts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+#mDesbP .dpbts button{height:52px;border-radius:14px;border:0;font:inherit;font-size:15.5px;font-weight:800;cursor:pointer}
+#mDesbP .dpsim{background:linear-gradient(180deg,#22c55e,#16a34a);color:#fff;box-shadow:0 6px 16px rgba(22,163,74,.28)}
+#mDesbP .dpnao{background:rgba(227,38,47,.10);color:#e3262f;border:1px solid rgba(227,38,47,.32)!important}
+#mDesbP .dpok{grid-column:1 / -1;background:var(--card2);color:var(--txt);border:1px solid var(--line)!important}
+#mDesbP .dplonge{display:block;margin:14px auto 0;background:none;border:0;color:var(--mut);font:inherit;font-size:13.5px;font-weight:600;text-decoration:underline;text-underline-offset:3px;cursor:pointer;padding:4px}
+#mDesbP .dprel{font-size:44px;font-weight:900;letter-spacing:.02em;margin:4px 0 6px;font-variant-numeric:tabular-nums;color:var(--txt)}
+#mDesbP .dpbar{height:6px;border-radius:999px;background:var(--card2);overflow:hidden;margin:0 0 16px}
+#mDesbP .dpbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#22c55e,#16a34a);transition:width 1s linear}
 .warn{background:rgba(245,184,61,.1);border:1px solid rgba(245,184,61,.35);color:var(--amber);border-radius:10px;padding:10px 12px;font-size:13px;font-weight:600;margin-bottom:12px;display:none}
 .warn.show{display:block}
 .box2 .actions2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
@@ -2538,6 +2556,18 @@ nav button.on .nemo.txt{color:var(--red2)}
       <button class="btn btn-out" data-close type="button">Cancelar</button>
       <button class="btn btn-red" id="sSalvar" type="button">Salvar</button>
     </div>
+  </div>
+</div>
+<!-- "O veículo já liga?" (14/10/2026): o conteúdo muda conforme a etapa (pergunta, contagem, aviso) -->
+<div class="modal" id="mDesbP" role="dialog" aria-modal="true" aria-labelledby="dpTit">
+  <div class="box2">
+    <div class="dpic" id="dpIc"></div>
+    <h3 id="dpTit"></h3>
+    <p id="dpTxt"></p>
+    <div id="dpRel" class="dprel" style="display:none"></div>
+    <div id="dpBar" class="dpbar" style="display:none"><i></i></div>
+    <div class="dpbts" id="dpBts"></div>
+    <button type="button" class="dplonge" id="dpLonge" style="display:none">Não estou perto do veículo</button>
   </div>
 </div>
 <div class="modal" id="mConf">
@@ -3914,6 +3944,7 @@ $('cmdOk').onclick=async ()=>{
     if(!bloquear){
       // desbloqueio garantido: o sistema continua tentando sozinho (internet e SMS) até confirmar
       const reg=await desbPedir(v.id);
+      if(reg && !ehAdmin) dpAgendar(v.id); /* 14/10/2026: daqui a 15 s pergunta "O veículo já liga?" (só para o cliente) */
       if(!online){
         if(!reg) throw new Error('Rastreador sem sinal e não consegui registrar o desbloqueio automático. Tente de novo em instantes ou fale com a Rastreando GPS.');
         toast('Rastreador sem sinal. O desbloqueio ficou guardado e o sistema vai insistir sozinho, inclusive por SMS. Não precisa apertar de novo.',7000);
@@ -3958,11 +3989,11 @@ $('cmdOk').onclick=async ()=>{
    O número do chip nunca vem para o app. "Bloquear" cancela o desbloqueio pendente. */
 const DESB_URL = 'https://southamerica-east1-rastreando-assinaturas.cloudfunctions.net/rastreamentoDesbloqueio';
 const desbPendente = {};   // id do veículo -> último status recebido (só enquanto pendente)
-async function fnDesb(acao,deviceId){
+async function fnDesb(acao,deviceId,extra){
   const tok=lsGet('rg_token');
   if(!tok) throw new Error('sem token');
   const r=await fetch(DESB_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',
-    body:JSON.stringify({acao:acao,token:tok,deviceId:deviceId})});
+    body:JSON.stringify(Object.assign({acao:acao,token:tok,deviceId:deviceId},extra||{}))});
   let j={}; try{ j=await r.json() }catch(e){}
   if(!r.ok) throw new Error(j.erro||('Erro '+r.status));
   return j;
@@ -3977,6 +4008,7 @@ async function desbPedir(id){
 }
 function desbCancelar(id){
   delete desbPendente[id]; lsDel('rg_desb_'+id); desbMostrar();
+  try{ dpCancelar(id) }catch(e){}
   if(!lsGet('rg_token')) return;
   lsSet('rg_desb_cancelar_'+id,'1');
   fnDesb('cancelar',id).then(()=>lsDel('rg_desb_cancelar_'+id)).catch(()=>{});
@@ -3995,6 +4027,12 @@ function desbMostrar(){
 let desbUltCheck=0;
 function desbTexto(v,d){
   const base='Desbloqueio em andamento: o sistema está tentando sozinho';
+  /* 14/10/2026: o cliente respondeu que o veículo não liga */
+  if((d.naoN||0)>=2) return 'Instabilidade de sinal: o sistema está tentando o desbloqueio automaticamente. Tente ligar o veículo de tempos em tempos.'; /* sem prazo para o cliente (pedido do dono) */
+  if((d.naoN||0)===1){
+    if(!d.smsAgendaFeito && d.smsAgendaMs){ const f=Math.max(0,Math.ceil((d.smsAgendaMs-Date.now())/1000)); return f>0 ? 'Enviando o desbloqueio por SMS em 0:'+String(f).padStart(2,'0')+'.' : 'Enviando o desbloqueio por SMS...' }
+    return 'SMS de desbloqueio enviado'+(d.smsExtraUltMs?' às '+horaAtual(d.smsExtraUltMs):'')+'. Aguardando o rastreador receber.';
+  }
   if(d.smsEnviado) return 'SMS de desbloqueio enviado'+(d.smsEmMs?' às '+horaAtual(d.smsEmMs):'')+'. Aguardando o rastreador receber.';
   const erro=String(d.smsErro||'');
   if(/chip/i.test(erro) || (ehAdmin && v && !v.fone)) return base+' pela internet. Este aparelho não tem chip cadastrado: o SMS não será enviado.';
@@ -4016,8 +4054,8 @@ async function desbVerificar(){
       const j=await fnDesb('status',v.id);
       if(j.estado==='pendente'){ desbPendente[v.id]=j; continue }
       delete desbPendente[v.id]; lsDel('rg_desb_'+v.id);
-      if(j.estado==='confirmado'){ v.bloq=false; marcarBloq(v.id,false,false); toast('Desbloqueio de '+v.nome+' confirmado pelo rastreador.',6000) }
-      else if(j.estado==='expirado') toast('Não conseguimos confirmar o desbloqueio de '+v.nome+'. Fale com a Rastreando GPS.',8000);
+      if(j.estado==='confirmado'){ v.bloq=false; marcarBloq(v.id,false,false); if(j.clienteResp!=='sim') toast('Desbloqueio de '+v.nome+' confirmado pelo rastreador.',6000) }
+      else if(j.estado==='expirado') toast('O rastreador de '+v.nome+' não confirmou o desbloqueio. Se o veículo ainda não liga, desbloqueie de novo.',8000); /* 14/10/2026: sem pedir para o cliente ligar */
     }catch(e){}
   }
   desbMostrar();
@@ -4025,6 +4063,88 @@ async function desbVerificar(){
 setInterval(desbVerificar,20000);
 /* 13/10/2026 (pedido do dono): com desbloqueio pendente, confere a cada 5 s (o servidor confere na hora com o rastreador) */
 setInterval(()=>{ if(Object.keys(desbPendente).length) desbVerificar() },5000);
+/* ===== "O VEÍCULO JÁ LIGA?" (14/10/2026, pedido do dono: o cliente não precisar ligar para a central) =====
+   15 s depois do Desbloquear o app pergunta ao cliente.
+     Sim                -> encerra.
+     Ainda não          -> contagem de 60 s, o SMS de desbloqueio sai, espera 60 s e pergunta de novo.
+     Ainda não (2ª vez) -> aviso de instabilidade de sinal; o SERVIDOR manda o SMS a cada 20 min por 1 hora (mesmo com o app fechado).
+     Não estou perto    -> segue como antes (o sistema insiste sozinho e manda o SMS em 3 min).
+   Se o app fechar no meio, o servidor continua a parte dele (o SMS de 60 s sai do mesmo jeito). */
+const DP_ESPERA_MS=15000, DP_SMS_MS=60000, DP_AGUARDA_MS=60000;
+const DP_IC_CARRO='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 16v-5l2-5h10l2 5v5"/><path d="M3 16h18v3H3z"/><circle cx="7.5" cy="16" r="1.5"/><circle cx="16.5" cy="16" r="1.5"/></svg>';
+const DP_IC_SMS='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v11H9l-5 4z"/><path d="M8 9.5h8M8 12.5h5"/></svg>';
+const DP_IC_SINAL='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 8.5a15 15 0 0 1 20 0"/><path d="M5.5 12a10 10 0 0 1 13 0"/><path d="M9 15.5a5 5 0 0 1 6 0"/><circle cx="12" cy="19" r="1" fill="currentColor"/></svg>';
+let dp=null; /* etapa em andamento: {id, nome, rodada, timer} */
+function dpNome(id){ const v=veiculos.find(x=>x.id===id); return v?v.nome:'seu veículo' }
+function dpCancelar(id){ if(!dp || (id && dp.id!==id)) return; clearTimeout(dp.timer); clearInterval(dp.tick); dp=null; $('mDesbP').classList.remove('show') }
+function dpAgendar(id){
+  dpCancelar();
+  dp={id:id, nome:dpNome(id), rodada:1, timer:0, tick:0};
+  dp.timer=setTimeout(()=>dpPerguntar(1),DP_ESPERA_MS);
+}
+function dpTela(ic,icCls,tit,txtHtml,bts,longe){
+  $('dpIc').className='dpic'+(icCls?' '+icCls:''); $('dpIc').innerHTML=ic;
+  $('dpTit').textContent=tit; $('dpTxt').innerHTML=txtHtml;
+  $('dpRel').style.display='none'; $('dpBar').style.display='none';
+  $('dpBts').innerHTML=bts; $('dpLonge').style.display=longe?'block':'none';
+  $('mDesbP').classList.add('show');
+}
+function dpPerguntar(rodada){
+  if(!dp) return;
+  /* outra janela aberta (Loja, Faturas...): espera ela fechar para não atropelar */
+  if([...document.querySelectorAll('.modal.show')].some(m=>m.id!=='mDesbP')){ dp.timer=setTimeout(()=>dpPerguntar(rodada),3000); return }
+  dp.rodada=rodada;
+  dpTela(DP_IC_CARRO,'','O veículo já liga?',
+    rodada===1 ? 'Tente ligar <b>'+esc(dp.nome)+'</b> agora e nos diga se funcionou.'
+               : 'Enviamos o desbloqueio por SMS direto para o rastreador. Tente ligar <b>'+esc(dp.nome)+'</b> de novo.',
+    '<button type="button" class="dpsim" data-dp="sim">Sim, já liga</button><button type="button" class="dpnao" data-dp="nao">Ainda não</button>', true);
+}
+async function dpResponder(resp){
+  if(!dp) return;
+  const id=dp.id, rodada=dp.rodada;
+  $('dpBts').querySelectorAll('button').forEach(b=>b.disabled=true);
+  let j=null;
+  try{ j=await fnDesb('resposta',id,{resp:resp}) }catch(e){ j=null }
+  if(j && j.estado==='pendente'){ desbPendente[id]=j; lsSet('rg_desb_'+id,String(Date.now())) }
+  if(resp==='sim'){
+    dpCancelar(); delete desbPendente[id]; lsDel('rg_desb_'+id);
+    const v=veiculos.find(x=>x.id===id); if(v){ v.bloq=false; marcarBloq(id,false,false) }
+    desbMostrar(); atualizar();
+    toast('Ótimo! Desbloqueio concluído.',5000); return;
+  }
+  if(resp==='longe'){
+    dpCancelar(); desbMostrar();
+    toast('Tudo bem. O sistema continua tentando sozinho e, se precisar, envia o desbloqueio por SMS automaticamente.',7000); return;
+  }
+  /* "Ainda não" */
+  if(rodada>=2){
+    dpTela(DP_IC_SINAL,'am','Instabilidade de sinal',
+      'O rastreador de <b>'+esc(dp.nome)+'</b> está com instabilidade de sinal. Não se preocupe: o sistema está tentando o desbloqueio <b>automaticamente</b>.<br><br>Não precisa apertar de novo. Tente ligar o veículo de tempos em tempos.',
+      '<button type="button" class="dpok" data-dp="fim">Entendi</button>', false);
+    desbMostrar(); return;
+  }
+  dpContar(DP_SMS_MS, DP_IC_SMS, 'Enviando o desbloqueio por SMS', 'Fique perto do veículo. O desbloqueio vai por SMS direto para o rastreador.', async()=>{
+    let k=null; try{ k=await fnDesb('smsAgora',id) }catch(e){}
+    if(k && k.estado==='pendente'){ desbPendente[id]=k; desbMostrar() }
+    const ok = k && (k.smsAgoraEnviado || (k.smsAgendaFeito && !k.smsExtraErro));
+    dpContar(DP_AGUARDA_MS, DP_IC_SMS, ok?'SMS de desbloqueio enviado':'Enviando o desbloqueio', ok?'Aguarde o rastreador receber o SMS. Em seguida, tente ligar o veículo.':'O sistema está enviando o desbloqueio. Aguarde um instante.', ()=>dpPerguntar(2));
+  });
+  desbMostrar();
+}
+function dpContar(ms, ic, tit, txt, fim){
+  if(!dp) return;
+  clearTimeout(dp.timer); clearInterval(dp.tick);
+  const ate=Date.now()+ms, total=ms;
+  dpTela(ic,'',tit,esc(txt),'',false);
+  $('dpRel').style.display='block'; $('dpBar').style.display='block';
+  const pinta=()=>{ const f=Math.max(0,ate-Date.now()), sg=Math.ceil(f/1000);
+    $('dpRel').textContent=Math.floor(sg/60)+':'+String(sg%60).padStart(2,'0');
+    $('dpBar').firstElementChild.style.width=Math.min(100,100*(1-f/total))+'%';
+    if(f<=0 && dp){ clearInterval(dp.tick); dp.tick=0; fim() } };
+  pinta(); dp.tick=setInterval(pinta,500);
+}
+$('dpBts').addEventListener('click',e=>{ const b=e.target.closest('[data-dp]'); if(!b) return; const r=b.dataset.dp; if(r==='fim'){ dpCancelar(); return } dpResponder(r) });
+$('dpLonge').onclick=()=>dpResponder('longe');
 /* ===== SITUAÇÃO DE BLOQUEIO NO SERVIDOR (check-up de 10/10/2026, item 1.3) =====
    Quando a posição do rastreador não diz se está bloqueado, o app usava uma anotação só deste celular.
    Agora a última situação CONFIRMADA fica no servidor (rastreamento_bloq_estado) e todos os celulares leem igual.
