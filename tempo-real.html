@@ -1781,6 +1781,12 @@ nav button.on .nemo.txt{color:var(--red2)}
 /* 12/10/2026: cabeçalho um pouco mais justo em tela estreita, para a tarja com saldo caber ao lado dos 3 botões (tema, cadeado, sair) */
 @media (max-width:420px){ header{padding-left:10px;padding-right:10px;gap:6px} .hdir{gap:6px} .brand{gap:8px} }
 /* ===== MENSALIDADE PELO CARD DO CLIENTE (15/10/2026): mesma calculadora do ajuste-assinatura ===== */
+.fcflista{background:var(--card2);border-radius:12px;padding:4px 12px}
+.fcflin{display:flex;gap:10px;justify-content:space-between;padding:8px 0;border-top:1px solid var(--line);font-size:13px}
+.fcflin:first-child{border-top:0}
+.fcflin span{color:var(--mut);flex:none}
+.fcflin b{text-align:right;overflow-wrap:anywhere}
+.fcflin.dest b{color:var(--txt);font-size:13.5px}
 .asbtn{width:32px;height:32px;flex:none;border-radius:50%;background:#0b5fff;border:0;display:inline-flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(11,95,255,.3);margin:2px 0 2px 6px;vertical-align:middle;cursor:pointer}
 .asbtn:active{transform:scale(.94)}
 .asbtn svg{width:17px;height:17px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
@@ -2788,6 +2794,19 @@ nav button.on .nemo.txt{color:var(--red2)}
     <div class="actions2">
       <button class="btn btn-out" id="ozNao" type="button">Cancelar</button>
       <button class="btn btn-red" id="ozSim" type="button">Sim, zerar</button>
+    </div>
+  </div>
+</div>
+<!-- 15/10/2026 (fichas): confirmar antes de gerar o link (a ficha é descontada e não volta) -->
+<div class="modal" id="mFchConf" style="z-index:1150;align-items:center">
+  <div class="box2" style="max-width:400px;width:calc(100% - 32px);border-radius:20px">
+    <h3 style="text-align:center;margin-top:4px">Confira antes de gerar</h3>
+    <p style="font-size:13px;color:var(--mut);margin:4px 0 10px;text-align:center">Está tudo certo? Principalmente o endereço.</p>
+    <div class="fcflista" id="fcLista"></div>
+    <div class="fchbar" style="margin:10px 0 12px"><span class="fchmoeda"><svg viewBox="0 0 24 24"><path d="M14.5 8.5h-3.2a2 2 0 000 4h1.4a2 2 0 010 4H9.5M12 7v1.5M12 16.5V18"/></svg></span><span class="fchbt"><b id="fcFicha">Será descontada 1 ficha</b><small>Depois de gerado, a ficha não volta.</small></span></div>
+    <div class="actions2">
+      <button class="btn btn-out" id="fcNao" type="button">Corrigir</button>
+      <button class="btn" id="fcSim" type="button" style="background:#16a34a;color:#fff">Está tudo certo</button>
     </div>
   </div>
 </div>
@@ -4212,7 +4231,7 @@ function fechar(){ try{ if(scanAtivo) scanParar() }catch(e){} document.querySele
 document.querySelectorAll('[data-close]').forEach(b=>b.onclick=fechar);
 /* 15/10/2026: X no topo de toda janela que já tem um botão de fechar (o X faz o mesmo que esse botão) */
 document.querySelectorAll('.modal').forEach(m=>{
-  const proprio={mScan:'scanFechar',mBio:'bioNao',mImport:'imVoltar',mSmsM:'smCancelar',mLojaCanc:'lcVoltar',mOdoZerar:'ozNao',mOdoAjustar:'oaNao',mCercaBloq:'cbqNao'}; /* janelas com botão de fechar próprio */
+  const proprio={mScan:'scanFechar',mBio:'bioNao',mImport:'imVoltar',mSmsM:'smCancelar',mLojaCanc:'lcVoltar',mOdoZerar:'ozNao',mOdoAjustar:'oaNao',mCercaBloq:'cbqNao',mFchConf:'fcNao'}; /* janelas com botão de fechar próprio */
   const box=m.querySelector('.box2'), fc=(proprio[m.id] && document.getElementById(proprio[m.id])) || m.querySelector('[data-close]');
   if(!box || !fc || m.querySelector('.almx,.ldx,.mxauto')) return;
   const x=document.createElement('button'); x.type='button'; x.className='mxauto'; x.title='Fechar'; x.setAttribute('aria-label','Fechar');
@@ -5471,7 +5490,25 @@ $('tpNum').addEventListener('input',()=>{ const v=$('tpNum').value.replace(/\D/g
 $('tpNum').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); $('tpUsar').click() } });
 $('tpUni').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return; tpUnid=+b.dataset.u; document.querySelectorAll('#tpUni button').forEach(x=>x.classList.toggle('sel',x===b)); tpValidarOutro() });
 $('tpUsar').onclick=()=>{ const m=tpValidarOutro(); if(m===null) return; tpEscolher(m,true); $('tpNum').blur(); tpGaveta(false) };
-$('shareGerar').onclick=async()=>{
+/* 15/10/2026 (fichas): quem paga ficha confere antes (veículo, endereço, WhatsApp, tempo); a ficha não volta depois */
+$('shareGerar').onclick=()=>{
+  const v=veicShare(); if(!v) return;
+  if(ehAdmin || permCli.fichas!==true){ shareGerarAgora(); return }
+  let cam; try{ cam=camDados() }catch(e){ $('shareErro').textContent=e.message; return }
+  $('shareErro').textContent='';
+  const L=[['Veículo',esc(v.nome)],['Tipo',cam?'Serviço a caminho · '+esc(cam.titulo):'Localização compartilhada']];
+  if(cam) L.push(['Endereço',cam.destino?(esc(cam.destino.endereco)||('Coordenadas '+cam.destino.lat.toFixed(5)+', '+cam.destino.lon.toFixed(5))):'<span style="color:var(--red2)">sem endereço (não vai mostrar destino)</span>','dest'],
+                 ['WhatsApp do cliente',cam.cliWpp?esc(fmtWpp(cam.cliWpp))+' (recebe na hora)':'não vai mensagem automática']);
+  L.push(['Válido por',esc(tpNome(shareMin))]);
+  $('fcLista').innerHTML=L.map(x=>'<div class="fcflin'+(x[2]?' '+x[2]:'')+'"><span>'+x[0]+'</span><b>'+x[1]+'</b></div>').join('');
+  const n=FCH.saldo;
+  $('fcFicha').textContent='Será descontada 1 ficha'+(typeof n==='number'?' (saldo: '+n+' → '+Math.max(0,n-1)+')':'');
+  $('fcSim').disabled=false;
+  $('mFchConf').classList.add('show');
+};
+$('fcNao').onclick=()=>$('mFchConf').classList.remove('show');
+$('fcSim').onclick=()=>{ $('fcSim').disabled=true; $('mFchConf').classList.remove('show'); shareGerarAgora() };
+async function shareGerarAgora(){
   const v=veicShare(); if(!v) return; const b=$('shareGerar');
   b.disabled=true; b.textContent='Gerando...'; $('shareErro').textContent='';
   try{
@@ -5482,7 +5519,7 @@ $('shareGerar').onclick=async()=>{
     b.textContent='Gerar outro link'; shareCarregarAtivos();
   }catch(e){ $('shareErro').textContent=e.message||'Não consegui gerar o link.'; b.textContent='Gerar link'; if(permCli.fichas===true) fichasBarra(true) }
   b.disabled=false;
-};
+}
 async function copiarTexto(t){
   try{ await navigator.clipboard.writeText(t); return true }catch(e){}
   try{ const a=document.createElement('textarea'); a.value=t; document.body.appendChild(a); a.select(); const ok=document.execCommand('copy'); a.remove(); return ok }catch(e){ return false }
