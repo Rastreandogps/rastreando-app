@@ -1087,6 +1087,16 @@ nav .nemo.txt{font-size:22px;color:var(--mut)}
 nav button.on{color:var(--red2);font-weight:700}
 nav button.on .nemo{transform:scale(1.12)}
 nav button.on .nemo.txt{color:var(--red2)}
+/* 14/10/2026 (pedido do dono): no computador as abas sobem para a barra de cima, entre a logo e o "Tempo real" (ganha espaço útil) */
+@media (min-width:900px){
+  header nav{flex:1;min-width:0;display:flex;justify-content:center;align-items:center;gap:4px;background:none;border:0;padding:0;margin:0 12px}
+  header nav button{flex-direction:row;gap:7px;padding:7px 14px;border-radius:10px;font-size:13.5px;white-space:nowrap}
+  header nav button:hover{background:var(--card2);color:var(--txt)}
+  header nav button.on{background:rgba(227,38,47,.10)}
+  header nav .nemo{font-size:16px;line-height:18px;height:18px}
+  header nav button.on .nemo{transform:none}
+  header nav .nbadge{top:-2px;left:auto;right:0}
+}
 
 /* Janelas */
 .modal{position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.6);display:none;align-items:flex-end;justify-content:center}
@@ -4711,6 +4721,19 @@ function irPara(tab){
   if(tab==='Cercas'){ desenharCercasLista(); carregarCercas() }
   if(tab==='Alertas'){ desenharAlertas(); carregarAlertas(true); desenharPush(); carregarCfgAlertas() }
 }
+/* abas: no computador moram dentro da barra de cima; no celular voltam para baixo (o mesmo elemento, só muda de lugar) */
+(function(){
+  const nav=document.querySelector('body > nav'); if(!nav) return;
+  const casa=nav.parentNode, depois=nav.nextSibling, hdr=document.querySelector('header'), hdir=hdr&&hdr.querySelector('.hdir');
+  function lugar(){
+    const larga=window.matchMedia('(min-width:900px)').matches;
+    if(larga && hdir && nav.parentNode!==hdr){ hdr.insertBefore(nav,hdir) }
+    else if(!larga && nav.parentNode!==casa){ casa.insertBefore(nav,depois) }
+    else return;
+    setTimeout(()=>{ try{ map.invalidateSize() }catch(e){} },60);
+  }
+  lugar(); window.addEventListener('resize',lugar);
+})();
 document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
   const t=b.dataset.tab;
   if(bloqueioNivel==='bloqueado' && !ehAdmin && t!=='Faturas'){ toast('Acesso ao aplicativo suspenso. Regularize suas faturas para voltar a usar.'); irPara('Faturas'); return }
