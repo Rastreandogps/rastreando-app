@@ -1311,7 +1311,7 @@ nav button.on .nemo.txt{color:var(--red2)}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 /* 15/10/2026 (pedido do dono): o aviso sobe para o topo (não cobre mais os botões do cartão) e ganha visual novo:
    fundo do cartão, borda verde com faixa à esquerda (vermelha nos erros, amarela nos alertas) e sombra suave */
-.toast{top:calc(74px + env(safe-area-inset-top));bottom:auto;transform:translateX(-50%) translateY(-14px);z-index:1600;
+.toast{top:auto;transform:translateX(-50%) translateY(14px);z-index:1600;
   background:var(--card);color:var(--txt);border:1.5px solid rgba(22,163,74,.45);border-left:5px solid #16a34a;border-radius:14px;
   box-shadow:0 12px 32px rgba(0,0,0,.20);padding:12px 16px 12px 14px;font-size:14.5px;font-weight:600;line-height:1.4;
   max-width:min(440px,calc(100% - 32px));width:max-content;text-align:left}
@@ -3174,6 +3174,9 @@ function toast(msg,ms){const t=$('toast');t.textContent=msg;
   const m=String(msg||''); /* 15/10/2026: cor da borda pelo tipo de aviso */
   t.classList.toggle('er', /^❌|\berro\b|não consegui|recusou|falhou|inválid|não foi enviado|sem conexão/i.test(m));
   t.classList.toggle('am', !t.classList.contains('er') && /^⏳|^⚠|atenção|suspenso|aguardando o aparelho|ainda não/i.test(m));
+  /* 15/10/2026: o aviso fica logo ACIMA do cartão do veículo (perto da vista, sem cobrir Bloquear/Desbloquear) */
+  let b=null; try{ const sh=$('sheet'); if(sh && sh.style.display!=='none'){ const r=sh.getBoundingClientRect(); if(r.height>0 && r.top>140 && r.top<innerHeight) b=Math.round(innerHeight-r.top+12) } }catch(e){}
+  t.style.bottom=(b!=null?b:Math.round(innerHeight*0.22))+'px';
   t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),ms||3200)}
 function tempo(ms){
   const s=Math.max(0,Math.round(ms/1000));
