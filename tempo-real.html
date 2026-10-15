@@ -1096,6 +1096,10 @@ nav button.on .nemo.txt{color:var(--red2)}
   header nav .nemo{font-size:16px;line-height:18px;height:18px}
   header nav button.on .nemo{transform:none}
   header nav .nbadge{top:-2px;left:auto;right:0}
+  /* 14/10/2026 (pedido do dono): a lista lateral já mostra os veículos, então a aba Veículos sai no computador;
+     no lugar, o cliente tem a aba Faturas direto (o administrador não tem faturas). No celular continua tudo igual. */
+  header nav button[data-tab="Veículos"]{display:none!important}
+  body.cli header nav button[data-tab="Faturas"]{display:flex!important}
 }
 
 /* Janelas */
@@ -4709,7 +4713,7 @@ function irPara(tab){
   $('aview').classList.toggle('show',tab==='Admin');
   $('fview').classList.toggle('show',tab==='Faturas');
   $('maisview').classList.toggle('show',tab==='Mais');
-  if(tab==='Faturas' && !ehAdmin) document.querySelector('nav button[data-tab="Mais"]').classList.add('on'); /* Faturas mora dentro de "Mais" */
+  if(tab==='Faturas' && !ehAdmin && !window.matchMedia('(min-width:900px)').matches) document.querySelector('nav button[data-tab="Mais"]').classList.add('on'); /* Faturas mora dentro de "Mais" (no computador ela tem aba própria) */
   $('cview').classList.toggle('show',tab==='Cercas');
   $('alview').classList.toggle('show',tab==='Alertas');
   if(desenho && tab!=='Mapa') cancelarDesenho();
@@ -5229,6 +5233,7 @@ async function descobrirAdmin(){
   }catch(e){}
   if(ehAdmin) setTimeout(()=>{ travarClientes().catch(()=>{}) },4000); /* check-up 10/10: corrige clientes antigos sem trava */
   document.querySelector('nav button[data-tab="Admin"]').style.display = ehAdmin ? '' : 'none';
+  document.body.classList.toggle('cli', !ehAdmin); /* 14/10/2026: no computador o cliente ganha a aba Faturas no lugar de Veículos */
   document.querySelector('nav button[data-tab="Faturas"]').style.display = 'none';
   document.querySelector('nav button[data-tab="Mais"]').style.display = ehAdmin ? 'none' : '';
   $('btnEu').style.display = ehAdmin ? 'flex' : 'none';
