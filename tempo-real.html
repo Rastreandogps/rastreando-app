@@ -6451,6 +6451,9 @@ const CATALOGO_SMS=[
   {n:'Jammer (bloqueador de sinal)',d:'Detecta aparelho que tenta bloquear o sinal.',op:[['Ativar','JAMMER,ON,1#'],['Desativar','JAMMER,OFF#'],['Consultar','SZCS#GL_MONI=0']]},
   {n:'Velocidade',d:'Avisa acima do limite em km/h (troque o 80). 0 desliga.',op:[['Ativar','SPEED,80#'],['Desativar','SPEED,0#']],ed:1}
  ]},
+ {g:'Bloqueio',itens:[ /* 15/10/2026: descoberto pelo dono para o GS900 (J16 de outra marca) */
+  {n:'Bloqueio imediato (GS900 / GS)',d:'Faz o bloqueio cortar na hora, sem esperar o veículo reduzir a velocidade. Comando informado pelo dono para o GS900; o comando para desfazer ainda não é conhecido.',op:[['Ativar','RLYMD,2#']],av:1}
+ ]},
  {g:'Ignição, tensão e protocolo',itens:[
   {n:'Ignição virtual (moto)',d:'0 = ignição pelo movimento (acelerômetro); 1 = pelo fio (pós-chave).',op:[['Ativar','SZCS#ACCLINE=0'],['Desativar','SZCS#ACCLINE=1']]},
   {n:'Protocolo estendido GT06',d:'Manda hodômetro, tensão e ICCID. Necessário para recursos avançados.',op:[['Ativar','SZCS#GT06SEL=1'],['Desativar','SZCS#GT06SEL=0']]},
