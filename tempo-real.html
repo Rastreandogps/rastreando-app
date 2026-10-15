@@ -1266,6 +1266,16 @@ nav button.on .nemo.txt{color:var(--red2)}
 #mDesbP .dprel{font-size:44px;font-weight:900;letter-spacing:.02em;margin:4px 0 6px;font-variant-numeric:tabular-nums;color:var(--txt)}
 #mDesbP .dpbar{height:6px;border-radius:999px;background:var(--card2);overflow:hidden;margin:0 0 16px}
 #mDesbP .dpbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#22c55e,#16a34a);transition:width 1s linear}
+/* 15/10/2026: fechar faturamento de SMS */
+#mSmsFat{align-items:center;padding:16px}
+#mSmsFat .box2{border-radius:20px;max-width:560px;max-height:88vh;overflow-y:auto}
+.sflista{border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:12px}
+.sfit{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;padding:10px 12px;border-bottom:1px solid var(--line);font-size:13.5px}
+.sfit:last-child{border-bottom:0}
+.sfit b{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sfit .v{font-weight:800;text-align:right}
+.sfit small{grid-column:1 / -1;color:var(--mut);font-size:12px}
+.sfit.er small{color:var(--red2)} .sfit.ok small{color:var(--green)}
 .warn{background:rgba(245,184,61,.1);border:1px solid rgba(245,184,61,.35);color:var(--amber);border-radius:10px;padding:10px 12px;font-size:13px;font-weight:600;margin-bottom:12px;display:none}
 .warn.show{display:block}
 .box2 .actions2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
@@ -1883,6 +1893,7 @@ nav button.on .nemo.txt{color:var(--red2)}
         <button class="aico" id="aFinAtualizar" style="display:none" title="Atualizar situação financeira" aria-label="Atualizar situação financeira"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg></button>
         <button class="aico" id="aImportar" title="Importar equipamentos em lista" aria-label="Importar equipamentos em lista"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 9v12M15 9v12"/></svg><b class="imbadge" id="imBadge"></b></button>
         <button class="aico" id="aSmsMassa" title="SMS em massa" aria-label="SMS em massa"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v11H9l-5 4z"/><path d="M8 9h8M8 12h5"/></svg></button>
+        <button class="aico" id="aSmsFat" title="Fechar faturamento de SMS" aria-label="Fechar faturamento de SMS"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M14.5 8.5c-.5-.8-1.4-1.2-2.5-1.2-1.4 0-2.4.7-2.4 1.7 0 2.3 5 1.1 5 3.5 0 1-1.1 1.8-2.6 1.8-1.2 0-2.2-.5-2.7-1.3M12 6v1.3M12 14.3v1.4"/></svg></button>
         <button class="aico anovo" id="aNovo" title="Novo equipamento" aria-label="Novo equipamento"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span class="fila" id="aNovoFila"></span></button>
       </div>
       <div class="ameta"><b id="aCount"></b><span id="aFinTxt"></span><span id="aTabNome" hidden></span></div>
@@ -2355,8 +2366,8 @@ nav button.on .nemo.txt{color:var(--red2)}
     <label class="fchk"><input type="checkbox" id="pmSemBloq"> <b>Veículo sem bloqueio</b> (este cliente não tem relé de bloqueio: somem Bloquear/Desbloquear, SMS de bloqueio e cerca que bloqueia)</label>
     <label class="fchk" id="pmAppRow"><input type="checkbox" id="pmApp"> Bloquear e desbloquear pelo app (desmarque para quem só pode ver o veículo, como motorista ou familiar)</label>
     <label class="fchk" id="pmCercaBloqRow"><input type="checkbox" id="pmCercaBloq"> Criar cerca e âncora que bloqueiam o veículo automaticamente</label>
-    <label class="fchk" id="pmSmsRow"><input type="checkbox" id="pmSms"> Bloquear e desbloquear por SMS (pela plataforma, R$ 0,10 cada)</label>
-    <label class="fchk"><input type="checkbox" id="pmReset"> Botão de reset (RESET#), pela plataforma (R$ 0,10) ou pelo celular dele (grátis)</label>
+    <label class="fchk" id="pmSmsRow"><input type="checkbox" id="pmSms"> Bloquear e desbloquear por SMS (pela plataforma, R$ 0,20 cada)</label>
+    <label class="fchk"><input type="checkbox" id="pmReset"> Botão de reset (RESET#), pela plataforma (R$ 0,20) ou pelo celular dele (grátis)</label>
     <label class="fchk"><input type="checkbox" id="pmNome"> Editar o nome do veículo</label>
     <label class="fchk"><input type="checkbox" id="pmAncora"> Cerca rápida (botão da âncora no veículo)</label>
     <label class="fchk"><input type="checkbox" id="pmEu"> Ver a posição do próprio celular no mapa (botão Minha posição)</label>
@@ -2586,6 +2597,19 @@ nav button.on .nemo.txt{color:var(--red2)}
     <div id="dpBar" class="dpbar" style="display:none"><i></i></div>
     <div class="dpbts" id="dpBts"></div>
     <button type="button" class="dplonge" id="dpLonge" style="display:none">Não estou perto do veículo</button>
+  </div>
+</div>
+<!-- 15/10/2026: fechar faturamento de SMS (só administrador) -->
+<div class="modal" id="mSmsFat">
+  <div class="box2">
+    <h3>Fechar faturamento de SMS</h3>
+    <p id="sfTxt">Carregando...</p>
+    <div id="sfLista" class="sflista"></div>
+    <div class="ferr" id="sfErro"></div>
+    <div class="actions2">
+      <button class="btn btn-out" data-close>Fechar</button>
+      <button class="btn btn-red" id="sfOk" disabled>Lançar no Asaas</button>
+    </div>
   </div>
 </div>
 <div class="modal" id="mConf">
@@ -4056,6 +4080,7 @@ function desbTexto(v,d){
   const base='Desbloqueio em andamento: o sistema está tentando sozinho';
   /* 14/10/2026: o cliente respondeu que o veículo não liga */
   if((d.naoN||0)>=2) return 'Instabilidade de sinal: o sistema está tentando o desbloqueio automaticamente. Tente ligar o veículo de tempos em tempos.'; /* sem prazo para o cliente (pedido do dono) */
+  if((d.naoN||0)===1 && ehAdmin) return 'O cliente disse que o veículo não liga. '+(d.smsAgendaFeito?'SMS de desbloqueio enviado'+(d.smsExtraUltMs?' às '+horaAtual(d.smsExtraUltMs):'')+(d.ultSmsStatus===1?' e recebido pelo chip.':'.'):'SMS sai em instantes.')+' Aguardando a 2ª resposta do cliente.'; /* 15/10/2026: visão do administrador */
   if((d.naoN||0)===1){
     if(!d.smsAgendaFeito && d.smsAgendaMs){ const f=Math.max(0,Math.ceil((d.smsAgendaMs-Date.now())/1000)); return f>0 ? 'Enviando o desbloqueio por SMS em 0:'+String(f).padStart(2,'0')+'.' : 'Enviando o desbloqueio por SMS...' }
     if(d.ultSmsStatus===1) return 'O rastreador recebeu o desbloqueio'+(d.ultSmsStatusMs?' às '+horaAtual(d.ultSmsStatusMs):'')+'. Tente ligar o veículo.'; /* 15/10/2026: o chip confirmou */
@@ -4081,7 +4106,11 @@ async function desbVerificar(){
       if(!ini) continue;
       if(Date.now()-ini>3*3600000){ lsDel('rg_desb_'+v.id); delete desbPendente[v.id]; continue }
       const j=await fnDesb('status',v.id);
-      if(j.estado==='pendente'){ desbPendente[v.id]=j; continue }
+      if(j.estado==='pendente'){ desbPendente[v.id]=j;
+        /* 15/10/2026: o cliente disse "não", o SMS já saiu, mas a 2ª pergunta se perdeu (app fechado) -> pergunta de novo ao voltar */
+        try{ if(!ehAdmin && !dp && (j.naoN||0)===1 && j.smsAgendaFeito && !dpRepergunta[v.id] && Date.now()-(j.smsExtraUltMs||j.smsAgendaMs||0)>45000){
+          dpRepergunta[v.id]=true; dp={id:v.id, nome:v.nome, rodada:2, timer:0, tick:0, recebeu:j.ultSmsStatus===1}; dpPerguntar(2) } }catch(e){}
+        continue }
       delete desbPendente[v.id]; lsDel('rg_desb_'+v.id);
       if(j.estado==='confirmado'){ v.bloq=false; marcarBloq(v.id,false,false); if(j.clienteResp!=='sim') toast('Desbloqueio de '+v.nome+' confirmado pelo rastreador.',6000) }
       else if(j.estado==='expirado') toast('O rastreador de '+v.nome+' não confirmou o desbloqueio. Se o veículo ainda não liga, desbloqueie de novo.',8000); /* 14/10/2026: sem pedir para o cliente ligar */
@@ -4199,6 +4228,7 @@ const DP_IC_CARRO='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" st
 const DP_IC_SMS='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v11H9l-5 4z"/><path d="M8 9.5h8M8 12.5h5"/></svg>';
 const DP_IC_SINAL='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 8.5a15 15 0 0 1 20 0"/><path d="M5.5 12a10 10 0 0 1 13 0"/><path d="M9 15.5a5 5 0 0 1 6 0"/><circle cx="12" cy="19" r="1" fill="currentColor"/></svg>';
 let dp=null; /* etapa em andamento: {id, nome, rodada, timer} */
+const dpRepergunta={}; /* veículos em que a 2ª pergunta já foi refeita nesta abertura do app */
 function dpNome(id){ const v=veiculos.find(x=>x.id===id); return v?v.nome:'seu veículo' }
 function dpCancelar(id){ if(!dp || (id && dp.id!==id)) return; clearTimeout(dp.timer); clearInterval(dp.tick); clearInterval(dp.vigia); dp=null; $('mDesbP').classList.remove('show') }
 function dpAgendar(id){
@@ -6973,6 +7003,36 @@ $('smEnviar').onclick=async()=>{
   toast(ok+' SMS enviados'+(falhas.length?', '+falhas.length+' falharam':'')+'.');
 };
 $('aSmsMassa').onclick=smAbrir;
+/* ===== FECHAR FATURAMENTO DE SMS (15/10/2026) =====
+   1º mostra a prévia (quem, quantos SMS, quanto e em qual boleto); 2º "Lançar no Asaas" soma no próximo boleto em aberto
+   da assinatura de cada cliente (só aquele boleto; a mensalidade não muda) e desconta do contador. */
+const brlF=n=>'R$ '+Number(n||0).toFixed(2).replace('.',',');
+const dataBR=iso=>String(iso||'').split('-').reverse().join('/');
+function sfPintar(j,lancado){
+  const it=j.itens||[];
+  $('sfTxt').innerHTML = !it.length ? 'Nenhum cliente com SMS pago pendente. Nada a faturar.'
+    : lancado ? 'Pronto. <b>'+j.cobraveis+'</b> cliente(s) cobrado(s), total <b>'+brlF(j.total)+'</b>. Os que deram problema ficam para o próximo fechamento.'
+    : 'Prévia: <b>'+j.cobraveis+'</b> cliente(s) a cobrar, total <b>'+brlF(j.total)+'</b> (SMS a '+brlF(j.preco)+'). O valor entra no próximo boleto em aberto de cada um; a mensalidade não muda.';
+  $('sfLista').style.display=it.length?'':'none';
+  $('sfLista').innerHTML=it.map(x=>{
+    const c=x.erro?'er':(lancado&&x.ok?'ok':'');
+    const det=x.erro ? 'Não cobrado: '+esc(x.erro)
+      : (lancado&&x.ok?'✅ Lançado · ':'')+'Boleto de '+dataBR(x.vencimento)+': '+brlF(x.boletoDe)+' → <b>'+brlF(x.boletoPara)+'</b>';
+    return '<div class="sfit '+c+'"><b>'+esc(x.nome)+'</b><span class="v">'+x.sms+' SMS · '+brlF(x.valor)+'</span><small>'+det+'</small></div>';
+  }).join('');
+  $('sfOk').style.display=lancado?'none':''; $('sfOk').disabled = lancado || !j.cobraveis;
+}
+async function sfAbrir(){
+  $('sfTxt').textContent='Conferindo os clientes no Asaas...'; $('sfLista').innerHTML=''; $('sfErro').textContent=''; $('sfOk').style.display=''; $('sfOk').disabled=true;
+  abrir('mSmsFat');
+  try{ sfPintar(await fnAl('smsFaturar',{simular:true}),false) }catch(e){ $('sfTxt').textContent=''; $('sfErro').textContent=e.message }
+}
+$('aSmsFat').onclick=sfAbrir;
+$('sfOk').onclick=async()=>{
+  $('sfOk').disabled=true; $('sfErro').textContent=''; $('sfTxt').textContent='Lançando no Asaas...';
+  try{ const j=await fnAl('smsFaturar',{simular:false}); sfPintar(j,true); toast('Faturamento de SMS fechado: '+brlF(j.total)+'.',6000) }
+  catch(e){ $('sfErro').textContent=e.message; $('sfOk').disabled=false }
+};
 /* monta as linhas juntando as listas pela posição (1º IMEI com o 1º chip, a 1ª placa...) */
 function imLer(){
   if(imCol!=='cliente') imListas[imCol]=$('imTexto').value;
