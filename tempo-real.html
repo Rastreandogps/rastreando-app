@@ -1199,12 +1199,12 @@ header nav .nl-pc{display:inline} header nav .nl-cel{display:none}
 .alsheet .box2 h3{margin-bottom:4px}
 .alsheet .alfechar{width:100%;margin-top:14px}
 /* "Alertas anteriores": título e X fixos em cima, lista rola no meio, Fechar sempre visível embaixo */
-#mAlMais .box2,#mLoja .box2,#mServ .box2{display:flex;flex-direction:column;max-height:80vh;overflow:hidden}
-#mAlMais .almtopo,#mLoja .almtopo,#mServ .almtopo,#mLojaRes .almtopo,#mLojaPix .almtopo{flex:none;display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}
-#mAlMais .almtopo h3,#mLoja .almtopo h3,#mServ .almtopo h3,#mLojaRes .almtopo h3,#mLojaPix .almtopo h3{margin:0}
-#mAlMais .almx,#mLoja .almx,#mServ .almx,#mLojaRes .almx,#mLojaPix .almx{width:38px;height:38px;flex:none;border-radius:50%;background:var(--card2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;cursor:pointer}
-#mAlMais .almx svg,#mLoja .almx svg,#mServ .almx svg,#mLojaRes .almx svg,#mLojaPix .almx svg{width:18px;height:18px;fill:none;stroke:var(--txt);stroke-width:2.4;stroke-linecap:round}
-#mAlMais #alMaisLista,#mLoja #lojaRola,#mServ #servRola{flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+#mAlMais .box2,#mLoja .box2,#mServ .box2,#mFichas .box2{display:flex;flex-direction:column;max-height:80vh;overflow:hidden}
+#mAlMais .almtopo,#mLoja .almtopo,#mServ .almtopo,#mLojaRes .almtopo,#mLojaPix .almtopo,#mFichas .almtopo{flex:none;display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}
+#mAlMais .almtopo h3,#mLoja .almtopo h3,#mServ .almtopo h3,#mLojaRes .almtopo h3,#mLojaPix .almtopo h3,#mFichas .almtopo h3{margin:0}
+#mAlMais .almx,#mLoja .almx,#mServ .almx,#mLojaRes .almx,#mLojaPix .almx,#mFichas .almx{width:38px;height:38px;flex:none;border-radius:50%;background:var(--card2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;cursor:pointer}
+#mAlMais .almx svg,#mLoja .almx svg,#mServ .almx svg,#mLojaRes .almx svg,#mLojaPix .almx svg,#mFichas .almx svg{width:18px;height:18px;fill:none;stroke:var(--txt);stroke-width:2.4;stroke-linecap:round}
+#mAlMais #alMaisLista,#mLoja #lojaRola,#mServ #servRola,#mFichas #fchRola{flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
 #mAlMais .alfechar,#mLoja .alfechar,#mServ .alfechar{flex:none;margin-top:10px}
 .alnota{font-size:12.5px!important;color:var(--mut);margin:10px 2px 0!important;line-height:1.4}
 .algrupo{background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:0 14px}
@@ -1780,6 +1780,51 @@ nav button.on .nemo.txt{color:var(--red2)}
 .esel{font-size:12.5px;color:var(--mut);margin:0 0 10px}
 /* 12/10/2026: cabeçalho um pouco mais justo em tela estreita, para a tarja com saldo caber ao lado dos 3 botões (tema, cadeado, sair) */
 @media (max-width:420px){ header{padding-left:10px;padding-right:10px;gap:6px} .hdir{gap:6px} .brand{gap:8px} }
+/* ===== FICHAS RASTREANDO (15/10/2026): crédito pré-pago para compartilhar localização ===== */
+.fchmoeda{display:inline-flex;align-items:center;justify-content:center;flex:none;width:30px;height:30px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fde68a,#f59e0b 62%,#b45309);box-shadow:inset 0 -2px 0 rgba(120,53,15,.35),0 1px 3px rgba(0,0,0,.25);color:#78350f}
+.fchmoeda svg{width:62%;height:62%;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.fchmoeda.big{width:58px;height:58px}
+.maiscard .mic.fc{background:rgba(245,184,61,.16);color:var(--amber)}
+.fchbar{display:flex;align-items:center;gap:10px;background:rgba(245,184,61,.12);border:1px solid rgba(245,184,61,.45);border-radius:12px;padding:8px 8px 8px 10px;margin:0 0 12px;font-size:13px;line-height:1.3}
+.fchbar .fchbt{flex:1;min-width:0}
+.fchbar .fchbt b{font-size:14px}
+.fchbar .fchbt small{display:block;color:var(--mut);font-size:11.5px}
+.fchbar button{flex:none;height:34px;padding:0 14px;border-radius:9px;background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;font-weight:800;font-size:13px}
+.fchbar.zero{background:rgba(227,38,47,.10);border-color:rgba(227,38,47,.5)}
+.fchbar.zero .fchbt b{color:var(--red2)}
+.fchsaldo{display:flex;align-items:center;gap:14px;background:linear-gradient(150deg,rgba(245,184,61,.20),rgba(245,184,61,.06));border:1px solid rgba(245,184,61,.5);border-radius:18px;padding:16px;margin-bottom:10px}
+.fchsaldo small{display:block;font-size:12px;color:var(--mut)}
+.fchsaldo b{font-size:34px;line-height:1.05;font-weight:800;letter-spacing:-.5px}
+.fchsaldo span.u{font-size:14px;color:var(--mut);margin-left:6px;font-weight:600}
+.fchinfo{font-size:13px;color:var(--mut);margin:0 0 14px;line-height:1.45}
+#mFichas h4{font-size:14px;margin:4px 0 8px}
+.fchpacs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+.fchpac{position:relative;display:flex;flex-direction:column;align-items:center;gap:3px;text-align:center;background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:14px 6px 10px;color:var(--txt)}
+.fchpac.top{border-color:rgba(245,184,61,.8)}
+.fchpac .tag{position:absolute;top:-9px;left:50%;transform:translateX(-50%);white-space:nowrap;background:#d97706;color:#fff;font-size:10px;font-weight:800;border-radius:8px;padding:2px 7px}
+.fchpac b{font-size:22px;line-height:1}
+.fchpac .q{font-size:11.5px;color:var(--mut)}
+.fchpac .v{font-size:15px;font-weight:800;margin-top:4px}
+.fchpac .c{font-size:11px;color:var(--mut)}
+.fchpac button{margin-top:8px;width:100%;height:34px;border-radius:9px;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;font-weight:700;font-size:13px}
+.fchpend{display:flex;align-items:center;gap:10px;background:var(--card2);border-radius:12px;padding:10px 12px;margin-bottom:12px;font-size:13px}
+.fchpend div{flex:1;min-width:0}
+.fchpend small{display:block;color:var(--mut);font-size:11.5px}
+.fchpend button{flex:none;height:34px;padding:0 14px;border-radius:9px;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;font-weight:700;font-size:13px}
+.fchext{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-bottom:6px}
+.fchmv{display:flex;align-items:center;gap:10px;padding:10px 12px;border-top:1px solid var(--line);font-size:13px}
+.fchmv:first-child{border-top:0}
+.fchmv div{flex:1;min-width:0}
+.fchmv div span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fchmv small{display:block;color:var(--mut);font-size:11.5px}
+.fchmv b{flex:none;font-size:14px}
+.fchmv b.mais{color:var(--green)}
+.fchmv b.menos{color:var(--txt)}
+.fchvazio{padding:16px 12px;text-align:center;color:var(--mut);font-size:13px}
+.pmfichas{display:flex;align-items:center;flex-wrap:wrap;gap:8px;background:rgba(245,184,61,.10);border-radius:12px;padding:8px 10px;margin:-2px 0 8px;font-size:13px}
+.pmfichas .sp{flex:1;min-width:120px}
+.pmfichas input{width:70px;height:34px;margin:0;padding:0 8px;text-align:center}
+.pmfichas button{height:34px;padding:0 12px;border-radius:9px;background:#d97706;color:#fff;font-weight:700;font-size:13px}
 </style>
 </head>
 <body>
@@ -2110,6 +2155,8 @@ nav button.on .nemo.txt{color:var(--red2)}
   <div class="box2">
     <h3>Compartilhar localização</h3>
     <p id="shareSub">Quem receber o link vê só a posição deste veículo no mapa, sem acesso à sua conta e sem poder bloquear.</p>
+    <!-- 15/10/2026: fichas (só para quem tem "Cobrar fichas") -->
+    <div class="fchbar" id="shareFichas" style="display:none"><span class="fchmoeda"><svg viewBox="0 0 24 24"><path d="M14.5 8.5h-3.2a2 2 0 000 4h1.4a2 2 0 010 4H9.5M12 7v1.5M12 16.5V18"/></svg></span><span class="fchbt"><b id="shareFichasN">—</b><small id="shareFichasTxt">Cada link usa 1 ficha</small></span><button type="button" id="shareFichasBtn">Comprar</button></div>
     <!-- 12/10/2026 (frotista): "serviço a caminho" para o cliente do frotista -->
     <div id="shareCam" style="display:none">
       <label class="fchk"><input type="checkbox" id="camOn"> <b>Serviço a caminho</b> (o seu cliente acompanha o motorista e vê a previsão de chegada)</label>
@@ -2478,6 +2525,8 @@ nav button.on .nemo.txt{color:var(--red2)}
     <label class="fchk"><input type="checkbox" id="pmNome"> Editar o nome do veículo</label>
     <label class="fchk"><input type="checkbox" id="pmAncora"> Cerca rápida (botão da âncora no veículo)</label>
     <label class="fchk"><input type="checkbox" id="pmEu"> Ver a posição do próprio celular no mapa (botão Minha posição)</label>
+    <label class="fchk"><input type="checkbox" id="pmFichas"> Cobrar fichas no compartilhar localização (1 ficha por link; o cliente compra pacotes por PIX no app)</label>
+    <div class="pmfichas" id="pmFichasBox"><span class="sp">Saldo: <b id="pmFichasSaldo">—</b> fichas</span><input class="fld" id="pmFichasQ" type="text" inputmode="numeric" placeholder="+10" autocomplete="off" aria-label="Fichas para lançar"><button type="button" id="pmFichasLancar">Lançar</button></div>
     <div class="pmval pmmapa"><span class="pmvl">Mapa do app</span><select class="fld" id="pmMapa"><option value="gratis">Grátis (padrão)</option><option value="google">Google Maps</option></select></div>
     <p class="pmvh">Todo cliente começa com o mapa grátis. Se ele reclamar do mapa, troque para o Google aqui (custa por uso; vale na próxima vez que ele abrir o app).</p>
     <div class="pmval"><span class="pmvl">Acesso válido até</span><input class="fld" type="date" id="pmValidade"><input class="fld hora" type="time" id="pmHora" value="23:59" step="60"><button type="button" class="linkbtn" id="pmSemVal">Sem validade</button></div>
@@ -2542,6 +2591,22 @@ nav button.on .nemo.txt{color:var(--red2)}
       <div id="lojaPedidos"></div>
       <p style="margin-bottom:12px">Pague com PIX aqui mesmo ou peça pelo WhatsApp. Depois do pagamento, a entrega é combinada com você pelo WhatsApp.</p>
       <div id="lojaLista"></div>
+    </div>
+    <button class="btn btn-out alfechar" data-close type="button">Fechar</button>
+  </div>
+</div>
+<!-- Fichas Rastreando (15/10/2026): saldo, pacotes por PIX e extrato -->
+<div class="modal alsheet" id="mFichas">
+  <div class="box2">
+    <div class="almtopo"><h3>Fichas Rastreando</h3><button class="almx" data-close type="button" aria-label="Fechar" title="Fechar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <div id="fchRola">
+      <div class="fchsaldo"><span class="fchmoeda big"><svg viewBox="0 0 24 24"><path d="M14.5 8.5h-3.2a2 2 0 000 4h1.4a2 2 0 010 4H9.5M12 7v1.5M12 16.5V18"/></svg></span><div><small>Seu saldo</small><b id="fchSaldo">—</b><span class="u">fichas</span></div></div>
+      <p class="fchinfo">Cada compartilhamento de localização usa <b>1 ficha</b> (link comum ou serviço a caminho). Adicionar tempo a um link que já existe não gasta ficha.</p>
+      <div id="fchPend"></div>
+      <h4>Comprar fichas</h4>
+      <div class="fchpacs" id="fchPacs"></div>
+      <h4>Extrato</h4>
+      <div class="fchext" id="fchExtrato"><div class="fchvazio">Carregando...</div></div>
     </div>
     <button class="btn btn-out alfechar" data-close type="button">Fechar</button>
   </div>
@@ -4562,7 +4627,7 @@ async function carregarPermissoes(){
     const r=await fetch(DESB_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',body:JSON.stringify({acao:'minhas',token:lsGet('rg_token')})});
     if(!r.ok) return;
     const j=await r.json(); permCli=Object.assign({smsBloqueio:false,reset:false,editarNome:false,cercaRapida:false,minhaPosicao:false},j.perm||{},{appBloqueio:permCli.appBloqueio,cercaBloqueio:permCli.cercaBloqueio,semBloqueio:permCli.semBloqueio,frotista:permCli.frotista}); cobrCli=j.cobranca||null;
-    mostrarBotoesSms();
+    mostrarBotoesSms(); fichasAplicar();
   }catch(e){}
 }
 function textoCusto(){
@@ -4853,11 +4918,12 @@ function mostrarPerm(j){
   $('pmCob').innerHTML='SMS pela plataforma a cobrar: <b>'+c.pendentes+'</b> = <b>'+brl2(c.valor)+'</b>'+
     (c.faturadoEm?'<br><span style="color:var(--mut);font-size:12px">Último zerado em '+fmtHora(c.faturadoEm)+' · total já faturado: '+(c.totalFaturado||0)+' SMS</span>':'');
   $('pmZerar').disabled=!c.pendentes;
+  $('pmFichas').checked=!!p.fichas; pmFichasCarregar();
 }
 async function abrirPermissoes(userId){
   const u=usuarios.find(x=>x.id===userId); if(!u) return;
   permUserId=userId; $('pmTitulo').textContent='Permissões do app: '+(u.name||loginDe(u));
-  $('pmErro').textContent=''; $('pmCob').textContent='Carregando...'; mostrarPermTraccar(u); abrir('mPerm');
+  $('pmErro').textContent=''; $('pmCob').textContent='Carregando...'; $('pmFichasSaldo').textContent='—'; $('pmFichasQ').value=''; mostrarPermTraccar(u); abrir('mPerm');
   try{ mostrarPerm(await chamarPerm('permLer')) }catch(e){ $('pmErro').textContent=e.message }
 }
 $('pmSalvar').onclick=async()=>{
@@ -4865,7 +4931,7 @@ $('pmSalvar').onclick=async()=>{
   try{
     const u=usuarios.find(x=>x.id===permUserId); if(!u) throw new Error('Cliente não encontrado. Feche e abra de novo.');
     await salvarPermTraccar(u);
-    mostrarPerm(await chamarPerm('permSalvar',{perm:{smsBloqueio:$('pmSms').checked,reset:$('pmReset').checked,editarNome:$('pmNome').checked,cercaRapida:$('pmAncora').checked,minhaPosicao:$('pmEu').checked}}));
+    mostrarPerm(await chamarPerm('permSalvar',{perm:{smsBloqueio:$('pmSms').checked,reset:$('pmReset').checked,editarNome:$('pmNome').checked,cercaRapida:$('pmAncora').checked,minhaPosicao:$('pmEu').checked,fichas:$('pmFichas').checked}}));
     await carregarUsuarios(); const u2=usuarios.find(x=>x.id===permUserId); if(u2) mostrarPermTraccar(u2);
     desenharAdmin(); toast('Permissões salvas.')
   }
@@ -5308,7 +5374,7 @@ $('btnShare').onclick=()=>{
   tpEscolher(60,false); tpGaveta(false); $('tpNum').value=''; tpValidarOutro();
   $('shareSub').textContent='Quem receber o link vê só a posição de '+v.nome+' no mapa, sem acesso à sua conta e sem poder bloquear.';
   $('shareRes').style.display='none'; $('shareErro').textContent=''; $('shareGerar').disabled=false; $('shareGerar').textContent='Gerar link';
-  $('shareAtivos').innerHTML=''; camMostrar(v); abrir('mShare'); shareCarregarAtivos();
+  $('shareAtivos').innerHTML=''; camMostrar(v); abrir('mShare'); shareCarregarAtivos(); fichasBarra(true);
 };
 /* gaveteirozinho do tempo: 8 tempos prontos + "Outro tempo" (número + min/horas/dias), de 5 min até 7 dias */
 const TP_MIN=5, TP_MAX=7*24*60;
@@ -5351,9 +5417,10 @@ $('shareGerar').onclick=async()=>{
   try{
     const cam=camDados();
     const j=await fnAl('compCriar',Object.assign({deviceId:v.id,minutos:shareMin},cam?{caminho:cam}:{}));
+    if(typeof j.fichas==='number'){ FCH.saldo=j.fichas; fichasPintar() }
     shareMostrarResultado(compLink(j.codigo),j.expiraMs,v.nome,cam?{titulo:cam.titulo,empresa:j.empresa||'',motorista:(j.motorista&&j.motorista.nome)||'',motFone:(j.motorista&&j.motorista.fone)||'',cliWpp:cam.cliWpp,wpp:j.wpp}:null);
     b.textContent='Gerar outro link'; shareCarregarAtivos();
-  }catch(e){ $('shareErro').textContent=e.message||'Não consegui gerar o link.'; b.textContent='Gerar link' }
+  }catch(e){ $('shareErro').textContent=e.message||'Não consegui gerar o link.'; b.textContent='Gerar link'; if(permCli.fichas===true) fichasBarra(true) }
   b.disabled=false;
 };
 async function copiarTexto(t){
@@ -8729,7 +8796,7 @@ function mostrarLogin(msg){
 function sair(msg){
   lsDel('rg_token'); lsDel('rg_email'); try{sessionStorage.removeItem('rg_basic')}catch(e){}
   cercasReset();
-  permCli={smsBloqueio:false,reset:false,editarNome:false,cercaRapida:false,minhaPosicao:false,appBloqueio:true,cercaBloqueio:true,semBloqueio:false,frotista:false}; cobrCli=null;
+  permCli={smsBloqueio:false,reset:false,editarNome:false,cercaRapida:false,minhaPosicao:false,appBloqueio:true,cercaBloqueio:true,semBloqueio:false,frotista:false}; cobrCli=null; try{ FCH.saldo=null; FCH.em=0; fichasAplicar() }catch(e){} /* 15/10/2026: fichas do login anterior saem */
   ehAdmin=false; usuarios=[]; $('aview').classList.remove('show'); try{ $('mapCar').classList.remove('show') }catch(e){}
   document.querySelector('nav button[data-tab="Admin"]').style.display='none'; document.querySelector('nav button[data-tab="Faturas"]').style.display='none'; document.querySelector('nav button[data-tab="Mais"]').style.display='none'; cpfsMapa={}; faturasDados=null; aplicarBloqueio(null); euDesligar(); $('btnEu').style.display='none'; try{ meuUsuario=null; mapaAplicar('gratis') }catch(e){} irPara('Mapa');
   auth=null;
@@ -8981,6 +9048,13 @@ function lojaWppEntrega(nome,rotulo){
 function lojaPagoOk(s){
   $('ljpTit').textContent='Pagamento confirmado';
   $('ljpPix').style.display='none'; $('ljpOk').style.display='';
+  if(Number(s.fichas)>0){ /* 15/10/2026: fichas entram na hora, sem entrega */
+    $('ljpOkTxt').textContent=s.fichas+' fichas já estão na sua conta.'+(typeof s.saldo==='number'?' Saldo agora: '+s.saldo+' fichas.':'');
+    $('ljpOkWpp').style.display='none';
+    if(typeof s.saldo==='number') FCH.saldo=s.saldo;
+    fichasCarregar(); return;
+  }
+  $('ljpOkWpp').style.display='';
   $('ljpOkTxt').textContent=(s.nome||'')+' · '+brl(s.valor)+' · pedido '+(s.rotulo||'')+'. Agora é só combinar a entrega com a gente.';
   $('ljpOkWpp').onclick=()=>lojaWppEntrega(s.nome||'',s.rotulo||'');
   lojaPedidosDesenhar();
@@ -9058,6 +9132,77 @@ async function lojaMapaAtualizar(){
 setInterval(lojaMapaAtualizar,120000); /* confere a cada 2 min (só com o app na tela) */
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') lojaMapaAtualizar() });
 $('mapCar').onclick=()=>{ lojaCarAberto=true; lojaDesenhar(); abrir('mLoja') };
+/* ===== FICHAS RASTREANDO (15/10/2026) =====
+   Só aparece para o cliente com "Cobrar fichas" (Permissões). A compra usa a loja (PIX no Asaas); o servidor
+   credita as fichas sozinho quando o PIX cai e desconta 1 ficha a cada link de compartilhar. */
+const FCH={saldo:null, pacotes:[], extrato:[], porComp:1, em:0};
+const FCH_MOEDA='<svg viewBox="0 0 24 24"><path d="M14.5 8.5h-3.2a2 2 0 000 4h1.4a2 2 0 010 4H9.5M12 7v1.5M12 16.5V18"/></svg>';
+const fchQtd=n=>n===1?'1 ficha':(n||0).toLocaleString('pt-BR')+' fichas';
+function fichasAplicar(){ /* cartão "Fichas" no Mais: entra e sai do DOM (assim a grade dos outros cartões não muda) */
+  const liga=!ehAdmin && permCli.fichas===true, grade=document.querySelector('.maisgrid'); let c=$('maisFichas');
+  if(liga && !c && grade){
+    c=document.createElement('button'); c.className='maiscard'; c.id='maisFichas'; c.type='button';
+    c.innerHTML='<span class="mic fc"><span class="fchmoeda">'+FCH_MOEDA+'</span></span><b>Fichas</b><small id="maisFichasTxt">Saldo e compra de fichas</small>';
+    c.onclick=fichasAbrir; grade.insertBefore(c,$('maisConta'));
+  }
+  if(!liga && c) c.remove();
+  if(liga && FCH.saldo===null) fichasCarregar();
+}
+function fichasPintar(){
+  const n=FCH.saldo, t=$('maisFichasTxt');
+  if(t) t.textContent=n===null?'Saldo e compra de fichas':'Saldo: '+fchQtd(n);
+  if($('fchSaldo')) $('fchSaldo').textContent=n===null?'—':n.toLocaleString('pt-BR');
+  const b=$('shareFichas'); if(!b) return;
+  const liga=!ehAdmin && permCli.fichas===true; b.style.display=liga?'':'none'; if(!liga) return;
+  const zero=n!==null && n<FCH.porComp;
+  b.classList.toggle('zero',zero);
+  $('shareFichasN').textContent=n===null?'Fichas':zero?'Sem fichas':'Você tem '+fchQtd(n);
+  $('shareFichasTxt').textContent=zero?'Compre fichas para gerar o link':'Cada link usa '+fchQtd(FCH.porComp);
+}
+async function fichasCarregar(){
+  if(ehAdmin || permCli.fichas!==true) return;
+  try{
+    const j=await fnLoja('fichasVer',{});
+    Object.assign(FCH,{saldo:j.saldo, pacotes:j.pacotes||[], extrato:j.extrato||[], porComp:j.porComp||1, em:Date.now()});
+  }catch(e){ /* sem rede: mantém o que tinha */ }
+  fichasPintar(); if($('mFichas').classList.contains('show')) fichasDesenhar();
+}
+function fichasBarra(recarregar){ fichasPintar(); if(recarregar && permCli.fichas===true) fichasCarregar() }
+function fichasAbrir(){ fichasDesenhar(); abrir('mFichas'); fichasCarregar(); fichasPendentes() }
+function fichasDesenhar(){
+  fichasPintar();
+  const ps=FCH.pacotes, melhor=ps.length?ps.reduce((a,b)=>(b.valor/b.fichas<a.valor/a.fichas?b:a)):null;
+  $('fchPacs').innerHTML=ps.length?ps.map(p=>'<div class="fchpac'+(p===melhor&&ps.length>1?' top':'')+'">'+(p===melhor&&ps.length>1?'<span class="tag">Mais vantajoso</span>':'')+
+    '<b>'+p.fichas+'</b><span class="q">fichas</span><span class="v">'+brl(p.valor)+'</span><span class="c">'+brl(p.valor/p.fichas)+' cada</span>'+
+    '<button type="button" data-fk="'+esc(p.k)+'">Comprar</button></div>').join(''):'<div class="fchvazio" style="grid-column:1/-1">Carregando os pacotes...</div>';
+  const ex=FCH.extrato;
+  $('fchExtrato').innerHTML=ex.length?ex.map(m=>'<div class="fchmv"><div><span>'+esc(m.tipo==='compra'?'Compra · '+m.desc:m.desc||'')+'</span><small>'+fmtHora(m.ms)+' · saldo '+fchQtd(m.saldo)+'</small></div><b class="'+(m.q>0?'mais':'menos')+'">'+(m.q>0?'+':'−')+Math.abs(m.q)+'</b></div>').join('')
+    :'<div class="fchvazio">'+(FCH.em?'Nenhum movimento ainda.':'Carregando...')+'</div>';
+}
+async function fichasPendentes(){ /* compra de fichas esperando o PIX (o servidor devolve o mesmo PIX por até 23 h) */
+  try{
+    const r=await fnLoja('lojaPedidos',{fichas:true});
+    const ag=(r.lista||[]).filter(p=>p.estado==='aguardando');
+    $('fchPend').innerHTML=ag.map(p=>'<div class="fchpend"><div><b>'+esc(p.nome)+'</b><small>Aguardando o PIX · '+brl(p.valor)+'</small></div><button type="button" data-fk="'+esc(p.produto)+'">Pagar</button></div>').join('');
+  }catch(e){ $('fchPend').innerHTML='' }
+}
+$('fchRola').addEventListener('click',e=>{ const b=e.target.closest('button[data-fk]'); if(b) lojaComprarPix(b.dataset.fk,b,1) });
+$('shareFichasBtn').onclick=fichasAbrir;
+/* quando a janela do PIX fecha, atualiza a tela das fichas (pagou ou não) */
+new MutationObserver(()=>{ if(!$('mLojaPix').classList.contains('show') && $('mFichas').classList.contains('show')){ fichasCarregar(); fichasPendentes() } }).observe($('mLojaPix'),{attributes:true,attributeFilter:['class']});
+/* administrador: saldo e lançamento manual (Permissões do cliente) */
+async function pmFichasCarregar(){
+  if(!permUserId) return;
+  try{ const j=await chamarPerm('fichasVer'); $('pmFichasSaldo').textContent=j.saldo.toLocaleString('pt-BR') }catch(e){ $('pmFichasSaldo').textContent='?' }
+}
+$('pmFichasLancar').onclick=async()=>{
+  const t=$('pmFichasQ').value.replace(/\s/g,'').replace('−','-'), q=parseInt(t,10);
+  if(!/^[+-]?\d+$/.test(t) || !q){ $('pmErro').textContent='Digite quantas fichas (ex.: 10 para dar, -5 para tirar).'; return }
+  const b=$('pmFichasLancar'); b.disabled=true; $('pmErro').textContent='';
+  try{ const j=await chamarPerm('fichasLancar',{q, motivo:q>0?'Cortesia':'Acerto'}); $('pmFichasSaldo').textContent=j.saldo.toLocaleString('pt-BR'); $('pmFichasQ').value=''; toast((q>0?'+':'')+q+' fichas lançadas. Saldo: '+fchQtd(j.saldo)+'.') }
+  catch(e){ $('pmErro').textContent=e.message }
+  b.disabled=false;
+};
 const LOJA_SVG_CAR='<svg viewBox="0 0 24 24"><path d="M6 6h15l-1.5 9h-12z"/><path d="M6 6L5 3H2"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/></svg>';
 $('lojaCarBtn').onclick=()=>{ lojaCarAberto=true; const c=$('lojaCar'); if(c) c.classList.add('aberto'); $('lojaRola').scrollTo({top:0,behavior:'smooth'}) };
 $('maisFat').onclick=()=>irPara('Faturas');
