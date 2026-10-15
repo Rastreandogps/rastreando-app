@@ -41,6 +41,11 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 #map{position:fixed;top:0;right:0;bottom:0;left:0;background:#e8ecf0}
 .topo{position:fixed;top:0;left:0;right:0;z-index:500;display:flex;align-items:center;gap:10px;padding:calc(10px + env(safe-area-inset-top)) 14px 10px;background:linear-gradient(var(--bg) 55%,transparent);pointer-events:none}
 .topo img{width:34px;height:34px;border-radius:50%;object-fit:cover;pointer-events:auto}
+/* 15/10/2026: com o app instalado, o link abre DENTRO do app; este botão volta para a tela principal do app */
+.voltaapp{display:none;align-items:center;gap:6px;margin-left:8px;padding:7px 12px;border-radius:999px;background:#e3262f;color:#fff;font:700 12.5px system-ui,-apple-system,Segoe UI,Roboto,sans-serif;text-decoration:none;pointer-events:auto;box-shadow:0 4px 12px rgba(0,0,0,.25);white-space:nowrap}
+body.noapp .topo{z-index:950}
+.topo .vivo{white-space:nowrap}
+.voltaapp svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
 .topo .marca{font-weight:800;letter-spacing:.06em;font-size:15px;line-height:1.05}
 .topo .marca small{display:block;font-weight:600;font-size:10.5px;letter-spacing:.32em;color:var(--mut)}
 .topo .vivo{margin-left:auto;display:flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;letter-spacing:.06em;color:var(--green);border:1px solid currentColor;border-radius:999px;padding:4px 10px;background:var(--card);pointer-events:auto}
@@ -111,7 +116,16 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   <img src="logo.jpeg" alt="" onerror="this.style.display='none'">
   <div class="marca">RASTREANDO<small>GPS</small></div>
   <div class="vivo" id="vivo"><i></i><span>AO VIVO</span></div>
+  <a class="voltaapp" id="voltaApp" href="./tempo-real.html"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>Abrir o app</a>
 </header>
+<script>
+  /* só aparece quando a página abriu dentro do app instalado (quem recebe o link pelo navegador não vê) */
+  (function(){ try{
+    var b=document.getElementById('voltaApp');
+    var app=(window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone===true;
+    if(app){ b.style.display='inline-flex'; document.body.classList.add('noapp'); /* a barra de cima fica por cima das telas de carregando/link indisponível */ b.addEventListener('click',function(e){ e.preventDefault(); location.replace('./tempo-real.html') }) }
+  }catch(e){} })();
+</script>
 
 <button class="centro on" id="btnCentro" type="button" aria-label="Centralizar no veículo" title="Centralizar no veículo">
   <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="8"/></svg>
