@@ -623,6 +623,42 @@ body.hist-on #mapCar{display:none!important}
   .ladope button:hover{color:var(--txt)}
   .ladoaba{position:absolute;left:var(--lado);top:50%;transform:translateY(-50%);z-index:456;width:18px;height:56px;border:1px solid var(--line);border-left:none;border-radius:0 8px 8px 0;background:var(--card);color:var(--mut);font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
   .ladoaba:hover{color:var(--txt)}
+  /* ===== LISTA LATERAL · visual novo (14/10/2026, pedido do dono: acompanhar o cartão flutuante) =====
+     Só aparência: mesma busca, mesmos filtros, mesmas caixinhas e a mesma lista leve de antes. */
+  main .lado{box-shadow:6px 0 24px rgba(0,0,0,.10)}
+  main .lado .ladotopo{padding:16px 14px 10px;border-bottom:0}
+  main .lado .ladotit{margin-bottom:12px}
+  main .lado .ladotit b{font-size:17px;font-weight:800;letter-spacing:-.01em}
+  main .lado .ladotit small{font-size:11.5px;font-weight:700;color:var(--mut);background:var(--card2);border:1px solid var(--line);border-radius:999px;padding:3px 10px}
+  main .lado .ladobusca{height:40px;border-radius:12px;padding:0 12px 0 38px;font-size:13.5px;background:var(--card2) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239aa3b2' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M20 20l-3.5-3.5'/%3E%3C/svg%3E") 12px center/17px no-repeat;border:1px solid var(--line);transition:border-color .15s,box-shadow .15s}
+  main .lado .ladobusca:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(56,225,230,.15)}
+  main .lado .ladofil{display:grid;grid-template-columns:repeat(4,1fr);gap:2px;margin-top:10px;padding:3px;border-radius:12px;background:var(--card2);border:1px solid var(--line)}
+  main .lado .ladofil button{border:0;border-radius:9px;padding:6px 0;font-size:12px;font-weight:700;color:var(--mut);background:transparent;transition:background .15s,color .15s,box-shadow .15s}
+  main .lado .ladofil button:hover{color:var(--txt)}
+  main .lado .ladofil button.on{background:var(--card);color:var(--txt);box-shadow:0 1px 3px rgba(0,0,0,.18),0 0 0 1px var(--line)}
+  main .lado .ladotodos{margin-top:10px;padding:8px 6px 4px;border-radius:0;background:transparent;font-size:12.5px}
+  main .lado .ladotodos small{font-size:11.5px}
+  main .lado .ladolista{padding:2px 8px 8px;border-top:1px solid var(--line)}
+  main .lado .ladolista::-webkit-scrollbar{width:6px}
+  main .lado .ladolista::-webkit-scrollbar-thumb{background:rgba(127,127,127,.35);border-radius:6px}
+  main .lado .ladolista::-webkit-scrollbar-track{background:transparent}
+  main .lado .ladoit{padding:10px 8px 10px 6px;border-bottom:1px solid rgba(127,127,127,.12);border-radius:0;gap:10px;contain-intrinsic-size:auto 52px;transition:background .12s}
+  main .lado .ladoit:hover{background:rgba(127,127,127,.07);border-radius:12px;border-bottom-color:transparent}
+  main .lado .ladoit.on{background:rgba(56,225,230,.11);box-shadow:inset 0 0 0 1px rgba(56,225,230,.35);border-radius:12px;border-bottom-color:transparent}
+  main .lado .ladock span{width:18px;height:18px;border-radius:6px}
+  main .lado .ladonm b{font-size:13.5px;font-weight:700}
+  main .lado .ladonm small{font-size:11px;letter-spacing:.06em;margin-top:2px}
+  main .lado .ladost{gap:2px}
+  main .lado .ladost em{display:inline-flex;align-items:center;gap:6px;background:none!important;padding:0;font-size:12px;font-weight:700;border-radius:0}
+  main .lado .ladost em::before{content:"";width:8px;height:8px;border-radius:50%;background:currentColor;flex:none}
+  main .lado .ladost.off em{color:var(--mut)}
+  main .lado .ladost.off em::before{background:transparent;box-shadow:inset 0 0 0 1.5px currentColor}
+  main .lado .ladost.mov em::before{box-shadow:0 0 0 3px rgba(51,209,122,.22)}
+  main .lado .ladost.blq em{color:#e3262f}
+  main .lado .ladost small{font-size:11px}
+  main .lado .ladope{justify-content:center;padding:8px 12px;border-top:1px solid var(--line)}
+  main .lado .ladope button{padding:6px 14px;border-radius:999px}
+  main .lado .ladope button:hover{background:var(--card2)}
   /* ===== CARTÃO DO VEÍCULO NO COMPUTADOR · Opção B (14/10/2026, escolhida pelo dono) =====
      Cartão FLUTUANTE sobre o mapa, cantos arredondados, em 2 linhas:
        linha 1: veículo + situação | Navegar | Ver a rua | SMS | Compartilhar | bloqueio (botão duplo: o estado atual fica aceso)
