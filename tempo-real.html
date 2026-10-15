@@ -3474,12 +3474,14 @@ function atualizar(){
     const ult = v.ultimo || v.fix, gpsVelhoT = v.gpsT && Date.now()-v.gpsT>600000;
     $('vUpd').innerHTML = (ult ? 'GSM '+horaAtual(ult) : '')+
       '<br><span style="'+(!v.gpsT||gpsVelhoT?'color:var(--amber);font-weight:600':'')+'">GPS '+(v.gpsT ? horaAtual(v.gpsT) : 'sem sinal')+'</span>';
+    /* 14/10/2026 (pedido do dono: clientes estranhavam "GPS sem sinal"): o CLIENTE vê só a hora da última atualização. O administrador continua vendo GSM e GPS. */
+    if(!ehAdmin) $('vUpd').textContent = ult ? 'Atualizado '+horaAtual(ult) : '';
     if(!v.addr) buscarEndereco(v);
     const endereco = sp ? 'Aguardando o primeiro sinal do rastreador' : (v.addr || v.geo || '');
     $('vAddr').textContent = endereco;
     const gpsVelho = v.fix && Date.now()-v.fix>600000;
-    $('vAgo').textContent = sp ? 'Sem posição no mapa' : (gpsVelho ? 'Sem sinal de GPS '+tempo(Date.now()-v.fix) : '');
-    $('addrRow').style.display = (endereco || gpsVelho) ? 'flex' : 'none';
+    $('vAgo').textContent = sp ? 'Sem posição no mapa' : ((gpsVelho && ehAdmin) ? 'Sem sinal de GPS '+tempo(Date.now()-v.fix) : ''); /* cliente não vê o aviso de GPS */
+    $('addrRow').style.display = (endereco || (gpsVelho && ehAdmin)) ? 'flex' : 'none';
     $('banner').classList.toggle('show',v.bloq);
     sheet.classList.toggle('blq',!!v.bloq);
     { /* 14/10/2026: chave de bloqueio do computador acompanha a situação do veículo */
