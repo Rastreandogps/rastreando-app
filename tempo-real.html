@@ -1167,7 +1167,11 @@ header nav .nl-pc{display:inline} header nav .nl-cel{display:none}
 .lketa.chegou b.min{color:#16a34a}
 .lkcasa div{width:34px;height:34px;border-radius:50% 50% 50% 4px;transform:rotate(-45deg);background:#16a34a;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center}
 .lkcasa svg{width:16px;height:16px;transform:rotate(45deg);fill:none;stroke:#fff;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
-.lkcarro{width:18px;height:18px;border-radius:50%;background:#e3262f;border:3px solid #fff;box-shadow:0 0 0 4px rgba(227,38,47,.25),0 2px 6px rgba(0,0,0,.35)}
+.lkveicm{position:relative;width:40px;height:40px}
+.lkseta{width:40px;height:40px;border-radius:50%;background:#2f6bff;border:3px solid #fff;box-shadow:0 0 0 7px rgba(47,107,255,.25),0 3px 10px rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;box-sizing:border-box}
+.lkseta svg{width:20px;height:20px;fill:#fff;transition:transform .4s}
+.lknome{position:absolute;left:50%;bottom:calc(100% + 9px);transform:translateX(-50%);white-space:nowrap;max-width:200px;overflow:hidden;text-overflow:ellipsis;background:rgba(17,24,39,.92);color:#fff;font-weight:800;font-size:12px;line-height:1.2;padding:4px 9px;border-radius:9px;box-shadow:0 2px 6px rgba(0,0,0,.3);pointer-events:none}
+.lknome:after{content:"";position:absolute;left:50%;bottom:-5px;transform:translateX(-50%);border:5px solid transparent;border-bottom:0;border-top-color:rgba(17,24,39,.92)}
 .lkveic button{flex:none;border:1px solid var(--line);background:var(--card2);color:var(--txt);border-radius:999px;padding:3px 10px;font:inherit;font-size:12px;font-weight:600;cursor:pointer}
 .cpvazio{padding:40px 16px;text-align:center;color:var(--mut);font-size:14px}
 .alsec{font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--mut);margin:18px 4px 8px}
@@ -5405,7 +5409,9 @@ async function cprAtualizar(){
   const x=cpLista.find(y=>y.codigo===CPR.cod); if(!x){ cprFechar(); return }
   const v=veiculos.find(q=>q.id===x.deviceId), p=cprPos(v), dest=[x.destLat,x.destLon], eta=CPR.el.querySelector('.lketa');
   if(!p){ eta.innerHTML='<b class="min">—</b><span>Sem posição do veículo agora.</span>'; return }
-  if(!CPR.carro) CPR.carro=L.marker(p,{icon:L.divIcon({className:'',html:'<div class="lkcarro"></div>',iconSize:[18,18],iconAnchor:[9,9]})}).addTo(CPR.mapa); else CPR.carro.setLatLng(p);
+  if(!CPR.carro) CPR.carro=L.marker(p,{zIndexOffset:500,icon:L.divIcon({className:'',html:'<div class="lkveicm"><div class="lknome">'+esc(v.nome||'Veículo')+'</div><div class="lkseta"><svg viewBox="0 0 24 24"><path d="M12 2l7 19-7-4-7 4z"/></svg></div></div>',iconSize:[40,40],iconAnchor:[20,20]})}).addTo(CPR.mapa);
+  else CPR.carro.setLatLng(p);
+  try{ const sv=CPR.carro.getElement().querySelector('.lkseta svg'); sv.style.transform='rotate('+(Number(v.rumo)||0)+'deg)' }catch(e){} /* seta aponta para onde o veículo vai */
   if(!CPR.ajustou){ CPR.mapa.fitBounds(L.latLngBounds([p,dest]),{padding:[36,36],maxZoom:16}); CPR.ajustou=true }
   const reta=cprDist(p,dest);
   if(reta<150){ eta.classList.add('chegou'); eta.innerHTML='<b class="min">Chegou</b><span>O veículo está no local de destino.</span>'; if(CPR.linha){ CPR.linha.remove(); CPR.linha=null } return }
