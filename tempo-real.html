@@ -4247,7 +4247,9 @@ async function dpResponder(resp){
       '<button type="button" class="dpok" data-dp="fim">Entendi</button>', false);
     desbMostrar(); return;
   }
+  if(dp) dp.smsPend={id:id, feito:false}; /* 15/10/2026: se o cliente fechar o app na contagem, o SMS sai na hora (ver dpSaindo) */
   dpContar(DP_SMS_MS, DP_IC_SMS, 'Enviando o desbloqueio por SMS', 'Fique perto do veículo. O desbloqueio vai por SMS direto para o rastreador.', async()=>{
+    if(dp && dp.smsPend) dp.smsPend.feito=true;
     let k=null; try{ k=await fnDesb('smsAgora',id) }catch(e){}
     if(k && k.estado==='pendente'){ desbPendente[id]=k; desbMostrar() }
     const ok = k && (k.smsAgoraEnviado || (k.smsAgendaFeito && !k.smsExtraErro));
@@ -4277,6 +4279,16 @@ function dpContar(ms, ic, tit, txt, fim){
 }
 $('dpBts').addEventListener('click',e=>{ const b=e.target.closest('[data-dp]'); if(!b) return; const r=b.dataset.dp; if(r==='fim'){ dpCancelar(); return } dpResponder(r) });
 $('dpLonge').onclick=()=>dpResponder('longe');
+/* 15/10/2026 (pedido do dono): o cliente saiu/fechou o app durante a contagem do SMS -> pede o SMS AGORA.
+   "keepalive" deixa o pedido terminar mesmo com a página fechando. Se nada disso chegar, o servidor manda sozinho em até ~1 min. */
+function dpSaindo(){
+  if(!dp || !dp.smsPend || dp.smsPend.feito) return;
+  dp.smsPend.feito=true;
+  try{ fetch(DESB_URL,{method:'POST',keepalive:true,headers:{'Content-Type':'application/json'},credentials:'omit',
+    body:JSON.stringify({acao:'smsAgora',cedo:true,token:lsGet('rg_token'),deviceId:dp.smsPend.id})}).catch(()=>{}) }catch(e){}
+}
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='hidden') dpSaindo() });
+window.addEventListener('pagehide',dpSaindo);
 /* ===== SITUAÇÃO DE BLOQUEIO NO SERVIDOR (check-up de 10/10/2026, item 1.3) =====
    Quando a posição do rastreador não diz se está bloqueado, o app usava uma anotação só deste celular.
    Agora a última situação CONFIRMADA fica no servidor (rastreamento_bloq_estado) e todos os celulares leem igual.
