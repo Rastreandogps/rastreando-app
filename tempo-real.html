@@ -157,6 +157,10 @@ body.mapa-google #map .leaflet-top.leaflet-left .leaflet-control-attribution{mar
 #mLojaDet{align-items:center;padding:16px}
 #mLojaDet .box2{border-radius:20px;max-width:440px;width:100%;max-height:88vh;display:flex;flex-direction:column;overflow:hidden;position:relative}
 #mLojaDet .ldrola{flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+/* 15/10/2026 (pedido do dono): toda janela que tem "Fechar" ganha também um X no topo (fica preso no alto ao rolar) */
+.box2 > .mxauto{position:sticky;top:0;float:right;z-index:5;width:36px;height:36px;margin:-6px -4px 4px 10px;border-radius:50%;background:var(--card2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;box-shadow:0 2px 8px rgba(0,0,0,.12)}
+.box2 > .mxauto svg{width:17px;height:17px;fill:none;stroke:var(--txt);stroke-width:2.4;stroke-linecap:round}
+.box2 > .mxauto:active{transform:scale(.94)}
 #mLojaDet .ldx{position:absolute;top:12px;right:12px;z-index:2;width:38px;height:38px;border-radius:50%;background:var(--card2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;cursor:pointer}
 #mLojaDet .ldx svg{width:18px;height:18px;fill:none;stroke:var(--txt);stroke-width:2.4;stroke-linecap:round}
 #mLojaDet .ldimg{width:100%;height:200px;object-fit:contain;background:#fff;border-radius:14px;border:1px solid var(--line);cursor:zoom-in}
@@ -3949,6 +3953,16 @@ $('vPick').onclick=e=>{ e.stopPropagation(); abrirPick() };
 function abrir(id){$(id).classList.add('show')}
 function fechar(){ try{ if(scanAtivo) scanParar() }catch(e){} document.querySelectorAll('.modal').forEach(m=>m.classList.remove('show')) }
 document.querySelectorAll('[data-close]').forEach(b=>b.onclick=fechar);
+/* 15/10/2026: X no topo de toda janela que já tem um botão de fechar (o X faz o mesmo que esse botão) */
+document.querySelectorAll('.modal').forEach(m=>{
+  const proprio={mScan:'scanFechar',mBio:'bioNao',mImport:'imVoltar',mSmsM:'smCancelar',mLojaCanc:'lcVoltar',mOdoZerar:'ozNao',mCercaBloq:'cbqNao'}; /* janelas com botão de fechar próprio */
+  const box=m.querySelector('.box2'), fc=(proprio[m.id] && document.getElementById(proprio[m.id])) || m.querySelector('[data-close]');
+  if(!box || !fc || m.querySelector('.almx,.ldx,.mxauto')) return;
+  const x=document.createElement('button'); x.type='button'; x.className='mxauto'; x.title='Fechar'; x.setAttribute('aria-label','Fechar');
+  x.innerHTML='<svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+  x.onclick=()=>fc.click();
+  box.insertBefore(x,box.firstChild);
+});
 /* as janelas só fecham pelos botões (Cancelar/Fechar): tocar fora não fecha mais */
 
 function abrirConfirmacao(acao){
