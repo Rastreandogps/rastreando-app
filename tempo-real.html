@@ -460,6 +460,13 @@ body.hist-on #mapCar{display:none!important}
 .hpanel .htop h3{font-size:17px;font-weight:700;flex:none}
 .hpanel select,.hpanel input{height:40px;border-radius:11px;border:1px solid var(--line);background:var(--card2);color:var(--txt);font:inherit;font-size:14px;padding:0 10px;min-width:0}
 .hpanel .htop select{flex:1}
+/* 14/10/2026: busca de veículo no histórico + bolinha de fechar */
+.hpanel .htop h3{margin:0}
+.hpanel .htop{justify-content:space-between}
+.hpanel .hfechar{flex:none;width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:var(--card2);color:var(--txt);font-size:22px;line-height:1;font-weight:400;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0 0 2px}
+.hpanel .hfechar:hover{background:rgba(227,38,47,.12);border-color:rgba(227,38,47,.5);color:#e3262f}
+.hpanel .hbusca{display:grid;grid-template-columns:1fr 1.25fr;gap:6px;margin-bottom:10px}
+.hpanel .hbusca input,.hpanel .hbusca select{width:100%}
 .hpanel .hdias{display:flex;gap:6px;margin-bottom:8px}
 .hpanel .hdia{flex:1;height:36px;border-radius:999px;border:1px solid var(--line);background:var(--card2);color:var(--txt);font:inherit;font-size:13px;font-weight:600;cursor:pointer}
 .hpanel .hdia.on{background:#3b82f6;border-color:#3b82f6;color:#fff}
@@ -1644,7 +1651,8 @@ nav button.on .nemo.txt{color:var(--red2)}
 
   <!-- Histórico de rotas (10/10/2026) -->
   <section class="hpanel" id="hpanel">
-    <div class="htop"><h3>Histórico</h3><select id="hVeic" aria-label="Veículo"></select></div>
+    <div class="htop"><h3>Histórico</h3><button type="button" class="hfechar" id="hFechar" title="Fechar o histórico e voltar ao mapa" aria-label="Fechar o histórico e voltar ao mapa">&times;</button></div>
+    <div class="hbusca"><input type="search" id="hBusca" placeholder="🔍 Buscar veículo" autocomplete="off" data-lpignore="true" data-1p-ignore aria-label="Buscar veículo, placa ou cliente"><select id="hVeic" aria-label="Veículo"></select></div>
     <div class="hdias">
       <button type="button" class="hdia on" data-d="0">Hoje</button>
       <button type="button" class="hdia" data-d="1">Ontem</button>
@@ -4759,9 +4767,12 @@ function durCurta(ms){ const m=Math.round(ms/60000); if(m<60) return m+' min'; c
 function distHist(a,b){ const R=6371000,toR=Math.PI/180,dLa=(b[0]-a[0])*toR,dLo=(b[1]-a[1])*toR; const x=Math.sin(dLa/2)**2+Math.cos(a[0]*toR)*Math.cos(b[0]*toR)*Math.sin(dLo/2)**2; return 2*R*Math.asin(Math.sqrt(x)) }
 function histVeiculos(){
   const sel=$('hVeic'), atual=+sel.value||selId;
-  const lista=veiculos.slice().sort((a,b)=>String(a.nome).localeCompare(String(b.nome),'pt-BR',{sensitivity:'base'}));
-  sel.innerHTML=lista.map(v=>'<option value="'+v.id+'">'+esc(v.nome)+(v.placa?' · '+esc(v.placa):'')+'</option>').join('');
+  const q=String(($('hBusca')||{}).value||'').trim().toLowerCase(), qd=q.replace(/\D/g,'');
+  let lista=veiculos.slice().sort((a,b)=>String(a.nome).localeCompare(String(b.nome),'pt-BR',{sensitivity:'base'}));
+  if(q) lista=lista.filter(v=>{ const b=(v.nome+' '+(v.placa||'')+' '+(v.contato||'')+' '+(ehAdmin?rotuloCliente(v):'')).toLowerCase(); return b.includes(q) || (qd.length>=3 && b.replace(/\D/g,'').includes(qd)) });
+  sel.innerHTML=lista.length ? lista.map(v=>'<option value="'+v.id+'">'+esc(v.nome)+(v.placa?' · '+esc(v.placa):'')+'</option>').join('') : '<option value="">Nenhum veículo encontrado</option>';
   if(lista.some(v=>v.id===atual)) sel.value=String(atual);
+  return +sel.value!==atual;   /* true = a busca trocou o veículo escolhido */
 }
 function histMarcarDia(){
   const d=$('hData').value, d2=$('hData2').value;
@@ -4770,6 +4781,10 @@ function histMarcarDia(){
 function histEntrar(){
   if(hist.on) { histVeiculos(); return }
   hist.on=true; hist.seguirAntes=seguir; if(seguir) setSeguir(false);
+  /* 14/10/2026: no computador a lista de veículos recolhe sozinha (e volta ao sair). Não grava como preferência. */
+  hist.ladoAntes = telaLarga() && !$('main').classList.contains('semlado');
+  if(hist.ladoAntes){ $('main').classList.add('semlado'); ladoMostrar() }
+  if($('hBusca')) $('hBusca').value='';
   $('map').classList.add('hist-on'); sheet.style.display='none'; $('vazio').style.display='none';
   document.body.classList.add('hist-on');
   const d=$('hData'), d2=$('hData2'); d.max=d2.max=hojeSP(); d.min=d2.min=diaMenos(HIST_DIAS); if(!d.value) d.value=hojeSP(); if(!d2.value) d2.value=d.value;
@@ -4789,8 +4804,12 @@ function histSair(){
   $('map').classList.remove('hist-on'); $('hpanel').classList.remove('show');
   document.body.classList.remove('hist-on'); $('hpanel').classList.remove('achou');
   if(hist.seguirAntes && ativo()) setSeguir(true);
+  if(hist.ladoAntes){ hist.ladoAntes=false; $('main').classList.remove('semlado'); ladoMostrar() }
   atualizar();
 }
+$('hFechar').onclick=()=>irPara('Mapa');
+$('hBusca').addEventListener('input',()=>{ if(histVeiculos() && $('hVeic').value) $('hVeic').dispatchEvent(new Event('change')) });
+$('hBusca').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); if($('hVeic').value) $('hBuscar').click() } });
 $('hAlterar').onclick=()=>{ histLimpar(); $('hMsg').textContent='Guardamos os últimos 90 dias.' };
 $('hVeic').addEventListener('change',()=>{ if(hist.pts.length||$('hpanel').classList.contains('achou')) $('hBuscar').click() });
 document.querySelectorAll('.hdia').forEach(b=>b.onclick=()=>{
