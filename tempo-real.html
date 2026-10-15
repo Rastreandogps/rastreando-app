@@ -1108,6 +1108,14 @@ body.desenhando .follow,body.desenhando .sheet,body.desenhando .vazio{display:no
 .sw input:checked+span::after{transform:translateX(18px)}
 /* Aba Alertas (layout novo, 10/10/2026) */
 @media (min-width:900px){#alview .vtop,#alList{width:100%;max-width:760px;margin-left:auto;margin-right:auto}}
+@media (min-width:900px){#cpview .vtop,#cpLista{width:100%;max-width:760px;margin-left:auto;margin-right:auto}}
+nav .nl-pc{display:none} nav .nl-cel{display:inline}
+header nav .nl-pc{display:inline} header nav .nl-cel{display:none}
+#cpLista .lkcard{margin-bottom:10px}
+.lkveic{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:-2px 0 8px;font-size:12.5px;color:var(--mut)}
+.lkveic b{color:var(--txt);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lkveic button{flex:none;border:1px solid var(--line);background:var(--card2);color:var(--txt);border-radius:999px;padding:3px 10px;font:inherit;font-size:12px;font-weight:600;cursor:pointer}
+.cpvazio{padding:40px 16px;text-align:center;color:var(--mut);font-size:14px}
 .alsec{font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--mut);margin:18px 4px 8px}
 .alpush{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:10px 10px 10px 12px;margin:0}
 .alpush .corpo{flex:1;min-width:0}
@@ -1217,8 +1225,9 @@ body.desenhando .follow,body.desenhando .sheet,body.desenhando .vazio{display:no
 .arow .mini.perigo{color:var(--red2)}
 
 /* Navegação */
-nav{display:grid;grid-template-columns:repeat(6,1fr);background:var(--bg);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom);z-index:5}
+nav{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);/* 15/10/2026: quantas abas houver, numa linha só (era 6 fixas) */background:var(--bg);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom);z-index:5}
 nav button{padding:9px 0 8px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;color:var(--mut)}
+@media (max-width:420px){nav button{font-size:10.5px;letter-spacing:-.1px}}
 nav button.on{color:var(--txt)}
 nav button.on svg{stroke:var(--red2)}
 nav svg{width:22px;height:22px;stroke:var(--mut);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
@@ -1935,6 +1944,14 @@ nav button.on .nemo.txt{color:var(--red2)}
     </div>
     <div class="vlist" id="cList"></div>
   </section>
+  <!-- 15/10/2026 (pedido do dono): central de TODOS os links compartilhados ativos -->
+  <section class="alview" id="cpview">
+    <div class="vtop">
+      <div class="vtitle"><h2>Compartilhados</h2><button class="linkbtn" id="cpAtualizar">Atualizar</button></div>
+      <div class="vcount" id="cpSub">Links de localização ativos</div>
+    </div>
+    <div class="vlist" id="cpLista"></div>
+  </section>
   <section class="alview" id="alview">
     <div class="vtop">
       <div class="vtitle"><h2>Alertas</h2><button class="linkbtn" id="alAtualizar">Atualizar</button></div>
@@ -1987,6 +2004,7 @@ nav button.on .nemo.txt{color:var(--red2)}
   <button data-tab="Histórico"><span class="nemo" aria-hidden="true">🕘</span>Histórico</button>
   <button data-tab="Cercas"><span class="nemo" aria-hidden="true">🛡️</span>Cercas</button>
   <button data-tab="Alertas"><span class="nemo" aria-hidden="true">🔔</span>Alertas<span class="nbadge" id="alBadge"></span></button>
+  <button data-tab="Links"><span class="nemo" aria-hidden="true">🔗</span><span class="nl-pc">Compartilhados</span><span class="nl-cel">Links</span><span class="nbadge" id="cpBadge"></span></button>
   <button data-tab="Faturas" style="display:none"><span class="nemo" aria-hidden="true">🧾</span>Faturas</button>
   <button data-tab="Mais" style="display:none"><span class="nemo txt" aria-hidden="true">☰</span>Mais<span class="nbadge" id="maisBadge">!</span></button>
   <button data-tab="Admin" style="display:none"><span class="nemo" aria-hidden="true">⚙️</span>Admin</button>
@@ -2024,7 +2042,7 @@ nav button.on .nemo.txt{color:var(--red2)}
       <label class="fchk"><input type="checkbox" id="camOn"> <b>Serviço a caminho</b> (o seu cliente acompanha o motorista e vê a previsão de chegada)</label>
       <div id="camBox" style="display:none">
         <label class="flbl" for="camTit">Título que o cliente vê</label>
-        <input class="fld" id="camTit" maxlength="40" autocomplete="off" placeholder="Ex.: Reboque a caminho">
+        <input class="fld" id="camTit" maxlength="40" autocomplete="off" placeholder="Digite o título (se deixar vazio: Serviço a caminho)">
         <label class="flbl" for="camEnd">Endereço do cliente (destino)</label>
         <div class="cbusca"><input class="fld" id="camEnd" placeholder="Endereço, link do Google Maps ou -22.78, -43.31" autocomplete="off" enterkeyhint="search"><button class="mini" id="camBuscar" type="button">Buscar</button></div>
         <div class="cres" id="camRes"></div>
@@ -4959,14 +4977,12 @@ function shareTick(){
 }
 const IC_LINK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg>';
 const IC_CAMINHAO='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="18" r="2"/><path d="M8 18h5a3 3 0 0 0 0-6H9a3 3 0 0 1 0-6h4"/><path d="M18 2.5a3.5 3.5 0 0 0-3.5 3.5c0 2.6 3.5 6 3.5 6s3.5-3.4 3.5-6A3.5 3.5 0 0 0 18 2.5z"/><circle cx="18" cy="6" r="1"/></svg>'; /* rota até o destino (genérico: serve para reboque, entrega, técnico, carro) */
-async function shareCarregarAtivos(){
-  const v=veicShare(), box=$('shareAtivos'); if(!v){ box.innerHTML=''; return }
-  try{
-    const j=await fnAl('compLista',{deviceId:v.id}); const l=j.lista||[]; shareLista=l;
-    const agora=Date.now();
-    box.innerHTML = l.length ? '<div class="alsec" style="margin-top:14px">Links ativos deste veículo ('+l.length+')</div>'+
-      l.map(x=>{ const fr=x.tipo==='frota', falta=x.expiraMs-agora, tot=Math.max(1,x.expiraMs-x.criadoMs);
-        return '<div class="lkcard'+(fr?' frota':'')+(falta<10*60000?' acabando':'')+'" data-c="'+esc(x.codigo)+'">'+
+/* 15/10/2026: o mesmo cartão de link serve para o "Compartilhar" do veículo e para a aba Compartilhados (comVeic = mostra o veículo) */
+function compCardHtml(x,agora,comVeic){
+  const fr=x.tipo==='frota', falta=x.expiraMs-agora, tot=Math.max(1,x.expiraMs-x.criadoMs);
+  const vv=comVeic ? veiculos.find(q=>q.id===x.deviceId) : null;
+  return '<div class="lkcard'+(fr?' frota':'')+(falta<10*60000?' acabando':'')+'" data-c="'+esc(x.codigo)+'">'+
+          (comVeic?'<div class="lkveic"><b>'+esc(vv?vv.nome:('Veículo '+x.deviceId))+'</b>'+(vv?'<button type="button" data-cpver="'+x.deviceId+'">Ver no mapa</button>':'')+'</div>':'')+
           '<div class="lktop"><span class="lkic">'+(fr?IC_CAMINHAO:IC_LINK)+'</span>'+
             '<span class="lkt"><b>'+esc(fr?(x.titulo||'Serviço a caminho'):'Localização compartilhada')+'</b><small>'+esc(fr&&x.destEnd?'Destino: '+x.destEnd:'Criado '+compQuando(x.criadoMs))+'</small></span>'+
             '<span class="lkcd"><b>'+esc(tempoFalta(falta))+'</b><small>até '+esc(new Date(x.expiraMs).toDateString()===new Date().toDateString()?compQuando(x.expiraMs).replace(/^\d\d\/\d\d às /,''):compQuando(x.expiraMs))+'</small></span></div>'+
@@ -4977,10 +4993,52 @@ async function shareCarregarAtivos(){
             '<button type="button" class="lkfim" data-cpfim="'+esc(x.codigo)+'">Encerrar</button>'+
           '</div>'+
           '<div class="lkext"><button type="button" data-cpext="15">+15 min</button><button type="button" data-cpext="30">+30 min</button><button type="button" data-cpext="60">+1 h</button><button type="button" data-cpext="180">+3 h</button></div>'+
-        '</div>' }).join('') : '';
+        '</div>';
+}
+async function shareCarregarAtivos(){
+  const v=veicShare(), box=$('shareAtivos'); if(!v){ box.innerHTML=''; cpCarregar(); return }
+  try{
+    const j=await fnAl('compLista',{deviceId:v.id}); const l=j.lista||[]; shareLista=l;
+    const agora=Date.now();
+    box.innerHTML = l.length ? '<div class="alsec" style="margin-top:14px">Links ativos deste veículo ('+l.length+')</div>'+
+      l.map(x=>compCardHtml(x,agora,false)).join('') : '';
     if(l.length && !shareTimer) shareTimer=setInterval(shareTick,1000);
   }catch(e){ box.innerHTML='' }
+  cpCarregar(); /* a aba Compartilhados acompanha */
 }
+/* ===== ABA COMPARTILHADOS (15/10/2026): todos os links ativos num lugar só, com contagem, +tempo, copiar e encerrar ===== */
+let cpLista=[], cpTimer=null, cpCarregando=false;
+async function cpCarregar(){
+  if(cpCarregando || !lsGet('rg_token')) return; cpCarregando=true;
+  try{
+    const j=await fnAl('compLista',{}); cpLista=(j.lista||[]).sort((a,b)=>a.expiraMs-b.expiraMs);
+    const b=$('cpBadge'); b.textContent=cpLista.length; b.classList.toggle('show',cpLista.length>0);
+    if($('cpview').classList.contains('show')) cpDesenhar();
+  }catch(e){} finally{ cpCarregando=false }
+}
+function cpDesenhar(){
+  const agora=Date.now();
+  $('cpSub').textContent = cpLista.length ? cpLista.length+(cpLista.length===1?' link ativo':' links ativos')+' · os que acabam primeiro aparecem em cima' : 'Links de localização ativos';
+  $('cpLista').innerHTML = cpLista.length ? cpLista.map(x=>compCardHtml(x,agora,true)).join('')
+    : '<div class="cpvazio">Nenhum link ativo agora.<br>Para compartilhar, abra um veículo e toque em Compartilhar.</div>';
+  if(cpLista.length && !cpTimer) cpTimer=setInterval(cpTick,1000);
+}
+function cpTick(){
+  if(!$('cpview').classList.contains('show')){ clearInterval(cpTimer); cpTimer=null; return }
+  const agora=Date.now(); let mudou=false;
+  document.querySelectorAll('#cpLista .lkcard').forEach(el=>{
+    const x=cpLista.find(y=>y.codigo===el.dataset.c); if(!x) return;
+    const falta=x.expiraMs-agora, tot=Math.max(1,x.expiraMs-x.criadoMs);
+    if(falta<=0){ mudou=true; return }
+    el.querySelector('.lkcd b').textContent=tempoFalta(falta);
+    el.querySelector('.lkbar i').style.width=Math.max(2,Math.min(100,falta/tot*100))+'%';
+    el.classList.toggle('acabando',falta<10*60000);
+  });
+  if(mudou) cpCarregar();
+}
+$('cpAtualizar').onclick=()=>cpCarregar();
+setInterval(()=>{ if(document.visibilityState==='visible') cpCarregar() },120000);
+setTimeout(()=>{ try{ cpCarregar() }catch(e){} },5000);
 function shareMostrarResultado(url,expiraMs,nome,cam){
   shareUrl=url; shareWppPara='';
   const st=$('shareWppSt'); st.style.display='none';
@@ -5001,7 +5059,7 @@ let camSel=null, camBuscaAnt=0;
 function camMostrar(v){
   const pode=ehAdmin||permCli.frotista; $('shareCam').style.display=pode?'':'none';
   $('camOn').checked=false; $('camBox').style.display='none'; camSel=null;
-  $('camTit').value=lsGet('rg_cam_tit')||'Reboque a caminho'; $('camEnd').value=''; $('camWpp').value=''; $('camDest').textContent='';
+  $('camTit').value=''; /* 15/10/2026 (pedido do dono): o título começa vazio, sem texto pronto */ $('camEnd').value=''; $('camWpp').value=''; $('camDest').textContent='';
   $('camRes').classList.remove('show'); $('camRes').innerHTML='';
   const m=motLer(v.id); $('camMot').textContent=m&&m.nome?'Motorista: '+m.nome+' (o cliente vê esse nome).':'Sem motorista cadastrado: cadastre no lápis do veículo para o cliente ver o nome.';
 }
@@ -5126,7 +5184,9 @@ async function copiarTexto(t){
 $('shareCopy').onclick=async()=>{ toast(await copiarTexto(shareTexto)?'Link copiado. Cole no WhatsApp, SMS ou onde quiser.':'Não consegui copiar. Toque e segure no link para copiar.') };
 $('shareWpp').onclick=()=>{ window.open('https://wa.me/'+(shareWppPara||'')+'?text='+encodeURIComponent(shareTexto),'_blank') };
 $('shareNativo').onclick=async()=>{ try{ await navigator.share({title:'Localização compartilhada',text:shareTexto}) }catch(e){} };
-$('shareAtivos').addEventListener('click',async e=>{
+async function compClique(e,lista){
+  const vb=e.target.closest('button[data-cpver]');
+  if(vb){ const vv=veiculos.find(q=>q.id===+vb.dataset.cpver); if(vv){ irPara('Mapa'); escolherVeiculo(vv,true) } return }
   const c=e.target.closest('button[data-cpcopy]');
   if(c){ toast(await copiarTexto(compLink(c.dataset.cpcopy))?'Link copiado.':'Não consegui copiar.'); return }
   const mx=e.target.closest('button[data-cpmais]');
@@ -5134,7 +5194,7 @@ $('shareAtivos').addEventListener('click',async e=>{
   const ex=e.target.closest('button[data-cpext]');
   if(ex){ /* adicionar tempo ao link (12/10/2026): quem tem o link continua vendo, sem precisar mandar de novo */
     const card=ex.closest('.lkcard'), cod=card.dataset.c; card.querySelectorAll('.lkext button').forEach(x=>x.disabled=true);
-    try{ const j=await fnAl('compEstender',{codigo:cod,minutos:+ex.dataset.cpext}); const x=shareLista.find(y=>y.codigo===cod); if(x) x.expiraMs=j.expiraMs;
+    try{ const j=await fnAl('compEstender',{codigo:cod,minutos:+ex.dataset.cpext}); [shareLista,cpLista].forEach(L=>{ const x=L.find(y=>y.codigo===cod); if(x) x.expiraMs=j.expiraMs });
       toast((j.limite?'Chegou no máximo de 7 dias. ':'')+'Agora o link vale até '+compQuando(j.expiraMs)+'. Quem tem o link continua vendo.',5000) }
     catch(err){ toast(err.message||'Não consegui adicionar tempo.') }
     shareCarregarAtivos(); return }
@@ -5143,7 +5203,9 @@ $('shareAtivos').addEventListener('click',async e=>{
   b.disabled=true;
   try{ await fnAl('compEncerrar',{codigo:b.dataset.cpfim}); toast('Link encerrado. Quem tinha o link não vê mais a localização.'); if(shareUrl.endsWith(b.dataset.cpfim)) $('shareRes').style.display='none' }catch(err){ toast(err.message) }
   shareCarregarAtivos();
-});
+}
+$('shareAtivos').addEventListener('click',e=>compClique(e));
+$('cpLista').addEventListener('click',e=>compClique(e));
 
 /* ===== ABAS ===== */
 function irPara(tab){
@@ -5156,6 +5218,7 @@ function irPara(tab){
   if(tab==='Faturas' && !ehAdmin && !window.matchMedia('(min-width:900px)').matches) document.querySelector('nav button[data-tab="Mais"]').classList.add('on'); /* Faturas mora dentro de "Mais" (no computador ela tem aba própria) */
   $('cview').classList.toggle('show',tab==='Cercas');
   $('alview').classList.toggle('show',tab==='Alertas');
+  $('cpview').classList.toggle('show',tab==='Links'); if(tab==='Links'){ cpDesenhar(); cpCarregar() }
   if(desenho && tab!=='Mapa') cancelarDesenho();
   const bar=$('avisoPag'); if(bar && bar.textContent){ bar.classList.toggle('show',tab!=='Faturas'); try{ setTimeout(()=>map.invalidateSize(),50) }catch(e){} }
   if(tab==='Histórico') histEntrar(); else histSair();
@@ -5181,7 +5244,7 @@ function irPara(tab){
 document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
   const t=b.dataset.tab;
   if(bloqueioNivel==='bloqueado' && !ehAdmin && t!=='Faturas'){ toast('Acesso ao aplicativo suspenso. Regularize suas faturas para voltar a usar.'); irPara('Faturas'); return }
-  if(t==='Mapa'||t==='Veículos'||t==='Histórico'||(t==='Admin'&&ehAdmin)||(t==='Faturas'&&!ehAdmin)||(t==='Mais'&&!ehAdmin)||t==='Cercas'||t==='Alertas') irPara(t);
+  if(t==='Mapa'||t==='Veículos'||t==='Histórico'||(t==='Admin'&&ehAdmin)||(t==='Faturas'&&!ehAdmin)||(t==='Mais'&&!ehAdmin)||t==='Cercas'||t==='Alertas'||t==='Links') irPara(t);
   else toast(t+': em construção');
 });
 
@@ -7655,7 +7718,7 @@ $('cList').addEventListener('click',e=>{
 function cercasReset(){
   cancelarDesenho(); cercas=[]; cercasIniciado=false; alertas=[]; alertasIds=null;
   camadaCercas.clearLayers(); if(alertaTimer){ clearInterval(alertaTimer); alertaTimer=null }
-  $('alBadge').classList.remove('show'); $('cList').innerHTML=''; $('alList').innerHTML='';
+  $('alBadge').classList.remove('show'); try{ cpLista=[]; $('cpBadge').classList.remove('show'); $('cpLista').innerHTML='' }catch(e){} $('cList').innerHTML=''; $('alList').innerHTML='';
 }
 $('cNova').onclick=()=>{
   if(!veiculos.length){ toast('Nenhum veículo disponível para criar cerca.'); return }
