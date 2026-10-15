@@ -573,11 +573,12 @@ body.hist-on #mapCar{display:none!important}
   .ladofil{display:flex;gap:5px;margin-top:8px}
   .ladofil button{padding:4px 9px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--mut);font:inherit;font-size:12px;font-weight:600;cursor:pointer}
   .ladofil button.on{background:var(--cyan);border-color:var(--cyan);color:#06292a}
-  .ladolista{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:6px 8px 10px;contain:strict;will-change:scroll-position}
-  .ladoit{display:grid;grid-template-columns:22px 34px minmax(0,1fr) auto;align-items:center;gap:8px;padding:7px 8px;margin-bottom:4px;border-radius:12px;border:1px solid transparent;cursor:pointer;
-    content-visibility:auto;contain-intrinsic-size:auto 52px;contain:layout paint}
+  .ladolista{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:0;contain:strict;will-change:scroll-position}
+  /* 14/10/2026 (pedido do dono): sem ícone; uma linha fina separando cada veículo */
+  .ladoit{display:grid;grid-template-columns:22px minmax(0,1fr) auto;align-items:center;gap:10px;padding:9px 12px;border-bottom:1px solid var(--line);cursor:pointer;
+    content-visibility:auto;contain-intrinsic-size:auto 50px;contain:layout paint}
   .ladoit:hover{background:var(--card2)}
-  .ladoit.on{background:rgba(56,225,230,.09);border-color:rgba(56,225,230,.45)}
+  .ladoit.on{background:rgba(56,225,230,.09);box-shadow:inset 3px 0 0 var(--cyan)}
   .ladock{position:relative;width:18px;height:18px;display:flex;align-items:center;justify-content:center;cursor:pointer}
   .ladock input{position:absolute;opacity:0;width:0;height:0}
   .ladock span{width:16px;height:16px;border-radius:5px;border:1.5px solid #4a5160;display:flex;align-items:center;justify-content:center;transition:background .12s,border-color .12s}
@@ -3361,7 +3362,6 @@ function ladoDesenhar(){
     const e=ladoEst(v);
     return '<div class="ladoit'+(v.id===selId?' on':'')+'" data-id="'+v.id+'">'+
       '<label class="ladock" title="Mostrar ou esconder no mapa"><input type="checkbox"'+(v.visivel?' checked':'')+' aria-label="Mostrar '+esc(v.nome)+' no mapa"><span></span></label>'+
-      '<span class="ladoav '+e[0]+'">'+LADO_IC+'</span>'+
       '<button type="button" class="ladonm"><b>'+esc(v.nome)+'</b>'+(v.placa?'<small>'+esc(v.placa)+'</small>':'')+'</button>'+
       '<span class="ladost '+e[0]+'"><em>'+esc(e[1])+'</em>'+(e[2]?'<small>'+esc(e[2])+'</small>':'')+'</span></div>';
   }).join('') || '<div class="ladovz">Nenhum veículo'+(ladoFiltro!=='todos'||$('ladoBusca').value?' com esse filtro.':'.')+'</div>';
@@ -3393,8 +3393,8 @@ function ladoAtualizar(){
     const r=linhas[i], v=porId.get(+r.dataset.id); if(!v) continue;
     const e=ladoEst(v), chave=e.join('|')+'|'+(v.id===selId?1:0)+'|'+(v.visivel?1:0);
     if(r._k===chave) continue; r._k=chave;
-    const st=r.querySelector('.ladost'), av=r.querySelector('.ladoav');
-    st.className='ladost '+e[0]; av.className='ladoav '+e[0];
+    const st=r.querySelector('.ladost');
+    st.className='ladost '+e[0];
     st.innerHTML='<em>'+esc(e[1])+'</em>'+(e[2]?'<small>'+esc(e[2])+'</small>':'');
     r.classList.toggle('on',v.id===selId);
     const ck=r.querySelector('input'); if(ck.checked!==v.visivel) ck.checked=v.visivel;
