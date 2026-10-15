@@ -624,7 +624,7 @@ body.hist-on #mapCar{display:none!important}
   .sheet .handlewrap{display:none}
   .sheet .actions{grid-column:3;padding:0 0 0 24px;margin-bottom:8px}
   .sheet .actions:last-child{margin-bottom:0}
-  .sheet .banner{grid-column:2;order:0;margin:0 24px 8px}
+  .sheet .banner{display:none!important} /* 14/10/2026: a situação "Bloqueado" já aparece embaixo do nome */
   .sheet .addr{order:1;margin:0 0 6px;font-size:13.5px;line-height:1.35;align-items:baseline}
   .sheet .addr strong{font-size:14px}
   .sheet .addr span{white-space:nowrap;flex:none}
@@ -648,6 +648,10 @@ body.hist-on #mapCar{display:none!important}
   .sheet .grid .statbtn.loja .lojabadge{top:4px;left:6px}
   /* ações: Bloquear | Desbloquear | SMS | compartilhar ; depois Navegar | Ver a rua */
   .sheet .actions .btn{height:44px;font-size:14px;border-radius:12px}
+  /* 14/10/2026 (pedido do dono): Bloquear e Desbloquear só com o cadeado (fechado vermelho, aberto verde), sem o texto */
+  #sheet .actions:not(.dois){grid-template-columns:repeat(4,minmax(0,1fr))!important}
+  #sheet #btnBlock,#sheet #btnUnblock{font-size:0;gap:0}
+  #sheet #btnBlock::before,#sheet #btnUnblock::before{width:22px;height:22px}
   .sheet .actions.dois{margin-top:0}
   .sheet .actions.navrow .btn{height:50px}
   .hpanel{left:calc(var(--lado) + 16px)}
@@ -1597,8 +1601,8 @@ nav button.on .nemo.txt{color:var(--red2)}
     <div class="addr" id="distRow" style="display:none"><strong id="vDist"></strong></div>
     <div class="addr" id="desbRow" style="display:none"><strong id="desbTxt" style="color:var(--grn,#16a34a)"></strong></div>
     <div class="actions">
-      <button class="btn btn-red" id="btnBlock">Bloquear</button>
-      <button class="btn btn-out" id="btnUnblock">Desbloquear</button>
+      <button class="btn btn-red" id="btnBlock" title="Bloquear" aria-label="Bloquear">Bloquear</button>
+      <button class="btn btn-out" id="btnUnblock" title="Desbloquear" aria-label="Desbloquear">Desbloquear</button>
       <button class="btn btn-out" id="btnSmsMenu" type="button" aria-label="Bloquear ou desbloquear por SMS" title="Bloquear ou desbloquear por SMS" style="display:none">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="10.5" width="15" height="10" rx="2.5"/><path d="M8 10.5V7.5a4 4 0 018 0v3"/></svg><span>SMS</span>
       </button>
