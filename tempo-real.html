@@ -560,6 +560,7 @@ body.hist-on #mapCar{display:none!important}
 .vazio{display:none;position:absolute;left:16px;right:16px;bottom:24px;z-index:450;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;text-align:center;font-weight:600}
 .vazio small{display:block;font-weight:400;color:var(--mut);margin-top:4px}
 .vazio .vz-pc{display:none}
+.chavebloq{display:none} /* chave de bloqueio: só no computador (o celular segue com os dois botões) */
 @media (min-width:900px){.vazio .vz-pc{display:inline}}
 
 /* Cartão do veículo (arrastável) */
@@ -671,14 +672,25 @@ body.hist-on #mapCar{display:none!important}
   main #sheet #btnSmsMenu span{font-size:8.5px}
   main #sheet #btnSmsMenu svg{width:15px;height:15px}
   main #sheet #btnShare svg{width:18px;height:18px}
-  /* bloqueio: botão duplo [cadeado fechado | cadeado aberto]; o estado atual do veículo fica aceso */
-  main #sheet #btnBlock,main #sheet #btnUnblock{width:48px;height:40px;font-size:0;gap:0;padding:0;box-shadow:none;transition:background .2s,color .2s}
-  main #sheet #btnBlock::before,main #sheet #btnUnblock::before{width:20px;height:20px}
-  main #sheet #btnBlock{border-radius:12px 0 0 12px;margin-left:6px;background:rgba(227,38,47,.08);color:#e3262f;border:1px solid rgba(227,38,47,.30);border-right:0}
-  main #sheet #btnUnblock{border-radius:0 12px 12px 0;margin-right:16px;background:linear-gradient(180deg,#22c55e,#16a34a);color:#fff;border:1px solid #16a34a}
-  main #sheet.blq #btnBlock{background:linear-gradient(180deg,#ef3b43,#c81e26);color:#fff;border-color:#c81e26}
-  main #sheet.blq #btnUnblock{background:rgba(22,163,74,.08);color:var(--green);border-color:rgba(22,163,74,.30);border-left:0}
-  main #sheet #btnBlock:disabled,main #sheet #btnUnblock:disabled{opacity:.45}
+  /* bloqueio: CHAVE liga/desliga (14/10/2026, pedido do dono). Para a esquerda verde = liberado; para a direita vermelha = bloqueado.
+     Tocar na chave abre a MESMA confirmação de antes (bloquear ou desbloquear). Os dois botões antigos ficam escondidos no computador. */
+  main #sheet #btnBlock,main #sheet #btnUnblock{display:none!important}
+  main #sheet #chaveBloq{grid-column:7 / 9;grid-row:1;display:flex;align-items:center;gap:10px;height:42px;padding:0 6px 0 14px;margin:0 16px 0 6px;border-radius:999px;cursor:pointer;
+    font:inherit;font-size:13px;font-weight:800;white-space:nowrap;background:rgba(22,163,74,.10);color:var(--green);border:1px solid rgba(22,163,74,.30);transition:background .25s,color .25s,border-color .25s}
+  main #sheet #chaveBloq .cbtrilho{position:relative;width:56px;height:30px;border-radius:999px;background:linear-gradient(180deg,#22c55e,#16a34a);box-shadow:inset 0 1px 3px rgba(0,0,0,.25);transition:background .25s;flex:none}
+  main #sheet #chaveBloq .cbbola{position:absolute;left:3px;top:3px;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 2px 5px rgba(0,0,0,.30);transition:left .25s cubic-bezier(.3,1.4,.6,1)}
+  main #sheet #chaveBloq .cbbola::after{content:"";position:absolute;inset:5px;background:#16a34a;-webkit-mask:var(--ic) center/contain no-repeat;mask:var(--ic) center/contain no-repeat;
+    --ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='4.5' y='10.5' width='15' height='10' rx='2.5'/%3E%3Cpath d='M8 10.5V7.5a4 4 0 017.6-1.7'/%3E%3C/svg%3E")}
+  main #sheet #chaveBloq.on{background:rgba(227,38,47,.10);color:#e3262f;border-color:rgba(227,38,47,.32)}
+  main #sheet #chaveBloq.on .cbtrilho{background:linear-gradient(180deg,#ef3b43,#c81e26)}
+  main #sheet #chaveBloq.on .cbbola{left:29px}
+  main #sheet #chaveBloq.on .cbbola::after{background:#e3262f;
+    --ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='4.5' y='10.5' width='15' height='10' rx='2.5'/%3E%3Cpath d='M8 10.5V7.5a4 4 0 018 0v3'/%3E%3C/svg%3E")}
+  main #sheet #chaveBloq:hover:not(:disabled){filter:brightness(1.05)}
+  main #sheet #chaveBloq:disabled{cursor:default;opacity:.55}
+  main #sheet #chaveBloq.env{opacity:1}
+  main #sheet #chaveBloq.env .cbbola{animation:cbPulsa 1s ease-in-out infinite}
+  @keyframes cbPulsa{0%,100%{transform:scale(1)}50%{transform:scale(.8)}}
   /* linha 2 · faixa de baixo: endereço + números, separados por linhas finas */
   main #sheet #addrRow{grid-column:1;grid-row:2;align-self:stretch;flex-direction:column;align-items:flex-start;justify-content:center;gap:3px;
     padding:10px 16px 11px 18px;border-top:1px solid var(--line);background:rgba(127,127,127,.05);font-size:13px;line-height:1.3;min-width:0}
@@ -1660,6 +1672,7 @@ nav button.on .nemo.txt{color:var(--red2)}
     <div class="actions">
       <button class="btn btn-red" id="btnBlock" title="Bloquear" aria-label="Bloquear">Bloquear</button>
       <button class="btn btn-out" id="btnUnblock" title="Desbloquear" aria-label="Desbloquear">Desbloquear</button>
+      <button type="button" class="chavebloq" id="chaveBloq" role="switch" aria-checked="false" aria-label="Bloqueio do veículo" title="Bloqueio do veículo"><span class="cbtx">Liberado</span><span class="cbtrilho"><span class="cbbola"></span></span></button>
       <button class="btn btn-out" id="btnSmsMenu" type="button" aria-label="Bloquear ou desbloquear por SMS" title="Bloquear ou desbloquear por SMS" style="display:none">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="10.5" width="15" height="10" rx="2.5"/><path d="M8 10.5V7.5a4 4 0 018 0v3"/></svg><span>SMS</span>
       </button>
@@ -3392,7 +3405,13 @@ function atualizar(){
     $('vAgo').textContent = sp ? 'Sem posição no mapa' : (gpsVelho ? 'Sem sinal de GPS '+tempo(Date.now()-v.fix) : '');
     $('addrRow').style.display = (endereco || gpsVelho) ? 'flex' : 'none';
     $('banner').classList.toggle('show',v.bloq);
-    sheet.classList.toggle('blq',!!v.bloq); /* 14/10/2026: no computador acende o lado certo do botão duplo de bloqueio */
+    sheet.classList.toggle('blq',!!v.bloq);
+    { /* 14/10/2026: chave de bloqueio do computador acompanha a situação do veículo */
+      const c=$('chaveBloq'), bq=!!v.bloq, t=cmdAndamento?'Enviando…':(bq?'Bloqueado':'Liberado');
+      c.classList.toggle('on',bq); c.classList.toggle('env',!!cmdAndamento); c.disabled=!!(cmdAndamento||sp); c.setAttribute('aria-checked',bq?'true':'false');
+      if(c.firstChild.textContent!==t) c.firstChild.textContent=t;
+      c.title = bq ? 'Veículo bloqueado: toque para desbloquear' : 'Veículo liberado: toque para bloquear';
+    }
     /* sem sinal ainda: Bloquear/Desbloquear pela internet não fazem sentido (os botões de SMS ficam ativos) */
     $('btnBlock').disabled=cmdAndamento||sp;
     mostrarBotoesSms();
@@ -3786,6 +3805,7 @@ function abrirConfirmacao(acao){
 }
 $('btnBlock').onclick=()=>abrirConfirmacao('bloquear');
 $('btnUnblock').onclick=()=>abrirConfirmacao('desbloquear');
+$('chaveBloq').onclick=()=>{ if($('chaveBloq').disabled) return; abrirConfirmacao(sheet.classList.contains('blq')?'desbloquear':'bloquear') }; /* chave do computador: mesma confirmação */
 
 $('cmdOk').onclick=async ()=>{
   const v=ativo(); if(!v) return;
