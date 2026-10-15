@@ -1781,6 +1781,9 @@ nav button.on .nemo.txt{color:var(--red2)}
 /* 12/10/2026: cabeçalho um pouco mais justo em tela estreita, para a tarja com saldo caber ao lado dos 3 botões (tema, cadeado, sair) */
 @media (max-width:420px){ header{padding-left:10px;padding-right:10px;gap:6px} .hdir{gap:6px} .brand{gap:8px} }
 /* ===== MENSALIDADE PELO CARD DO CLIENTE (15/10/2026): mesma calculadora do ajuste-assinatura ===== */
+.asbtn{width:32px;height:32px;flex:none;border-radius:50%;background:#0b5fff;border:0;display:inline-flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(11,95,255,.3);margin:2px 0 2px 6px;vertical-align:middle;cursor:pointer}
+.asbtn:active{transform:scale(.94)}
+.asbtn svg{width:17px;height:17px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
 #mAssin .box2{display:flex;flex-direction:column;max-height:86vh;overflow:hidden}
 #mAssin .almtopo{flex:none;display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}
 #mAssin .almtopo h3{margin:0}
@@ -6560,7 +6563,7 @@ function desenharClientes(){
           '<div class="fi"><span class="fl">CPF</span><span class="fv">'+(cpf?esc(fmtCpf(cpf)):'<span class="fmut">não cadastrado</span>')+'</span></div>'+
           '<div class="fi"><span class="fl">WhatsApp</span><span class="fv">'+(temWpp?esc(fmtWpp(u.phone)):'<span class="bd-mal">não cadastrado</span>')+'</span></div>'+
           '<div class="fi"><span class="fl">Acesso</span><span class="fv"><button type="button" class="pill pbtn '+(u.disabled?'bd-mal':'bd-ok')+'" data-a="bloq" data-u="'+u.id+'" title="'+(u.disabled?'Toque para reativar o acesso':'Toque para desativar o acesso')+'">'+(u.disabled?'Desativado':'Ativo')+' <span class="ptroca">⇄</span></button>'+(validadeDe(u)?'<span class="fval'+(validadeDe(u)<Date.now()?' venc':'')+'">'+(validadeDe(u)<Date.now()?'venceu em ':'válido até ')+esc(txtValidade(validadeDe(u)))+'</span>':'')+'<button type="button" class="flink" data-a="perm" data-u="'+u.id+'" title="O que este cliente pode usar no app e até quando">'+ICO_ENGR+'Permissões</button></span></div>'+
-          '<div class="fi"><span class="fl">Financeiro</span><span class="fv"><span class="pill '+(fin.c||'neutro')+'">'+esc(fin.t)+'</span><button type="button" class="flink" data-a="assin" data-u="'+u.id+'" title="Somar veículo ou tag na assinatura do Asaas">Mensalidade</button>'+(fm&&(fm.confiancaUsada||fm.nivel==='confianca')?'<button type="button" class="flink" data-a="zerar" data-u="'+u.id+'" title="Devolve ao cliente o direito de usar o Já paguei de novo">Zerar confiança</button>':'')+'</span></div>'+
+          '<div class="fi"><span class="fl">Financeiro</span><span class="fv"><span class="pill '+(fin.c||'neutro')+'">'+esc(fin.t)+'</span><button type="button" class="asbtn" data-a="assin" data-u="'+u.id+'" aria-label="Mensalidade no Asaas" title="Mensalidade: somar veículo ou tag na assinatura do Asaas"><svg viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z"/><path d="M14.5 10.5h-3a1.5 1.5 0 000 3h1.5a1.5 1.5 0 010 3H9.5M12 9v1.5M12 16.5V18"/></svg></button>'+(fm&&(fm.confiancaUsada||fm.nivel==='confianca')?'<button type="button" class="flink" data-a="zerar" data-u="'+u.id+'" title="Devolve ao cliente o direito de usar o Já paguei de novo">Zerar confiança</button>':'')+'</span></div>'+
           '<div class="fi largo"><span class="fl">Último acesso</span><span class="fv">'+valorAcesso(u)+'</span></div>'+
         '</div>'+
         '<div class="vchips"><span class="qtd">'+ap.length+(ap.length===1?' veículo':' veículos')+' <span class="qseta">▾</span></span>'+
