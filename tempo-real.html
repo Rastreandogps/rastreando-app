@@ -1493,7 +1493,7 @@ nav button.on .nemo.txt{color:var(--red2)}
   <aside class="lado" id="lado" style="display:none">
     <div class="ladotopo">
       <div class="ladotit"><b>Veículos</b><small id="ladoN"></small></div>
-      <input class="ladobusca" id="ladoBusca" type="search" placeholder="Buscar nome, placa ou cliente" autocomplete="off">
+      <input class="ladobusca" id="ladoBusca" type="search" name="ladoBuscaVeic" placeholder="Buscar nome, placa ou cliente" autocomplete="off" autocapitalize="none" spellcheck="false" readonly data-lpignore="true" data-1p-ignore onfocus="this.removeAttribute('readonly')">
       <div class="ladofil" id="ladoFil"><button type="button" data-f="todos" class="on">Todos</button><button type="button" data-f="on">Online</button><button type="button" data-f="mov">Andando</button><button type="button" data-f="off">Offline</button></div>
     </div>
     <div class="ladolista" id="ladoLista"></div>
@@ -3320,7 +3320,15 @@ function ladoPassa(v){
   if(ladoFiltro==='off') return !v.pos || !v.online;
   return true;
 }
+/* 14/10/2026: o navegador às vezes "preenche" a busca com o e-mail salvo do login (preenchimento automático).
+   Se o texto for o login/e-mail de quem está entrando, apaga sozinho. */
+function ladoLimparAutofill(){
+  const b=$('ladoBusca'); if(!b || !b.value) return;
+  const v=b.value.trim().toLowerCase(), em=String(lsGet('rg_email')||'').trim().toLowerCase();
+  if((em && v===em) || (/@/.test(v) && document.activeElement!==b)) b.value='';
+}
 function ladoBase(){
+  ladoLimparAutofill();
   const q=String($('ladoBusca').value||'').trim().toLowerCase(), qd=q.replace(/\D/g,'');
   return veiculos.filter(v=>{
     if(!ladoPassa(v)) return false;
@@ -3415,6 +3423,7 @@ $('ladoTodos').onclick=()=>{
 };
 window.addEventListener('resize',()=>{ clearTimeout(window._ladoT); window._ladoT=setTimeout(ladoMostrar,150) });
 document.addEventListener('DOMContentLoaded',ladoMostrar);
+[300,1200,3000].forEach(ms=>setTimeout(()=>{ const b=$('ladoBusca'); if(b && b.value){ ladoLimparAutofill(); if(!b.value) try{ ladoDesenhar() }catch(e){} } },ms)); /* o preenchimento automático do navegador chega um pouco depois de abrir */
 function desenharLista(){
   try{ if(ladoLigado()) ladoDesenhar() }catch(e){}
   const q=$('vSearch').value.trim().toLowerCase();
