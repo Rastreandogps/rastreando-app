@@ -573,26 +573,41 @@ body.hist-on #mapCar{display:none!important}
   .ladofil{display:flex;gap:5px;margin-top:8px}
   .ladofil button{padding:4px 9px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--mut);font:inherit;font-size:12px;font-weight:600;cursor:pointer}
   .ladofil button.on{background:var(--cyan);border-color:var(--cyan);color:#06292a}
-  .ladolista{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain}
-  .ladoit{display:grid;grid-template-columns:34px 1fr auto;align-items:center;gap:6px;padding:0 10px 0 2px;border-bottom:1px solid rgba(42,47,57,.7);cursor:pointer;min-height:50px}
-  .ladoit:hover{background:rgba(255,255,255,.03)}
-  .ladoit.on{background:rgba(56,225,230,.08);box-shadow:inset 3px 0 0 var(--cyan)}
-  .ladoit .chk{width:34px;height:50px}
-  .ladoit .chk .box{width:16px;height:16px}
-  .ladoit .chk input:checked + .box::after{width:5px;height:9px}
-  .ladonm{min-width:0;text-align:left;background:none;border:none;color:var(--txt);font:inherit;padding:6px 0;cursor:pointer}
+  .ladolista{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:6px 8px 10px;contain:strict;will-change:scroll-position}
+  .ladoit{display:grid;grid-template-columns:22px 34px minmax(0,1fr) auto;align-items:center;gap:8px;padding:7px 8px;margin-bottom:4px;border-radius:12px;border:1px solid transparent;cursor:pointer;
+    content-visibility:auto;contain-intrinsic-size:auto 52px;contain:layout paint}
+  .ladoit:hover{background:var(--card2)}
+  .ladoit.on{background:rgba(56,225,230,.09);border-color:rgba(56,225,230,.45)}
+  .ladock{position:relative;width:18px;height:18px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+  .ladock input{position:absolute;opacity:0;width:0;height:0}
+  .ladock span{width:16px;height:16px;border-radius:5px;border:1.5px solid #4a5160;display:flex;align-items:center;justify-content:center;transition:background .12s,border-color .12s}
+  .ladock input:checked + span{background:var(--cyan);border-color:var(--cyan)}
+  .ladock input:checked + span::after{content:"";width:4px;height:8px;border:solid #0f1115;border-width:0 2px 2px 0;transform:rotate(45deg) translate(-.5px,-1px)}
+  .ladock input:indeterminate + span{background:var(--cyan);border-color:var(--cyan)}
+  .ladock input:indeterminate + span::after{content:"";width:8px;height:0;border-bottom:2px solid #0f1115}
+  :root[data-tema="claro"] .ladock span{border-color:#b8c0cc}
+  .ladoav{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(154,163,178,.14);color:var(--mut);flex:none}
+  .ladoav svg{width:18px;height:18px}
+  .ladoav.mov{background:rgba(51,209,122,.16);color:var(--green)}
+  .ladoav.on{background:rgba(56,225,230,.14);color:var(--cyan)}
+  .ladoav.par{background:rgba(245,184,61,.16);color:var(--amber)}
+  .ladoav.off{background:rgba(154,163,178,.12);color:var(--mut)}
+  .ladoav.blq{background:rgba(227,38,47,.16);color:var(--red2)}
+  .ladonm{min-width:0;text-align:left;background:none;border:none;color:var(--txt);font:inherit;padding:0;cursor:pointer}
   .ladonm b{display:block;font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .ladonm small{display:block;font-size:11px;color:var(--mut);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .ladost{text-align:right;font-size:11.5px;font-weight:700;white-space:nowrap}
-  .ladost small{display:block;font-weight:500;color:var(--mut);font-size:10.5px;margin-top:2px}
-  .ladost i{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px;vertical-align:middle;background:var(--mut)}
-  .ladost.on{color:var(--txt)}.ladost.on i{background:var(--green)}
-  .ladost.mov{color:var(--green)}.ladost.mov i{background:var(--green)}
-  .ladost.par{color:var(--txt)}.ladost.par i{background:var(--amber)}
-  .ladost.off{color:var(--mut)}.ladost.off i{background:var(--red2)}
-  .ladost.blq{color:var(--red2)}.ladost.blq i{background:var(--red2)}
+  .ladonm small{display:block;font-size:11px;color:var(--mut);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.04em}
+  .ladost{display:flex;flex-direction:column;align-items:flex-end;gap:3px;white-space:nowrap}
+  .ladost em{font-style:normal;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;background:rgba(154,163,178,.14);color:var(--mut)}
+  .ladost small{font-size:10.5px;color:var(--mut)}
+  .ladost.mov em{background:rgba(51,209,122,.16);color:var(--green)}
+  .ladost.on em{background:rgba(56,225,230,.12);color:var(--cyan)}
+  .ladost.par em{background:rgba(245,184,61,.16);color:var(--amber)}
+  .ladost.blq em{background:rgba(227,38,47,.16);color:var(--red2)}
   .ladovz{padding:18px 14px;color:var(--mut);font-size:13px;text-align:center}
-  .ladope{flex:none;display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-top:1px solid var(--line);font-size:12px}
+  .ladotodos{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:10px;padding:6px 8px;border-radius:10px;background:var(--card2);font-size:12.5px;font-weight:600;cursor:pointer}
+  .ladotodos label{display:flex;align-items:center;gap:8px;cursor:pointer}
+  .ladotodos small{color:var(--mut);font-weight:500}
+  .ladope{flex:none;display:flex;justify-content:flex-end;align-items:center;padding:8px 12px;border-top:1px solid var(--line);font-size:12px}
   .ladope button{background:none;border:none;color:var(--mut);font:inherit;font-size:12px;font-weight:600;cursor:pointer;padding:4px 0}
   .ladope button:hover{color:var(--txt)}
   .ladoaba{position:absolute;left:var(--lado);top:50%;transform:translateY(-50%);z-index:456;width:18px;height:56px;border:1px solid var(--line);border-left:none;border-radius:0 8px 8px 0;background:var(--card);color:var(--mut);font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
@@ -1495,9 +1510,10 @@ nav button.on .nemo.txt{color:var(--red2)}
       <div class="ladotit"><b>Veículos</b><small id="ladoN"></small></div>
       <input class="ladobusca" id="ladoBusca" type="search" name="ladoBuscaVeic" placeholder="Buscar nome, placa ou cliente" autocomplete="off" autocapitalize="none" spellcheck="false" readonly data-lpignore="true" data-1p-ignore onfocus="this.removeAttribute('readonly')">
       <div class="ladofil" id="ladoFil"><button type="button" data-f="todos" class="on">Todos</button><button type="button" data-f="on">Online</button><button type="button" data-f="mov">Andando</button><button type="button" data-f="off">Offline</button></div>
+      <div class="ladotodos"><label class="ladock" style="width:auto;height:auto;gap:8px"><input type="checkbox" id="ladoTodosCk" aria-label="Mostrar todos da lista no mapa"><span></span><b id="ladoTodosTx" style="font-weight:600">Todos no mapa</b></label><small id="ladoNoMapa"></small></div>
     </div>
     <div class="ladolista" id="ladoLista"></div>
-    <div class="ladope"><button type="button" id="ladoTodos">☑ Marcar todos</button><button type="button" id="ladoFechar">‹ Recolher lista</button></div>
+    <div class="ladope"><button type="button" id="ladoFechar">‹ Recolher lista</button></div>
   </aside>
   <button class="ladoaba" id="ladoAba" type="button" style="display:none" title="Mostrar ou esconder a lista de veículos" aria-label="Mostrar ou esconder a lista de veículos">‹</button>
 
@@ -3303,7 +3319,8 @@ setInterval(atualizar,1000);
 /* ===== LISTA FIXA DE VEÍCULOS no computador (14/10/2026, pedido do dono) =====
    Mesmos dados da aba Veículos e da janela "Escolher veículo". Clicar no nome: o mapa vai até o veículo (sem travar).
    A caixinha mostra/esconde no mapa (a mesma escolha das outras telas). Filtros: Todos · Online · Andando · Offline. */
-let ladoFiltro='todos', ladoAssin='', ladoUltMs=0;
+let ladoFiltro='todos', ladoAssin='', ladoUltMs=0, ladoRolandoAte=0, ladoUltLista=[];
+const LADO_IC='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17h14M6 17l1.4-5.2A2 2 0 0 1 9.3 10h5.4a2 2 0 0 1 1.9 1.8L18 17"/><path d="M4 17v2M20 17v2"/><circle cx="8" cy="17" r="1.6"/><circle cx="16" cy="17" r="1.6"/></svg>';
 function ladoLigado(){ return telaLarga() && !$('main').classList.contains('semlado') }
 function ladoEst(v){ /* [classe, texto curto, quando] */
   if(!v.pos) return ['off','sem sinal',''];
@@ -3333,7 +3350,7 @@ function ladoBase(){
   return veiculos.filter(v=>{
     if(!ladoPassa(v)) return false;
     if(!q) return true;
-    const b=(v.nome+' '+(v.placa||'')+' '+(v.contato||'')+' '+(ehAdmin?rotuloCliente(v):'')).toLowerCase();
+    const b=(v.nome+' '+(v.placa||'')+' '+(v.contato||'')+' '+(ehAdmin?rotuloCliente(v):'')).toLowerCase(); /* o cliente só é procurado quando há texto na busca */
     return b.includes(q) || (qd.length>=3 && b.replace(/\D/g,'').includes(qd));
   }).sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
 }
@@ -3343,36 +3360,46 @@ function ladoDesenhar(){
   el.innerHTML = lista.map(v=>{
     const e=ladoEst(v);
     return '<div class="ladoit'+(v.id===selId?' on':'')+'" data-id="'+v.id+'">'+
-      '<label class="chk" title="Mostrar ou esconder no mapa"><input type="checkbox"'+(v.visivel?' checked':'')+' aria-label="Mostrar '+esc(v.nome)+' no mapa"><span class="box"></span></label>'+
-      '<button type="button" class="ladonm"><b>'+esc(v.nome)+'</b><small>'+esc(v.placa||'—')+'</small></button>'+
-      '<span class="ladost '+e[0]+'"><i></i>'+esc(e[1])+'<small>'+esc(e[2])+'</small></span></div>';
+      '<label class="ladock" title="Mostrar ou esconder no mapa"><input type="checkbox"'+(v.visivel?' checked':'')+' aria-label="Mostrar '+esc(v.nome)+' no mapa"><span></span></label>'+
+      '<span class="ladoav '+e[0]+'">'+LADO_IC+'</span>'+
+      '<button type="button" class="ladonm"><b>'+esc(v.nome)+'</b>'+(v.placa?'<small>'+esc(v.placa)+'</small>':'')+'</button>'+
+      '<span class="ladost '+e[0]+'"><em>'+esc(e[1])+'</em>'+(e[2]?'<small>'+esc(e[2])+'</small>':'')+'</span></div>';
   }).join('') || '<div class="ladovz">Nenhum veículo'+(ladoFiltro!=='todos'||$('ladoBusca').value?' com esse filtro.':'.')+'</div>';
   ladoAssin = lista.map(v=>v.id).join(',')+'|'+ladoFiltro;
-  ladoCabecalho();
+  ladoCabecalho(lista);
 }
-function ladoCabecalho(){
+function ladoCabecalho(lista){
+  lista = lista || ladoUltLista; ladoUltLista = lista;
   const on=veiculos.filter(v=>v.pos&&v.online).length;
   $('ladoN').textContent = veiculos.length+(veiculos.length?' · '+on+' online':'');
-  const todosVis = veiculos.length>0 && ladoBase().every(v=>v.visivel);
-  $('ladoTodos').textContent = todosVis ? '☐ Desmarcar todos' : '☑ Marcar todos';
+  const n=lista.filter(v=>v.visivel).length, ck=$('ladoTodosCk');
+  ck.checked = lista.length>0 && n===lista.length; ck.indeterminate = n>0 && n<lista.length; ck.disabled=!lista.length;
+  const filtrado = ladoFiltro!=='todos' || !!$('ladoBusca').value.trim();
+  $('ladoTodosTx').textContent = filtrado ? 'Todos desta lista' : 'Todos no mapa';
+  $('ladoNoMapa').textContent = visiveis().length+' de '+veiculos.length+' no mapa';
 }
 /* a cada atualização: redesenha se a lista mudou; senão só troca velocidade, bolinha e "há X min" (leve com 390 veículos) */
+/* 14/10/2026 (pedido do dono: a rolagem travava): a lista só é mexida a cada 4 s, nunca enquanto você está rolando,
+   e só onde algo mudou de verdade (velocidade, situação, "há X min"). */
 function ladoAtualizar(){
   if(!ladoLigado()) return;
-  const agora=Date.now(); if(agora-ladoUltMs<1500) return; ladoUltMs=agora;
+  const agora=Date.now();
+  if(agora<ladoRolandoAte || agora-ladoUltMs<4000) return; ladoUltMs=agora;
   const lista=ladoBase(), assin=lista.map(v=>v.id).join(',')+'|'+ladoFiltro;
   if(assin!==ladoAssin){ ladoDesenhar(); return }
   const porId=new Map(veiculos.map(v=>[v.id,v]));
-  document.querySelectorAll('#ladoLista .ladoit').forEach(r=>{
-    const v=porId.get(+r.dataset.id); if(!v) return;
-    const e=ladoEst(v), st=r.querySelector('.ladost');
-    const txt='<i></i>'+esc(e[1])+'<small>'+esc(e[2])+'</small>';
-    if(st.className!=='ladost '+e[0]) st.className='ladost '+e[0];
-    if(st.innerHTML!==txt) st.innerHTML=txt;
+  const linhas=$('ladoLista').children;
+  for(let i=0;i<linhas.length;i++){
+    const r=linhas[i], v=porId.get(+r.dataset.id); if(!v) continue;
+    const e=ladoEst(v), chave=e.join('|')+'|'+(v.id===selId?1:0)+'|'+(v.visivel?1:0);
+    if(r._k===chave) continue; r._k=chave;
+    const st=r.querySelector('.ladost'), av=r.querySelector('.ladoav');
+    st.className='ladost '+e[0]; av.className='ladoav '+e[0];
+    st.innerHTML='<em>'+esc(e[1])+'</em>'+(e[2]?'<small>'+esc(e[2])+'</small>':'');
     r.classList.toggle('on',v.id===selId);
     const ck=r.querySelector('input'); if(ck.checked!==v.visivel) ck.checked=v.visivel;
-  });
-  ladoCabecalho();
+  }
+  ladoCabecalho(lista);
 }
 /* mapa encolhe para o cartão caber embaixo (e o Leaflet recalcula o tamanho) */
 let ladoCartaoUlt=-1;
@@ -3402,25 +3429,28 @@ try{ if(lsGet('rg_lado')==='0') $('main').classList.add('semlado') }catch(e){}
 $('ladoAba').onclick=()=>ladoAlternar();
 $('ladoFechar').onclick=()=>ladoAlternar(false);
 $('ladoBusca').addEventListener('input',ladoDesenhar);
-$('ladoBusca').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); const b=$('ladoLista').querySelector('.ladonm'); if(b) b.click() } });
+$('ladoBusca').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); const b=$('ladoLista').querySelector('.ladoit'); if(b) b.click() } });
 $('ladoFil').addEventListener('click',e=>{ const b=e.target.closest('[data-f]'); if(!b) return; ladoFiltro=b.dataset.f; $('ladoFil').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b)); ladoDesenhar() });
 $('ladoLista').addEventListener('change',e=>{
   const r=e.target.closest('.ladoit'); if(!r) return;
   const v=veiculos.find(x=>x.id===+r.dataset.id); if(!v) return;
   v.visivel=e.target.checked;
   sincronizarChecks(); mudouSelecao(); try{ sincronizarPick() }catch(_){} ladoCabecalho();
+  r._k='';
 });
 $('ladoLista').addEventListener('click',e=>{
-  const b=e.target.closest('.ladonm'); if(!b) return;
-  const v=veiculos.find(x=>x.id===+b.closest('.ladoit').dataset.id); if(!v) return;
+  if(e.target.closest('.ladock')) return; /* a caixinha só mostra/esconde no mapa */
+  const b=e.target.closest('.ladoit'); if(!b) return;
+  const v=veiculos.find(x=>x.id===+b.dataset.id); if(!v) return;
   escolherVeiculo(v,false);
   document.querySelectorAll('#ladoLista .ladoit').forEach(r=>r.classList.toggle('on',+r.dataset.id===v.id));
 });
-$('ladoTodos').onclick=()=>{
-  const lista=ladoBase(); const marcar = !(lista.length && lista.every(v=>v.visivel));
+$('ladoTodosCk').addEventListener('change',e=>{
+  const marcar=e.target.checked, lista=ladoBase();
   lista.forEach(v=>{ v.visivel=marcar });
   sincronizarChecks(); mudouSelecao(); try{ sincronizarPick() }catch(_){} ladoDesenhar();
-};
+});
+$('ladoLista').addEventListener('scroll',()=>{ ladoRolandoAte=Date.now()+1200 },{passive:true});
 window.addEventListener('resize',()=>{ clearTimeout(window._ladoT); window._ladoT=setTimeout(ladoMostrar,150) });
 document.addEventListener('DOMContentLoaded',ladoMostrar);
 [300,1200,3000].forEach(ms=>setTimeout(()=>{ const b=$('ladoBusca'); if(b && b.value){ ladoLimparAutofill(); if(!b.value) try{ ladoDesenhar() }catch(e){} } },ms)); /* o preenchimento automático do navegador chega um pouco depois de abrir */
