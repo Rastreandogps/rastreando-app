@@ -1780,6 +1780,41 @@ nav button.on .nemo.txt{color:var(--red2)}
 .esel{font-size:12.5px;color:var(--mut);margin:0 0 10px}
 /* 12/10/2026: cabeçalho um pouco mais justo em tela estreita, para a tarja com saldo caber ao lado dos 3 botões (tema, cadeado, sair) */
 @media (max-width:420px){ header{padding-left:10px;padding-right:10px;gap:6px} .hdir{gap:6px} .brand{gap:8px} }
+/* ===== MENSALIDADE PELO CARD DO CLIENTE (15/10/2026): mesma calculadora do ajuste-assinatura ===== */
+#mAssin .box2{display:flex;flex-direction:column;max-height:86vh;overflow:hidden}
+#mAssin .almtopo{flex:none;display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}
+#mAssin .almtopo h3{margin:0}
+#mAssin .almx{width:38px;height:38px;flex:none;border-radius:50%;background:var(--card2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;cursor:pointer}
+#mAssin .almx svg{width:18px;height:18px;fill:none;stroke:var(--txt);stroke-width:2.4;stroke-linecap:round}
+#asRola{flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+#mAssin h4{font-size:14px;margin:14px 0 8px}
+.asinfo{font-size:13px;color:var(--mut);margin:0 0 10px;line-height:1.45}
+.assub{display:block;width:100%;text-align:left;background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:12px;margin-bottom:8px;color:var(--txt)}
+.assub.on{border-color:#16a34a;box-shadow:0 0 0 3px rgba(22,163,74,.15)}
+.assub b{font-size:18px}
+.assub small{display:block;font-size:12px;color:var(--mut);margin-top:3px;line-height:1.4}
+.astag{display:inline-block;font-size:11.5px;font-weight:700;background:var(--card2);border:1px solid var(--line);border-radius:8px;padding:2px 7px;margin:6px 4px 0 0}
+.astag.warn{background:rgba(245,184,61,.15);border-color:rgba(245,184,61,.6)}
+#asData{margin:0 0 12px}
+.ascomp{display:flex;align-items:stretch;gap:8px;margin:4px 0 10px}
+.ascomp>div{flex:1;background:var(--card2);border-radius:12px;padding:10px;text-align:center}
+.ascomp>div.dep{background:rgba(22,163,74,.12);border:1px solid rgba(22,163,74,.45)}
+.ascomp small{display:block;font-size:11.5px;color:var(--mut)}
+.ascomp b{display:block;font-size:18px;margin:2px 0}
+.ascomp em{font-style:normal;font-size:11.5px;color:var(--mut)}
+.ascomp i{align-self:center;font-style:normal;font-size:20px;color:var(--mut)}
+.asbol{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-top:1px solid var(--line);font-size:13px}
+.asbol .bdg{display:inline-block;font-size:11px;font-weight:800;border-radius:7px;padding:1px 7px;margin-top:3px}
+.asbol .bdg.atualizar{background:rgba(22,163,74,.15);color:#16a34a}
+.asbol .bdg.manter{background:var(--card2);color:var(--mut)}
+.asbol .bdg.cancelar{background:rgba(227,38,47,.12);color:var(--red2)}
+.asbol .r{text-align:right}
+.asaviso{background:rgba(245,184,61,.14);border-radius:10px;padding:8px 10px;font-size:12.5px;margin-top:8px}
+.asres{display:flex;gap:8px;align-items:flex-start;font-size:13.5px;padding:7px 0}
+.asres i{font-style:normal;flex:none;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;background:#16a34a}
+.asres.fail i{background:var(--red)}
+.asbts{display:flex;gap:8px;margin-top:12px}
+.asbts button{flex:1;height:46px;border-radius:12px;font-weight:800}
 /* ===== FICHAS RASTREANDO (15/10/2026): crédito pré-pago para compartilhar localização ===== */
 .fchmoeda{display:inline-flex;align-items:center;justify-content:center;flex:none;width:30px;height:30px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fde68a,#f59e0b 62%,#b45309);box-shadow:inset 0 -2px 0 rgba(120,53,15,.35),0 1px 3px rgba(0,0,0,.25);color:#78350f}
 .fchmoeda svg{width:62%;height:62%;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
@@ -2593,6 +2628,28 @@ nav button.on .nemo.txt{color:var(--red2)}
       <div id="lojaLista"></div>
     </div>
     <button class="btn btn-out alfechar" data-close type="button">Fechar</button>
+  </div>
+</div>
+<!-- Mensalidade pelo card do cliente (15/10/2026): mesma calculadora do ajuste-assinatura.html -->
+<div class="modal alsheet" id="mAssin">
+  <div class="box2">
+    <div class="almtopo"><h3 id="asTit">Mensalidade</h3><button class="almx" data-close type="button" aria-label="Fechar" title="Fechar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <div id="asRola">
+      <p class="asinfo" id="asSub"></p>
+      <div id="asSubs"></div>
+      <div id="asForm" style="display:none">
+        <h4>Vai instalar</h4>
+        <div class="ljstep"><div class="ljsl"><b>Com bloqueio</b><small id="asPCom"></small></div><div class="ljsc"><button type="button" data-asm="com" aria-label="Menos com bloqueio">−</button><span id="asQcom">0</span><button type="button" data-asp="com" aria-label="Mais com bloqueio">+</button></div></div>
+        <div class="ljstep"><div class="ljsl"><b>Sem bloqueio</b><small id="asPSem"></small></div><div class="ljsc"><button type="button" data-asm="sem" aria-label="Menos sem bloqueio">−</button><span id="asQsem">0</span><button type="button" data-asp="sem" aria-label="Mais sem bloqueio">+</button></div></div>
+        <div class="ljstep"><div class="ljsl"><b>Tag</b><small id="asPTag"></small></div><div class="ljsc"><button type="button" data-asm="tag" aria-label="Menos tag">−</button><span id="asQtag">0</span><button type="button" data-asp="tag" aria-label="Mais tag">+</button></div></div>
+        <label class="flbl" for="asData">Data da instalação</label>
+        <input class="fld" type="date" id="asData">
+        <button class="btn btn-red" id="asCalc" type="button" style="width:100%">Calcular</button>
+      </div>
+      <div id="asPrev"></div>
+      <div class="ferr" id="asErro" style="margin-top:8px"></div>
+    </div>
+    <button class="btn btn-out alfechar" id="asFechar" type="button">Fechar</button>
   </div>
 </div>
 <!-- Fichas Rastreando (15/10/2026): saldo, pacotes por PIX e extrato -->
@@ -6503,7 +6560,7 @@ function desenharClientes(){
           '<div class="fi"><span class="fl">CPF</span><span class="fv">'+(cpf?esc(fmtCpf(cpf)):'<span class="fmut">não cadastrado</span>')+'</span></div>'+
           '<div class="fi"><span class="fl">WhatsApp</span><span class="fv">'+(temWpp?esc(fmtWpp(u.phone)):'<span class="bd-mal">não cadastrado</span>')+'</span></div>'+
           '<div class="fi"><span class="fl">Acesso</span><span class="fv"><button type="button" class="pill pbtn '+(u.disabled?'bd-mal':'bd-ok')+'" data-a="bloq" data-u="'+u.id+'" title="'+(u.disabled?'Toque para reativar o acesso':'Toque para desativar o acesso')+'">'+(u.disabled?'Desativado':'Ativo')+' <span class="ptroca">⇄</span></button>'+(validadeDe(u)?'<span class="fval'+(validadeDe(u)<Date.now()?' venc':'')+'">'+(validadeDe(u)<Date.now()?'venceu em ':'válido até ')+esc(txtValidade(validadeDe(u)))+'</span>':'')+'<button type="button" class="flink" data-a="perm" data-u="'+u.id+'" title="O que este cliente pode usar no app e até quando">'+ICO_ENGR+'Permissões</button></span></div>'+
-          '<div class="fi"><span class="fl">Financeiro</span><span class="fv"><span class="pill '+(fin.c||'neutro')+'">'+esc(fin.t)+'</span>'+(fm&&(fm.confiancaUsada||fm.nivel==='confianca')?'<button type="button" class="flink" data-a="zerar" data-u="'+u.id+'" title="Devolve ao cliente o direito de usar o Já paguei de novo">Zerar confiança</button>':'')+'</span></div>'+
+          '<div class="fi"><span class="fl">Financeiro</span><span class="fv"><span class="pill '+(fin.c||'neutro')+'">'+esc(fin.t)+'</span><button type="button" class="flink" data-a="assin" data-u="'+u.id+'" title="Somar veículo ou tag na assinatura do Asaas">Mensalidade</button>'+(fm&&(fm.confiancaUsada||fm.nivel==='confianca')?'<button type="button" class="flink" data-a="zerar" data-u="'+u.id+'" title="Devolve ao cliente o direito de usar o Já paguei de novo">Zerar confiança</button>':'')+'</span></div>'+
           '<div class="fi largo"><span class="fl">Último acesso</span><span class="fv">'+valorAcesso(u)+'</span></div>'+
         '</div>'+
         '<div class="vchips"><span class="qtd">'+ap.length+(ap.length===1?' veículo':' veículos')+' <span class="qseta">▾</span></span>'+
@@ -6620,6 +6677,7 @@ $('aList').addEventListener('click',e=>{
     return;
   }
   if(b.dataset.a==='perm'){ abrirPermissoes(+b.dataset.u); return }
+  if(b.dataset.a==='assin'){ assinAbrir(+b.dataset.u,null); return } /* 15/10/2026 */
   if(b.dataset.a==='espec'||b.dataset.a==='zerar'){
     const u=usuarios.find(x=>x.id===+b.dataset.u); if(!u) return;
     const fm=finMapa&&finMapa[u.id];
@@ -6881,10 +6939,12 @@ $('vincSalvar').onclick=async ()=>{
   if(!u) return;
   if(!ids.length){ $('vincErro').textContent='Marque pelo menos um aparelho.'; return }
   $('vincErro').textContent=''; $('vincSalvar').disabled=true;
+  const jaTinha=aparelhosDe(u).length; /* 15/10/2026: cliente que já tinha veículo = veículo a mais na mensalidade */
   try{
     const falhas=await ligarAparelhos(u,ids);
     if(falhas.length){ $('vincErro').textContent='Não consegui vincular: '+falhas.join(', ')+'. Os outros foram vinculados.'; await atualizarAposVinculo() }
-    else{ fechar(); toast(ids.length===1?'Aparelho vinculado':'Aparelhos vinculados'); await atualizarAposVinculo() }
+    else{ fechar(); toast(ids.length===1?'Aparelho vinculado':'Aparelhos vinculados'); await atualizarAposVinculo();
+      if(jaTinha>0) assinAbrir(u.id,{n:ids.length}) }
   }catch(e){ $('vincErro').textContent='Sessão expirada. Entre novamente.' }
   $('vincSalvar').disabled=false;
 };
@@ -9132,6 +9192,98 @@ async function lojaMapaAtualizar(){
 setInterval(lojaMapaAtualizar,120000); /* confere a cada 2 min (só com o app na tela) */
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') lojaMapaAtualizar() });
 $('mapCar').onclick=()=>{ lojaCarAberto=true; lojaDesenhar(); abrir('mLoja') };
+/* ===== MENSALIDADE PELO CARD DO CLIENTE (15/10/2026) =====
+   Usa a MESMA calculadora do ajuste-assinatura.html (no servidor: assinVer / assinAjustar). Só "instalar" por aqui;
+   o resto (retirada, valor livre, excluir) continua no ajuste-assinatura.html. */
+const AS={u:null, subs:[], subId:null, q:{com:0,sem:0,tag:0}, precos:null, plano:null, vinc:false};
+const asC=c=>brl((c||0)/100);
+const asDt=x=>x?String(x).split('-').reverse().join('/'):'';
+async function fnAdm(acao,extra){
+  const tok=lsGet('rg_token'); if(!tok) throw new Error('Para usar a mensalidade aqui, saia do app e entre de novo.');
+  let r; try{ r=await fetch(DESB_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',body:JSON.stringify(Object.assign({acao,token:tok},extra||{}))}) }
+  catch(e){ throw new Error('Não consegui falar com o servidor. Confira a internet.') }
+  let j={}; try{ j=await r.json() }catch(e){}
+  if(!r.ok) throw new Error(j.erro||('Erro '+r.status));
+  return j;
+}
+async function assinAbrir(userId,vinc){
+  const u=usuarios.find(x=>x.id===userId); if(!u) return;
+  AS.u=u; AS.subs=[]; AS.subId=null; AS.plano=null; AS.vinc=!!vinc;
+  const n=vinc?vinc.n:1, sem=attrLig(u,'semBloqueio');
+  AS.q={com:sem?0:n, sem:sem?n:0, tag:0};
+  $('asTit').textContent='Mensalidade: '+(u.name||loginDe(u));
+  $('asSub').innerHTML=vinc?'<b>'+(n===1?'Aparelho vinculado.':n+' aparelhos vinculados.')+'</b> Quer somar na mensalidade? Se foi só troca de aparelho, toque em <b>Agora não</b>.':'Some veículo ou tag na assinatura deste cliente no Asaas. Mesmo cálculo da calculadora de ajuste.';
+  $('asSubs').innerHTML='<p class="asinfo">Buscando a assinatura no Asaas...</p>'; $('asForm').style.display='none'; $('asPrev').innerHTML=''; $('asErro').textContent='';
+  $('asData').value=new Date(Date.now()-3*3600000).toISOString().slice(0,10);
+  $('asFechar').textContent=vinc?'Agora não':'Fechar';
+  abrir('mAssin');
+  try{
+    const j=await fnAdm('assinVer',{userId});
+    if(AS.u!==u) return;
+    AS.precos=j.precos||null;
+    if(j.semCpf){ $('asSubs').innerHTML='<div class="asaviso">Este cliente está sem CPF no cadastro. Coloque o CPF (lápis do cliente) para ajustar a mensalidade por aqui.</div>'; return }
+    AS.subs=(j.clientes||[]).flatMap(c=>(c.assinaturas||[]).map(s=>Object.assign({nomeAsaas:c.nome},s)));
+    if(!AS.subs.length){ $('asSubs').innerHTML='<div class="asaviso">Nenhuma assinatura ativa no Asaas para o CPF deste cliente. Crie a assinatura no Asaas ou ajuste pela calculadora.</div>'; return }
+    if(AS.subs.length===1) AS.subId=AS.subs[0].id;
+    assinPintar();
+  }catch(e){ if(AS.u===u){ $('asSubs').innerHTML=''; $('asErro').textContent=e.message } }
+}
+function assinPintar(){
+  const P=AS.precos;
+  if(P){ $('asPCom').textContent=asC(P.com)+' ('+asC(P.com-P.descCom)+' em dia)'; $('asPSem').textContent=asC(P.sem); $('asPTag').textContent=asC(P.tag)+' · sem proporcional' }
+  $('asSubs').innerHTML=(AS.subs.length>1?'<p class="asinfo">Este CPF tem '+AS.subs.length+' assinaturas ativas. Toque na certa:</p>':'')+AS.subs.map(s=>{
+    const v=s.veiculos||{};
+    const tags=v.confere?'<span class="astag">'+((v.com||0)-(v.comAntigo||0))+' com bloqueio</span>'+(v.comAntigo?'<span class="astag">'+v.comAntigo+' com bloqueio (antigo)</span>':'')+'<span class="astag">'+(v.sem||0)+' sem bloqueio</span>'+(v.tag?'<span class="astag">'+v.tag+(v.tag===1?' tag':' tags')+'</span>':''):'<span class="astag warn">Valor fora da tabela</span>';
+    return '<button type="button" class="assub'+(s.id===AS.subId?' on':'')+'" data-sub="'+esc(s.id)+'"><b>'+brl(s.valor)+'</b>/mês<small>Em dia: '+brl(s.valor-s.desconto)+' · próxima geração: '+asDt(s.proximoVencimento)+(s.descricao?' · '+esc(s.descricao):'')+'</small>'+
+      (s.pendentes&&s.pendentes.length?'<small>Boletos pendentes: '+s.pendentes.map(p=>asDt(p.vencimento)+' ('+brl(p.valor)+')').join(', ')+'</small>':'')+tags+(s.descontoPercentual?'<span class="astag warn">Desconto percentual</span>':'')+'</button>'}).join('');
+  ['com','sem','tag'].forEach(k=>$('asQ'+k).textContent=AS.q[k]);
+  $('asForm').style.display=AS.subId?'':'none';
+}
+$('asSubs').addEventListener('click',e=>{ const b=e.target.closest('[data-sub]'); if(!b) return; AS.subId=b.dataset.sub; AS.plano=null; $('asPrev').innerHTML=''; assinPintar() });
+$('asForm').addEventListener('click',e=>{ const b=e.target.closest('[data-asm],[data-asp]'); if(!b) return;
+  const k=b.dataset.asm||b.dataset.asp; AS.q[k]=Math.max(0,Math.min(50,AS.q[k]+(b.dataset.asp?1:-1))); $('asQ'+k).textContent=AS.q[k]; AS.plano=null; $('asPrev').innerHTML='' });
+$('asData').addEventListener('input',()=>{ AS.plano=null; $('asPrev').innerHTML='' });
+$('asFechar').onclick=()=>$('mAssin').classList.remove('show');
+function assinParams(dry){ return {userId:AS.u.id, subscriptionId:AS.subId, tipoAjuste:'adicionar', itens:Object.assign({},AS.q), data:$('asData').value, dryRun:dry} }
+$('asCalc').onclick=async()=>{
+  const b=$('asCalc'); if(b.disabled) return;
+  if(!(AS.q.com+AS.q.sem+AS.q.tag)){ $('asErro').textContent='Marque pelo menos 1 item.'; return }
+  if(!$('asData').value){ $('asErro').textContent='Escolha a data da instalação.'; return }
+  b.disabled=true; b.textContent='Calculando...'; $('asErro').textContent=''; $('asPrev').innerHTML='';
+  try{ const j=await fnAdm('assinAjustar',assinParams(true)); AS.plano=j.plano; assinPrev(j.plano) }
+  catch(e){ $('asErro').textContent=e.message }
+  b.disabled=false; b.textContent='Calcular';
+};
+function assinPrev(p){
+  const a=p.antes, d=p.depois; let h='<h4>Confira antes de aplicar</h4>'+
+    '<div class="ascomp"><div><small>Hoje</small><b>'+asC(a.valorC)+'</b><em>em dia: '+asC(a.valorC-a.descC)+'</em></div><i>›</i><div class="dep"><small>Depois</small><b>'+asC(d.valorC)+'</b><em>em dia: '+asC(d.valorC-d.descC)+'</em></div></div>';
+  if(p.assinatura&&p.assinatura.descricao) h+='<p class="asinfo">Nova descrição: <b>'+esc(p.assinatura.descricao)+'</b></p>';
+  const pr=p.proporcional;
+  if(pr) h+=pr.valorC>0?'<p class="asinfo">No boleto de '+asDt(pr.vencimento)+' ('+pr.dias+' dias): <b>'+asC(pr.valorC)+'</b>'+(pr.tagC?' = '+(pr.veicC?asC(pr.veicC)+' proporcional dos rastreadores + ':'')+asC(pr.tagC)+' de tag (integral)':'')+' (sem desconto).</p>'
+    :'<p class="asinfo">Instalação a '+pr.dias+' dia(s) do vencimento de '+asDt(pr.vencimento)+': sem cobrança neste mês.</p>';
+  if(p.boletos&&p.boletos.length){
+    h+='<h4>Boletos pendentes</h4>'+p.boletos.map(x=>'<div class="asbol"><div>Vence '+asDt(x.vencimento)+'<br><span class="bdg '+esc(x.acao)+'">'+({atualizar:'Atualizar',manter:'Manter',cancelar:'Cancelar'}[x.acao]||x.acao)+'</span>'+(x.motivo?' <small style="color:var(--mut)">'+esc(x.motivo)+'</small>':'')+'</div>'+
+      '<div class="r">'+(x.acao==='atualizar'?asC(x.deC)+' › <b>'+asC(x.paraC)+'</b>':asC(x.deC))+'</div></div>').join('');
+  } else h+='<p class="asinfo">Nenhum boleto pendente.</p>';
+  (p.avisos||[]).forEach(x=>h+='<div class="asaviso">'+esc(x)+'</div>');
+  h+='<div class="asbts"><button type="button" class="btn btn-out" id="asVoltar">Voltar</button><button type="button" class="btn" id="asAplicar" style="background:#16a34a;color:#fff">Aplicar no Asaas</button></div>';
+  $('asPrev').innerHTML=h;
+  $('asVoltar').onclick=()=>{ AS.plano=null; $('asPrev').innerHTML='' };
+  $('asAplicar').onclick=assinAplicar;
+  setTimeout(()=>{ try{ $('asPrev').scrollIntoView({block:'start',behavior:'smooth'}) }catch(e){} },50);
+}
+async function assinAplicar(){
+  const b=$('asAplicar'); if(!b||b.disabled) return;
+  b.disabled=true; b.textContent='Aplicando...'; $('asErro').textContent='';
+  try{
+    const j=await fnAdm('assinAjustar',assinParams(false));
+    const res=j.resultados||[], tudo=res.length&&res.every(x=>x.ok);
+    $('asForm').style.display='none'; $('asSubs').innerHTML=''; $('asSub').innerHTML='';
+    $('asPrev').innerHTML='<h4>'+(tudo?'Pronto: mensalidade ajustada':'Resultado (confira no Asaas)')+'</h4>'+res.map(x=>'<div class="asres'+(x.ok?'':' fail')+'"><i>'+(x.ok?'✓':'!')+'</i><div>'+esc(String(x.item||'').replace(/(\d{4})-(\d{2})-(\d{2})/g,'$3/$2/$1'))+(x.erro?'<br><small style="color:var(--mut)">'+esc(x.erro)+'</small>':'')+'</div></div>').join('');
+    $('asFechar').textContent='Fechar';
+    toast(tudo?'Mensalidade ajustada no Asaas.':'Ajuste com problema: confira no Asaas.',4500);
+  }catch(e){ $('asErro').textContent=e.message; b.disabled=false; b.textContent='Aplicar no Asaas' }
+}
 /* ===== FICHAS RASTREANDO (15/10/2026) =====
    Só aparece para o cliente com "Cobrar fichas" (Permissões). A compra usa a loja (PIX no Asaas); o servidor
    credita as fichas sozinho quando o PIX cai e desconta 1 ficha a cada link de compartilhar. */
