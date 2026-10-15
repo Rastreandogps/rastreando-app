@@ -81,10 +81,26 @@ body.mapa-google #map .leaflet-top.leaflet-left .leaflet-control-attribution{mar
 .lbox{width:100%;max-width:360px;display:flex;flex-direction:column;gap:12px}
 .lbrand{display:flex;flex-direction:column;align-items:center;gap:10px;margin-bottom:10px;text-align:center}
 .lbrand img{width:72px;height:72px;border-radius:50%;object-fit:cover}
+/* 15/10/2026: logo maior no login, com aura respirando (vermelho/ciano) e um reflexo de luz passando */
+.lbrand .llogo{position:relative;width:132px;height:132px;border-radius:50%;margin-bottom:6px}
+.lbrand .llogo img{width:100%;height:100%;position:relative;z-index:1;box-shadow:0 0 0 2px rgba(239,68,68,.35),0 0 28px rgba(239,68,68,.30)}
+.lbrand .llogo::before{content:'';position:absolute;inset:-16px;border-radius:50%;background:radial-gradient(circle,rgba(239,68,68,.55) 0%,rgba(34,211,238,.25) 45%,transparent 70%);filter:blur(10px);animation:lgPulse 3.2s ease-in-out infinite}
+.lbrand .llogo::after{content:'';position:absolute;inset:0;border-radius:50%;z-index:2;pointer-events:none;background:linear-gradient(115deg,transparent 30%,rgba(255,255,255,.55) 48%,rgba(255,255,255,.15) 54%,transparent 66%);background-size:250% 100%;background-position:130% 0;animation:lgBrilho 4s ease-in-out infinite;mix-blend-mode:screen}
+@keyframes lgPulse{0%,100%{opacity:.55;transform:scale(.94)}50%{opacity:1;transform:scale(1.08)}}
+@keyframes lgBrilho{0%,55%{background-position:130% 0}85%,100%{background-position:-30% 0}}
+@media (prefers-reduced-motion:reduce){.lbrand .llogo::before,.lbrand .llogo::after{animation:none}}
 .lbrand b{font-size:20px;letter-spacing:.06em}
 .lbrand span{font-size:13px;color:var(--mut)}
 .lbox input{width:100%;height:48px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--txt);padding:0 14px;font:inherit;font-size:16px;outline:none}
 .lbox input:focus{border-color:var(--cyan)}
+/* 15/10/2026: olhinho para mostrar a senha (clientes erravam a senha sem perceber) */
+.olhowrap{position:relative;display:block;width:100%}
+.olhowrap>input{padding-right:48px!important}
+.olhobt{position:absolute;right:4px;top:50%;transform:translateY(-50%);width:40px;height:40px;border:0;background:none;color:var(--mut);display:flex;align-items:center;justify-content:center;cursor:pointer;border-radius:10px;padding:0}
+.olhobt:hover{color:var(--txt)}
+.olhobt svg{width:21px;height:21px}
+.olhowrap.fldw>input{margin-bottom:0}
+.olhowrap.fldw{margin-bottom:10px}
 .lerr{min-height:18px;font-size:13px;color:var(--red2);font-weight:600;text-align:center}
 .stwrap{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
 .upd{font-size:11px;color:var(--mut);white-space:nowrap}
@@ -2140,7 +2156,7 @@ nav button.on .nemo.txt{color:var(--red2)}
 <div class="login show" id="login">
   <form class="lbox" id="lform">
     <div class="lbrand">
-      <img src="logo.jpeg" alt="" onerror="this.style.display='none'">
+      <div class="llogo"><img src="logo.jpeg" alt="" onerror="this.parentNode.style.display='none'"></div>
       <b>RASTREANDO GPS</b>
       <span>Entre com seu e-mail ou usuário e senha</span>
     </div>
@@ -2148,6 +2164,22 @@ nav button.on .nemo.txt{color:var(--red2)}
     <script>/* 14/10/2026: cartão NFC (nfc.html?u=login) já chega com o login preenchido; a senha o cliente digita */
     try{var _u=new URLSearchParams(location.search).get('u');if(_u){var _e=document.getElementById('lEmail');if(_e&&!_e.value)_e.value=String(_u).trim().slice(0,80)}}catch(e){}</script>
     <input type="password" id="lSenha" placeholder="Senha" autocomplete="current-password" required>
+    <script>/* 15/10/2026: olhinho na senha do login */
+    (function(){
+      var OLHO='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+      var FECHADO='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l18 18"/><path d="M10.6 5.1A10.9 10.9 0 0 1 12 5c6.4 0 10 7 10 7a17 17 0 0 1-3.2 4.2M6.6 6.6C3.8 8.4 2 12 2 12s3.6 7 10 7c1.7 0 3.2-.4 4.5-1.1"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>';
+      function olhar(inp){
+        if(!inp || inp.dataset.olho) return; inp.dataset.olho='1';
+        var w=document.createElement('span'); w.className='olhowrap'+(inp.classList.contains('fld')?' fldw':'');
+        inp.parentNode.insertBefore(w,inp); w.appendChild(inp);
+        var b=document.createElement('button'); b.type='button'; b.className='olhobt'; b.setAttribute('aria-label','Mostrar a senha'); b.title='Mostrar a senha'; b.innerHTML=OLHO;
+        b.addEventListener('click',function(){ var ver=inp.type==='password'; inp.type=ver?'text':'password'; b.innerHTML=ver?FECHADO:OLHO; b.setAttribute('aria-label',ver?'Esconder a senha':'Mostrar a senha'); b.title=b.getAttribute('aria-label'); try{inp.focus({preventScroll:true})}catch(e){} });
+        w.appendChild(b);
+      }
+      window.olharSenhas=function(){ olhar(document.getElementById('lSenha')) }; /* a troca de senha já tem a caixinha "Ver senhas" */
+      olharSenhas();
+      document.addEventListener('DOMContentLoaded',olharSenhas);
+    })();</script>
     <div class="lerr" id="lErr"></div>
     <button class="btn btn-red" id="lBtn" type="submit">Entrar</button>
     <a id="lInstalar" href="instalar.html" style="display:none;text-align:center;color:var(--cyan);font-size:14px;font-weight:600;padding:6px 0">Instalar o aplicativo no celular</a>
