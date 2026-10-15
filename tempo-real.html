@@ -1288,6 +1288,7 @@ nav button.on .nemo.txt{color:var(--red2)}
 .sfit b{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sfit .v{font-weight:800;text-align:right}
 .sfit small{grid-column:1 / -1;color:var(--mut);font-size:12px}
+.sfsel{grid-column:1 / -1;width:100%;height:36px;margin-top:4px;border-radius:9px;border:1px solid var(--line);background:var(--card2);color:var(--txt);font:inherit;font-size:13px;padding:0 8px;appearance:auto}
 /* 15/10/2026: abas SMS / Avulso no fechamento */
 .sftabs{clear:both;display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;border-radius:12px;background:var(--card2);margin:0 0 14px}
 .sftabs button{height:38px;border:0;border-radius:9px;background:none;color:var(--mut);font:inherit;font-size:14px;font-weight:700;cursor:pointer}
@@ -2637,7 +2638,7 @@ nav button.on .nemo.txt{color:var(--red2)}
 <!-- 15/10/2026: fechar faturamento de SMS (só administrador) -->
 <div class="modal" id="mSmsFat">
   <div class="box2">
-    <h3>Lançar no próximo boleto</h3>
+    <h3>Lançar no boleto</h3>
     <div class="sftabs" role="tablist"><button type="button" class="on" data-sfaba="sms" role="tab">SMS</button><button type="button" data-sfaba="av" role="tab">Avulso</button></div>
     <div id="sfPainelSms">
       <p id="sfTxt">Carregando...</p>
@@ -2645,7 +2646,7 @@ nav button.on .nemo.txt{color:var(--red2)}
       <div class="ferr" id="sfErro"></div>
     </div>
     <div id="sfPainelAv" style="display:none">
-      <p style="margin-top:0">Serviço que o cliente pediu para pagar na próxima fatura. Entra só no próximo boleto em aberto; a mensalidade não muda.</p>
+      <p style="margin-top:0">Serviço que o cliente pediu para pagar numa fatura. Entra no próximo boleto em aberto (dá para escolher outro na prévia); a mensalidade não muda.</p>
       <span class="flbl">Cliente</span>
       <div class="avcli">
         <div class="avesc" id="avEsc" style="display:none"><b id="avEscNome"></b><button type="button" id="avTrocar">Trocar</button></div>
@@ -7125,17 +7126,27 @@ $('aSmsMassa').onclick=smAbrir;
    da assinatura de cada cliente (só aquele boleto; a mensalidade não muda) e desconta do contador. */
 const brlF=n=>'R$ '+Number(n||0).toFixed(2).replace('.',',');
 const dataBR=iso=>String(iso||'').split('-').reverse().join('/');
+let sfUlt=null, sfEscolhas={};
+function sfOpcoes(x){ // 15/10/2026: escolher em qual boleto em aberto lançar
+  if(!x.boletos||x.boletos.length<2) return '';
+  return '<select class="sfsel" data-sfbol="'+esc(String(x.userId))+'" aria-label="Escolher o boleto">'+x.boletos.map(b=>'<option value="'+esc(b.id)+'"'+(b.id===x.payId?' selected':'')+'>Boleto de '+dataBR(b.vencimento)+' · '+brlF(b.valor)+(b===x.boletos[0]?' (o próximo)':'')+'</option>').join('')+'</select>';
+}
+function sfTrocarBoleto(x,payId){
+  const b=(x.boletos||[]).find(y=>y.id===payId); if(!b) return;
+  x.payId=b.id; x.vencimento=b.vencimento; x.boletoDe=b.valor; x.boletoPara=Math.round((b.valor+Number(x.valor))*100)/100;
+}
 function sfPintar(j,lancado){
+  sfUlt=j;
   const it=j.itens||[];
   $('sfTxt').innerHTML = !it.length ? 'Nenhum cliente com SMS pago pendente. Nada a faturar.'
     : lancado ? 'Pronto. <b>'+j.cobraveis+'</b> cliente(s) cobrado(s), total <b>'+brlF(j.total)+'</b>. Os que deram problema ficam para o próximo fechamento.'
-    : 'Prévia: <b>'+j.cobraveis+'</b> cliente(s) a cobrar, total <b>'+brlF(j.total)+'</b> (SMS a '+brlF(j.preco)+'). O valor entra no próximo boleto em aberto de cada um; a mensalidade não muda.';
+    : 'Prévia: <b>'+j.cobraveis+'</b> cliente(s) a cobrar, total <b>'+brlF(j.total)+'</b> (SMS a '+brlF(j.preco)+'). O valor entra no próximo boleto em aberto de cada um (dá para escolher outro na lista); a mensalidade não muda.';
   $('sfLista').style.display=it.length?'':'none';
   $('sfLista').innerHTML=it.map(x=>{
     const c=x.erro?'er':(lancado&&x.ok?'ok':'');
     const det=x.erro ? 'Não cobrado: '+esc(x.erro)
       : (lancado&&x.ok?'✅ Lançado · ':'')+'Boleto de '+dataBR(x.vencimento)+': '+brlF(x.boletoDe)+' → <b>'+brlF(x.boletoPara)+'</b>';
-    return '<div class="sfit '+c+'"><b>'+esc(x.nome)+'</b><span class="v">'+x.sms+' SMS · '+brlF(x.valor)+'</span><small>'+det+'</small></div>';
+    return '<div class="sfit '+c+'"><b>'+esc(x.nome)+'</b><span class="v">'+x.sms+' SMS · '+brlF(x.valor)+'</span><small>'+det+'</small>'+(!lancado&&!x.erro?sfOpcoes(x):'')+'</div>';
   }).join('');
   if(lancado) $('sfOk').dataset.lancado='1'; else delete $('sfOk').dataset.lancado;
   $('sfOk').style.display=lancado||sfAbaAt!=='sms'?'none':''; $('sfOk').disabled = lancado || !j.cobraveis;
@@ -7144,8 +7155,14 @@ async function sfAbrir(){
   delete $('sfOk').dataset.lancado; sfAba('sms'); avLimpar(true); $('avDesc').disabled=false; $('avValor').disabled=false;
   $('sfTxt').textContent='Conferindo os clientes no Asaas...'; $('sfLista').innerHTML=''; $('sfErro').textContent=''; $('sfOk').style.display=''; $('sfOk').disabled=true;
   abrir('mSmsFat');
+  sfEscolhas={};
   try{ sfPintar(await fnAl('smsFaturar',{simular:true}),false) }catch(e){ $('sfTxt').textContent=''; $('sfErro').textContent=e.message }
 }
+$('sfLista').addEventListener('change',e=>{
+  const sel=e.target.closest('[data-sfbol]'); if(!sel||!sfUlt) return;
+  const x=(sfUlt.itens||[]).find(y=>String(y.userId)===sel.dataset.sfbol); if(!x) return;
+  sfTrocarBoleto(x,sel.value); sfEscolhas[x.userId]=sel.value; sfPintar(sfUlt,false);
+});
 $('aSmsFat').onclick=sfAbrir;
 /* ===== COBRANÇA AVULSA NO PRÓXIMO BOLETO (15/10/2026) =====
    Cliente + descrição + valor → "Ver o boleto" (prévia) → "Lançar no Asaas". A chave impede lançar duas vezes. */
@@ -7199,9 +7216,13 @@ $('avRes').onclick=e=>{
 };
 $('avTrocar').onclick=()=>{ if(av.prev&&av.prev.ok) avLimpar(true); av.cli=null; $('avEsc').style.display='none'; $('avBusca').style.display=''; $('avBusca').value=''; avSemPrevia(); $('avBusca').focus() };
 $('avDesc').oninput=avSemPrevia; $('avValor').oninput=avSemPrevia;
+$('avPrev').addEventListener('change',e=>{
+  const sel=e.target.closest('[data-sfbol]'); if(!sel||!av.prev||av.prev.ok) return;
+  sfTrocarBoleto(av.prev,sel.value); avPintar(av.prev);
+});
 function avPintar(j){
   const det=(j.ok?'✅ Lançado · ':'')+'Boleto de '+dataBR(j.vencimento)+': '+brlF(j.boletoDe)+' → <b>'+brlF(j.boletoPara)+'</b>';
-  $('avPrev').innerHTML='<div class="sfit'+(j.ok?' ok':'')+'"><b>'+esc(j.nome)+'</b><span class="v">'+brlF(j.valor)+'</span><small>'+esc(j.descricao)+'</small><small>'+det+'</small></div>';
+  $('avPrev').innerHTML='<div class="sfit'+(j.ok?' ok':'')+'"><b>'+esc(j.nome)+'</b><span class="v">'+brlF(j.valor)+'</span><small>'+esc(j.descricao)+'</small><small>'+det+'</small>'+(j.ok?'':sfOpcoes(j))+'</div>';
   $('avPrev').style.display='';
 }
 function avDados(){
@@ -7224,7 +7245,7 @@ $('avOk').onclick=async()=>{
   const d=avDados(); $('avErro').textContent=d.erro||''; if(d.erro||!av.prev) return;
   av.enviando=true; avBotoes(); $('avOk').textContent='Lançando...';
   try{
-    const j=await fnAl('fatAvulso',Object.assign({simular:false,chave:av.chave},d));
+    const j=await fnAl('fatAvulso',Object.assign({simular:false,chave:av.chave,payId:av.prev.payId},d));
     av.prev=Object.assign({},j,{ok:true}); avPintar(av.prev);
     toast('Lançado no boleto de '+dataBR(j.vencimento)+': '+brlF(j.valor)+'.',6000);
     $('avDesc').disabled=true; $('avValor').disabled=true;
@@ -7233,7 +7254,7 @@ $('avOk').onclick=async()=>{
 };
 $('sfOk').onclick=async()=>{
   $('sfOk').disabled=true; $('sfErro').textContent=''; $('sfTxt').textContent='Lançando no Asaas...';
-  try{ const j=await fnAl('smsFaturar',{simular:false}); sfPintar(j,true); toast('Faturamento de SMS fechado: '+brlF(j.total)+'.',6000) }
+  try{ const j=await fnAl('smsFaturar',{simular:false,escolhas:sfEscolhas}); sfPintar(j,true); toast('Faturamento de SMS fechado: '+brlF(j.total)+'.',6000) }
   catch(e){ $('sfErro').textContent=e.message; $('sfOk').disabled=false }
 };
 /* monta as linhas juntando as listas pela posição (1º IMEI com o 1º chip, a 1ª placa...) */
