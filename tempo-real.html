@@ -3973,10 +3973,12 @@ $('cmdOk').onclick=async ()=>{
         if(/success/i.test(v.result) || rel===(bloquear?1:0)){
           v.bloq=bloquear; marcarBloq(v.id,bloquear,true);
           toast(bloquear?'Pronto! O rastreador confirmou: veículo bloqueado.':'Pronto! O rastreador confirmou: veículo desbloqueado.',6000);
-          if(!bloquear && desbPendente[v.id]) setTimeout(()=>{ try{ desbVerificar() }catch(e){} },1500);
+          if(!bloquear && desbPendente[v.id]){ /* 15/10/2026: o próprio rastreador confirmou -> some a faixa/contagem NA HORA (o servidor encerra o pedido sozinho em até 1 min) */
+            delete desbPendente[v.id]; lsDel('rg_desb_'+v.id); desbMostrar();
+          }
         } else if(bloquear && /will stop/i.test(v.result)) toast('Bloqueio programado: o rastreador recebeu o comando e vai cortar o motor assim que o veículo reduzir a velocidade ou for desligado.',8000); /* resposta "OK,engine will stop after..." do J16 (check-up 10/10) */
         else if(rel===1) toast('O rastreador respondeu que o veículo continua bloqueado.',7000);
-        else if(rel===0) toast('O rastreador respondeu que o veículo está desbloqueado.',7000);
+        else if(rel===0){ toast('O rastreador respondeu que o veículo está desbloqueado.',7000); if(desbPendente[v.id]){ delete desbPendente[v.id]; lsDel('rg_desb_'+v.id); desbMostrar() } }
         else toast('O rastreador respondeu, mas não confirmou '+(bloquear?'o bloqueio':'o desbloqueio')+'. Confira no mapa em instantes.'+(ehAdmin?' (resposta: '+String(v.result).slice(0,80)+')':''),8000); /* 13/10/2026: texto simples para o cliente; a resposta técnica só para o administrador */
       }
     }
