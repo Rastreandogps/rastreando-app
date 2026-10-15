@@ -4979,12 +4979,14 @@ const IC_LINK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke
 const IC_CAMINHAO='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="18" r="2"/><path d="M8 18h5a3 3 0 0 0 0-6H9a3 3 0 0 1 0-6h4"/><path d="M18 2.5a3.5 3.5 0 0 0-3.5 3.5c0 2.6 3.5 6 3.5 6s3.5-3.4 3.5-6A3.5 3.5 0 0 0 18 2.5z"/><circle cx="18" cy="6" r="1"/></svg>'; /* rota até o destino (genérico: serve para reboque, entrega, técnico, carro) */
 /* 15/10/2026: o mesmo cartão de link serve para o "Compartilhar" do veículo e para a aba Compartilhados (comVeic = mostra o veículo) */
 function compCardHtml(x,agora,comVeic){
-  const fr=x.tipo==='frota', falta=x.expiraMs-agora, tot=Math.max(1,x.expiraMs-x.criadoMs);
+  const tc=x.tipo==='tec', fr=x.tipo==='frota'||tc, falta=x.expiraMs-agora, tot=Math.max(1,x.expiraMs-x.criadoMs); /* tec = "técnico a caminho" do APP Técnico (15/10/2026) */
   const vv=comVeic ? veiculos.find(q=>q.id===x.deviceId) : null;
+  const tit = tc ? 'Técnico a caminho'+(x.tecnico?' · '+x.tecnico:'') : (fr?(x.titulo||'Serviço a caminho'):'Localização compartilhada');
+  const sub = tc ? (x.os?'OS '+x.os+' · ':'')+'Criado '+compQuando(x.criadoMs) : (fr&&x.destEnd?'Destino: '+x.destEnd:'Criado '+compQuando(x.criadoMs));
   return '<div class="lkcard'+(fr?' frota':'')+(falta<10*60000?' acabando':'')+'" data-c="'+esc(x.codigo)+'">'+
           (comVeic?'<div class="lkveic"><b>'+esc(vv?vv.nome:('Veículo '+x.deviceId))+'</b>'+(vv?'<button type="button" data-cpver="'+x.deviceId+'">Ver no mapa</button>':'')+'</div>':'')+
           '<div class="lktop"><span class="lkic">'+(fr?IC_CAMINHAO:IC_LINK)+'</span>'+
-            '<span class="lkt"><b>'+esc(fr?(x.titulo||'Serviço a caminho'):'Localização compartilhada')+'</b><small>'+esc(fr&&x.destEnd?'Destino: '+x.destEnd:'Criado '+compQuando(x.criadoMs))+'</small></span>'+
+            '<span class="lkt"><b>'+esc(tit)+'</b><small>'+esc(sub)+'</small></span>'+
             '<span class="lkcd"><b>'+esc(tempoFalta(falta))+'</b><small>até '+esc(new Date(x.expiraMs).toDateString()===new Date().toDateString()?compQuando(x.expiraMs).replace(/^\d\d\/\d\d às /,''):compQuando(x.expiraMs))+'</small></span></div>'+
           '<div class="lkbar"><i style="width:'+Math.max(2,Math.min(100,falta/tot*100))+'%"></i></div>'+
           '<div class="lkbtns">'+
