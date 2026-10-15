@@ -613,14 +613,43 @@ body.hist-on #mapCar{display:none!important}
   .ladope button:hover{color:var(--txt)}
   .ladoaba{position:absolute;left:var(--lado);top:50%;transform:translateY(-50%);z-index:456;width:18px;height:56px;border:1px solid var(--line);border-left:none;border-radius:0 8px 8px 0;background:var(--card);color:var(--mut);font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
   .ladoaba:hover{color:var(--txt)}
-  /* cartão do veículo embaixo do mapa, em 3 colunas: identificação · números · botões */
-  .sheet{left:var(--lado);right:0;bottom:0;margin:0;width:auto;max-width:none;border-radius:0;border-left:none;border-right:none;box-shadow:none;padding:12px 20px 12px;max-height:300px;overflow-y:auto;transform:none!important;
-    display:grid;grid-template-columns:330px minmax(0,1fr) 330px;grid-auto-flow:row dense;column-gap:22px;row-gap:0;align-content:start}
-  .sheet > *{grid-column:2;margin:0 0 8px}
-  .sheet .dragzone{grid-column:1;grid-row:1 / span 30;padding:0;cursor:default}
+  /* cartão do veículo embaixo do mapa (14/10/2026, liberdade criativa pedida pelo dono):
+     3 blocos separados por linhas verticais finas — IDENTIFICAÇÃO | ENDEREÇO + NÚMEROS | AÇÕES */
+  .sheet{left:var(--lado);right:0;bottom:0;margin:0;width:auto;max-width:none;border-radius:0;border-left:none;border-right:none;box-shadow:0 -1px 0 var(--line);padding:14px 24px;max-height:300px;overflow-y:auto;transform:none!important;
+    display:grid;grid-template-columns:280px minmax(0,1fr) 350px;grid-auto-flow:row dense;column-gap:0;row-gap:0;align-content:start;
+    background-image:linear-gradient(var(--line),var(--line)),linear-gradient(var(--line),var(--line));background-repeat:no-repeat;
+    background-size:1px calc(100% - 28px),1px calc(100% - 28px);background-position:304px 14px,calc(100% - 374px) 14px}
+  .sheet > *{grid-column:2;margin:0;padding:0 24px}
+  .sheet .dragzone{grid-column:1;grid-row:1 / span 30;padding:0 24px 0 0;cursor:default}
   .sheet .handlewrap{display:none}
-  .sheet .actions{grid-column:3}
-  .sheet .banner{grid-column:2 / span 2}
+  .sheet .actions{grid-column:3;padding:0 0 0 24px;margin-bottom:8px}
+  .sheet .actions:last-child{margin-bottom:0}
+  .sheet .banner{grid-column:2;order:0;margin:0 24px 8px}
+  .sheet .addr{order:1;margin:0 0 6px;font-size:13.5px;line-height:1.35;align-items:baseline}
+  .sheet .addr strong{font-size:14px}
+  .sheet .addr span{white-space:nowrap;flex:none}
+  .sheet #smsCusto{order:3}
+  /* identificação: nome grande, placa, motorista, chip; a situação vem logo abaixo, com as horas de GSM/GPS ao lado */
+  .sheet .dragzone .row{flex-direction:column;align-items:flex-start;gap:10px}
+  .sheet .vname{font-size:20px;line-height:1.15}
+  .sheet .plate{font-size:12.5px;margin-top:3px}
+  .sheet .stwrap{flex-direction:row;align-items:center;gap:10px}
+  .sheet .upd{font-size:11px;line-height:1.3}
+  /* números: uma faixa única, cada medida separada por uma linha vertical (sem caixinhas coloridas) */
+  .sheet .grid{order:2;display:flex;gap:0;margin:0;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--card2)}
+  .sheet .grid .stat{flex:1 1 0;min-width:0;border-radius:0;background:none;border:0;border-left:1px solid var(--line);box-shadow:none;padding:9px 6px 8px;transition:background .12s}
+  .sheet .grid .stat:first-child{border-left:0}
+  .sheet .grid .statbtn:hover{filter:none;background:rgba(56,225,230,.07)}
+  .sheet .grid .statbtn:active{transform:none;box-shadow:none}
+  .sheet .grid .statbtn::after{top:5px;right:8px;font-size:13px;opacity:.5}
+  .sheet .grid .stat b{font-size:15px}
+  .sheet .grid .stat span{font-size:10.5px;text-transform:uppercase;letter-spacing:.06em}
+  .sheet .grid .statbtn.odo span,.sheet .grid .statbtn.comb span,.sheet .grid .statbtn.loja span{color:var(--mut);font-weight:600}
+  .sheet .grid .statbtn.loja .lojabadge{top:4px;left:6px}
+  /* ações: Bloquear | Desbloquear | SMS | compartilhar ; depois Navegar | Ver a rua */
+  .sheet .actions .btn{height:44px;font-size:14px;border-radius:12px}
+  .sheet .actions.dois{margin-top:0}
+  .sheet .actions.navrow .btn{height:50px}
   .hpanel{left:calc(var(--lado) + 16px)}
   .vazio{left:calc(var(--lado) + 16px);right:auto;width:360px}
 }
