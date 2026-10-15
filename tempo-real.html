@@ -2881,7 +2881,7 @@ const GM_ESCURO=[{elementType:'geometry',stylers:[{color:'#242f3e'}]},{elementTy
   {featureType:'road.highway',elementType:'geometry',stylers:[{color:'#746855'}]},{featureType:'road.highway',elementType:'geometry.stroke',stylers:[{color:'#1f2835'}]},{featureType:'road.highway',elementType:'labels.text.fill',stylers:[{color:'#f3d19c'}]},
   {featureType:'transit',elementType:'geometry',stylers:[{color:'#2f3948'}]},{featureType:'transit.station',elementType:'labels.text.fill',stylers:[{color:'#d59563'}]},
   {featureType:'water',elementType:'geometry',stylers:[{color:'#17263c'}]},{featureType:'water',elementType:'labels.text.fill',stylers:[{color:'#515c6d'}]},{featureType:'water',elementType:'labels.text.stroke',stylers:[{color:'#17263c'}]}];
-let gmCamada=null, gmEstado='osm', gmPref='gratis', gmTemaAtual='', meuUsuario=null, gmCarregando=null;
+let gmCamada=null, gmEstado='osm', gmPref='gratis', gmTemaAtual='', meuUsuario=null, gmCarregando=null, gmTentativas=0;
 /* mapa ou satélite (Google): escolha lembrada neste aparelho; o satélite custa o mesmo que o mapa normal (por abertura) */
 let gmTipo='roadmap'; try{ if(localStorage.getItem('rg_mapa_tipo')==='hybrid') gmTipo='hybrid' }catch(e){}
 $('btnSat').onclick=()=>{ gmTipo=gmTipo==='hybrid'?'roadmap':'hybrid'; try{ localStorage.setItem('rg_mapa_tipo',gmTipo) }catch(e){} mapaBotoes(); mapaGoogleLigar(); toast(gmTipo==='hybrid'?'Satélite ligado.':'Mapa normal.') };
@@ -2940,14 +2940,28 @@ async function mapaGoogleLigar(){
     await gmCarregarApi();
     if(!(L.gridLayer && L.gridLayer.googleMutant)) await carregarScript(GM_PLUGIN);
     if(!(L.gridLayer && L.gridLayer.googleMutant)) throw new Error('leitor do mapa');
-  }catch(e){ if(e.message!=='chave') gmFalhou(e.message==='demorou'?'demorou demais':(e.message==='leitor do mapa'?'este aparelho não suporta':'sem internet ou bloqueado')); return }
+  }catch(e){
+    /* 15/10/2026: internet lenta não desiste de primeira: mostra o grátis e tenta o Google de novo (até 3 vezes) */
+    if(e.message==='demorou' && gmTentativas<3){ gmTentativas++; if(!map.hasLayer(camadaOsm)) camadaOsm.addTo(map); setTimeout(()=>{ if(gmPref==='google'&&gmEstado!=='google') mapaGoogleLigar() },15000); return }
+    if(e.message!=='chave') gmFalhou(e.message==='demorou'?'demorou demais':(e.message==='leitor do mapa'?'este aparelho não suporta':'sem internet ou bloqueado')); return }
+  gmTentativas=0;
   if(gmPref!=='google') return;
   const escuro=temaEscuro(), marca=(escuro?'escuro':'claro')+'/'+gmTipo;
   if(gmCamada && gmEstado==='google' && gmTemaAtual===marca) return;
   const nova=L.gridLayer.googleMutant({type:gmTipo,maxZoom:19,maxNativeZoom:19,styles:(escuro&&gmTipo==='roadmap')?GM_ESCURO:[]});
   const antiga=gmCamada; gmCamada=nova; gmTemaAtual=marca;
-  let pronto=false;
-  const t=setTimeout(()=>{ if(!pronto){ if(gmCamada===nova) gmFalhou('demorou demais') } },25000);
+  let pronto=false, avisou=false, t=null;
+  /* 15/10/2026: antes, 25 s sem carregar = desistia do Google (e com o app em segundo plano ou fora da aba Mapa o
+     Google nem chega a carregar). Agora: espera o app voltar para a tela; se demorar, mostra o grátis por baixo
+     SEM desistir, e troca para o Google assim que ele terminar de carregar. */
+  const espera=()=>{
+    if(pronto || gmCamada!==nova) return;
+    if(document.hidden || !(map.getSize && map.getSize().x)){ t=setTimeout(espera,5000); return }
+    if(!map.hasLayer(camadaOsm)) camadaOsm.addTo(map);
+    if(!avisou && ehAdmin){ avisou=true; toast('O mapa do Google está demorando. Mostrando o mapa grátis enquanto ele carrega.',5000) }
+    t=setTimeout(espera,20000);
+  };
+  t=setTimeout(espera,25000);
   nova.once('load',()=>{
     pronto=true; clearTimeout(t);
     if(gmCamada!==nova) return;
