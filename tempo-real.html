@@ -560,7 +560,46 @@ body.hist-on #mapCar{display:none!important}
 .vazio{display:none;position:absolute;left:16px;right:16px;bottom:24px;z-index:450;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;text-align:center;font-weight:600}
 .vazio small{display:block;font-weight:400;color:var(--mut);margin-top:4px}
 .vazio .vz-pc{display:none}
-.chavebloq{display:none} /* chave de bloqueio: só no computador (o celular segue com os dois botões) */
+.chavebloq{display:none}
+/* ===== CHAVE DE BLOQUEIO NO CELULAR (14/10/2026, aprovada pelo dono) =====
+   Os botões Bloquear/Desbloquear viram uma chave grande com a ação escrita ("Toque para bloquear/desbloquear").
+   Tocar abre a MESMA confirmação de antes. A faixa "Veículo bloqueado" sai (a chave já mostra). */
+@media (max-width:899px){
+  #sheet #btnBlock,#sheet #btnUnblock,#sheet .banner{display:none!important}
+  #chaveBloq{display:flex;align-items:center;justify-content:space-between;gap:10px;height:54px;padding:0 7px 0 16px;border-radius:16px;font:inherit;cursor:pointer;min-width:0;
+    background:rgba(22,163,74,.10);color:#16a34a;border:1px solid rgba(22,163,74,.32);text-align:left;transition:background .25s,border-color .25s;-webkit-tap-highlight-color:transparent}
+  #chaveBloq .cbtx{display:flex;flex-direction:column;line-height:1.15;min-width:0}
+  #chaveBloq .cbst{font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;opacity:.9}
+  #chaveBloq .cbac{font-size:15px;font-weight:800;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #chaveBloq .cbac i{font-style:normal;color:#16a34a}
+  #chaveBloq .cbtrilho{position:relative;width:66px;height:40px;border-radius:999px;background:linear-gradient(180deg,#22c55e,#16a34a);box-shadow:inset 0 1px 3px rgba(0,0,0,.25);flex:none;transition:background .25s}
+  #chaveBloq .cbbola{position:absolute;left:4px;top:4px;width:32px;height:32px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.3);transition:left .25s cubic-bezier(.3,1.4,.6,1)}
+  #chaveBloq .cbbola::after{content:"";position:absolute;inset:8px;background:#16a34a;-webkit-mask:var(--ic) center/contain no-repeat;mask:var(--ic) center/contain no-repeat;
+    --ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='4.5' y='10.5' width='15' height='10' rx='2.5'/%3E%3Cpath d='M8 10.5V7.5a4 4 0 017.6-1.7'/%3E%3C/svg%3E")}
+  #chaveBloq.on{background:rgba(227,38,47,.10);color:#e3262f;border-color:rgba(227,38,47,.34)}
+  #chaveBloq.on .cbac i{color:#e3262f}
+  #chaveBloq.on .cbtrilho{background:linear-gradient(180deg,#ef3b43,#c81e26)}
+  #chaveBloq.on .cbbola{left:30px}
+  #chaveBloq.on .cbbola::after{background:#e3262f;
+    --ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='4.5' y='10.5' width='15' height='10' rx='2.5'/%3E%3Cpath d='M8 10.5V7.5a4 4 0 018 0v3'/%3E%3C/svg%3E")}
+  /* chave mais estreita (quando o botão SMS também aparece): letra e chave um pouco menores para caber "Toque para desbloquear" */
+  #chaveBloq{container-type:inline-size}
+  @container (max-width:275px){
+    #chaveBloq .cbac{font-size:15px}
+    #chaveBloq .cbtp{display:none}  /* sem espaço: fica só a ação ("Desbloquear"/"Bloquear") */
+    #chaveBloq .cbac i{text-transform:capitalize}
+    #chaveBloq .cbtrilho{width:54px;height:34px}
+    #chaveBloq .cbbola{width:26px;height:26px}
+    #chaveBloq .cbbola::after{inset:6px}
+    #chaveBloq.on .cbbola{left:24px}
+  }
+  #chaveBloq:active:not(:disabled){transform:scale(.98)}
+  #chaveBloq:disabled{opacity:.55;cursor:default}
+  #chaveBloq.env{opacity:1}
+  #chaveBloq.env .cbbola{animation:cbPulsa 1s ease-in-out infinite}
+}
+@keyframes cbPulsa{0%,100%{transform:scale(1)}50%{transform:scale(.8)}}
+#chaveBloq.nao{display:none!important} /* cliente sem permissão de bloquear pelo app: a chave some (como os botões sumiam) */
 @media (min-width:900px){.vazio .vz-pc{display:inline}}
 
 /* Cartão do veículo (arrastável) */
@@ -717,6 +756,8 @@ body.hist-on #mapCar{display:none!important}
   main #sheet #chaveBloq .cbbola{position:absolute;left:3px;top:3px;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 2px 5px rgba(0,0,0,.30);transition:left .25s cubic-bezier(.3,1.4,.6,1)}
   main #sheet #chaveBloq .cbbola::after{content:"";position:absolute;inset:5px;background:#16a34a;-webkit-mask:var(--ic) center/contain no-repeat;mask:var(--ic) center/contain no-repeat;
     --ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='4.5' y='10.5' width='15' height='10' rx='2.5'/%3E%3Cpath d='M8 10.5V7.5a4 4 0 017.6-1.7'/%3E%3C/svg%3E")}
+  main #sheet #chaveBloq .cbac{display:none}
+  main #sheet #chaveBloq .cbst{font-size:13px;font-weight:800}
   main #sheet #chaveBloq.on{background:rgba(227,38,47,.10);color:#e3262f;border-color:rgba(227,38,47,.32)}
   main #sheet #chaveBloq.on .cbtrilho{background:linear-gradient(180deg,#ef3b43,#c81e26)}
   main #sheet #chaveBloq.on .cbbola{left:29px}
@@ -726,7 +767,6 @@ body.hist-on #mapCar{display:none!important}
   main #sheet #chaveBloq:disabled{cursor:default;opacity:.55}
   main #sheet #chaveBloq.env{opacity:1}
   main #sheet #chaveBloq.env .cbbola{animation:cbPulsa 1s ease-in-out infinite}
-  @keyframes cbPulsa{0%,100%{transform:scale(1)}50%{transform:scale(.8)}}
   /* linha 2 · faixa de baixo: endereço + números, separados por linhas finas */
   main #sheet #addrRow{grid-column:1;grid-row:2;align-self:stretch;flex-direction:column;align-items:flex-start;justify-content:center;gap:3px;
     padding:10px 16px 11px 18px;border-top:1px solid var(--line);background:rgba(127,127,127,.05);font-size:13px;line-height:1.3;min-width:0}
@@ -1708,7 +1748,7 @@ nav button.on .nemo.txt{color:var(--red2)}
     <div class="actions">
       <button class="btn btn-red" id="btnBlock" title="Bloquear" aria-label="Bloquear">Bloquear</button>
       <button class="btn btn-out" id="btnUnblock" title="Desbloquear" aria-label="Desbloquear">Desbloquear</button>
-      <button type="button" class="chavebloq" id="chaveBloq" role="switch" aria-checked="false" aria-label="Bloqueio do veículo" title="Bloqueio do veículo"><span class="cbtx">Liberado</span><span class="cbtrilho"><span class="cbbola"></span></span></button>
+      <button type="button" class="chavebloq" id="chaveBloq" role="switch" aria-checked="false" aria-label="Bloqueio do veículo" title="Bloqueio do veículo"><span class="cbtx"><small class="cbst">Liberado</small><b class="cbac"><span class="cbtp">Toque para </span><i>bloquear</i></b></span><span class="cbtrilho"><span class="cbbola"></span></span></button>
       <button class="btn btn-out" id="btnSmsMenu" type="button" aria-label="Bloquear ou desbloquear por SMS" title="Bloquear ou desbloquear por SMS" style="display:none">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="10.5" width="15" height="10" rx="2.5"/><path d="M8 10.5V7.5a4 4 0 018 0v3"/></svg><span>SMS</span>
       </button>
@@ -3445,7 +3485,9 @@ function atualizar(){
     { /* 14/10/2026: chave de bloqueio do computador acompanha a situação do veículo */
       const c=$('chaveBloq'), bq=!!v.bloq, t=cmdAndamento?'Enviando…':(bq?'Bloqueado':'Liberado');
       c.classList.toggle('on',bq); c.classList.toggle('env',!!cmdAndamento); c.disabled=!!(cmdAndamento||sp); c.setAttribute('aria-checked',bq?'true':'false');
-      if(c.firstChild.textContent!==t) c.firstChild.textContent=t;
+      const st=c.querySelector('.cbst'), ac=c.querySelector('.cbac i'), ta=bq?'desbloquear':'bloquear';
+      if(st.textContent!==t) st.textContent=t;
+      if(ac.textContent!==ta) ac.textContent=ta;
       c.title = bq ? 'Veículo bloqueado: toque para desbloquear' : 'Veículo liberado: toque para bloquear';
     }
     /* sem sinal ainda: Bloquear/Desbloquear pela internet não fazem sentido (os botões de SMS ficam ativos) */
@@ -4095,7 +4137,8 @@ function mostrarBotoesSms(){
   $('btnRenome').style.display=(ehAdmin||permCli.editarNome||permCli.frotista)?'inline-flex':'none';
   const podeApp=ehAdmin||(permCli.appBloqueio!==false && !semBloq);
   $('btnBlock').style.display=podeApp?'':'none'; $('btnUnblock').style.display=podeApp?'':'none';
-  const acts=$('btnBlock').parentElement; if(acts) acts.style.gridTemplateColumns=(podeApp?'1fr 1fr ':'')+(n?'52px ':'')+(podeApp?'44px':'52px');
+  $('chaveBloq').classList.toggle('nao',!podeApp); /* 14/10/2026: a chave segue a mesma permissão dos botões */
+  const acts=$('btnBlock').parentElement; if(acts) acts.style.gridTemplateColumns=(podeApp?'minmax(0,1fr) ':'')+(n?'52px ':'')+(podeApp?'44px':'52px'); /* chave ocupa o lugar dos 2 botões */
   const semSinal=(()=>{ const c=cartao(); return !!(c && !c.pos) })();
   $('btnAncora').style.display=(!semSinal && (ehAdmin||permCli.cercaRapida))?'flex':'none';
   try{ mapaColuna() }catch(e){}
