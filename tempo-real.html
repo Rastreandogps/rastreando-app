@@ -742,6 +742,7 @@ body.hist-on #mapCar{display:none!important}
 @media (min-width:900px){.vazio .vz-pc{display:inline}}
 
 /* Cartão do veículo (arrastável) */
+#cartRecolher,#cartMini{display:none}
 .sheet{position:absolute;left:0;right:0;bottom:0;z-index:450;margin:0 auto;max-width:520px;background:var(--card);border:1px solid var(--line);border-bottom:0;border-radius:18px 18px 0 0;padding:0 16px 14px;box-shadow:0 -8px 24px rgba(0,0,0,.45);transition:transform .22s ease;will-change:transform}
 .sheet.drag{transition:none}
 /* computador: cartão do veículo no canto esquerdo (celular não muda) */
@@ -850,6 +851,29 @@ body.hist-on #mapCar{display:none!important}
     display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto auto auto auto auto auto;column-gap:0;row-gap:0;align-items:center}
   /* colunas: [identificação ocupa 1+2] [Navegar][Ver a rua][SMS][Compartilhar][🔒][🔓]; embaixo: endereço na 1, números da 2 até o fim */
   main #sheet > *{margin:0;padding:0;grid-column:1 / -1}
+  /* 16/10/2026 (pedido do dono): recolher o cartão para ganhar mapa. Puxador no alto do cartão; recolhido vira uma pílula embaixo. */
+  main #sheet{transition:translate .32s cubic-bezier(.2,.8,.2,1),opacity .22s ease}
+  main #sheet #cartRecolher{position:absolute;top:0;left:50%;translate:-50% 0;width:64px;height:16px;margin:0;padding:0;border:0;border-radius:0 0 10px 10px;background:transparent;cursor:pointer;display:flex;align-items:flex-start;justify-content:center;z-index:2;grid-column:auto}
+  main #sheet #cartRecolher::before{content:"";width:36px;height:4px;margin-top:6px;border-radius:99px;background:var(--line);transition:background .15s,width .15s}
+  main #sheet #cartRecolher:hover::before{background:var(--mut);width:44px}
+  main #sheet #cartRecolher svg{position:absolute;top:1px;width:14px;height:14px;fill:none;stroke:var(--mut);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;opacity:0;transition:opacity .15s}
+  main #sheet #cartRecolher:hover svg{opacity:1}
+  main #sheet #cartRecolher:hover::before{opacity:0}
+  main.cartmin #sheet{translate:0 calc(100% + 40px);opacity:0;pointer-events:none}
+  #cartMini{position:absolute;z-index:451;bottom:18px;left:calc(var(--lado) + (100% - var(--lado)) / 2);translate:-50% 0;display:none;align-items:center;gap:10px;height:44px;padding:0 8px 0 16px;border-radius:999px;
+    background:var(--card);border:1px solid var(--line);box-shadow:0 12px 34px rgba(0,0,0,.28),0 2px 6px rgba(0,0,0,.10);color:var(--txt);font:inherit;cursor:pointer;white-space:nowrap;max-width:calc(100% - var(--lado) - 40px);
+    animation:cartMiniEntra .32s cubic-bezier(.2,.8,.2,1)}
+  @keyframes cartMiniEntra{from{opacity:0;translate:-50% 14px}to{opacity:1;translate:-50% 0}}
+  main.cartmin #cartMini.tem{display:flex}
+  #cartMini:hover{border-color:var(--mut)}
+  #cartMini .cmdot{width:9px;height:9px;border-radius:50%;background:var(--mut);flex:none;box-shadow:0 0 0 4px rgba(154,163,178,.15)}
+  #cartMini .cmdot.st-move{background:var(--green);box-shadow:0 0 0 4px rgba(51,209,122,.18)}
+  #cartMini .cmdot.st-stop{background:#22b8c4;box-shadow:0 0 0 4px rgba(56,225,230,.16)}
+  #cartMini .cmdot.st-block{background:var(--red2);box-shadow:0 0 0 4px rgba(227,38,47,.16)}
+  #cartMini b{font-size:13.5px;font-weight:800;overflow:hidden;text-overflow:ellipsis}
+  #cartMini small{font-size:12px;color:var(--mut);font-weight:600}
+  #cartMini .cmup{width:30px;height:30px;border-radius:50%;background:var(--card2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;flex:none;margin-left:2px}
+  #cartMini .cmup svg{width:15px;height:15px;fill:none;stroke:var(--txt);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
   main #sheet .handlewrap{display:none}
   main #sheet .banner{display:none!important} /* a situação "Bloqueado" já aparece ao lado do nome */
   main #sheet .actions:not(#admSmsRow){display:contents}
@@ -2082,7 +2106,9 @@ nav button.on .nemo.txt{color:var(--red2)}
   <button id="mapCar" type="button" aria-label="Você tem pedido aguardando pagamento" title="Pedido aguardando pagamento"><svg viewBox="0 0 24 24"><path d="M6 6h15l-1.5 9h-12z"/><path d="M6 6L5 3H2"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/></svg><span class="mcn" id="mapCarN">1</span></button>
   <div class="vazio" id="vazio">Nenhum veículo selecionado<small><span class="vz-cel">Abra a aba Veículos para escolher.</span><span class="vz-pc">Escolha um veículo na lista ao lado.</span></small></div>
 
+  <button id="cartMini" type="button" title="Mostrar o cartão do veículo" aria-label="Mostrar o cartão do veículo"><span class="cmdot" id="cmDot"></span><b id="cmNome"></b><small id="cmSt"></small><span class="cmup"><svg viewBox="0 0 24 24"><path d="M6 15l6-6 6 6"/></svg></span></button>
   <section class="sheet" id="sheet">
+    <button id="cartRecolher" type="button" title="Abaixar o cartão (mais mapa)" aria-label="Abaixar o cartão"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
     <div class="dragzone" id="dragzone">
       <div class="handlewrap"><span class="handle"></span></div>
       <div class="row">
@@ -4206,6 +4232,20 @@ function soltar(e){
 zone.addEventListener('pointerup',soltar);
 zone.addEventListener('pointercancel',soltar);
 
+/* ===== CARTÃO RECOLHIDO (computador, 16/10/2026) ===== */
+function cartMinOn(){ return telaLarga() && lsGet('rg_cart_min')==='1' }
+function cartMinPintar(){
+  const m=$('main'), on=cartMinOn(); m.classList.toggle('cartmin',on);
+  const vis=on && sheet.style.display!=='none'; $('cartMini').classList.toggle('tem',vis);
+  if(!vis) return;
+  $('cmNome').textContent=$('vName').textContent||'';
+  const st=$('vStatus'); $('cmSt').textContent=(st.textContent||'')+(cartao()&&cartao().vel>2&&!cartao().tag?' · '+cartao().vel+' km/h':'');
+  $('cmDot').className='cmdot '+([...st.classList].find(c=>c.indexOf('st-')===0)||'');
+}
+$('cartRecolher').onclick=()=>{ lsSet('rg_cart_min','1'); cartMinPintar() };
+$('cartMini').onclick=()=>{ lsSet('rg_cart_min','0'); cartMinPintar() };
+window.addEventListener('resize',()=>{ try{ cartMinPintar() }catch(e){} });
+
 /* ===== TELA ===== */
 function atualizar(){
   const v=cartao(), sp=!!(v && !v.pos); /* sp = aparelho ainda sem sinal */
@@ -4272,6 +4312,7 @@ function atualizar(){
     const [t,c]=status(x), s=r.querySelector('.status');
     if(s.textContent!==t){s.textContent=t;s.className='status sm '+c}
   });
+  try{ cartMinPintar() }catch(e){}
 }
 setInterval(atualizar,1000);
 
