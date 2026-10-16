@@ -482,9 +482,10 @@ main{position:relative;flex:1;min-height:0;overflow:hidden}
 body.hist-on #follow,body.hist-on #btnEu,body.hist-on #btnTodos,body.hist-on #btnGrupo,body.hist-on #btnSat,body.hist-on #btnAncora{display:none!important}
 /* carrinho no topo do mapa: aparece quando o cliente tem pedido da loja esperando pagamento (11/10/2026) */
 /* 15/10/2026: deslize contínuo (teste só do administrador) */
-#deslizeBtn{position:absolute;bottom:14px;left:12px;z-index:420;display:none;align-items:center;gap:6px;height:34px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--txt);font:inherit;font-size:12.5px;font-weight:700;box-shadow:0 2px 8px rgba(0,0,0,.25);cursor:pointer}
+#deslizeBtn{position:absolute;top:12px;left:12px;z-index:420;display:none;align-items:center;gap:6px;height:34px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--txt);font:inherit;font-size:12.5px;font-weight:700;box-shadow:0 2px 8px rgba(0,0,0,.25);cursor:pointer}
 #deslizeBtn.on{background:#2f6bff;border-color:#2f6bff;color:#fff}
 body.hist-on #deslizeBtn{display:none!important}
+@media (min-width:900px){ #deslizeBtn{left:calc(var(--lado,0px) + 12px);z-index:460} } /* computador: fora da lista de veículos */
 #mapCar{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:420;width:52px;height:52px;border-radius:50%;background:#ffe600;border:none;display:none;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(0,0,0,.4);cursor:pointer;animation:mapCarPulso 1.8s ease-in-out infinite}
 #mapCar.show{display:flex}
 #mapCar svg{width:26px;height:26px;fill:none;stroke:#2d3277;stroke-width:2.3;stroke-linecap:round;stroke-linejoin:round}
