@@ -3831,6 +3831,15 @@ function ehTag(d){
   const u=soDigitos(d&&d.uniqueId);
   return u.length===15 && TAG_PREFIXOS.some(p=>u.indexOf(p)===0);
 }
+/* 16/10/2026 (2ª regra, pedido do dono: há tags com outro começo de IMEI): o jeito como a tag manda os dados.
+   Tag = sem chip cadastrado + sinal de celular 0 + bateria informada + nenhuma tensão do veículo (power/adc1).
+   Um J16 sempre tem chip e sempre manda a tensão do veículo. Quando a tensão aparece, deixa de ser tag. */
+function assinaturaTag(v,a){
+  if(!a) return !!v.tagSinal;
+  if(a.power!=null || a.adc1!=null || soDigitos(v.fone)) { v.tagSinal=false; return false }
+  if(a.rssi===0 && a.batteryLevel!=null) v.tagSinal=true;
+  return !!v.tagSinal;
+}
 const temTags=()=>veiculos.some(v=>v.tag);
 const TAG_VELHA_MS=6*3600000; /* tag sem ser vista há mais de 6 h: marcador cinza */
 function mesclar(ds,ps){
@@ -3852,7 +3861,7 @@ function mesclar(ds,ps){
     v.placa = (d.attributes&&d.attributes.placa) || d.model || '';
     v.online = d.status==='online';
     v.imei = d.uniqueId || ''; v.fone = d.phone || ''; v.contato = d.contact || ''; v.raw = d;
-    v.tag = ehTag(d); /* 16/10/2026 */
+    v.tag = ehTag(d) || (String((d.attributes&&d.attributes.tipoAparelho)||'')!=='rastreador' && !!v.tagSinal && !soDigitos(d.phone)); /* 16/10/2026 */
     v.ultimo = d.lastUpdate ? new Date(d.lastUpdate).getTime() : null;
     const p = pm[d.id];
     if(p){
@@ -3861,6 +3870,7 @@ function mesclar(ds,ps){
       /* odômetro total (Traccar: totalDistance, em metros). Depois de ajustar, espera a próxima posição para aceitar o valor do servidor */
       if(a.totalDistance!=null && !(v.odoPos!=null && p.id===v.odoPos)){ v.odo=Number(a.totalDistance)||0; v.odoPos=null }
       guardarUltimos(v,p,a);
+      if(!v.tag && String((d.attributes&&d.attributes.tipoAparelho)||'')!=='rastreador') v.tag = assinaturaTag(v,a); /* 16/10/2026 */
       v.fix = new Date(p.fixTime).getTime();
       /* hora do último GPS válido (posição sem GPS não conta) */
       if(p.valid!==false) v.gpsT = v.fix; else if(v.gpsT===undefined) v.gpsT = null;
