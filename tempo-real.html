@@ -315,6 +315,29 @@ body.mapa-google #map .leaflet-top.leaflet-left .leaflet-control-attribution{mar
 #mVerComo .vcaviso{border-radius:12px;padding:10px 12px;background:rgba(109,40,217,.1);border:1px solid rgba(109,40,217,.3);font-size:13px;line-height:1.45;margin:8px 0 12px}
 #mVerComo .vcaviso b{color:#6d28d9}
 #mVerComo a.btn{display:flex;align-items:center;justify-content:center;text-decoration:none}
+/* 16/10/2026: modo emergência (servidor do Traccar fora do ar) */
+#btnEmerg{position:fixed;z-index:900;left:50%;transform:translateX(-50%);top:calc(64px + env(safe-area-inset-top));display:none;align-items:center;gap:8px;border:0;border-radius:999px;padding:10px 18px;background:#b91c1c;color:#fff;font:inherit;font-size:13.5px;font-weight:800;box-shadow:0 6px 20px rgba(0,0,0,.35);cursor:pointer}
+#btnEmerg.show{display:flex}
+#btnEmerg svg{width:18px;height:18px;fill:none;stroke:#fff;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+#mEmerg .almtopo{flex:none;display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}
+#mEmerg .almtopo h3{margin:0;color:var(--red2)}
+#mEmerg .almx{width:38px;height:38px;flex:none;border-radius:50%;background:var(--card2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;cursor:pointer}
+#mEmerg .almx svg{width:18px;height:18px;fill:none;stroke:var(--txt);stroke-width:2.4;stroke-linecap:round}
+#mEmerg .emaviso{border-radius:12px;padding:10px 12px;background:rgba(185,28,28,.1);border:1px solid rgba(185,28,28,.35);font-size:13px;line-height:1.45;margin:4px 0 10px}
+#mEmerg .embusca{width:100%;box-sizing:border-box;border:1px solid var(--line);background:var(--card2);color:var(--txt);border-radius:10px;padding:10px 12px;font:inherit;font-size:14px;margin-bottom:8px}
+#mEmerg .emlista{overflow:auto;max-height:52vh;display:flex;flex-direction:column;gap:8px}
+#mEmerg .emv{border:1px solid var(--line);background:var(--card2);border-radius:12px;padding:10px 12px}
+#mEmerg .emv b{font-size:14px}
+#mEmerg .emv small{display:block;color:var(--mut);font-size:12px;line-height:1.4;margin-top:2px}
+#mEmerg .embt{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+#mEmerg .embt button{flex:1;min-width:92px;border-radius:10px;padding:8px 6px;font:inherit;font-size:12.5px;font-weight:700;cursor:pointer;border:1px solid var(--line);background:var(--card);color:var(--txt)}
+#mEmerg .embt button.env{background:#b91c1c;border-color:#b91c1c;color:#fff}
+#mEmerg .embt button:disabled{opacity:.5;cursor:default}
+#mEmerg .emcp{display:flex;gap:6px;margin-top:6px}
+#mEmerg .emcp button{border-radius:999px;padding:5px 12px;font:inherit;font-size:12px;font-weight:700;cursor:pointer;border:1px solid var(--line);background:var(--card);color:var(--txt)}
+#mEmerg .emconf{margin-top:8px;border-radius:10px;padding:9px 10px;background:rgba(185,28,28,.1);border:1px solid rgba(185,28,28,.35);font-size:12.5px;line-height:1.45}
+#mEmerg .emok{margin-top:6px;font-size:12.5px;font-weight:700;color:var(--green,#16a34a)}
+#mEmerg .emerr{margin-top:6px;font-size:12.5px;color:var(--red2)}
 #avisoPag{flex:none;display:none;padding:7px 14px;font-size:12.5px;font-weight:600;line-height:1.3;cursor:pointer;text-align:center}
 #avisoPag.show{display:block}
 #avisoPag.show{animation:avisoPisca 1.8s ease-in-out infinite}
@@ -2801,6 +2824,17 @@ nav button.on .nemo.txt{color:var(--red2)}
     <div class="ferr" id="vcErro" style="margin-top:8px"></div>
   </div>
 </div>
+<!-- 16/10/2026: modo emergência (servidor do Traccar fora do ar): lista copiada pelo Firebase. Nada é enviado sozinho. -->
+<button id="btnEmerg" type="button"><svg viewBox="0 0 24 24"><path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18v.5"/></svg>Modo emergência</button>
+<div class="modal alsheet" id="mEmerg">
+  <div class="box2" style="max-width:480px">
+    <div class="almtopo"><h3>Modo emergência</h3><button class="almx" data-close type="button" aria-label="Fechar" title="Fechar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <div class="emaviso" id="emInfo">O servidor de rastreamento não está respondendo.</div>
+    <input class="embusca" id="emBusca" type="search" placeholder="Buscar por nome, placa, cliente, chip ou IMEI" autocomplete="off">
+    <div class="emlista" id="emLista"></div>
+    <div class="ferr" id="emErro" style="margin-top:8px"></div>
+  </div>
+</div>
 <!-- 16/10/2026: o cliente escolhe o ícone do veículo no mapa -->
 <div class="modal alsheet" id="mIcone">
   <div class="box2" style="max-width:460px">
@@ -4062,10 +4096,11 @@ async function buscarSeguro(){
     await buscar();
     if(ehAdmin && !saldoSms) carregarSaldo(false);
     indicador('TEMPO REAL',true);
+    try{ emergOnline() }catch(e){}
     if(!cercasIniciado){ cercasIniciado=true; carregarCercas().then(()=>carregarAlertas(false)); if(location.hash==='#alertas') setTimeout(()=>irPara('Alertas'),300) }
   }catch(e){
     if(e.sessao){ sair('Sessão expirada. Entre novamente.') }
-    else indicador('SEM CONEXÃO',false);
+    else { indicador('SEM CONEXÃO',false); try{ emergOffline() }catch(e2){} }
   }
   buscando = false;
 }
@@ -9387,7 +9422,8 @@ function mostrarLogin(msg){
 }
 function sair(msg){
   if(VER.on){ const n=VER.nome||VER.login||'cliente'; verComoSair(); msg='Você saiu da conta de '+n+'. Pode fechar esta aba.' } /* 16/10/2026: "vendo como" não mexe no login de administrador */
-  else { lsDel('rg_token'); lsDel('rg_email'); try{sessionStorage.removeItem('rg_basic')}catch(e){} }
+  else { lsDel('rg_token'); lsDel('rg_email'); lsDel('rg_emerg_ok'); lsDel('rg_emerg_reg'); try{sessionStorage.removeItem('rg_basic')}catch(e){} }
+  try{ $('btnEmerg').classList.remove('show'); emergFalhas=0 }catch(e){}
   cercasReset();
   permCli={smsBloqueio:false,reset:false,editarNome:false,cercaRapida:false,minhaPosicao:false,appBloqueio:true,cercaBloqueio:true,semBloqueio:false,frotista:false}; cobrCli=null; try{ FCH.saldo=null; FCH.em=0; fichasAplicar() }catch(e){} /* 15/10/2026: fichas do login anterior saem */
   ehAdmin=false; usuarios=[]; $('aview').classList.remove('show'); try{ $('mapCar').classList.remove('show') }catch(e){}
@@ -9982,6 +10018,111 @@ function verComoAbrir(userId){
   };
   abrir('mVerComo');
 }
+
+/* ===== MODO EMERGÊNCIA (administrador, 16/10/2026) =====
+   Pedido do dono: quando o servidor do Traccar caiu (Hostinger, 16/10), todos os veículos sumiram e não dava nem para
+   pegar o chip e virar um veículo para a plataforma do Felipe. O Firebase (rastreamento-emergencia.js) copia a lista e a
+   última posição a cada 5 min. Com o servidor no ar, o app do administrador se registra (o servidor guarda só um resumo
+   do acesso). Com o servidor fora por uns 15 s, aparece o botão "Modo emergência": lista copiada, pontos cinza no mapa,
+   "Copiar comando" e "Enviar SMS" (só depois de confirmar, um veículo por vez). NADA é enviado sozinho. */
+const EMERG_URL='https://southamerica-east1-rastreando-assinaturas.cloudfunctions.net/rastreamentoEmergencia';
+const EMERG_FALHAS=3; /* 3 consultas seguidas sem resposta (cerca de 15 s) */
+let emergFalhas=0, emergDados=null, emergCamada=null, emergConf=null, emergEnviados={};
+function emergPode(){ return !VER.on && !!lsGet('rg_token') && lsGet('rg_emerg_ok')==='1' }
+function emergRegistrarSe(){
+  if(VER.on || !ehAdmin) return;
+  const tk=lsGet('rg_token'); if(!tk) return;
+  let r={}; try{ r=JSON.parse(lsGet('rg_emerg_reg')||'{}') }catch(e){}
+  if(r.f===tk.slice(-8) && Date.now()-Number(r.em||0)<7*86400000) return; /* renova 1 vez por semana (o servidor aceita 40 dias) */
+  lsSet('rg_emerg_reg',JSON.stringify({f:tk.slice(-8),em:Date.now()})); /* marca antes, para não repetir a cada 5 s */
+  fetch(EMERG_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',body:JSON.stringify({acao:'emergRegistrar',token:tk})})
+    .then(x=>{ if(x.ok) lsSet('rg_emerg_ok','1'); else lsDel('rg_emerg_reg') }).catch(()=>{ lsDel('rg_emerg_reg') });
+}
+function emergOnline(){
+  emergFalhas=0; $('btnEmerg').classList.remove('show');
+  if(emergCamada){ try{ map.removeLayer(emergCamada) }catch(e){} emergCamada=null }
+  emergRegistrarSe();
+}
+function emergOffline(){
+  emergFalhas++;
+  if(emergFalhas>=EMERG_FALHAS && emergPode()) $('btnEmerg').classList.add('show');
+}
+const emergChip=v=>{ let n=soDigitos(v.fone); if((n.length===12||n.length===13)&&n.startsWith('55')) n=n.slice(2); return (n.length===10||n.length===11)?n:'' };
+async function emergAbrir(){
+  $('emErro').textContent=''; $('emLista').innerHTML='<p class="asinfo">Carregando a cópia...</p>'; abrir('mEmerg');
+  try{
+    const r=await fetch(EMERG_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',body:JSON.stringify({acao:'emergLista',token:lsGet('rg_token')})});
+    const j=await r.json().catch(()=>({}));
+    if(!r.ok) throw new Error(j.erro||('Erro '+r.status));
+    emergDados=j; emergConf=null; emergPintar(); emergMapa();
+  }catch(e){
+    $('emLista').innerHTML='';
+    $('emErro').textContent=(e instanceof TypeError)?'Sem internet neste aparelho (ou o Firebase também está fora). Tente de novo em instantes.':(e.message||'Não consegui abrir a cópia.');
+  }
+}
+function emergPintar(){
+  const d=emergDados; if(!d) return;
+  const dest=(d.destinos||[])[0];
+  $('emInfo').innerHTML='O servidor de rastreamento não está respondendo. Esta é a <b>cópia de '+(d.em?esc(fmtHora(d.em)):'(sem cópia)')+'</b>'+
+    ' ('+(d.lista||[]).length+' aparelhos). Os pontos cinza no mapa são a última posição conhecida.<br>Plataforma reserva: <b>'+esc(dest?dest.nome:'nenhuma')+'</b>. '+
+    'Nada é enviado sozinho: o SMS só sai quando você confirma, um veículo por vez.';
+  const q=String($('emBusca').value||'').trim().toLowerCase(), qd=q.replace(/\D/g,'');
+  const lista=(d.lista||[]).filter(v=>{ if(!q) return true;
+    const t=[v.nome,v.placa,v.cliente,v.contato].join(' ').toLowerCase();
+    return t.includes(q) || (qd.length>=4 && (soDigitos(v.fone).includes(qd) || String(v.imei||'').includes(qd))) })
+    .sort((a,b)=>String(a.nome).localeCompare(String(b.nome),'pt-BR'));
+  if(!lista.length){ $('emLista').innerHTML='<p class="asinfo">Nenhum veículo encontrado.</p>'; return }
+  $('emLista').innerHTML=lista.slice(0,80).map(v=>{
+    const chip=emergChip(v), sub=[v.placa,v.cliente||String(v.contato||'').replace(EMAIL_FALSO,'')].filter(Boolean).join(' · ');
+    const pos=v.lat!=null?'Última posição: '+esc(fmtHora(v.fix||v.ult)):'Sem posição na cópia';
+    let h='<div class="emv" data-id="'+v.id+'"><b>'+esc(v.nome)+'</b>'+(sub?'<small>'+esc(sub)+'</small>':'')+
+      '<small>IMEI: '+(v.imei?esc(v.imei):'—')+'</small>'+
+      '<div class="emcp"><button type="button" data-a="cpnome">Copiar nome</button>'+(v.imei?'<button type="button" data-a="cpimei">Copiar IMEI</button>':'')+'</div>'+
+      '<small>'+pos+(v.tag?' · <b>Tag</b> (não recebe SMS)':' · Chip: '+(chip?esc(fmtFone(chip)):'<b>sem número</b>'))+'</small>'+
+      '<div class="embt">'+(v.lat!=null?'<button type="button" data-a="mapa">Ver no mapa</button>':'')+
+      (!v.tag&&dest?'<button type="button" data-a="copiar">Copiar comando</button>':'')+
+      (!v.tag&&dest&&chip?'<button type="button" class="env" data-a="enviar">Enviar SMS</button>':'')+'</div>';
+    if(emergConf===v.id && dest) h+='<div class="emconf">Enviar o SMS <b>'+esc(dest.sms)+'</b> para o chip <b>'+esc(fmtFone(chip))+'</b>?<br>O rastreador de <b>'+esc(v.nome)+'</b> passa a mandar a posição para a '+esc(dest.nome)+' (sai da nossa plataforma até ser apontado de volta).'+
+      '<div class="embt"><button type="button" data-a="cancelar">Cancelar</button><button type="button" class="env" data-a="confirmar">Confirmar envio</button></div></div>';
+    if(emergEnviados[v.id]) h+='<div class="emok">'+esc(emergEnviados[v.id])+'</div>';
+    return h+'<div class="emerr"></div></div>';
+  }).join('')+(lista.length>80?'<p class="asinfo">Mostrando 80 de '+lista.length+'. Use a busca.</p>':'');
+}
+function emergMapa(){
+  if(!emergDados) return;
+  if(emergCamada){ try{ map.removeLayer(emergCamada) }catch(e){} }
+  emergCamada=L.layerGroup();
+  (emergDados.lista||[]).forEach(v=>{ if(v.lat==null) return;
+    L.circleMarker([v.lat,v.lon],{radius:8,color:'#fff',weight:2,fillColor:'#6b7280',fillOpacity:.95})
+      .bindTooltip(esc(v.nome)+(v.placa?' · '+esc(v.placa):'')+'<br>'+esc(fmtHora(v.fix||v.ult)),{direction:'top'}).addTo(emergCamada) });
+  emergCamada.addTo(map);
+}
+$('btnEmerg').onclick=emergAbrir;
+$('emBusca').addEventListener('input',()=>{ emergConf=null; emergPintar() });
+$('emLista').addEventListener('click',async e=>{
+  const b=e.target.closest('button[data-a]'); if(!b) return;
+  const card=b.closest('.emv'), id=Number(card.dataset.id), v=((emergDados||{}).lista||[]).find(x=>x.id===id), dest=((emergDados||{}).destinos||[])[0];
+  if(!v) return;
+  const a=b.dataset.a;
+  if(a==='mapa'){ fechar(); map.setView([v.lat,v.lon],16); return }
+  if(a==='copiar'){ const ok=await copiarTexto(dest.sms); toast(ok?'Comando copiado: '+dest.sms:'Copie: '+dest.sms,5000); return }
+  if(a==='cpnome'||a==='cpimei'){ const t=a==='cpnome'?String(v.nome||''):String(v.imei||''); const ok=await copiarTexto(t); toast(ok?(a==='cpnome'?'Nome copiado: ':'IMEI copiado: ')+t:'Copie: '+t,3000); return }
+  if(a==='enviar'){ emergConf=id; emergPintar(); return }
+  if(a==='cancelar'){ emergConf=null; emergPintar(); return }
+  if(a==='confirmar'){
+    b.disabled=true; b.textContent='Enviando...'; card.querySelector('.emerr').textContent='';
+    try{
+      const r=await fetch(EMERG_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',body:JSON.stringify({acao:'emergSms',token:lsGet('rg_token'),deviceId:id,destino:dest.id})});
+      const j=await r.json().catch(()=>({}));
+      if(!r.ok) throw new Error(j.erro||('Erro '+r.status));
+      emergEnviados[id]='SMS enviado às '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})+' para '+fmtFone(j.chip||'')+'. Confira na plataforma do Felipe em alguns minutos.';
+      emergConf=null; emergPintar();
+    }catch(err){
+      b.disabled=false; b.textContent='Confirmar envio';
+      card.querySelector('.emerr').textContent=(err instanceof TypeError)?'Sem internet. Tente de novo.':(err.message||'Não consegui enviar.');
+    }
+  }
+});
 
 (async function iniciar(){
   setSeguir(false);
