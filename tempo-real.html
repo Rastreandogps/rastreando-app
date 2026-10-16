@@ -3947,6 +3947,19 @@ function assinaturaTag(v,a){
 }
 const temTags=()=>veiculos.some(v=>v.tag);
 const TAG_VELHA_MS=6*3600000; /* tag sem ser vista há mais de 6 h: marcador cinza */
+/* 16/10/2026 (moto do cliente foi parar no oceano): rastreador sem GPS às vezes manda a posição 0,0 (meio do Atlântico,
+   na costa da África). Isso nunca é um veículo de verdade: a posição é ignorada e o veículo fica no último lugar bom. */
+function posZero(p){ return !p || (Math.abs(Number(p.latitude)||0)<1 && Math.abs(Number(p.longitude)||0)<1) }
+async function posBoaAnterior(v){
+  try{
+    const ate=new Date(), de=new Date(ate.getTime()-3*86400000);
+    const r=await api('/api/reports/route?deviceId='+v.id+'&from='+encodeURIComponent(de.toISOString())+'&to='+encodeURIComponent(ate.toISOString()));
+    if(!r.ok) return; const l=await r.json();
+    for(let i=l.length-1;i>=0;i--){ const q=l[i]; if(q.valid!==false && !posZero(q)){
+      if(v.pos) return; v.pos=[q.latitude,q.longitude]; v.real=v.pos.slice(); v.fix=Date.parse(q.fixTime); v.gpsT=v.fix; v.addr=q.address||null; v.rumo=q.course||0;
+      criarMarcador(v); atualizar(); return } }
+  }catch(e){}
+}
 function mesclar(ds,ps){
   const pm = {}; ps.forEach(p=>pm[p.deviceId]=p);
   const ids = new Set(ds.map(d=>d.id));
@@ -3978,6 +3991,13 @@ function mesclar(ds,ps){
       if(a.totalDistance!=null && !(v.odoPos!=null && p.id===v.odoPos)){ v.odo=Number(a.totalDistance)||0; v.odoPos=null }
       guardarUltimos(v,p,a);
       if(!v.tag && String((d.attributes&&d.attributes.tipoAparelho)||'')!=='rastreador') v.tag = assinaturaTag(v,a); /* 16/10/2026 */
+      if(posZero(p)){ /* 16/10/2026: posição 0,0 = sem GPS; não move o veículo (bateria, ignição e bloqueio continuam valendo) */
+        v.bloqDoRastreador = typeof a.blocked==='boolean';
+        v.bloq = typeof a.blocked==='boolean' ? a.blocked : lsGet('rg_bloq_'+v.id)==='1';
+        v.vel = 0;
+        if(!v.pos && !v.zeroBuscou){ v.zeroBuscou=true; posBoaAnterior(v) } /* app acabou de abrir: busca a última posição boa */
+        return;
+      }
       v.fix = new Date(p.fixTime).getTime();
       /* hora do último GPS válido (posição sem GPS não conta) */
       if(p.valid!==false) v.gpsT = v.fix; else if(v.gpsT===undefined) v.gpsT = null;
@@ -6215,7 +6235,7 @@ $('hPdfWpp').onclick=async()=>{
 function histMostrar(pos,id){
   /* só posições com GPS válido, em ordem, sem repetir o mesmo ponto parado */
   const pts=[];
-  (pos||[]).filter(p=>p.valid!==false && p.latitude && p.longitude).sort((a,b)=>Date.parse(a.fixTime)-Date.parse(b.fixTime)).forEach(p=>{
+  (pos||[]).filter(p=>p.valid!==false && !posZero(p)) /* 16/10/2026: fora a posição 0,0 */.sort((a,b)=>Date.parse(a.fixTime)-Date.parse(b.fixTime)).forEach(p=>{
     const ll=[p.latitude,p.longitude], t=Date.parse(p.fixTime), u=pts[pts.length-1];
     if(u && t<=u.t) return;
     if(u && u.ll[0]===ll[0] && u.ll[1]===ll[1] && (p.speed||0)<1){ u.fim=t; u.parou=true; return }
