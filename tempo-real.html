@@ -3969,6 +3969,7 @@ function lerUltimos(v){
 }
 function guardarUltimos(v,p,a){
   const agora=Date.now(); let mudou=false;
+  if(p.id!==v.stPosId){ v.stPosId=p.id; /* 16/10/2026 (revisão): só posição nova renova a hora; aparelho parado há dias não fica "ignição ligada" para sempre */
   if(typeof a.ignition==='boolean'){ v.ign=a.ignition; v.igEm=agora; mudou=true }
   if(a.batteryLevel!=null && !isNaN(a.batteryLevel)){ v.bat=Math.round(a.batteryLevel); v.batEm=agora; mudou=true }
   /* voltagem da bateria externa (do veículo/fonte). O J16 manda no campo adc1; "power" é o nome padrão do Traccar em outros modelos. */
@@ -3977,6 +3978,7 @@ function guardarUltimos(v,p,a){
     v.volt=Number(vv);
     const t=new Date(p.deviceTime||p.serverTime||p.fixTime).getTime();
     v.voltEm=isNaN(t)?agora:t; mudou=true;
+  }
   }
   if(v.ign!==null && !fresco(v.igEm,VALIDADE_ST)) v.ign=null;
   if(v.bat!==null && !fresco(v.batEm,VALIDADE_ST)) v.bat=null;
@@ -4049,7 +4051,7 @@ function mesclar(ds,ps){
       /* odômetro total (Traccar: totalDistance, em metros). Depois de ajustar, espera a próxima posição para aceitar o valor do servidor */
       if(a.totalDistance!=null && !(v.odoPos!=null && p.id===v.odoPos)){ v.odo=Number(a.totalDistance)||0; v.odoPos=null }
       guardarUltimos(v,p,a);
-      if(!v.tag && String((d.attributes&&d.attributes.tipoAparelho)||'')!=='rastreador') v.tag = assinaturaTag(v,a); /* 16/10/2026 */
+      if(!ehTag(d) && String((d.attributes&&d.attributes.tipoAparelho)||'')!=='rastreador') v.tag = assinaturaTag(v,a); /* 16/10/2026 (revisão: reavalia sempre, para voltar a rastreador quando a voltagem aparecer) */
       if(posZero(p)){ /* 16/10/2026: posição 0,0 = sem GPS; não move o veículo (bateria, ignição e bloqueio continuam valendo) */
         v.bloqDoRastreador = typeof a.blocked==='boolean';
         v.bloq = typeof a.blocked==='boolean' ? a.blocked : lsGet('rg_bloq_'+v.id)==='1';
@@ -5690,7 +5692,7 @@ function shareTick(){
   document.querySelectorAll('#shareAtivos .lkcard').forEach(el=>{
     const x=shareLista.find(y=>y.codigo===el.dataset.c); if(!x) return;
     const falta=x.expiraMs-agora, tot=Math.max(1,x.expiraMs-x.criadoMs);
-    if(falta<=0){ mudou=true; return }
+    if(falta<=0){ shareLista=shareLista.filter(y=>y!==x); el.remove(); mudou=true; return } /* 16/10/2026 (revisão): some na hora, recarrega uma vez */
     el.querySelector('.lkcd b').textContent=tempoFalta(falta);
     el.querySelector('.lkbar i').style.width=Math.max(2,Math.min(100,falta/tot*100))+'%';
     el.classList.toggle('acabando',falta<10*60000);
@@ -5722,7 +5724,7 @@ function compCardHtml(x,agora,comVeic){
 async function shareCarregarAtivos(){
   const v=veicShare(), box=$('shareAtivos'); if(!v){ box.innerHTML=''; cpCarregar(); return }
   try{
-    const j=await fnAl('compLista',{deviceId:v.id}); const l=j.lista||[]; shareLista=l;
+    const j=await fnAl('compLista',{deviceId:v.id}); const l=(j.lista||[]).filter(x=>x.expiraMs>Date.now()); shareLista=l; /* 16/10/2026 (revisão): vencido não entra */
     const agora=Date.now();
     box.innerHTML = l.length ? '<div class="alsec" style="margin-top:14px">Links ativos deste veículo ('+l.length+')</div>'+
       l.map(x=>compCardHtml(x,agora,false)).join('') : '';
@@ -5735,7 +5737,7 @@ let cpLista=[], cpTimer=null, cpCarregando=false;
 async function cpCarregar(){
   if(cpCarregando || !lsGet('rg_token')) return; cpCarregando=true;
   try{
-    const j=await fnAl('compLista',{}); cpLista=(j.lista||[]).sort((a,b)=>a.expiraMs-b.expiraMs);
+    const j=await fnAl('compLista',{}); cpLista=(j.lista||[]).filter(x=>x.expiraMs>Date.now()).sort((a,b)=>a.expiraMs-b.expiraMs); /* 16/10/2026 (revisão): vencido não entra */
     const b=$('cpBadge'); b.textContent=cpLista.length; b.classList.toggle('show',cpLista.length>0);
     if($('cpview').classList.contains('show')) cpDesenhar();
   }catch(e){} finally{ cpCarregando=false }
@@ -5823,7 +5825,7 @@ function cpTick(){
   document.querySelectorAll('#cpLista .lkcard').forEach(el=>{
     const x=cpLista.find(y=>y.codigo===el.dataset.c); if(!x) return;
     const falta=x.expiraMs-agora, tot=Math.max(1,x.expiraMs-x.criadoMs);
-    if(falta<=0){ mudou=true; return }
+    if(falta<=0){ cpLista=cpLista.filter(y=>y!==x); el.remove(); mudou=true; return } /* 16/10/2026 (revisão) */
     el.querySelector('.lkcd b').textContent=tempoFalta(falta);
     el.querySelector('.lkbar i').style.width=Math.max(2,Math.min(100,falta/tot*100))+'%';
     el.classList.toggle('acabando',falta<10*60000);
@@ -6157,6 +6159,7 @@ $('hBuscar').onclick=async()=>{
     histMostrar(await rr.json(),id);
   }catch(e){ if(!e.sessao) $('hMsg').textContent=e.message||'Não consegui buscar o trajeto.' }
   b.disabled=false; b.textContent='Ver trajeto';
+  if($('hVeic').value && +$('hVeic').value!==id) $('hBuscar').click(); /* 16/10/2026 (revisão): trocou de veículo enquanto buscava -> busca o certo */
 };
 const hhData=ms=>new Date(ms).toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo',day:'2-digit',month:'2-digit'});
 /* paradas calculadas a partir do próprio trajeto: o veículo ficou num raio de 60 m (contando também o tempo sem GPS, com a chave desligada) */
@@ -6602,8 +6605,9 @@ function registrarBloqueio(v){
 let saiuEm=0;
 document.addEventListener('visibilitychange',()=>{
   if(document.visibilityState==='hidden') saiuEm=Date.now();
-  else if(saiuEm && Date.now()-saiuEm>=5*60000 && auth){ saiuEm=0; registrarAcesso() }
+  else if(saiuEm && Date.now()-saiuEm>=5*60000 && auth){ saiuEm=0; registrarAcesso(); verificarBloqueio() } /* 16/10/2026 (revisão): reverifica a suspensão ao voltar */
 });
+setInterval(()=>{ if(auth && !document.hidden && !ehAdmin) verificarBloqueio() },15*60000); /* 16/10/2026 (revisão): app aberto por dias também é verificado */
 let acessosMapa=null, acessosEm=0;
 async function carregarAcessos(forcar){
   if(!forcar && acessosMapa && Date.now()-acessosEm<60000) return;
@@ -6612,7 +6616,7 @@ async function carregarAcessos(forcar){
     const j=await r.json().catch(()=>({}));
     if(!r.ok) return;
     acessosMapa=j.mapa||{}; acessosEm=Date.now();
-    if(abaAdmin==='cli' && $('aview').classList.contains('show')) desenharClientes();
+    if(abaAdmin==='cli' && $('aview').classList.contains('show')) desenharClientes(true);
   }catch(e){}
 }
 const NOME_DISP={android:'Android',iphone:'iPhone',computador:'computador',outro:''};
@@ -6667,7 +6671,7 @@ function linhaAcesso(u){
   return '<div class="s">Último acesso: <b>'+esc(fmtHora(a.ultimoMs))+'</b> ('+haQuanto(a.ultimoMs)+')'+(disp?' · '+disp:'')+'</div>';
 }
 async function carregarCpfs(){
-  try{ const r=await fn('cpfs'); cpfsMapa=r.mapa||{}; if(abaAdmin==='cli' && $('aview').classList.contains('show')) desenharClientes() }
+  try{ const r=await fn('cpfs'); cpfsMapa=r.mapa||{}; if(abaAdmin==='cli' && $('aview').classList.contains('show')) desenharClientes(true) }
   catch(e){}
 }
 let finMapa=null, finEm=0; /* situação financeira de cada cliente (vem do servidor de faturas) */
@@ -6677,7 +6681,7 @@ function rotuloFin(){
   return 'Atualizar situação financeira (última: '+h+')';
 }
 async function carregarFin(forcar){
-  try{ const r=await fn('situacao',{forcar:!!forcar}); finMapa=r.clientes||{}; finEm=Date.now(); rotularFin(); if(abaAdmin==='cli' && $('aview').classList.contains('show')) desenharClientes(); return true }
+  try{ const r=await fn('situacao',{forcar:!!forcar}); finMapa=r.clientes||{}; finEm=Date.now(); rotularFin(); if(abaAdmin==='cli' && $('aview').classList.contains('show')) desenharClientes(true); return true }
   catch(e){ if(forcar) toast('Não consegui atualizar o financeiro: '+e.message); return false }
 }
 /* ao abrir o painel ou a aba Clientes, atualiza se a informação tiver mais de 30 segundos */
@@ -6973,7 +6977,7 @@ async function carregarVinculos(){
     }
   }
   await Promise.all([worker(),worker(),worker(),worker()]);
-  if($('aview').classList.contains('show')){ if(abaAdmin==='cli') desenharClientes(); else desenharEquip() }
+  if($('aview').classList.contains('show')){ if(abaAdmin==='cli') desenharClientes(true); else desenharEquip() }
 }
 /* data de cadastro do cliente: atributo criadoEm (AAAA-MM-DD). Clientes antigos não têm: o administrador pode preencher no lápis. */
 function hojeISO(){ return new Date().toLocaleDateString('en-CA',{timeZone:'America/Sao_Paulo'}) }
@@ -7059,7 +7063,8 @@ function icoEstrela(u,fm){
   const tit=on?'Cliente especial: nunca tem o acesso suspenso por falta de pagamento. Toque para tirar.':'Cliente normal. Toque para marcar como especial (nunca tem o acesso suspenso por falta de pagamento).';
   return '<button type="button" class="cstar'+(on?' on':'')+'" data-a="espec" data-u="'+u.id+'" title="'+tit+'" aria-label="'+(on?'Cliente especial':'Marcar como cliente especial')+'">'+ICO_ESTRELA+'</button>';
 }
-function desenharClientes(){
+function desenharClientes(fundo){
+  if(fundo && $('aList').querySelector('details.cli.selmode')) return; /* 16/10/2026 (revisão): carga de fundo não apaga a seleção do "desvincular vários" */
   const todos=usuarios.filter(u=>!u.administrator);
   const q=$('aSearch').value.trim().toLowerCase(), qn=soNum(q);
   const cpfDe=u=>soNum((cpfsMapa[u.id]&&cpfsMapa[u.id].cpf)||(u.attributes&&u.attributes.cpf)||'');
@@ -8062,6 +8067,7 @@ document.querySelectorAll('#mSmsFat [data-sfaba]').forEach(b=>b.onclick=()=>sfAb
 function avValorNum(){
   let t=String($('avValor').value||'').replace(/[^\d,.]/g,'');
   if(t.includes(',')) t=t.replace(/\./g,'').replace(',','.');
+  else if(/^\d{1,3}(\.\d{3})+$/.test(t)) t=t.replace(/\./g,''); /* 16/10/2026 (revisão): "1.500" é mil e quinhentos */
   const n=Number(t); return Number.isFinite(n)?Math.round(n*100)/100:NaN;
 }
 function avBotoes(){
@@ -9434,6 +9440,16 @@ function sair(msg){
   if(VER.on){ const n=VER.nome||VER.login||'cliente'; verComoSair(); msg='Você saiu da conta de '+n+'. Pode fechar esta aba.' } /* 16/10/2026: "vendo como" não mexe no login de administrador */
   else { lsDel('rg_token'); lsDel('rg_email'); lsDel('rg_emerg_ok'); lsDel('rg_emerg_reg'); try{sessionStorage.removeItem('rg_basic')}catch(e){} }
   try{ $('btnEmerg').classList.remove('show'); emergFalhas=0 }catch(e){}
+  /* 16/10/2026 (revisão): nada da conta anterior fica para a próxima no mesmo aparelho */
+  try{ fechar() }catch(e){}
+  try{ $('bioLock').classList.remove('show') }catch(e){}
+  try{ dpCancelar() }catch(e){}
+  try{ Object.keys(desbPendente).forEach(k=>delete desbPendente[k]); desbMostrar() }catch(e){}
+  try{ smsAc.itens=[]; smsUltCache={}; smsUltSel=null; cmdAndamento=false; cbVeic=null }catch(e){}
+  try{ cprFechar(); shareLista=[] }catch(e){}
+  try{ if(emergCamada){ map.removeLayer(emergCamada); emergCamada=null } emergDados=null; emergConf=null; emergEnviados={} }catch(e){}
+  try{ clearTimeout(lojaPollTimer); lojaPed=null }catch(e){}
+  try{ alCfg={ign:{},volta:{}}; kmLista=[] }catch(e){}
   cercasReset();
   permCli={smsBloqueio:false,reset:false,editarNome:false,cercaRapida:false,minhaPosicao:false,appBloqueio:true,cercaBloqueio:true,semBloqueio:false,frotista:false}; cobrCli=null; try{ FCH.saldo=null; FCH.em=0; fichasAplicar() }catch(e){} /* 15/10/2026: fichas do login anterior saem */
   ehAdmin=false; usuarios=[]; $('aview').classList.remove('show'); try{ $('mapCar').classList.remove('show') }catch(e){}
