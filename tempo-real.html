@@ -2830,6 +2830,7 @@ nav button.on .nemo.txt{color:var(--red2)}
   <div class="box2" style="max-width:480px">
     <div class="almtopo"><h3>Modo emergência</h3><button class="almx" data-close type="button" aria-label="Fechar" title="Fechar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
     <div class="emaviso" id="emInfo">O servidor de rastreamento não está respondendo.</div>
+    <button class="btn btn-out" id="emXlsx" type="button" style="width:100%;margin-bottom:8px">Baixar planilha Excel (todos os aparelhos)</button>
     <input class="embusca" id="emBusca" type="search" placeholder="Buscar por nome, placa, cliente, chip ou IMEI" autocomplete="off">
     <div class="emlista" id="emLista"></div>
     <div class="ferr" id="emErro" style="margin-top:8px"></div>
@@ -10097,6 +10098,31 @@ function emergMapa(){
       .bindTooltip(esc(v.nome)+(v.placa?' · '+esc(v.placa):'')+'<br>'+esc(fmtHora(v.fix||v.ult)),{direction:'top'}).addTo(emergCamada) });
   emergCamada.addTo(map);
 }
+/* 16/10/2026 (pedido do dono): planilha para subir todos de uma vez na plataforma do Felipe (cadastro em massa).
+   Colunas: A nome do aparelho, B IMEI, C chip, D cliente, E CPF, F WhatsApp. Números como texto (o Excel não estraga o IMEI). */
+function emergCarregarXlsx(){
+  if(window.XLSX) return Promise.resolve();
+  return new Promise((ok,falha)=>{ const s=document.createElement('script'); s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+    s.onload=()=>ok(); s.onerror=()=>falha(new Error('Não consegui carregar o gerador de planilha. Confira a internet.')); document.head.appendChild(s) });
+}
+$('emXlsx').onclick=async()=>{
+  const b=$('emXlsx'); if(!emergDados||!(emergDados.lista||[]).length){ toast('A cópia ainda não carregou.'); return }
+  b.disabled=true; const t0=b.textContent; b.textContent='Gerando...';
+  try{
+    await emergCarregarXlsx();
+    const lin=[['Nome do aparelho','IMEI','Chip','Cliente','CPF','WhatsApp']].concat(
+      emergDados.lista.slice().sort((x,y)=>String(x.nome).localeCompare(String(y.nome),'pt-BR'))
+        .map(v=>[String(v.nome||''),String(v.imei||''),emergChip(v)||soDigitos(v.fone),String(v.cliente||''),soDigitos(v.cpf),soDigitos(v.wpp)]));
+    const ws=XLSX.utils.aoa_to_sheet(lin);
+    Object.keys(ws).forEach(k=>{ if(k[0]!=='!' && ws[k]){ ws[k].t='s'; ws[k].v=String(ws[k].v); ws[k].z='@' } });
+    ws['!cols']=[{wch:28},{wch:18},{wch:14},{wch:30},{wch:14},{wch:15}];
+    const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Aparelhos');
+    const d=new Date(emergDados.em||Date.now()), dd=n=>String(n).padStart(2,'0');
+    XLSX.writeFile(wb,'aparelhos-'+d.getFullYear()+'-'+dd(d.getMonth()+1)+'-'+dd(d.getDate())+'-'+dd(d.getHours())+dd(d.getMinutes())+'.xlsx');
+    toast('Planilha baixada: '+(lin.length-1)+' aparelhos.',4000);
+  }catch(e){ toast(e.message||'Não consegui gerar a planilha.',5000) }
+  b.disabled=false; b.textContent=t0;
+};
 $('btnEmerg').onclick=emergAbrir;
 $('emBusca').addEventListener('input',()=>{ emergConf=null; emergPintar() });
 $('emLista').addEventListener('click',async e=>{
