@@ -298,6 +298,23 @@ body.mapa-google #map .leaflet-top.leaflet-left .leaflet-control-attribution{mar
 .fres.bem{background:rgba(51,209,122,.12);border:1px solid rgba(51,209,122,.35);color:var(--green)}
 .fres.aviso{background:rgba(255,176,32,.12);border:1px solid rgba(255,176,32,.45);color:#e6a100}
 .fres.trava{background:rgba(227,38,47,.16);border:2px solid var(--red2);color:var(--red2);font-size:15px}
+/* 16/10/2026: faixa "vendo como cliente" (administrador) */
+#verComo{flex:none;display:none;align-items:center;gap:10px;padding:8px 14px;background:#6d28d9;color:#fff;font-size:13px;line-height:1.3}
+#verComo.show{display:flex}
+#verComo .vcolho{flex:none;width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center}
+#verComo .vcolho svg{width:16px;height:16px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+#verComo .vctx{flex:1;min-width:0}
+#verComo .vctx b{font-weight:800}
+#verComo .vctx small{display:block;font-size:11.5px;opacity:.85}
+#verComo #vcSair{flex:none;border:0;border-radius:999px;padding:7px 14px;background:#fff;color:#4c1d95;font:inherit;font-size:12.5px;font-weight:800;cursor:pointer}
+#aview .ico.ver{color:#6d28d9;border-color:rgba(109,40,217,.35);background:rgba(109,40,217,.1)}
+#mVerComo .almtopo{flex:none;display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}
+#mVerComo .almtopo h3{margin:0}
+#mVerComo .almx{width:38px;height:38px;flex:none;border-radius:50%;background:var(--card2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;cursor:pointer}
+#mVerComo .almx svg{width:18px;height:18px;fill:none;stroke:var(--txt);stroke-width:2.4;stroke-linecap:round}
+#mVerComo .vcaviso{border-radius:12px;padding:10px 12px;background:rgba(109,40,217,.1);border:1px solid rgba(109,40,217,.3);font-size:13px;line-height:1.45;margin:8px 0 12px}
+#mVerComo .vcaviso b{color:#6d28d9}
+#mVerComo a.btn{display:flex;align-items:center;justify-content:center;text-decoration:none}
 #avisoPag{flex:none;display:none;padding:7px 14px;font-size:12.5px;font-weight:600;line-height:1.3;cursor:pointer;text-align:center}
 #avisoPag.show{display:block}
 #avisoPag.show{animation:avisoPisca 1.8s ease-in-out infinite}
@@ -1947,6 +1964,8 @@ nav button.on .nemo.txt{color:var(--red2)}
   </div>
 </header>
 <div id="avisoPag"></div>
+<!-- 16/10/2026: faixa do administrador vendo o app como um cliente -->
+<div id="verComo"><span class="vcolho"><svg viewBox="0 0 24 24"><path d="M1.5 12S5.5 5 12 5s10.5 7 10.5 7-4 7-10.5 7S1.5 12 1.5 12z"/><circle cx="12" cy="12" r="3"/></svg></span><span class="vctx">Você está vendo o app como <b id="vcNome"></b><small id="vcAte"></small></span><button type="button" id="vcSair">Sair</button></div>
 
 <main id="main">
   <div id="map"></div>
@@ -2719,6 +2738,16 @@ nav button.on .nemo.txt{color:var(--red2)}
     <button class="btn btn-out alfechar" id="asFechar" type="button">Fechar</button>
   </div>
 </div>
+<!-- 16/10/2026: administrador entra no app como o cliente (abre em outra aba, com acesso temporário) -->
+<div class="modal alsheet" id="mVerComo">
+  <div class="box2" style="max-width:440px">
+    <div class="almtopo"><h3>Entrar como cliente</h3><button class="almx" data-close type="button" aria-label="Fechar" title="Fechar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <p class="asinfo" id="vcSub"></p>
+    <div class="vcaviso">O app abre em <b>outra aba</b>, exatamente como o cliente vê. <b>Tudo que você fizer lá vale como se fosse ele</b>: bloquear, cercas, fichas, compartilhar. Seu login de administrador continua nesta aba. O acesso vence sozinho em <b>1 hora</b>.</div>
+    <div id="vcPasso"></div>
+    <div class="ferr" id="vcErro" style="margin-top:8px"></div>
+  </div>
+</div>
 <!-- Fichas Rastreando (15/10/2026): saldo, pacotes por PIX e extrato -->
 <div class="modal alsheet" id="mFichas">
   <div class="box2">
@@ -3127,9 +3156,24 @@ let recolhido = false, arrastando = false, buscando = false, primeiraCarga = tru
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const lsGet = k => { try{return localStorage.getItem(k)}catch(e){return null} };
-const lsSet = (k,v) => { try{localStorage.setItem(k,v)}catch(e){} };
-const lsDel = k => { try{localStorage.removeItem(k)}catch(e){} };
+/* 16/10/2026: "ENTRAR COMO CLIENTE" (administrador). A aba abre com #ver=... (acesso temporário gerado pelo servidor),
+   guarda esse acesso SÓ nesta aba (sessionStorage) e tira da barra de endereço. O login de administrador, que fica no
+   localStorage, não é tocado: as outras abas e o app instalado continuam como estavam. Fechou a aba, acabou. */
+const VER=(()=>{ const o={on:false,nome:'',login:'',expiraMs:0}; try{
+  const m=/[#&]ver=([^&]+)/.exec(location.hash||'');
+  if(m){ const p=JSON.parse(decodeURIComponent(m[1])); if(p&&p.t){ sessionStorage.setItem('rgv_rg_token',p.t); sessionStorage.setItem('rgv_rg_email',p.l||'cliente'); sessionStorage.setItem('rgv_nome',p.n||''); sessionStorage.setItem('rgv_exp',String(p.e||0)); sessionStorage.setItem('rgv_on','1') }
+    try{ history.replaceState(null,'',location.pathname+location.search) }catch(e){} }
+  if(sessionStorage.getItem('rgv_on')==='1'){ o.on=true; o.nome=sessionStorage.getItem('rgv_nome')||''; o.login=sessionStorage.getItem('rgv_rg_email')||''; o.expiraMs=+sessionStorage.getItem('rgv_exp')||0 }
+}catch(e){} return o })();
+const VER_CHAVES={rg_token:1,rg_email:1}; /* só o acesso e o login vão para a aba; o resto (preferências, mapa) segue igual */
+const lsGet = k => { try{ if(VER.on&&VER_CHAVES[k]) return sessionStorage.getItem('rgv_'+k); return localStorage.getItem(k)}catch(e){return null} };
+const lsSet = (k,v) => { try{ if(VER.on&&VER_CHAVES[k]){ sessionStorage.setItem('rgv_'+k,v); return } localStorage.setItem(k,v)}catch(e){} };
+const lsDel = k => { try{ if(VER.on&&VER_CHAVES[k]){ sessionStorage.removeItem('rgv_'+k); return } localStorage.removeItem(k)}catch(e){} };
+function verComoSair(){ /* encerra o "vendo como": apaga o acesso temporário desta aba e tenta fechar a aba */
+  try{ ['rgv_rg_token','rgv_rg_email','rgv_nome','rgv_exp','rgv_on'].forEach(k=>sessionStorage.removeItem(k)) }catch(e){}
+  VER.on=false; try{ $('verComo').classList.remove('show') }catch(e){}
+  try{ window.close() }catch(e){}
+}
 const ssGet = k => { try{return sessionStorage.getItem(k)}catch(e){return null} };
 const ssSet = (k,v) => { try{sessionStorage.setItem(k,v)}catch(e){} };
 const sleep = ms => new Promise(r=>setTimeout(r,ms));
@@ -6293,6 +6337,7 @@ function dispAtual(){
   return 'outro';
 }
 function registrarAcesso(){
+  if(VER.on) return; /* 16/10/2026: administrador vendo como cliente não conta como acesso do cliente */
   const t=lsGet('rg_token'); if(!t) return;
   fetch(DESB_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',
     body:JSON.stringify({acao:'acesso',token:t,disp:dispAtual()})}).catch(()=>{});
@@ -6531,6 +6576,7 @@ function desenharAdmin(){
   try{ filaServidor() }catch(e){} /* 13/10/2026: busca a fila do APP Técnico no servidor (no máximo a cada 20 s) */
 }
 let buscaAdmin={equip:'',cli:''}, abaAnt=null;
+const ICO_OLHO='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 12S5.5 5 12 5s10.5 7 10.5 7-4 7-10.5 7S1.5 12 1.5 12z"/><circle cx="12" cy="12" r="3"/></svg>'; /* 16/10/2026: entrar como cliente */
 const ICO_PEN='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg>';
 const ICO_LIX='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>';
 const soNum = t => String(t||'').replace(/\D/g,'');
@@ -6796,7 +6842,8 @@ function desenharClientes(){
           (ap.length>1?'<button type="button" class="vchsel" data-a="selchips" data-u="'+u.id+'" aria-label="Selecionar vários para desvincular" title="Selecionar vários para desvincular"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M8 12l3 3 5-6"/></svg></button>'+
             '<span class="vchbar"><button type="button" class="vchok" data-a="desvsel" data-u="'+u.id+'" disabled>Desvincular 0</button><button type="button" class="vchno" data-a="selchips" data-u="'+u.id+'">Cancelar</button></span>':'')+'</div>'+
       '</div>'+
-      '<span class="cacoes"><button class="ico wpp" data-a="wppacesso" data-u="'+u.id+'" aria-label="Enviar acesso pelo WhatsApp" title="Enviar login e link do app pelo WhatsApp">'+ICO_WPP+'</button>'+
+      '<span class="cacoes"><button class="ico ver" data-a="vercomo" data-u="'+u.id+'" aria-label="Entrar no app como este cliente" title="Entrar no app como este cliente">'+ICO_OLHO+'</button>'+
+      '<button class="ico wpp" data-a="wppacesso" data-u="'+u.id+'" aria-label="Enviar acesso pelo WhatsApp" title="Enviar login e link do app pelo WhatsApp">'+ICO_WPP+'</button>'+
       '<button class="ico" data-a="edcli" data-u="'+u.id+'" aria-label="Editar cliente" title="Editar cliente">'+ICO_PEN+'</button>'+
       '<button class="ico lix" data-a="delcli" data-u="'+u.id+'" aria-label="Excluir cliente" title="Excluir cliente">'+ICO_LIX+'</button></span><span class="seta">›</span></summary>'+
       '<div class="gav">'+
@@ -6906,6 +6953,7 @@ $('aList').addEventListener('click',e=>{
   }
   if(b.dataset.a==='perm'){ abrirPermissoes(+b.dataset.u); return }
   if(b.dataset.a==='assin'){ assinAbrir(+b.dataset.u,null); return } /* 15/10/2026 */
+  if(b.dataset.a==='vercomo'){ verComoAbrir(+b.dataset.u); return } /* 16/10/2026 */
   if(b.dataset.a==='espec'||b.dataset.a==='zerar'){
     const u=usuarios.find(x=>x.id===+b.dataset.u); if(!u) return;
     const fm=finMapa&&finMapa[u.id];
@@ -9082,7 +9130,8 @@ function mostrarLogin(msg){
   $('lErr').textContent = msg||'';
 }
 function sair(msg){
-  lsDel('rg_token'); lsDel('rg_email'); try{sessionStorage.removeItem('rg_basic')}catch(e){}
+  if(VER.on){ const n=VER.nome||VER.login||'cliente'; verComoSair(); msg='Você saiu da conta de '+n+'. Pode fechar esta aba.' } /* 16/10/2026: "vendo como" não mexe no login de administrador */
+  else { lsDel('rg_token'); lsDel('rg_email'); try{sessionStorage.removeItem('rg_basic')}catch(e){} }
   cercasReset();
   permCli={smsBloqueio:false,reset:false,editarNome:false,cercaRapida:false,minhaPosicao:false,appBloqueio:true,cercaBloqueio:true,semBloqueio:false,frotista:false}; cobrCli=null; try{ FCH.saldo=null; FCH.em=0; fichasAplicar() }catch(e){} /* 15/10/2026: fichas do login anterior saem */
   ehAdmin=false; usuarios=[]; $('aview').classList.remove('show'); try{ $('mapCar').classList.remove('show') }catch(e){}
@@ -9600,7 +9649,7 @@ $('sLojaBtn').onclick=()=>{ lojaDesenhar(); abrir('mLoja') };
 $('maisIndique').onclick=()=>window.open(INDICACAO_URL,'_blank'); /* página de indicação do dono: o cliente digita o CPF e pega o link dele */
 $('maisConta').onclick=()=>$('btnSair').onclick();
 $('fVoltar').onclick=()=>irPara('Mais');
-$('btnSair').onclick=()=>{ $('contaLogin').textContent='Você entrou como '+(lsGet('rg_email')||'—')+'.'; abrir('mConta') };
+$('btnSair').onclick=()=>{ if(VER.on){ sair(''); return } /* 16/10/2026: vendo como cliente, sai direto (sem trocar a senha do cliente) */ $('contaLogin').textContent='Você entrou como '+(lsGet('rg_email')||'—')+'.'; abrir('mConta') };
 $('contaSair').onclick=()=>{ fechar(); sair('') };
 $('contaSenha').onclick=()=>{ fechar(); ['sAtual','sNova','sNova2'].forEach(i=>{ $(i).value=''; $(i).type='password' }); $('sVer').checked=false; $('sErro').textContent=''; $('sSalvar').disabled=false; abrir('mSenha'); setTimeout(()=>$('sAtual').focus(),50) };
 $('sVer').onchange=()=>{ ['sAtual','sNova','sNova2'].forEach(i=>$(i).type=$('sVer').checked?'text':'password') };
@@ -9637,6 +9686,47 @@ $('sSalvar').onclick=async()=>{
   b.disabled=false; b.textContent='Salvar';
 };
 
+/* ===== ENTRAR COMO CLIENTE (administrador, 16/10/2026) =====
+   O servidor (rastreamento-acesso.js) gera um acesso temporário do cliente (1 hora). O app abre em outra aba com
+   #ver=..., que guarda o acesso só naquela aba. O link é um <a target="_blank"> (não window.open depois de esperar o
+   servidor), para o navegador não travar como pop-up. */
+const ACESSO_URL='https://southamerica-east1-rastreando-assinaturas.cloudfunctions.net/rastreamentoAcesso';
+function verComoFaixa(){
+  if(!VER.on) return;
+  $('vcNome').textContent=VER.nome||VER.login||'cliente';
+  const ate=VER.expiraMs?new Date(VER.expiraMs):null;
+  $('vcAte').textContent=(VER.login?VER.login.replace(EMAIL_FALSO,'')+' · ':'')+'acesso temporário'+(ate?' até '+ate.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}):'');
+  $('verComo').classList.add('show');
+  if(VER.expiraMs){ const falta=VER.expiraMs-Date.now(); if(falta>0) setTimeout(()=>{ try{ sair('') }catch(e){} },falta+1500) }
+}
+$('vcSair').onclick=()=>sair('');
+function verComoAbrir(userId){
+  const u=usuarios.find(x=>x.id===userId); if(!u) return;
+  const nome=u.name||loginDe(u).replace(EMAIL_FALSO,'');
+  $('vcSub').textContent=nome+(u.name?' · '+loginDe(u).replace(EMAIL_FALSO,''):'');
+  $('vcErro').textContent='';
+  if(u.disabled){ $('vcPasso').innerHTML=''; $('vcErro').textContent='O acesso deste cliente está desativado. Reative no card antes de entrar como ele.'; abrir('mVerComo'); return }
+  $('vcPasso').innerHTML='<button class="btn btn-red" id="vcGerar" type="button" style="width:100%">Gerar acesso de 1 hora</button>';
+  $('vcGerar').onclick=async()=>{
+    const tok=lsGet('rg_token'); if(!tok){ $('vcErro').textContent='Saia e entre de novo no app para usar isso.'; return }
+    const b=$('vcGerar'); b.disabled=true; b.textContent='Gerando...'; $('vcErro').textContent='';
+    try{
+      const r=await fetch(ACESSO_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',body:JSON.stringify({acao:'verComo',token:tok,userId:userId})});
+      const j=await r.json().catch(()=>({}));
+      if(!r.ok||!j.token) throw new Error(j.erro||'Não consegui gerar o acesso (erro '+r.status+').');
+      const dados=encodeURIComponent(JSON.stringify({t:j.token,l:j.login||'',n:j.nome||nome,e:j.expiraMs||0}));
+      const url=location.origin+location.pathname+'#ver='+dados;
+      $('vcPasso').innerHTML='<a class="btn btn-red" id="vcAbrir" href="'+esc(url)+'" target="_blank" rel="noopener" style="width:100%">Abrir o app como '+esc(j.nome||nome)+'</a>'+
+        '<p class="asinfo" style="margin:10px 0 0;text-align:center">Abre em outra aba. Esta aba continua como administrador.</p>';
+      $('vcAbrir').onclick=()=>{ setTimeout(fechar,300) };
+    }catch(e){
+      $('vcErro').textContent=(e instanceof TypeError)?'Não consegui falar com o servidor. Confira a internet e tente de novo.':(e.message||'Não consegui gerar o acesso.');
+      b.disabled=false; b.textContent='Gerar acesso de 1 hora';
+    }
+  };
+  abrir('mVerComo');
+}
+
 (async function iniciar(){
   setSeguir(false);
   const tok=lsGet('rg_token'), basic=ssGet('rg_basic');
@@ -9644,8 +9734,11 @@ $('sSalvar').onclick=async()=>{
   if(auth && !lsGet('rg_email')){ lsDel('rg_token'); try{sessionStorage.removeItem('rg_basic')}catch(e){} auth=null; mostrarLogin('Entre novamente para atualizar o app.'); return }
   if(auth){
     $('login').classList.remove('show');
+    if(VER.on){ verComoFaixa() } /* 16/10/2026: vendo como cliente: faixa no topo e sem digital/Face ID */
+    else {
     if(bioAtivo()) $('bioLock').classList.add('show'); /* cobre a tela na hora, antes de checar o celular */
     bioChecar().then(ok=>{ if(!ok){ $('bioLock').classList.remove('show'); return } if(bioAtivo()) bioTravar(); else setTimeout(bioOferecer,2500) });
+    }
     await descobrirAdmin();
     carregarPermissoes();
     mapaDecidir();
