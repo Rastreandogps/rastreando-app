@@ -896,6 +896,7 @@ main #sheet .smsult b{max-width:120px}
 .statbtn.loja span{color:#ca8a04;font-weight:700}
 .statbtn.loja::after{color:#ca8a04}
 .statbtn.loja b svg{width:22px;height:22px;color:#eab308;display:inline-block;vertical-align:middle}
+#sFatBtn b svg{color:var(--cyan)!important}
 .statbtn.loja .lojabadge{position:absolute;top:-6px;left:-4px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#e11d48;color:#fff;font-style:normal;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;border:2px solid var(--card)}
 .statbtn.loja .lojabadge[hidden]{display:none}
 :root[data-tema="claro"] .statbtn.loja{background:linear-gradient(160deg,#fef9c3,#fefce8)}
@@ -1986,6 +1987,8 @@ nav button.on .nemo.txt{color:var(--red2)}
       <button type="button" class="stat statbtn odo" id="sOdoBtn" aria-label="Odômetro e meta de quilometragem" title="Toque para a meta de quilometragem"><span>Odômetro</span><b id="sOdo"></b></button>
       <button type="button" class="stat statbtn comb" id="sCombBtn" aria-label="Combustível" title="Toque para calcular o combustível"><span>Combustível</span><b id="sComb">—</b></button>
       <button type="button" class="stat statbtn loja" id="sLojaBtn" aria-label="Loja" title="Loja: tag de emergência, rastreador portátil e mais"><span>Loja</span><b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6h15l-1.5 9h-12z"/><path d="M6 6L5 3H2"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/></svg></b><em class="lojabadge" id="sLojaN" hidden></em></button>
+      <!-- 15/10/2026 (pedido do dono): para o cliente, Faturas fica na frente no lugar da Loja (a Loja foi para o Mais) -->
+      <button type="button" class="stat statbtn loja fatatalho" id="sFatBtn" aria-label="Faturas" title="Faturas: mensalidades, PIX e segunda via" style="display:none"><span>Faturas</span><b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6M9 13h8M9 17h8"/></svg></b><em class="lojabadge" id="sFatN" hidden>!</em></button>
     </div>
     <div class="addr" id="addrRow"><strong id="vAddr"></strong><span id="vAgo"></span></div>
     <div class="addr" id="distRow" style="display:none"><strong id="vDist"></strong></div>
@@ -2110,9 +2113,9 @@ nav button.on .nemo.txt{color:var(--red2)}
     </div>
     <div class="vlist">
       <div class="maisgrid">
+        <button class="maiscard" id="maisLoja" type="button"><span class="mic l"><svg viewBox="0 0 24 24"><path d="M6 6h15l-1.5 9h-12z"/><path d="M6 6L5 3H2"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/></svg></span><b>Loja</b><small>Tag de emergência, rastreador portátil e mais</small></button>
         <button class="maiscard" id="maisFat" type="button"><span class="mdot" id="maisFatDot">!</span><span class="mic f"><svg viewBox="0 0 24 24"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6M9 13h8M9 17h8"/></svg></span><b>Faturas</b><small id="maisFatTxt">Mensalidades, PIX e segunda via</small></button>
         <button class="maiscard" id="maisServ" type="button"><span class="mic s"><svg viewBox="0 0 24 24"><path d="M7 10h3v-3l-3.5 -3.5a6 6 0 0 1 8 8l6 6a2 2 0 0 1 -3 3l-6 -6a6 6 0 0 1 -8 -8l3.5 3.5"/></svg></span><b>Serviços</b><small>Manutenção, retirada, titularidade e troca de veículo</small></button>
-        <button class="maiscard" id="maisLoja" type="button"><span class="mic l"><svg viewBox="0 0 24 24"><path d="M6 6h15l-1.5 9h-12z"/><path d="M6 6L5 3H2"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/></svg></span><b>Loja</b><small>Tag de emergência, rastreador portátil e mais</small></button>
         <button class="maiscard" id="maisIndique" type="button"><span class="mic g"><svg viewBox="0 0 24 24"><path d="M20 12v9H4v-9"/><path d="M2 7h20v5H2z"/><path d="M12 22V7"/><path d="M12 7H7.5a2.5 2.5 0 010-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 000-5C13 2 12 7 12 7z"/></svg></span><b>Indique e ganhe</b><small>Pegue o seu link de indicação</small></button>
         <button class="maiscard" id="maisConta" type="button"><span class="mic c"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0116 0"/></svg></span><b>Sua conta</b><small>Trocar senha e sair do app</small></button>
       </div>
@@ -4726,6 +4729,7 @@ async function smsBloquear(v,bloquear){
 let permCli={smsBloqueio:false,reset:false,editarNome:false,cercaRapida:false,minhaPosicao:false,appBloqueio:true,cercaBloqueio:true,semBloqueio:false,frotista:false}, cobrCli=null;
 const brl2 = n => 'R$ '+Number(n||0).toFixed(2).replace('.',',');
 async function carregarPermissoes(){
+  try{ fatAtalho() }catch(e){}
   if(ehAdmin){ permCli={smsBloqueio:true,reset:true,editarNome:true,cercaRapida:true,minhaPosicao:true,appBloqueio:true,cercaBloqueio:true,semBloqueio:false,frotista:true}; cobrCli=null; mostrarBotoesSms(); return }
   if(!lsGet('rg_token')) return;
   /* permissões guardadas no usuário do Traccar: Bloquear/Desbloquear pelo app e cerca que bloqueia (padrão: liberado) */
@@ -9089,7 +9093,14 @@ const LOJA_ITENS=[
                'Dúvidas sobre ativação e uso? Fale com a gente pelo WhatsApp.']}},
 ];
 function lojaPreco(it,q){ return q*Math.round((it.de2&&q>=2?it.de2:it.v)*100)/100 }
+function fatAtalho(){ /* cliente: Faturas na frente; administrador: Loja como antes */
+  const cli=!ehAdmin, f=$('sFatBtn'), l=$('sLojaBtn'); if(!f||!l) return;
+  f.style.display=cli?'':'none'; l.style.display=cli?'none':'';
+  const n=bloqueioNivel||'ok'; $('sFatN').hidden=!(cli && (n==='aviso'||n==='bloqueado'||n==='confianca'));
+}
+$('sFatBtn').onclick=()=>irPara('Faturas');
 function maisAtualizar(){
+  fatAtalho();
   const nivel=bloqueioNivel||'ok', dot=$('maisFatDot'), nb=$('maisBadge'), tx=$('maisFatTxt');
   const alerta = nivel==='aviso'||nivel==='bloqueado'||nivel==='confianca';
   if(dot) dot.classList.toggle('show',alerta);
