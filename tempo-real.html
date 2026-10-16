@@ -896,7 +896,8 @@ main #sheet .smsult b{max-width:120px}
 .statbtn.loja span{color:#ca8a04;font-weight:700}
 .statbtn.loja::after{color:#ca8a04}
 .statbtn.loja b svg{width:22px;height:22px;color:#eab308;display:inline-block;vertical-align:middle}
-#sFatBtn b svg{color:var(--cyan)!important}
+#sFatBtn b svg{color:#16a34a!important}
+#sFatBtn.atraso b svg{color:#e3262f!important} /* 15/10/2026: verde em dia, vermelho com fatura vencida */
 .statbtn.loja .lojabadge{position:absolute;top:-6px;left:-4px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#e11d48;color:#fff;font-style:normal;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;border:2px solid var(--card)}
 .statbtn.loja .lojabadge[hidden]{display:none}
 :root[data-tema="claro"] .statbtn.loja{background:linear-gradient(160deg,#fef9c3,#fefce8)}
@@ -9096,7 +9097,8 @@ function lojaPreco(it,q){ return q*Math.round((it.de2&&q>=2?it.de2:it.v)*100)/10
 function fatAtalho(){ /* cliente: Faturas na frente; administrador: Loja como antes */
   const cli=!ehAdmin, f=$('sFatBtn'), l=$('sLojaBtn'); if(!f||!l) return;
   f.style.display=cli?'':'none'; l.style.display=cli?'none':'';
-  const n=bloqueioNivel||'ok'; $('sFatN').hidden=!(cli && (n==='aviso'||n==='bloqueado'||n==='confianca'));
+  const n=bloqueioNivel||'ok', atr=cli && (n==='aviso'||n==='bloqueado'||n==='confianca');
+  $('sFatN').hidden=!atr; f.classList.toggle('atraso',atr);
 }
 $('sFatBtn').onclick=()=>irPara('Faturas');
 function maisAtualizar(){
