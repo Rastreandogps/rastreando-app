@@ -3421,13 +3421,31 @@ const VEIC_ICONES={
     icVidro('M-7.8 -9.4Q0 -12 7.8 -9.4L6.7 -3.2Q0 -4.4 -6.7 -3.2Z')+'<rect x="-6.7" y="-3.2" width="13.4" height="13.2" rx="2.4" fill="'+c+'" stroke="rgba(15,23,42,.25)" stroke-width=".7"/>'+
     '<rect x="-8.4" y="-2.6" width="1.5" height="12" rx=".7" fill="'+IC_VID+'"/><rect x="6.9" y="-2.6" width="1.5" height="12" rx=".7" fill="'+IC_VID+'"/>'+
     icVidro('M-6.7 10Q0 11.2 6.7 10L7.3 14.6Q0 16.2 -7.3 14.6Z')+icFar([-8,4],-21.7,4)+icLan([-8.2,4.2],20.3,4)},
-  moto:{n:'Moto',L:32,cor:'#dc2626',d:c=>'<ellipse cx="1" cy="1.4" rx="5.4" ry="14.5" fill="rgba(0,0,0,.18)"/>'+
+  moto:{n:'Moto',L:32,esc:1.4,cor:'#dc2626',d:c=>'<ellipse cx="1" cy="1.4" rx="5.4" ry="14.5" fill="rgba(0,0,0,.18)"/>'+
     '<rect x="-2.1" y="7.5" width="4.2" height="8.5" rx="2.1" fill="#111827"/><rect x="-1.9" y="-16" width="3.8" height="7" rx="1.9" fill="#111827"/>'+
     '<path d="M-3.6 -10Q0 -12.5 3.6 -10L4.2 6Q0 9 -4.2 6Z" fill="'+c+'" stroke="rgba(15,23,42,.45)" stroke-width=".8"/>'+
     '<rect x="-7.6" y="-10.4" width="15.2" height="1.8" rx=".9" fill="#374151"/><rect x="-8.4" y="-10.7" width="2.6" height="2.4" rx="1" fill="#111827"/><rect x="5.8" y="-10.7" width="2.6" height="2.4" rx="1" fill="#111827"/>'+
     '<path d="M-6.5 -9.2L-4.6 -1.5M6.5 -9.2L4.6 -1.5" stroke="#1f2937" stroke-width="2" stroke-linecap="round"/>'+
     '<ellipse cx="0" cy="1.8" rx="6.6" ry="4.4" fill="#334155"/><circle cx="0" cy="-1.4" r="3.9" fill="#0f172a"/>'+
     '<rect x="-1.3" y="-16.8" width="2.6" height="1.3" rx=".6" fill="#fef3c7"/><rect x="-1.4" y="15.6" width="2.8" height="1.1" rx=".5" fill="#ef4444"/>'},
+  /* 16/10/2026 (pedido do dono): mais 2 motos, e as motos maiores no mapa (antes pareciam "um mosquitinho") */
+  motoesp:{n:'Esportiva',L:34,esc:1.35,cor:'#2563eb',d:c=>'<ellipse cx="1" cy="1.6" rx="6" ry="15.5" fill="rgba(0,0,0,.18)"/>'+
+    '<rect x="-2.6" y="8.5" width="5.2" height="9" rx="2.4" fill="#111827"/><rect x="-2.1" y="-17.5" width="4.2" height="7.5" rx="2" fill="#111827"/>'+
+    '<path d="M-3.2 5.5H3.2L2.2 14.2Q0 15.8 -2.2 14.2Z" fill="'+c+'" stroke="rgba(15,23,42,.45)" stroke-width=".8"/>'+
+    '<path d="M0 -15.5C4.2 -13.6 5.8 -8.4 5.2 -3L4.3 4.6H-4.3L-5.2 -3C-5.8 -8.4 -4.2 -13.6 0 -15.5Z" fill="'+c+'" stroke="rgba(15,23,42,.45)" stroke-width=".8"/>'+
+    '<path d="M0 -12.6C2.1 -11.6 2.8 -9.4 2.6 -7.2H-2.6C-2.8 -9.4 -2.1 -11.6 0 -12.6Z" fill="#1f2937" stroke="rgba(255,255,255,.35)" stroke-width=".5"/>'+
+    '<rect x="-2.6" y="3.2" width="5.2" height="4.6" rx="2" fill="#1f2937"/>'+
+    '<path d="M-4.4 -.6L-5.4 -6.2M4.4 -.6L5.4 -6.2" stroke="#1f2937" stroke-width="2" stroke-linecap="round"/>'+
+    '<ellipse cx="0" cy=".8" rx="5.6" ry="4" fill="#334155"/><circle cx="0" cy="-3" r="3.6" fill="#0f172a"/>'+
+    '<rect x="-2.6" y="-16.2" width="1.8" height="1.2" rx=".5" fill="#fef3c7"/><rect x=".8" y="-16.2" width="1.8" height="1.2" rx=".5" fill="#fef3c7"/><rect x="-1.4" y="14.6" width="2.8" height="1.1" rx=".5" fill="#ef4444"/>'},
+  motobau:{n:'Moto baú',L:36,esc:1.3,cor:'#dc2626',d:c=>'<ellipse cx="1" cy="2" rx="7" ry="16.5" fill="rgba(0,0,0,.18)"/>'+
+    '<rect x="-2.1" y="9" width="4.2" height="9.5" rx="2.1" fill="#111827"/><rect x="-1.9" y="-17" width="3.8" height="7" rx="1.9" fill="#111827"/>'+
+    '<path d="M-3.6 -11Q0 -13.5 3.6 -11L4.2 5Q0 8 -4.2 5Z" fill="'+c+'" stroke="rgba(15,23,42,.45)" stroke-width=".8"/>'+
+    '<rect x="-7.6" y="-11.4" width="15.2" height="1.8" rx=".9" fill="#374151"/><rect x="-8.4" y="-11.7" width="2.6" height="2.4" rx="1" fill="#111827"/><rect x="5.8" y="-11.7" width="2.6" height="2.4" rx="1" fill="#111827"/>'+
+    '<path d="M-6.5 -10.2L-4.6 -2.5M6.5 -10.2L4.6 -2.5" stroke="#1f2937" stroke-width="2" stroke-linecap="round"/>'+
+    '<ellipse cx="0" cy=".8" rx="6.6" ry="4.4" fill="#334155"/><circle cx="0" cy="-2.4" r="3.9" fill="#0f172a"/>'+
+    '<rect x="-7" y="5.5" width="14" height="12" rx="1.8" fill="#f8fafc" stroke="rgba(15,23,42,.5)" stroke-width="1"/><rect x="-7" y="9.6" width="14" height="2.6" fill="'+c+'"/><rect x="-5.4" y="6.6" width="10.8" height="1.4" rx=".7" fill="rgba(15,23,42,.18)"/>'+
+    '<rect x="-1.3" y="-17.8" width="2.6" height="1.3" rx=".6" fill="#fef3c7"/><rect x="-1.4" y="17.8" width="2.8" height="1.1" rx=".5" fill="#ef4444"/>'},
   picape:{n:'Picape',L:48,cor:'#1f2937',d:c=>icSombra(21,48,6,-24)+'<rect x="-12.6" y="-8.6" width="3.2" height="2.6" rx="1.1" fill="'+c+'"/><rect x="9.4" y="-8.6" width="3.2" height="2.6" rx="1.1" fill="'+c+'"/>'+
     icLata(-10.5,-24,21,48,5.5,c)+icVidro('M-8 -9Q0 -11.6 8 -9L7 -3.4Q0 -4.6 -7 -3.4Z')+'<rect x="-7" y="-3.4" width="14" height="8.6" rx="2" fill="'+c+'"/>'+
     icVidro('M-7 5.4H7L7.4 7.6H-7.4Z')+'<rect x="-8.6" y="9" width="17.2" height="13.4" rx="1.6" fill="rgba(0,0,0,.45)"/><path d="M-8.6 12.4H8.6M-8.6 15.8H8.6M-8.6 19.2H8.6" stroke="rgba(255,255,255,.12)" stroke-width=".8"/>'+
@@ -3454,14 +3472,14 @@ const VEIC_ICONES={
     icLata(-10.5,-37,21,17,4,c)+icVidro('M-8.8 -33.8Q0 -35.6 8.8 -33.8L8.2 -29.8Q0 -30.8 -8.2 -29.8Z')+'<rect x="-7.6" y="-29" width="15.2" height="7.4" rx="1.6" fill="'+c+'"/>'+
     icFar([-9.4,5.2],-36.8,4.2)+icLan([-10.6,6.6],36.6,4)},
 };
-const VEIC_ORDEM=['carro','moto','picape','van','caminhao','onibus','guincho','carreta'];
+const VEIC_ORDEM=['carro','moto','motoesp','motobau','picape','van','caminhao','onibus','guincho','carreta'];
 const VEIC_CORES=[['Branco','#f8fafc'],['Prata','#cbd5e1'],['Preto','#1f2937'],['Vermelho','#dc2626'],['Azul','#2563eb'],['Verde','#16a34a'],['Amarelo','#facc15']];
 function icCorOk(c){ return /^#[0-9a-f]{6}$/i.test(String(c||'')) }
 function veicIconeDe(d){ const a=(d&&d.attributes)||{}; return VEIC_ICONES[a.icone] ? a.icone : '' }
 /* svg do veículo para o marcador: anel (não gira), veículo (gira, classe vgir), cadeado (não gira) */
 function veicSvg(tipo,cor,mini){
   const T=VEIC_ICONES[tipo]; if(!T) return carSvg;
-  const c=icCorOk(cor)?cor:T.cor, sc=Math.min(1,48/T.L);
+  const c=icCorOk(cor)?cor:T.cor, sc=T.esc||Math.min(1,48/T.L); /* esc: moto desenhada maior */
   return '<svg viewBox="-30 -30 60 60" width="'+(mini?40:54)+'" height="'+(mini?40:54)+'">'+(mini?'':'<circle class="anelv" r="25" stroke-width="2.4"/>')+
     '<g class="vgir"><g transform="scale('+sc+')">'+T.d(c)+'</g></g>'+
     (mini?'':'<g class="cadb" transform="translate(19,-19)"><circle r="8.5" fill="#dc2626" stroke="#fff" stroke-width="2"/><path d="M-2.8 -.6V-2.6A2.8 2.8 0 0 1 2.8 -2.6V-.6" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/><rect x="-4" y="-.8" width="8" height="5.6" rx="1.3" fill="#fff"/></g>')+'</svg>';
