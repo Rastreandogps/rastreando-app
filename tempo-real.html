@@ -2716,6 +2716,8 @@ nav button.on .nemo.txt{color:var(--red2)}
   <div class="box2">
     <h3 id="rnTitulo">Nome do veículo</h3>
     <input class="fld" id="rnNome" maxlength="40" autocomplete="off">
+    <!-- 16/10/2026 (pedido do dono): IMEI do aparelho, só para o administrador e só nesta janela do lápis -->
+    <div id="rnImeiBox" style="display:none;margin-top:8px;align-items:center;gap:8px;font-size:14px;color:var(--mut)">IMEI <b id="rnImei" style="color:var(--txt);font-size:15px;letter-spacing:.3px;user-select:all"></b><button type="button" id="rnImeiCopia" aria-label="Copiar o IMEI" title="Copiar o IMEI" style="width:30px;height:30px;border-radius:8px;border:1px solid var(--line);background:var(--card2);color:var(--mut);display:inline-flex;align-items:center;justify-content:center;cursor:pointer"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg></button></div>
     <div id="rnMotBox" style="display:none;margin-top:6px">
       <h3 style="font-size:15px;margin-bottom:6px">Motorista deste veículo</h3>
       <label class="flbl" for="rnMotNome">Nome</label>
@@ -5191,10 +5193,12 @@ $('btnRenome').onclick=e=>{
   $('rnNome').style.display=podeNome?'':'none'; $('rnTitulo').textContent=podeNome?'Nome do veículo':v.nome;
   $('rnMotBox').style.display=podeMot?'':'none';
   const m=motLer(v.id)||{}; $('rnMotNome').value=m.nome||''; $('rnMotFone').value=fmtWpp(m.fone||'');
+  $('rnImeiBox').style.display=(ehAdmin&&v.imei)?'flex':'none'; $('rnImei').textContent=ehAdmin?(v.imei||''):''; /* 16/10/2026 */
   $('rnOdoBox').style.display=ehAdmin?'':'none'; $('rnOdo').value=v.odo!=null?(v.odo/1000).toFixed(1):''; $('rnOdo').dataset.ini=$('rnOdo').value;
   abrir('mRenome');
 };
 $('rnOdoZerar').onclick=()=>{ $('rnOdo').value='0' };
+$('rnImeiCopia').onclick=()=>{ const t=$('rnImei').textContent; if(!t) return; const ok=()=>toast('IMEI copiado.'); if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(ok,()=>prompt('Copie o IMEI:',t)); else prompt('Copie o IMEI:',t) };
 async function salvarOdometro(v){
   if(!ehAdmin || $('rnOdo').value===$('rnOdo').dataset.ini) return false;
   const km=Number(String($('rnOdo').value).replace(',','.'));
