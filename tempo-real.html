@@ -473,6 +473,24 @@ main{position:relative;flex:1;min-height:0;overflow:hidden}
 .car.c-sem .seta{fill:#64748b}
 /* veículo bloqueado (12/10/2026, pedido do dono): no lugar da setinha, cadeado vermelho; volta ao normal ao desbloquear */
 .car .cad{display:none}
+/* 16/10/2026: marcador da tag: círculo roxo com o sinal (sem setinha, porque a tag não informa direção) */
+.car .tagi{display:none}
+.car.c-tag .seta,.car.c-tag .cad{display:none}
+.car.c-tag .tagi{display:inline}
+.car.c-tag .anel{stroke:#7c3aed;fill:#f5f3ff}
+.car.c-tag .tagi circle{fill:#7c3aed}
+.car.c-tag .tagi path{stroke:#7c3aed}
+.car.c-tagvelha .anel{stroke:#64748b;fill:#f1f5f9}
+.car.c-tagvelha .tagi circle{fill:#64748b}
+.car.c-tagvelha .tagi path{stroke:#64748b}
+.status.st-tag{background:rgba(124,58,237,.12);color:#7c3aed;border-color:rgba(124,58,237,.35)}
+.ladost.tag em{color:#7c3aed}
+.vfil{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+.vfil button{border:1px solid var(--line);background:var(--card2);color:var(--txt);border-radius:999px;padding:7px 14px;font:inherit;font-size:13px;font-weight:700;cursor:pointer}
+.vfil button.on{background:#0b5fff;border-color:#0b5fff;color:#fff}
+.sheet.ehtag #vIgn,.sheet.ehtag #chipRow,.sheet.ehtag #smsUlt,.sheet.ehtag #banner,.sheet.ehtag .grid .stat:first-child,
+.sheet.ehtag #sBvBox .bvl:nth-child(2),.sheet.ehtag #sOdoBtn,.sheet.ehtag #sCombBtn,.sheet.ehtag #btnBlock,.sheet.ehtag #btnUnblock,
+.sheet.ehtag #chaveBloq,.sheet.ehtag #btnSmsMenu,.sheet.ehtag #admSmsRow,.sheet.ehtag #smsCusto,.sheet.ehtag #desbRow{display:none!important}
 .car.c-bloq .seta{display:none}
 .car.c-bloq .cad{display:inline}
 .car.c-bloq .cad path{stroke:#dc2626}
@@ -752,6 +770,8 @@ body.hist-on #mapCar{display:none!important}
   main .lado .ladofil button{border:0;border-radius:9px;padding:6px 0;font-size:12px;font-weight:700;color:var(--mut);background:transparent;transition:background .15s,color .15s,box-shadow .15s}
   main .lado .ladofil button:hover{color:var(--txt)}
   main .lado .ladofil button.on{background:var(--card);color:var(--txt);box-shadow:0 1px 3px rgba(0,0,0,.18),0 0 0 1px var(--line)}
+  main .lado .ladofil.comtag{grid-template-columns:repeat(5,auto);justify-content:space-between;padding:3px 4px} /* 16/10/2026: com o filtro Tags, os 5 cabem numa linha */
+  main .lado .ladofil.comtag button{padding:6px 7px}
   main .lado .ladotodos{margin-top:10px;padding:8px 6px 4px;border-radius:0;background:transparent;font-size:12.5px}
   main .lado .ladotodos small{font-size:11.5px}
   main .lado .ladolista{padding:2px 8px 8px;border-top:1px solid var(--line)}
@@ -1974,7 +1994,7 @@ nav button.on .nemo.txt{color:var(--red2)}
     <div class="ladotopo">
       <div class="ladotit"><b>Veículos</b><small id="ladoN"></small></div>
       <input class="ladobusca" id="ladoBusca" type="search" name="ladoBuscaVeic" placeholder="Buscar nome, placa ou cliente" autocomplete="off" autocapitalize="none" spellcheck="false" readonly data-lpignore="true" data-1p-ignore onfocus="this.removeAttribute('readonly')">
-      <div class="ladofil" id="ladoFil"><button type="button" data-f="todos" class="on">Todos</button><button type="button" data-f="on">Online</button><button type="button" data-f="mov">Andando</button><button type="button" data-f="off">Offline</button></div>
+      <div class="ladofil" id="ladoFil"><button type="button" data-f="todos" class="on">Todos</button><button type="button" data-f="on">Online</button><button type="button" data-f="mov">Andando</button><button type="button" data-f="off">Offline</button><button type="button" data-f="tag" id="ladoFilTag" style="display:none">Tags</button></div>
       <div class="ladotodos"><label class="ladock" style="width:auto;height:auto;gap:8px"><input type="checkbox" id="ladoTodosCk" aria-label="Mostrar todos da lista no mapa"><span></span><b id="ladoTodosTx" style="font-weight:600">Todos no mapa</b></label><small id="ladoNoMapa"></small></div>
     </div>
     <div class="ladolista" id="ladoLista"></div>
@@ -2127,6 +2147,7 @@ nav button.on .nemo.txt{color:var(--red2)}
       </div>
       <div class="vcount" id="vCount"></div>
       <input class="search" id="vSearch" type="search" placeholder="Buscar veículo ou placa" autocomplete="off">
+      <div class="vfil" id="vFil" style="display:none"><button type="button" data-f="todos" class="on">Todos</button><button type="button" data-f="veic">Rastreadores</button><button type="button" data-f="tag">Tags</button></div>
     </div>
     <div class="vlist" id="vList"></div>
   </section>
@@ -2411,6 +2432,8 @@ nav button.on .nemo.txt{color:var(--red2)}
     <input class="fld" id="ePlaca" maxlength="8" placeholder="ABC1D23 ou ABC-1234" autocomplete="off" autocapitalize="characters" style="text-transform:uppercase">
     <label class="flbl" for="eImei">IMEI (15 números)</label>
     <div class="fldscan"><input class="fld" id="eImei" inputmode="numeric" autocomplete="off"><button type="button" id="eScan" aria-label="Escanear o código do IMEI com a câmera" title="Escanear com a câmera"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3"/><path d="M7 8v8M10 8v8M13 8v8M16.5 8v8"/></svg></button></div>
+    <label class="flbl" for="eTipo">Tipo de aparelho</label>
+    <select class="fld" id="eTipo"><option value="">Automático (pelo IMEI)</option><option value="rastreador">Rastreador</option><option value="tag">Tag (K-TAG)</option></select>
     <label class="flbl" for="eFone">Número do chip (com DDD)</label>
     <input class="fld" id="eFone" inputmode="tel" placeholder="(11) 99999-9999" autocomplete="off">
     <label class="flbl" for="eBuscaCli">Clientes que veem este equipamento</label>
@@ -3341,7 +3364,7 @@ try{ new ResizeObserver(()=>mapaPe()).observe($('sheet')) }catch(e){}
 if(MAPA_LOCAL==='google'){ gmPref='google'; mapaGoogleLigar(); setTimeout(()=>{ if(gmEstado!=='google' && !map.hasLayer(camadaOsm) && !gmCamada) camadaOsm.addTo(map) },12000) }
 window.addEventListener('resize',mapaPe);
 
-const carSvg = '<svg viewBox="0 0 44 44" width="44" height="44"><circle class="anel" cx="22" cy="22" r="18" stroke-width="1.5"/><path class="seta" d="M22 8 L31 32 L22 27 L13 32 Z" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/><g class="cad"><path d="M17 20.5v-3.2a5 5 0 0 1 10 0v3.2" fill="none" stroke-width="2.8" stroke-linecap="round"/><rect x="13.5" y="20" width="17" height="13" rx="3"/><circle cx="22" cy="25.6" r="1.8" fill="#fff"/><rect x="21.1" y="26" width="1.8" height="3.6" rx=".9" fill="#fff"/></g></svg>';
+const carSvg = '<svg viewBox="0 0 44 44" width="44" height="44"><circle class="anel" cx="22" cy="22" r="18" stroke-width="1.5"/><path class="seta" d="M22 8 L31 32 L22 27 L13 32 Z" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/><g class="cad"><path d="M17 20.5v-3.2a5 5 0 0 1 10 0v3.2" fill="none" stroke-width="2.8" stroke-linecap="round"/><rect x="13.5" y="20" width="17" height="13" rx="3"/><circle cx="22" cy="25.6" r="1.8" fill="#fff"/><rect x="21.1" y="26" width="1.8" height="3.6" rx=".9" fill="#fff"/></g><g class="tagi"><circle cx="22" cy="22" r="4.2"/><path d="M15.2 15.2a9.6 9.6 0 0 0 0 13.6M28.8 15.2a9.6 9.6 0 0 1 0 13.6" fill="none" stroke-width="2.6" stroke-linecap="round"/></g></svg>';
 
 /* troca o nome escrito no mapa na hora (sem F5) */
 /* rótulo do mapa: nome e, se ligado na calculadora, o gasto de combustível de hoje (11/10/2026) */
@@ -3689,6 +3712,7 @@ function corSeta(v){
   return 'c-par';                                                         // comunicando (parado ou GPS sem atualizar): amarela
 }
 function status(v){
+  if(v.tag) return v.pos&&v.fix ? ['Tag · vista '+haQuanto(v.fix),'st-tag'] : ['Tag · aguardando','st-off']; /* 16/10/2026 */
   if(!v.pos) return ['Aguardando sinal','st-off'];
   if(v.bloq) return ['Bloqueado','st-block'];
   if(!v.online) return ['Sem conexão','st-off'];
@@ -3794,6 +3818,21 @@ function guardarUltimos(v,p,a){
   if(v.bat!==null && !fresco(v.batEm,VALIDADE_ST)) v.bat=null;
   if(mudou) lsSet('rg_st_'+v.id,JSON.stringify({ign:v.ign,igEm:v.igEm,bat:v.bat,batEm:v.batEm,volt:v.volt,voltEm:v.voltEm}));
 }
+/* ===== TAGS (K-TAG, 16/10/2026, pedido do dono) =====
+   A tag não tem GPS nem chip: um celular que passa perto vê a tag e o sistema do fornecedor manda a posição para nós
+   pelo GT06, igual a um J16. Identificação: IMEI começando com 808 (faixa das K-TAG; conferido na TAG 439 em 16/10).
+   O cadastro do equipamento pode forçar (atributo tipoAparelho = 'tag' ou 'rastreador'), para corrigir se errar.
+   Na tela: filtro "Tags" (lista do computador e aba Veículos), "vista há X min" no lugar de online/offline, marcador
+   próprio no mapa (sem setinha de direção) e cartão sem bloqueio, SMS, velocidade, odômetro e combustível. */
+const TAG_PREFIXOS=['808'];
+function ehTag(d){
+  const t=String((d&&d.attributes&&d.attributes.tipoAparelho)||'').toLowerCase();
+  if(t==='tag') return true; if(t==='rastreador') return false;
+  const u=soDigitos(d&&d.uniqueId);
+  return u.length===15 && TAG_PREFIXOS.some(p=>u.indexOf(p)===0);
+}
+const temTags=()=>veiculos.some(v=>v.tag);
+const TAG_VELHA_MS=6*3600000; /* tag sem ser vista há mais de 6 h: marcador cinza */
 function mesclar(ds,ps){
   const pm = {}; ps.forEach(p=>pm[p.deviceId]=p);
   const ids = new Set(ds.map(d=>d.id));
@@ -3813,6 +3852,7 @@ function mesclar(ds,ps){
     v.placa = (d.attributes&&d.attributes.placa) || d.model || '';
     v.online = d.status==='online';
     v.imei = d.uniqueId || ''; v.fone = d.phone || ''; v.contato = d.contact || ''; v.raw = d;
+    v.tag = ehTag(d); /* 16/10/2026 */
     v.ultimo = d.lastUpdate ? new Date(d.lastUpdate).getTime() : null;
     const p = pm[d.id];
     if(p){
@@ -3916,7 +3956,7 @@ function animar(now){
       if(f>=1){ v.de=null; v.para=null }
     }
     const el=v.marker.getElement();
-    if(el){const c=el.querySelector('.car');if(c){c.style.transform=v.bloq?'none':'rotate('+(v._rumoVis!=null?v._rumoVis:v.rumo)+'deg)';const cor=v.bloq?'c-bloq':corSeta(v);if(c.dataset.cor!==cor){c.classList.remove('c-mov','c-par','c-sem','c-bloq');c.classList.add(cor);c.dataset.cor=cor}}}
+    if(el){const c=el.querySelector('.car');if(c){c.style.transform=(v.bloq||v.tag)?'none':'rotate('+(v._rumoVis!=null?v._rumoVis:v.rumo)+'deg)';const cor=v.tag?(v.fix&&Date.now()-v.fix<TAG_VELHA_MS?'c-tag':'c-tag c-tagvelha'):v.bloq?'c-bloq':corSeta(v);if(c.dataset.cor!==cor){c.classList.remove('c-mov','c-par','c-sem','c-bloq','c-tag','c-tagvelha');cor.split(' ').forEach(k=>c.classList.add(k));c.dataset.cor=cor}}}
   });
   const a=ativo();
   if(seguir && a) centralizar(a.pos);
@@ -3975,6 +4015,7 @@ function atualizar(){
   try{ ladoCartao(); ladoAtualizar() }catch(e){}
   if(v){
     const [txt,cls]=status(v);
+    sheet.classList.toggle('ehtag',!!v.tag); /* 16/10/2026: cartão da tag (sem bloqueio, SMS, velocidade, odômetro e combustível) */
     $('vName').textContent=v.nome; $('vPick').classList.toggle('multi',veiculos.length>1);
     $('vPlate').textContent=v.placa;
     motLinha(v);
@@ -4001,12 +4042,14 @@ function atualizar(){
       '<br><span style="'+(!v.gpsT||gpsVelhoT?'color:var(--amber);font-weight:600':'')+'">GPS '+(v.gpsT ? horaAtual(v.gpsT) : 'sem sinal')+'</span>';
     /* 14/10/2026 (pedido do dono: clientes estranhavam "GPS sem sinal"): o CLIENTE vê só a hora da última atualização. O administrador continua vendo GSM e GPS. */
     if(!ehAdmin) $('vUpd').textContent = ult ? 'Atualizado '+horaAtual(ult) : '';
+    if(v.tag) $('vUpd').textContent = v.fix ? 'Vista às '+horaAtual(v.fix) : ''; /* 16/10/2026 */
     if(!v.addr) buscarEndereco(v);
     const endereco = sp ? 'Aguardando o primeiro sinal do rastreador' : (v.addr || v.geo || '');
     $('vAddr').textContent = endereco;
     const gpsVelho = v.fix && Date.now()-v.fix>600000;
     $('vAgo').textContent = sp ? 'Sem posição no mapa' : ((gpsVelho && ehAdmin) ? 'Sem sinal de GPS '+tempo(Date.now()-v.fix) : ''); /* cliente não vê o aviso de GPS */
-    $('addrRow').style.display = (endereco || (gpsVelho && ehAdmin)) ? 'flex' : 'none';
+    if(v.tag && !sp) $('vAgo').textContent = v.fix ? 'Vista '+tempo(Date.now()-v.fix)+' · atualiza quando um celular passa perto' : ''; /* 16/10/2026 */
+    $('addrRow').style.display = (endereco || (gpsVelho && ehAdmin) || v.tag) ? 'flex' : 'none';
     $('banner').classList.toggle('show',v.bloq);
     sheet.classList.toggle('blq',!!v.bloq);
     { /* 14/10/2026: chave de bloqueio do computador acompanha a situação do veículo */
@@ -4040,6 +4083,7 @@ let ladoFiltro='todos', ladoAssin='', ladoUltMs=0, ladoRolandoAte=0, ladoUltList
 const LADO_IC='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17h14M6 17l1.4-5.2A2 2 0 0 1 9.3 10h5.4a2 2 0 0 1 1.9 1.8L18 17"/><path d="M4 17v2M20 17v2"/><circle cx="8" cy="17" r="1.6"/><circle cx="16" cy="17" r="1.6"/></svg>';
 function ladoLigado(){ return telaLarga() && !$('main').classList.contains('semlado') }
 function ladoEst(v){ /* [classe, texto curto, quando] */
+  if(v.tag) return v.fix ? ['tag','tag','vista '+haQuanto(v.fix)] : ['off','tag','sem posição']; /* 16/10/2026 */
   if(!v.pos) return ['off','sem sinal',''];
   const q = v.ultimo ? haQuanto(v.ultimo) : '';
   if(v.bloq) return ['blq','bloqueado',q];
@@ -4049,6 +4093,8 @@ function ladoEst(v){ /* [classe, texto curto, quando] */
   return ['on','0 km/h',q];
 }
 function ladoPassa(v){
+  if(ladoFiltro==='tag') return !!v.tag; /* 16/10/2026: as tags ficam fora de Online/Andando/Offline */
+  if(v.tag && ladoFiltro!=='todos') return false;
   if(ladoFiltro==='on') return !!(v.pos && v.online);
   if(ladoFiltro==='mov') return !!(v.pos && v.online && v.vel>2);
   if(ladoFiltro==='off') return !v.pos || !v.online;
@@ -4086,7 +4132,8 @@ function ladoDesenhar(){
 }
 function ladoCabecalho(lista){
   lista = lista || ladoUltLista; ladoUltLista = lista;
-  const on=veiculos.filter(v=>v.pos&&v.online).length;
+  try{ const tb=$('ladoFilTag'), tem=temTags(); tb.style.display=tem?'':'none'; $('ladoFil').classList.toggle('comtag',tem); if(!tem && ladoFiltro==='tag'){ ladoFiltro='todos'; $('ladoFil').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.f==='todos')) } }catch(e){}
+  const on=veiculos.filter(v=>v.pos&&v.online&&!v.tag).length;
   $('ladoN').textContent = veiculos.length+(veiculos.length?' · '+on+' online':'');
   const n=lista.filter(v=>v.visivel).length, ck=$('ladoTodosCk');
   ck.checked = lista.length>0 && n===lista.length; ck.indeterminate = n>0 && n<lista.length; ck.disabled=!lista.length;
@@ -4146,6 +4193,7 @@ $('ladoAba').onclick=()=>ladoAlternar();
 $('ladoFechar').onclick=()=>ladoAlternar(false);
 $('ladoBusca').addEventListener('input',ladoDesenhar);
 $('ladoBusca').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); const b=$('ladoLista').querySelector('.ladoit'); if(b) b.click() } });
+$('vFil').addEventListener('click',e=>{ const b=e.target.closest('[data-f]'); if(!b) return; vFiltro=b.dataset.f; $('vFil').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b)); desenharLista() }); /* 16/10/2026 */
 $('ladoFil').addEventListener('click',e=>{ const b=e.target.closest('[data-f]'); if(!b) return; ladoFiltro=b.dataset.f; $('ladoFil').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b)); ladoDesenhar() });
 $('ladoLista').addEventListener('change',e=>{
   const r=e.target.closest('.ladoit'); if(!r) return;
@@ -4170,10 +4218,12 @@ $('ladoLista').addEventListener('scroll',()=>{ ladoRolandoAte=Date.now()+1200 },
 window.addEventListener('resize',()=>{ clearTimeout(window._ladoT); window._ladoT=setTimeout(ladoMostrar,150) });
 document.addEventListener('DOMContentLoaded',ladoMostrar);
 [300,1200,3000].forEach(ms=>setTimeout(()=>{ const b=$('ladoBusca'); if(b && b.value){ ladoLimparAutofill(); if(!b.value) try{ ladoDesenhar() }catch(e){} } },ms)); /* o preenchimento automático do navegador chega um pouco depois de abrir */
+let vFiltro='todos';
 function desenharLista(){
   try{ if(ladoLigado()) ladoDesenhar() }catch(e){}
   const q=$('vSearch').value.trim().toLowerCase();
-  const lista=veiculos.filter(v=>!q||v.nome.toLowerCase().includes(q)||v.placa.toLowerCase().includes(q));
+  const tem=temTags(); $('vFil').style.display=tem?'':'none'; if(!tem) vFiltro='todos'; /* 16/10/2026: filtro só aparece se houver tag */
+  const lista=veiculos.filter(v=>(vFiltro==='todos'||(vFiltro==='tag'?v.tag:!v.tag)) && (!q||v.nome.toLowerCase().includes(q)||v.placa.toLowerCase().includes(q)));
   $('vList').innerHTML = lista.map(v=>{
     const [t,c]=status(v);
     return '<div class="vrow" data-id="'+v.id+'">'+
@@ -7250,6 +7300,7 @@ function abrirEquip(id){
   $('ePlaca').value = v ? ((v.raw && v.raw.attributes && v.raw.attributes.placa) || '') : '';
   $('eImei').value = v ? v.imei : ''; $('eImei').disabled = !!v; $('eScan').hidden = !!v;
   $('eFone').value = v ? fmtFone(v.fone) : '';
+  $('eTipo').value = (v && v.raw && v.raw.attributes && ['tag','rastreador'].includes(v.raw.attributes.tipoAparelho)) ? v.raw.attributes.tipoAparelho : ''; /* 16/10/2026 */
   $('eBuscaCli').value='';
   eqSel=new Set(); eqAntes=new Set(); eqPronto=!v;
   if(v) clientesDoEquip(v).forEach(u=>{ eqSel.add(u.id); eqAntes.add(u.id) });
@@ -7424,9 +7475,10 @@ $('eSalvar').onclick=async ()=>{
       const v=veiculos.find(x=>x.id===editandoId);
       const at=Object.assign({},(v.raw&&v.raw.attributes)||{});
       if(placa) at.placa=placa; else delete at.placa;
+      if($('eTipo').value) at.tipoAparelho=$('eTipo').value; else delete at.tipoAparelho; /* 16/10/2026 */
       r=await api('/api/devices/'+editandoId,{method:'PUT',headers:JSONH,body:JSON.stringify(Object.assign({},v.raw,{name:nome,phone:fone,contact:email,attributes:at}))});
     } else {
-      r=await api('/api/devices',{method:'POST',headers:JSONH,body:JSON.stringify({name:nome,uniqueId:imei,phone:fone,contact:email,attributes:Object.assign(placa?{placa:placa}:{},{cadastradoEm:hojeIso()})})});
+      r=await api('/api/devices',{method:'POST',headers:JSONH,body:JSON.stringify({name:nome,uniqueId:imei,phone:fone,contact:email,attributes:Object.assign(placa?{placa:placa}:{},$('eTipo').value?{tipoAparelho:$('eTipo').value}:{},{cadastradoEm:hojeIso()})})});
     }
     if(!r.ok) throw new Error(await msgErro(r,'Não foi possível salvar o equipamento'));
     const d=await r.json();
