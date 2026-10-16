@@ -2078,7 +2078,7 @@ nav button.on .nemo.txt{color:var(--red2)}
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V5h11v2"/><path d="M9.5 5v14"/><path d="M7.5 19h4"/><path d="M14 13h6M17 13v6"/><path class="nmcorte" d="M3 3l18 18" style="display:none"/></svg>
     <span class="lbl">Nomes</span>
   </button>
-  <button id="deslizeBtn" type="button" title="Teste: o veículo desliza sem parar, mostrando o trajeto com até 1 minuto de atraso">〰️ Deslize contínuo: <span id="deslizeTxt">desligado</span></button>
+  <button id="deslizeBtn" type="button" title="Teste: o veículo desliza sem parar, mostrando o trajeto com até 2 minutos de atraso">〰️ Deslize contínuo: <span id="deslizeTxt">desligado</span></button>
   <button id="mapCar" type="button" aria-label="Você tem pedido aguardando pagamento" title="Pedido aguardando pagamento"><svg viewBox="0 0 24 24"><path d="M6 6h15l-1.5 9h-12z"/><path d="M6 6L5 3H2"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/></svg><span class="mcn" id="mapCarN">1</span></button>
   <div class="vazio" id="vazio">Nenhum veículo selecionado<small><span class="vz-cel">Abra a aba Veículos para escolher.</span><span class="vz-pc">Escolha um veículo na lista ao lado.</span></small></div>
 
@@ -4068,7 +4068,7 @@ function mesclar(ds,ps){
       v.real = [p.latitude,p.longitude];
       /* 15/10/2026: trilha dos últimos pontos (deslize contínuo); só guarda ponto novo, com a hora do GPS */
       if(!v.trilha) v.trilha=[];
-      { const ul=v.trilha[v.trilha.length-1]; if(v.fix && (!ul || v.fix>ul.t)){ v.trilha.push({t:v.fix,ll:[p.latitude,p.longitude],r:p.course||0}); const lim=Date.now()-6*60000; while(v.trilha.length>40 || (v.trilha.length>2 && v.trilha[0].t<lim)) v.trilha.shift() } }
+      { const ul=v.trilha[v.trilha.length-1]; if(v.fix && (!ul || v.fix>ul.t)){ v.trilha.push({t:v.fix,ll:[p.latitude,p.longitude],r:p.course||0}); const lim=Date.now()-6*60000; while(v.trilha.length>80 || (v.trilha.length>2 && v.trilha[0].t<lim)) v.trilha.shift() } }
       v.result = a.result || null;
       v.bloqDoRastreador = typeof a.blocked==='boolean'; /* item 1.3: o que o rastreador informa vence */
       v.bloq = typeof a.blocked==='boolean' ? a.blocked : lsGet('rg_bloq_'+v.id)==='1';
@@ -4118,14 +4118,14 @@ document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==
 /* ===== ANIMAÇÃO SUAVE (feita no app) ===== */
 /* ===== DESLIZE CONTÍNUO (15/10/2026, teste do administrador) =====
    Mostra o veículo "um pouco atrás", reproduzindo os pontos recebidos na velocidade real: como sempre já existe o
-   próximo ponto, ele não fica parado esperando. Atraso = ritmo do aparelho + folga (de 8 s a no máximo 60 s).
+   próximo ponto, ele não fica parado esperando. Atraso = ritmo do aparelho + folga (de 24 s a no máximo 2 min; dobrado em 16/10, 20h).
    Veículo bloqueado ou desligado o deslize: posição mais recente, como antes. */
 const deslizeLigado=()=>ehAdmin && lsGet('rg_deslize')==='1';
 function deslizeAtraso(tr){
   const d=[]; for(let i=1;i<tr.length;i++){ const a=tr[i-1],b=tr[i]; if(Math.abs(a.ll[0]-b.ll[0])+Math.abs(a.ll[1]-b.ll[1])>0.0002) d.push(b.t-a.t) }
   if(!d.length) return 15000;
   d.sort((x,y)=>x-y); const med=d[Math.floor(d.length/2)];
-  return Math.max(12000,Math.min(60000,med*1.8+5000)); /* folga maior (pedido do dono, 16/10): intervalo × 1,8 + 5 s, de 12 s a 60 s */
+  return Math.max(24000,Math.min(120000,med*3.6+10000)); /* 16/10, 20h (pedido do dono): folga DOBRADA: intervalo × 3,6 + 10 s, de 24 s a 2 min */
 }
 function deslizePos(v){
   const tr=v.trilha; if(!tr||tr.length<2) return null;
@@ -4164,7 +4164,7 @@ function animar(now){
 }
 requestAnimationFrame(animar);
 function deslizePintar(){ const b=$('deslizeBtn'); if(!b) return; b.style.display=ehAdmin?'inline-flex':'none'; const on=deslizeLigado(); b.classList.toggle('on',on); $('deslizeTxt').textContent=on?'ligado':'desligado' }
-$('deslizeBtn').onclick=()=>{ lsSet('rg_deslize',deslizeLigado()?'0':'1'); deslizePintar(); toast(deslizeLigado()?'Deslize contínuo ligado (teste). O veículo aparece com até 1 minuto de atraso.':'Deslize contínuo desligado: posição mais recente, como antes.',4000) };
+$('deslizeBtn').onclick=()=>{ lsSet('rg_deslize',deslizeLigado()?'0':'1'); deslizePintar(); toast(deslizeLigado()?'Deslize contínuo ligado (teste). O veículo aparece com até 2 minutos de atraso.':'Deslize contínuo desligado: posição mais recente, como antes.',4000) };
 setInterval(deslizePintar,3000); setTimeout(deslizePintar,500);
 
 /* ===== CARTÃO ARRASTÁVEL ===== */
