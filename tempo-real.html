@@ -3811,7 +3811,7 @@ function deslizeAtraso(tr){
   const d=[]; for(let i=1;i<tr.length;i++){ const a=tr[i-1],b=tr[i]; if(Math.abs(a.ll[0]-b.ll[0])+Math.abs(a.ll[1]-b.ll[1])>0.0002) d.push(b.t-a.t) }
   if(!d.length) return 15000;
   d.sort((x,y)=>x-y); const med=d[Math.floor(d.length/2)];
-  return Math.max(8000,Math.min(60000,med*1.3+3000));
+  return Math.max(12000,Math.min(60000,med*1.8+5000)); /* folga maior (pedido do dono, 16/10): intervalo × 1,8 + 5 s, de 12 s a 60 s */
 }
 function deslizePos(v){
   const tr=v.trilha; if(!tr||tr.length<2) return null;
