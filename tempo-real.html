@@ -8675,7 +8675,10 @@ async function carregarCercas(){
   try{
     const r=await api('/api/geofences'+(ehAdmin?'?all=true':''));
     if(!r.ok) throw new Error(r.status);
-    const lista=await r.json();
+    let lista=await r.json();
+    /* 16/10/2026 (pedido do dono): o que o cliente cria fica com o cliente. O administrador vê só as cercas que ele
+       mesmo criou (atributo "dono" = login dele) e as antigas sem dono. Para ver as do cliente: "Entrar como cliente". */
+    if(ehAdmin){ const eu=String(lsGet('rg_email')||'').trim().toLowerCase(); lista=lista.filter(g=>{ const d=String((g.attributes||{}).dono||'').trim().toLowerCase(); return !d || d===eu }) }
     cercas=lista.map(g=>({g:g,c:lerCirculo(g.area)})).filter(x=>x.c);
     camadaCercas.clearLayers();
     cercas.forEach(x=>{
