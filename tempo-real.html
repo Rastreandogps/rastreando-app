@@ -473,6 +473,25 @@ main{position:relative;flex:1;min-height:0;overflow:hidden}
 .car.c-sem .seta{fill:#64748b}
 /* veículo bloqueado (12/10/2026, pedido do dono): no lugar da setinha, cadeado vermelho; volta ao normal ao desbloquear */
 .car .cad{display:none}
+/* 16/10/2026: ícone do veículo (estilo B): anel com a cor da situação; o veículo gira por dentro; cadeado no canto */
+.car.veic{width:54px;height:54px;margin:-5px 0 0 -5px}
+.car.veic svg{filter:drop-shadow(0 1px 2px rgba(0,0,0,.35))}
+.car.veic .vgir{transition:transform .25s linear}
+.car.veic .anelv{fill:#e0a020;fill-opacity:.16;stroke:#e0a020}
+.car.veic.c-mov .anelv{fill:#16a34a;stroke:#16a34a}
+.car.veic.c-sem .anelv{fill:#64748b;stroke:#64748b}
+.car.veic.c-bloq .anelv{fill:#dc2626;stroke:#dc2626}
+.car.veic .cadb{display:none}
+.car.veic~.carlabel{bottom:56px} /* o anel é maior que a setinha: o nome sobe um pouco */
+.icpick{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:8px}
+.icpick button{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 2px;border-radius:10px;border:1.5px solid var(--line);background:var(--card2);color:var(--txt);font:inherit;cursor:pointer}
+.icpick button.on{border-color:#0b5fff;background:rgba(11,95,255,.1)}
+.icpick .icv{height:36px;display:flex;align-items:center;justify-content:center}
+.icpick small{font-size:11px;font-weight:700}
+.iccores{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;font-size:13px;color:var(--mut)}
+.iccores button{width:28px;height:28px;border-radius:50%;border:2px solid var(--line);cursor:pointer;box-shadow:inset 0 0 0 1px rgba(15,23,42,.15)}
+.iccores button.on{border-color:#0b5fff;box-shadow:0 0 0 2px rgba(11,95,255,.35)}
+.car.veic.c-bloq .cadb{display:inline}
 /* 16/10/2026: marcador da tag: círculo roxo com o sinal (sem setinha, porque a tag não informa direção) */
 .car .tagi{display:none}
 .car.c-tag .seta,.car.c-tag .cad{display:none}
@@ -2434,6 +2453,9 @@ nav button.on .nemo.txt{color:var(--red2)}
     <div class="fldscan"><input class="fld" id="eImei" inputmode="numeric" autocomplete="off"><button type="button" id="eScan" aria-label="Escanear o código do IMEI com a câmera" title="Escanear com a câmera"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3"/><path d="M7 8v8M10 8v8M13 8v8M16.5 8v8"/></svg></button></div>
     <label class="flbl" for="eTipo">Tipo de aparelho</label>
     <select class="fld" id="eTipo"><option value="">Automático (pelo IMEI)</option><option value="rastreador">Rastreador</option><option value="tag">Tag (K-TAG)</option></select>
+    <label class="flbl">Ícone no mapa</label>
+    <div class="icpick" id="eIcone"></div>
+    <div class="iccores" id="eIcCor"></div>
     <label class="flbl" for="eFone">Número do chip (com DDD)</label>
     <input class="fld" id="eFone" inputmode="tel" placeholder="(11) 99999-9999" autocomplete="off">
     <label class="flbl" for="eBuscaCli">Clientes que veem este equipamento</label>
@@ -3366,6 +3388,68 @@ window.addEventListener('resize',mapaPe);
 
 const carSvg = '<svg viewBox="0 0 44 44" width="44" height="44"><circle class="anel" cx="22" cy="22" r="18" stroke-width="1.5"/><path class="seta" d="M22 8 L31 32 L22 27 L13 32 Z" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/><g class="cad"><path d="M17 20.5v-3.2a5 5 0 0 1 10 0v3.2" fill="none" stroke-width="2.8" stroke-linecap="round"/><rect x="13.5" y="20" width="17" height="13" rx="3"/><circle cx="22" cy="25.6" r="1.8" fill="#fff"/><rect x="21.1" y="26" width="1.8" height="3.6" rx=".9" fill="#fff"/></g><g class="tagi"><circle cx="22" cy="22" r="4.2"/><path d="M15.2 15.2a9.6 9.6 0 0 0 0 13.6M28.8 15.2a9.6 9.6 0 0 1 0 13.6" fill="none" stroke-width="2.6" stroke-linecap="round"/></g></svg>';
 
+/* ===== ÍCONES DOS VEÍCULOS (16/10/2026, pedido do dono: estilo B, "plano") =====
+   Desenhos próprios, vistos de cima, frente para cima. O veículo gira conforme a direção; o anel em volta tem a cor da
+   situação (verde andando, amarelo parado, cinza sem comunicação, vermelho bloqueado) e o cadeado aparece no canto.
+   Escolha no cadastro do equipamento (atributos icone e iconeCor). Sem escolha = a setinha de sempre. Tag = ícone de tag. */
+const IC_VID='#1f2937';
+function icVidro(d){ return '<path d="'+d+'" fill="'+IC_VID+'" stroke="rgba(255,255,255,.35)" stroke-width=".6"/>' }
+function icLata(x,y,w,h,rx,c){ return '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="'+rx+'" fill="'+c+'" stroke="rgba(15,23,42,.45)" stroke-width="1"/>' }
+function icSombra(w,h,rx,y0){ return '<rect x="'+(-w/2+1.4)+'" y="'+(y0+1.8)+'" width="'+w+'" height="'+h+'" rx="'+rx+'" fill="rgba(0,0,0,.26)"/>' }
+function icFar(xs,y,w){ return xs.map(x=>'<rect x="'+x+'" y="'+y+'" width="'+w+'" height="1.7" rx=".85" fill="#fef3c7"/>').join('') }
+function icLan(xs,y,w){ return xs.map(x=>'<rect x="'+x+'" y="'+y+'" width="'+w+'" height="1.5" rx=".7" fill="#ef4444"/>').join('') }
+function icEsp(c,x){ return '<rect x="'+x+'" y="-9" width="3.2" height="2.6" rx="1.1" fill="'+c+'" stroke="rgba(15,23,42,.4)" stroke-width=".6"/>' }
+const VEIC_ICONES={
+  carro:{n:'Carro',L:44,cor:'#f1f5f9',d:c=>icSombra(20,44,7,-22)+icEsp(c,-12.2)+icEsp(c,9)+icLata(-10,-22,20,44,7,c)+
+    icVidro('M-7.8 -9.4Q0 -12 7.8 -9.4L6.7 -3.2Q0 -4.4 -6.7 -3.2Z')+'<rect x="-6.7" y="-3.2" width="13.4" height="13.2" rx="2.4" fill="'+c+'" stroke="rgba(15,23,42,.25)" stroke-width=".7"/>'+
+    '<rect x="-8.4" y="-2.6" width="1.5" height="12" rx=".7" fill="'+IC_VID+'"/><rect x="6.9" y="-2.6" width="1.5" height="12" rx=".7" fill="'+IC_VID+'"/>'+
+    icVidro('M-6.7 10Q0 11.2 6.7 10L7.3 14.6Q0 16.2 -7.3 14.6Z')+icFar([-8,4],-21.7,4)+icLan([-8.2,4.2],20.3,4)},
+  moto:{n:'Moto',L:32,cor:'#dc2626',d:c=>'<ellipse cx="1" cy="1.4" rx="5.4" ry="14.5" fill="rgba(0,0,0,.18)"/>'+
+    '<rect x="-2.1" y="7.5" width="4.2" height="8.5" rx="2.1" fill="#111827"/><rect x="-1.9" y="-16" width="3.8" height="7" rx="1.9" fill="#111827"/>'+
+    '<path d="M-3.6 -10Q0 -12.5 3.6 -10L4.2 6Q0 9 -4.2 6Z" fill="'+c+'" stroke="rgba(15,23,42,.45)" stroke-width=".8"/>'+
+    '<rect x="-7.6" y="-10.4" width="15.2" height="1.8" rx=".9" fill="#374151"/><rect x="-8.4" y="-10.7" width="2.6" height="2.4" rx="1" fill="#111827"/><rect x="5.8" y="-10.7" width="2.6" height="2.4" rx="1" fill="#111827"/>'+
+    '<path d="M-6.5 -9.2L-4.6 -1.5M6.5 -9.2L4.6 -1.5" stroke="#1f2937" stroke-width="2" stroke-linecap="round"/>'+
+    '<ellipse cx="0" cy="1.8" rx="6.6" ry="4.4" fill="#334155"/><circle cx="0" cy="-1.4" r="3.9" fill="#0f172a"/>'+
+    '<rect x="-1.3" y="-16.8" width="2.6" height="1.3" rx=".6" fill="#fef3c7"/><rect x="-1.4" y="15.6" width="2.8" height="1.1" rx=".5" fill="#ef4444"/>'},
+  picape:{n:'Picape',L:48,cor:'#1f2937',d:c=>icSombra(21,48,6,-24)+'<rect x="-12.6" y="-8.6" width="3.2" height="2.6" rx="1.1" fill="'+c+'"/><rect x="9.4" y="-8.6" width="3.2" height="2.6" rx="1.1" fill="'+c+'"/>'+
+    icLata(-10.5,-24,21,48,5.5,c)+icVidro('M-8 -9Q0 -11.6 8 -9L7 -3.4Q0 -4.6 -7 -3.4Z')+'<rect x="-7" y="-3.4" width="14" height="8.6" rx="2" fill="'+c+'"/>'+
+    icVidro('M-7 5.4H7L7.4 7.6H-7.4Z')+'<rect x="-8.6" y="9" width="17.2" height="13.4" rx="1.6" fill="rgba(0,0,0,.45)"/><path d="M-8.6 12.4H8.6M-8.6 15.8H8.6M-8.6 19.2H8.6" stroke="rgba(255,255,255,.12)" stroke-width=".8"/>'+
+    icFar([-8.6,4.4],-23.7,4.2)+icLan([-9,5],22.6,4)},
+  van:{n:'Van',L:46,cor:'#f8fafc',d:c=>icSombra(20,46,5,-23)+'<rect x="-12.2" y="-13.6" width="3.2" height="2.8" rx="1.1" fill="'+c+'" stroke="rgba(15,23,42,.4)" stroke-width=".6"/><rect x="9" y="-13.6" width="3.2" height="2.8" rx="1.1" fill="'+c+'" stroke="rgba(15,23,42,.4)" stroke-width=".6"/>'+
+    icLata(-10,-23,20,46,5,c)+icVidro('M-8.2 -15Q0 -17.4 8.2 -15L7.4 -9.6Q0 -10.6 -7.4 -9.6Z')+'<rect x="-7.6" y="-9" width="15.2" height="30" rx="2" fill="'+c+'" stroke="rgba(15,23,42,.22)" stroke-width=".7"/>'+
+    '<path d="M-5 -3H5M-5 3H5M-5 9H5M-5 15H5" stroke="rgba(15,23,42,.13)" stroke-width="1.1"/><rect x="-9.2" y="-8" width="1.4" height="9" rx=".6" fill="'+IC_VID+'"/><rect x="7.8" y="-8" width="1.4" height="9" rx=".6" fill="'+IC_VID+'"/>'+
+    icFar([-8.2,4.2],-22.7,4)+icLan([-8.4,4.4],21.3,4)},
+  caminhao:{n:'Caminhão',L:56,cor:'#f8fafc',d:c=>icSombra(23,56,2,-28)+icLata(-11.5,-12,23,40,1.6,'#e5e7eb')+
+    '<path d="M-11.5 -4H11.5M-11.5 4H11.5M-11.5 12H11.5M-11.5 20H11.5" stroke="rgba(15,23,42,.14)" stroke-width="1"/><rect x="-13.4" y="-21.2" width="3" height="3.6" rx="1" fill="#111827"/><rect x="10.4" y="-21.2" width="3" height="3.6" rx="1" fill="#111827"/>'+
+    icLata(-10.5,-28,21,15,4,c)+icVidro('M-8.8 -24.8Q0 -26.6 8.8 -24.8L8.2 -20.8Q0 -21.8 -8.2 -20.8Z')+'<rect x="-7.6" y="-20" width="15.2" height="5.8" rx="1.4" fill="'+c+'"/>'+
+    icFar([-9.4,5.2],-27.8,4.2)+icLan([-10.6,6.6],27.6,4)},
+  onibus:{n:'Ônibus',L:58,cor:'#2563eb',d:c=>icSombra(21,58,3.5,-29)+icLata(-10.5,-29,21,58,3.5,c)+icVidro('M-9.4 -27.6Q0 -29 9.4 -27.6L9 -22.6H-9Z')+
+    [-20,-12.5,-5,2.5,10,17.5].map(y=>'<rect x="-10.3" y="'+y+'" width="1.6" height="6.4" rx=".6" fill="'+IC_VID+'"/><rect x="8.7" y="'+y+'" width="1.6" height="6.4" rx=".6" fill="'+IC_VID+'"/>').join('')+
+    '<rect x="-7.4" y="-21" width="14.8" height="46" rx="2" fill="'+c+'"/><rect x="-5" y="-6" width="10" height="11" rx="1.5" fill="#cbd5e1" stroke="rgba(15,23,42,.3)" stroke-width=".6"/><path d="M-3 -4V3M0 -4V3M3 -4V3" stroke="rgba(15,23,42,.25)" stroke-width=".7"/>'+
+    '<rect x="-4" y="14" width="8" height="5" rx="1" fill="rgba(15,23,42,.2)"/>'+icFar([-9,5],-28.8,4)+icLan([-9.2,5.2],27.6,4)},
+  guincho:{n:'Guincho',L:58,cor:'#facc15',d:c=>icSombra(22,58,2,-29)+icLata(-11,-13,22,39,1.4,'#94a3b8')+
+    '<path d="M-11 -6H11M-11 1H11M-11 8H11M-11 15H11M-11 22H11" stroke="rgba(15,23,42,.18)" stroke-width="1"/><path d="M-11 26L-8 29H8L11 26" fill="#64748b"/><path d="M-11 -13V26M11 -13V26" stroke="#facc15" stroke-width="1.6" stroke-dasharray="3 2"/>'+
+    '<rect x="-13" y="-22" width="3" height="3.4" rx="1" fill="#111827"/><rect x="10" y="-22" width="3" height="3.4" rx="1" fill="#111827"/>'+
+    icLata(-10.4,-29,20.8,15,4,c)+icVidro('M-8.8 -25.8Q0 -27.6 8.8 -25.8L8.2 -21.8Q0 -22.8 -8.2 -21.8Z')+'<rect x="-7.6" y="-21" width="15.2" height="5.6" rx="1.4" fill="'+c+'"/>'+
+    '<rect x="-6" y="-19.6" width="12" height="2.6" rx="1.3" fill="#f97316"/><rect x="-6" y="-19.6" width="4" height="2.6" rx="1.3" fill="#fdba74"/>'+icFar([-9.2,5],-28.8,4.2)},
+  carreta:{n:'Carreta',L:74,cor:'#dc2626',d:c=>icSombra(23,74,2,-37)+icLata(-11.5,-17,23,54,1.6,'#e2e8f0')+
+    '<path d="M-11.5 -8H11.5M-11.5 1H11.5M-11.5 10H11.5M-11.5 19H11.5M-11.5 28H11.5" stroke="rgba(15,23,42,.13)" stroke-width="1"/><rect x="-13.4" y="-30" width="3" height="3.6" rx="1" fill="#111827"/><rect x="10.4" y="-30" width="3" height="3.6" rx="1" fill="#111827"/>'+
+    icLata(-10.5,-37,21,17,4,c)+icVidro('M-8.8 -33.8Q0 -35.6 8.8 -33.8L8.2 -29.8Q0 -30.8 -8.2 -29.8Z')+'<rect x="-7.6" y="-29" width="15.2" height="7.4" rx="1.6" fill="'+c+'"/>'+
+    icFar([-9.4,5.2],-36.8,4.2)+icLan([-10.6,6.6],36.6,4)},
+};
+const VEIC_ORDEM=['carro','moto','picape','van','caminhao','onibus','guincho','carreta'];
+const VEIC_CORES=[['Branco','#f8fafc'],['Prata','#cbd5e1'],['Preto','#1f2937'],['Vermelho','#dc2626'],['Azul','#2563eb'],['Verde','#16a34a'],['Amarelo','#facc15']];
+function icCorOk(c){ return /^#[0-9a-f]{6}$/i.test(String(c||'')) }
+function veicIconeDe(d){ const a=(d&&d.attributes)||{}; return VEIC_ICONES[a.icone] ? a.icone : '' }
+/* svg do veículo para o marcador: anel (não gira), veículo (gira, classe vgir), cadeado (não gira) */
+function veicSvg(tipo,cor,mini){
+  const T=VEIC_ICONES[tipo]; if(!T) return carSvg;
+  const c=icCorOk(cor)?cor:T.cor, sc=Math.min(1,48/T.L);
+  return '<svg viewBox="-30 -30 60 60" width="'+(mini?40:54)+'" height="'+(mini?40:54)+'">'+(mini?'':'<circle class="anelv" r="25" stroke-width="2.4"/>')+
+    '<g class="vgir"><g transform="scale('+sc+')">'+T.d(c)+'</g></g>'+
+    (mini?'':'<g class="cadb" transform="translate(19,-19)"><circle r="8.5" fill="#dc2626" stroke="#fff" stroke-width="2"/><path d="M-2.8 -.6V-2.6A2.8 2.8 0 0 1 2.8 -2.6V-.6" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/><rect x="-4" y="-.8" width="8" height="5.6" rx="1.3" fill="#fff"/></g>')+'</svg>';
+}
+function carHtml(v){ return (!v.tag && v.icone) ? '<div class="car veic">'+veicSvg(v.icone,v.iconeCor)+'</div>' : '<div class="car">'+carSvg+'</div>' }
 /* troca o nome escrito no mapa na hora (sem F5) */
 /* rótulo do mapa: nome e, se ligado na calculadora, o gasto de combustível de hoje (11/10/2026) */
 /* chips do rótulo: ⛽ gasto pelo odômetro e 🔧 km que faltam para a meta; opcional esconder o nome (11/10/2026) */
@@ -3384,17 +3468,21 @@ function rotularMarcador(v){
     const h=rotuloHtml(v); v.rotuloHtml=h;
     const ic=v.marker.options && v.marker.options.icon;
     const cl=h.indexOf('lbnome')<0?'carlabel sochips':(h.indexOf('lbchip')>=0?'carlabel comchips':'carlabel');
-    if(ic && ic.options) ic.options.html='<div class="car">'+carSvg+'</div><div class="'+cl+'">'+h+'</div>';
+    if(ic && ic.options) ic.options.html=carHtml(v)+'<div class="'+cl+'">'+h+'</div>';
     const el=v.marker.getElement && v.marker.getElement();
     const l=el && el.querySelector('.carlabel'); if(l){ l.innerHTML=h; l.className=cl }
   }catch(e){}
 }
+function icTrocar(v){ /* o ícone mudou (cadastro ou virou tag): refaz o desenho do marcador sem recriar */
+  if(!v.marker) return; const k=(v.tag?'tag':(v.icone||''))+'|'+(v.iconeCor||''); if(k===v.icoChave) return; v.icoChave=k;
+  try{ const ic=v.marker.options.icon; ic.options.html=carHtml(v)+'<div class="'+rotuloClasse(v)+'">'+rotuloHtml(v)+'</div>'; v.marker.setIcon(ic) }catch(e){}
+}
 function criarMarcador(v){
   v.marker = L.marker(v.pos,{icon:L.divIcon({
     className:'',iconSize:[44,44],iconAnchor:[22,22],
-    html:'<div class="car">'+carSvg+'</div><div class="'+rotuloClasse(v)+'">'+rotuloHtml(v)+'</div>'
+    html:carHtml(v)+'<div class="'+rotuloClasse(v)+'">'+rotuloHtml(v)+'</div>'
   })});
-  v.rotuloNome=v.nome;
+  v.rotuloNome=v.nome; v.icoChave=(v.tag?'tag':(v.icone||''))+'|'+(v.iconeCor||'');
   v.marker.on('click',()=>{ selId = v.id; recolhido = false; atualizar(); });
   if(v.visivel) v.marker.addTo(map);
 }
@@ -3862,6 +3950,8 @@ function mesclar(ds,ps){
     v.online = d.status==='online';
     v.imei = d.uniqueId || ''; v.fone = d.phone || ''; v.contato = d.contact || ''; v.raw = d;
     v.tag = ehTag(d) || (String((d.attributes&&d.attributes.tipoAparelho)||'')!=='rastreador' && !!v.tagSinal && !soDigitos(d.phone)); /* 16/10/2026 */
+    v.icone = veicIconeDe(d); v.iconeCor = icCorOk(d.attributes&&d.attributes.iconeCor) ? d.attributes.iconeCor : ''; /* 16/10/2026: ícone do veículo */
+    icTrocar(v);
     v.ultimo = d.lastUpdate ? new Date(d.lastUpdate).getTime() : null;
     const p = pm[d.id];
     if(p){
@@ -3966,7 +4056,7 @@ function animar(now){
       if(f>=1){ v.de=null; v.para=null }
     }
     const el=v.marker.getElement();
-    if(el){const c=el.querySelector('.car');if(c){c.style.transform=(v.bloq||v.tag)?'none':'rotate('+(v._rumoVis!=null?v._rumoVis:v.rumo)+'deg)';const cor=v.tag?(v.fix&&Date.now()-v.fix<TAG_VELHA_MS?'c-tag':'c-tag c-tagvelha'):v.bloq?'c-bloq':corSeta(v);if(c.dataset.cor!==cor){c.classList.remove('c-mov','c-par','c-sem','c-bloq','c-tag','c-tagvelha');cor.split(' ').forEach(k=>c.classList.add(k));c.dataset.cor=cor}}}
+    if(el){const c=el.querySelector('.car');if(c){const ang='rotate('+(v._rumoVis!=null?v._rumoVis:v.rumo)+'deg)';if(c.classList.contains('veic')){const g=c.querySelector('.vgir');if(g&&g.style.transform!==ang)g.style.transform=ang;if(c.style.transform)c.style.transform=''}else c.style.transform=(v.bloq||v.tag)?'none':ang;const cor=v.tag?(v.fix&&Date.now()-v.fix<TAG_VELHA_MS?'c-tag':'c-tag c-tagvelha'):v.bloq?'c-bloq':corSeta(v);if(c.dataset.cor!==cor){c.classList.remove('c-mov','c-par','c-sem','c-bloq','c-tag','c-tagvelha');cor.split(' ').forEach(k=>c.classList.add(k));c.dataset.cor=cor}}}
   });
   const a=ativo();
   if(seguir && a) centralizar(a.pos);
@@ -7310,6 +7400,7 @@ function abrirEquip(id){
   $('ePlaca').value = v ? ((v.raw && v.raw.attributes && v.raw.attributes.placa) || '') : '';
   $('eImei').value = v ? v.imei : ''; $('eImei').disabled = !!v; $('eScan').hidden = !!v;
   $('eFone').value = v ? fmtFone(v.fone) : '';
+  eqIcone = v ? (v.icone||'') : ''; eqIcCor = v ? (v.iconeCor||'') : ''; icPickDesenhar(); /* 16/10/2026 */
   $('eTipo').value = (v && v.raw && v.raw.attributes && ['tag','rastreador'].includes(v.raw.attributes.tipoAparelho)) ? v.raw.attributes.tipoAparelho : ''; /* 16/10/2026 */
   $('eBuscaCli').value='';
   eqSel=new Set(); eqAntes=new Set(); eqPronto=!v;
@@ -7324,6 +7415,17 @@ function abrirEquip(id){
   }).catch(()=>{ eqPronto=true });
 }
 let eqSel=new Set(), eqAntes=new Set(), eqPronto=true;
+/* 16/10/2026: escolha do ícone e da cor no cadastro do equipamento */
+let eqIcone='', eqIcCor='';
+function icPickDesenhar(){
+  const corAtual=eqIcCor||(VEIC_ICONES[eqIcone]?VEIC_ICONES[eqIcone].cor:'');
+  $('eIcone').innerHTML='<button type="button" data-ic=""'+(eqIcone?'':' class="on"')+' title="Setinha (padrão)"><span class="icv"><svg viewBox="0 0 44 44" width="34" height="34"><circle cx="22" cy="22" r="18" fill="#fff" stroke="#e0a020" stroke-width="2.5"/><path d="M22 8 L31 32 L22 27 L13 32 Z" fill="#f0a800" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></svg></span><small>Setinha</small></button>'+
+    VEIC_ORDEM.map(k=>'<button type="button" data-ic="'+k+'"'+(eqIcone===k?' class="on"':'')+'><span class="icv">'+veicSvg(k,eqIcone===k?corAtual:'',true)+'</span><small>'+VEIC_ICONES[k].n+'</small></button>').join('');
+  $('eIcCor').style.display=eqIcone?'':'none';
+  $('eIcCor').innerHTML=eqIcone?('<span>Cor:</span>'+VEIC_CORES.map(([n,c])=>'<button type="button" data-cor="'+c+'" title="'+n+'" aria-label="'+n+'"'+(corAtual.toLowerCase()===c?' class="on"':'')+' style="background:'+c+'"></button>').join('')):'';
+}
+$('eIcone').addEventListener('click',e=>{ const b=e.target.closest('[data-ic]'); if(!b) return; eqIcone=b.dataset.ic; if(!eqIcone) eqIcCor=''; icPickDesenhar() });
+$('eIcCor').addEventListener('click',e=>{ const b=e.target.closest('[data-cor]'); if(!b) return; eqIcCor=b.dataset.cor; icPickDesenhar() });
 /* lista de clientes (não administradores) com caixinhas: o equipamento pode ser visto por vários clientes */
 function preencherClientesEquip(){
   const f=String($('eBuscaCli').value||'').trim().toLowerCase();
@@ -7486,9 +7588,10 @@ $('eSalvar').onclick=async ()=>{
       const at=Object.assign({},(v.raw&&v.raw.attributes)||{});
       if(placa) at.placa=placa; else delete at.placa;
       if($('eTipo').value) at.tipoAparelho=$('eTipo').value; else delete at.tipoAparelho; /* 16/10/2026 */
+      if(eqIcone){ at.icone=eqIcone; if(eqIcCor) at.iconeCor=eqIcCor; else delete at.iconeCor } else { delete at.icone; delete at.iconeCor } /* 16/10/2026 */
       r=await api('/api/devices/'+editandoId,{method:'PUT',headers:JSONH,body:JSON.stringify(Object.assign({},v.raw,{name:nome,phone:fone,contact:email,attributes:at}))});
     } else {
-      r=await api('/api/devices',{method:'POST',headers:JSONH,body:JSON.stringify({name:nome,uniqueId:imei,phone:fone,contact:email,attributes:Object.assign(placa?{placa:placa}:{},$('eTipo').value?{tipoAparelho:$('eTipo').value}:{},{cadastradoEm:hojeIso()})})});
+      r=await api('/api/devices',{method:'POST',headers:JSONH,body:JSON.stringify({name:nome,uniqueId:imei,phone:fone,contact:email,attributes:Object.assign(placa?{placa:placa}:{},$('eTipo').value?{tipoAparelho:$('eTipo').value}:{},eqIcone?{icone:eqIcone}:{},eqIcone&&eqIcCor?{iconeCor:eqIcCor}:{},{cadastradoEm:hojeIso()})})});
     }
     if(!r.ok) throw new Error(await msgErro(r,'Não foi possível salvar o equipamento'));
     const d=await r.json();
