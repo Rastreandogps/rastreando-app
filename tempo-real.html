@@ -481,6 +481,10 @@ main{position:relative;flex:1;min-height:0;overflow:hidden}
 #map.hist-on .leaflet-marker-icon:not(.hmk){visibility:hidden;pointer-events:none}
 body.hist-on #follow,body.hist-on #btnEu,body.hist-on #btnTodos,body.hist-on #btnGrupo,body.hist-on #btnSat,body.hist-on #btnAncora{display:none!important}
 /* carrinho no topo do mapa: aparece quando o cliente tem pedido da loja esperando pagamento (11/10/2026) */
+/* 15/10/2026: deslize contínuo (teste só do administrador) */
+#deslizeBtn{position:absolute;bottom:14px;left:12px;z-index:420;display:none;align-items:center;gap:6px;height:34px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--txt);font:inherit;font-size:12.5px;font-weight:700;box-shadow:0 2px 8px rgba(0,0,0,.25);cursor:pointer}
+#deslizeBtn.on{background:#2f6bff;border-color:#2f6bff;color:#fff}
+body.hist-on #deslizeBtn{display:none!important}
 #mapCar{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:420;width:52px;height:52px;border-radius:50%;background:#ffe600;border:none;display:none;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(0,0,0,.4);cursor:pointer;animation:mapCarPulso 1.8s ease-in-out infinite}
 #mapCar.show{display:flex}
 #mapCar svg{width:26px;height:26px;fill:none;stroke:#2d3277;stroke-width:2.3;stroke-linecap:round;stroke-linejoin:round}
@@ -1964,6 +1968,7 @@ nav button.on .nemo.txt{color:var(--red2)}
   </button>
   <button class="follow" id="btnAncora" aria-label="Cerca rápida (âncora)" title="Cerca rápida (âncora)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="2.2"/><path d="M12 7.2V21"/><path d="M8 11h8"/><path d="M5 14c0 4 3 7 7 7s7-3 7-7"/></svg><span class="lbl">Âncora</span></button>
 
+  <button id="deslizeBtn" type="button" title="Teste: o veículo desliza sem parar, mostrando o trajeto com até 1 minuto de atraso">〰️ Deslize contínuo: <span id="deslizeTxt">desligado</span></button>
   <button id="mapCar" type="button" aria-label="Você tem pedido aguardando pagamento" title="Pedido aguardando pagamento"><svg viewBox="0 0 24 24"><path d="M6 6h15l-1.5 9h-12z"/><path d="M6 6L5 3H2"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/></svg><span class="mcn" id="mapCarN">1</span></button>
   <div class="vazio" id="vazio">Nenhum veículo selecionado<small><span class="vz-cel">Abra a aba Veículos para escolher.</span><span class="vz-pc">Escolha um veículo na lista ao lado.</span></small></div>
 
@@ -3748,6 +3753,9 @@ function mesclar(ds,ps){
       v.rumo = p.course||0;
       v.posId = p.id;
       v.real = [p.latitude,p.longitude];
+      /* 15/10/2026: trilha dos últimos pontos (deslize contínuo); só guarda ponto novo, com a hora do GPS */
+      if(!v.trilha) v.trilha=[];
+      { const ul=v.trilha[v.trilha.length-1]; if(v.fix && (!ul || v.fix>ul.t)){ v.trilha.push({t:v.fix,ll:[p.latitude,p.longitude],r:p.course||0}); const lim=Date.now()-6*60000; while(v.trilha.length>40 || (v.trilha.length>2 && v.trilha[0].t<lim)) v.trilha.shift() } }
       v.result = a.result || null;
       v.bloqDoRastreador = typeof a.blocked==='boolean'; /* item 1.3: o que o rastreador informa vence */
       v.bloq = typeof a.blocked==='boolean' ? a.blocked : lsGet('rg_bloq_'+v.id)==='1';
@@ -3793,23 +3801,56 @@ setInterval(()=>{ if(document.visibilityState==='visible') buscarSeguro() },INTE
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') buscarSeguro() });
 
 /* ===== ANIMAÇÃO SUAVE (feita no app) ===== */
+/* ===== DESLIZE CONTÍNUO (15/10/2026, teste do administrador) =====
+   Mostra o veículo "um pouco atrás", reproduzindo os pontos recebidos na velocidade real: como sempre já existe o
+   próximo ponto, ele não fica parado esperando. Atraso = ritmo do aparelho + folga (de 8 s a no máximo 60 s).
+   Veículo bloqueado ou desligado o deslize: posição mais recente, como antes. */
+const deslizeLigado=()=>ehAdmin && lsGet('rg_deslize')==='1';
+function deslizeAtraso(tr){
+  const d=[]; for(let i=1;i<tr.length;i++){ const a=tr[i-1],b=tr[i]; if(Math.abs(a.ll[0]-b.ll[0])+Math.abs(a.ll[1]-b.ll[1])>0.0002) d.push(b.t-a.t) }
+  if(!d.length) return 15000;
+  d.sort((x,y)=>x-y); const med=d[Math.floor(d.length/2)];
+  return Math.max(8000,Math.min(60000,med*1.3+3000));
+}
+function deslizePos(v){
+  const tr=v.trilha; if(!tr||tr.length<2) return null;
+  const t=Date.now()-deslizeAtraso(tr), ul=tr[tr.length-1];
+  if(t>=ul.t) return {ll:ul.ll,r:ul.r};
+  if(t<=tr[0].t) return {ll:tr[0].ll,r:tr[0].r};
+  for(let i=1;i<tr.length;i++){ const a=tr[i-1],b=tr[i];
+    if(t<=b.t){
+      if(b.t-a.t>5*60000 || Math.abs(a.ll[0]-b.ll[0])+Math.abs(a.ll[1]-b.ll[1])>0.03) return {ll:b.ll,r:b.r}; /* buraco grande: pula */
+      const f=(t-a.t)/Math.max(1,b.t-a.t);
+      const dy=b.ll[0]-a.ll[0], dx=(b.ll[1]-a.ll[1])*Math.cos(a.ll[0]*Math.PI/180);
+      const r=(Math.abs(dx)+Math.abs(dy)>0.00003)?(Math.atan2(dx,dy)*180/Math.PI+360)%360:b.r;
+      return {ll:[a.ll[0]+dy*f,a.ll[1]+(b.ll[1]-a.ll[1])*f],r};
+    } }
+  return {ll:ul.ll,r:ul.r};
+}
 function animar(now){
+  const dz=deslizeLigado();
   veiculos.forEach(v=>{
     if(!v.marker) return;
-    if(v.de && v.para){
+    v._rumoVis=null;
+    const dp=dz && !v.bloq ? deslizePos(v) : null;
+    if(dp){ v.pos=dp.ll; v.marker.setLatLng(v.pos); v._rumoVis=dp.r; v.de=null; v.para=null }
+    else if(v.de && v.para){
       const f=Math.min(1,(now-v.t0)/INTERVALO);
       v.pos=[v.de[0]+(v.para[0]-v.de[0])*f, v.de[1]+(v.para[1]-v.de[1])*f];
       v.marker.setLatLng(v.pos);
       if(f>=1){ v.de=null; v.para=null }
     }
     const el=v.marker.getElement();
-    if(el){const c=el.querySelector('.car');if(c){c.style.transform=v.bloq?'none':'rotate('+v.rumo+'deg)';const cor=v.bloq?'c-bloq':corSeta(v);if(c.dataset.cor!==cor){c.classList.remove('c-mov','c-par','c-sem','c-bloq');c.classList.add(cor);c.dataset.cor=cor}}}
+    if(el){const c=el.querySelector('.car');if(c){c.style.transform=v.bloq?'none':'rotate('+(v._rumoVis!=null?v._rumoVis:v.rumo)+'deg)';const cor=v.bloq?'c-bloq':corSeta(v);if(c.dataset.cor!==cor){c.classList.remove('c-mov','c-par','c-sem','c-bloq');c.classList.add(cor);c.dataset.cor=cor}}}
   });
   const a=ativo();
   if(seguir && a) centralizar(a.pos);
   requestAnimationFrame(animar);
 }
 requestAnimationFrame(animar);
+function deslizePintar(){ const b=$('deslizeBtn'); if(!b) return; b.style.display=ehAdmin?'inline-flex':'none'; const on=deslizeLigado(); b.classList.toggle('on',on); $('deslizeTxt').textContent=on?'ligado':'desligado' }
+$('deslizeBtn').onclick=()=>{ lsSet('rg_deslize',deslizeLigado()?'0':'1'); deslizePintar(); toast(deslizeLigado()?'Deslize contínuo ligado (teste). O veículo aparece com até 1 minuto de atraso.':'Deslize contínuo desligado: posição mais recente, como antes.',4000) };
+setInterval(deslizePintar,3000); setTimeout(deslizePintar,500);
 
 /* ===== CARTÃO ARRASTÁVEL ===== */
 const sheet = $('sheet'), zone = $('dragzone');
