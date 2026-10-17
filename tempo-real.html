@@ -745,6 +745,7 @@ body.hist-on #mapCar{display:none!important}
 #cartRecolher,#cartMini{display:none}
 .sheet{position:absolute;left:0;right:0;bottom:0;z-index:450;margin:0 auto;max-width:520px;background:var(--card);border:1px solid var(--line);border-bottom:0;border-radius:18px 18px 0 0;padding:0 16px 14px;box-shadow:0 -8px 24px rgba(0,0,0,.45);transition:transform .22s ease;will-change:transform}
 .sheet.drag{transition:none}
+@media (max-width:899px){ .sheet{transition:transform .3s cubic-bezier(.2,.8,.2,1)} } /* 16/10/2026: assentar suave depois de soltar */
 /* computador: cartão do veículo no canto esquerdo (celular não muda) */
 /* ===== COMPUTADOR (14/10/2026, pedido do dono): lista de veículos FIXA à esquerda + cartão do veículo EMBAIXO do mapa.
    Padrão para todo mundo no computador (mesmo com 1 veículo). O celular não muda nada. ===== */
@@ -4175,6 +4176,7 @@ function deslizePos(v){
   return {ll:ul.ll,r:ul.r};
 }
 function animar(now){
+  if(arrastando){ requestAnimationFrame(animar); return } /* 16/10/2026: dedo no cartão: o mapa espera (fica liso) */
   const dz=deslizeLigado();
   veiculos.forEach(v=>{
     if(!v.marker) return;
@@ -4210,11 +4212,18 @@ function offAtual(){ return recolhido ? maxOff() : 0 }
 function aplicarSheet(){
   if(arrastando) return;
   if(telaLarga()){ sheet.style.transform=''; ladoCartao(); return } /* computador: cartão fixo embaixo do mapa */
-  sheet.style.transform = 'translateY('+offAtual()+'px)';
+  sheet.style.transform = 'translate3d(0,'+offAtual()+'px,0)';
 }
+/* 16/10/2026 (pedido do dono: "dá uma travada, não é liso"): mais leve e com "arremesso".
+   - o tamanho do cartão é medido UMA vez ao encostar o dedo (antes media a cada movimento e o celular recalculava a tela toda);
+   - o movimento é aplicado no ritmo da tela (requestAnimationFrame), em translate3d (placa de vídeo);
+   - enquanto o dedo está no cartão, o mapa e o cartão não se redesenham (voltam ao soltar);
+   - ao soltar: um movimento rápido decide pelo sentido; devagar, vai para o lado mais perto. */
+let gvMax=0, gvO=0, gvRaf=0, gvAm=[];
+function gvPinta(){ gvRaf=0; sheet.style.transform='translate3d(0,'+gvO+'px,0)' }
 zone.addEventListener('pointerdown',e=>{
   if(telaLarga()) return;
-  arrastando=true; moveu=false; y0=e.clientY; off0=offAtual();
+  arrastando=true; moveu=false; y0=e.clientY; off0=offAtual(); gvMax=maxOff(); gvO=off0; gvAm=[{y:e.clientY,t:performance.now()}];
   naAlca = !!e.target.closest('.handlewrap');
   sheet.classList.add('drag');
   try{zone.setPointerCapture(e.pointerId)}catch(_){}
@@ -4223,16 +4232,18 @@ zone.addEventListener('pointermove',e=>{
   if(!arrastando) return;
   const dy=e.clientY-y0;
   if(Math.abs(dy)>4) moveu=true;
-  const o=Math.max(0,Math.min(maxOff(),off0+dy));
-  sheet.style.transform='translateY('+o+'px)';
+  gvO=Math.max(0,Math.min(gvMax,off0+dy));
+  const t=performance.now(); gvAm.push({y:e.clientY,t}); while(gvAm.length>2 && t-gvAm[0].t>100) gvAm.shift();
+  if(!gvRaf) gvRaf=requestAnimationFrame(gvPinta);
 });
 function soltar(e){
   if(!arrastando) return;
-  const dy=e.clientY-y0;
+  if(gvRaf){ cancelAnimationFrame(gvRaf); gvRaf=0 }
   arrastando=false; sheet.classList.remove('drag');
+  const a=gvAm[0], b=gvAm[gvAm.length-1], vel=(a&&b&&b.t>a.t)?(b.y-a.y)/(b.t-a.t):0; /* px por ms; + = descendo */
   if(!moveu){ if(naAlca) recolhido=!recolhido }
-  else if(dy>40) recolhido=true;
-  else if(dy<-40) recolhido=false;
+  else if(Math.abs(vel)>0.35) recolhido=vel>0;
+  else recolhido=gvO>gvMax/2;
   aplicarSheet();
 }
 zone.addEventListener('pointerup',soltar);
@@ -4254,6 +4265,7 @@ window.addEventListener('resize',()=>{ try{ cartMinPintar() }catch(e){} });
 
 /* ===== TELA ===== */
 function atualizar(){
+  if(arrastando) return; /* 16/10/2026: não redesenha o cartão com o dedo nele (volta no próximo segundo) */
   const v=cartao(), sp=!!(v && !v.pos); /* sp = aparelho ainda sem sinal */
   sheet.style.display = v ? (telaLarga()?'grid':'block') : 'none';
   $('vazio').style.display = (v || !veiculos.length) ? 'none' : 'block';
