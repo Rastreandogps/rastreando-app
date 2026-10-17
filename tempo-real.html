@@ -8617,7 +8617,7 @@ function filaDesenhar(){
   box.classList.toggle('fechada', n>1 && !filaAberta);
   box.innerHTML=f.map((x,i)=>{
     const d=filaDuplicado(x);
-    return '<div class="afrow"><div class="t'+(n>1&&i===0?' abre" data-fila="abrir':'')+'"><b>'+esc(x.nome)+(n>1&&i===0?'<span class="amais">+'+(n-1)+'</span>':'')+'</b><small>'+esc(['Vindo do APP Técnico'+(x.tec?' ('+x.tec+')':''),x.veic?x.veic.split(' · ')[0]:'',x.cpf?'CPF informado':''].filter(Boolean).join(' · '))+(d?'<span class="dup">⚠ '+esc(dupTexto(d))+'</span>':'')+'</small></div>'+
+    return '<div class="afrow"><div class="t'+(n>1&&i===0?' abre" data-fila="abrir':'')+'"><b>'+esc(x.nome)+(n>1&&i===0?'<span class="amais">+'+(n-1)+'</span>':'')+'</b><small>'+esc([(x.tec==='Gestão'?'Vindo da Gestão (migração)':'Vindo do APP Técnico'+(x.tec?' ('+x.tec+')':'')),x.veic?x.veic.split(' · ')[0]:'',x.cpf?'CPF informado':''].filter(Boolean).join(' · '))+(d?'<span class="dup">⚠ '+esc(dupTexto(d))+'</span>':'')+'</small></div>'+
       '<button type="button" class="fora" data-fila="fora" data-i="'+i+'">Descartar</button><button type="button" class="ir" data-fila="ir" data-i="'+i+'">Criar agora</button></div>';
   }).join('');
 }
@@ -8689,7 +8689,7 @@ function abrirCliente(pre){
     if(pre.cpf && (pre.cpf.length===11||pre.cpf.length===14)) $('cCpf').value=fmtCpf(pre.cpf); /* 13/10/2026: CPF que o cliente digitou no agendamento */
     const d=/^\d{4}-\d{2}-\d{2}$/.test(pre.data)?pre.data:''; if(d && d<=hojeISO()) $('cDesde').value=d;
     const dp=filaDuplicado(pre);
-    o.innerHTML='<b>Vindo do card do APP Técnico</b>'+(pre.veic?'<br>'+esc(pre.veic):'')+(pre.tec?'<br>Técnico: '+esc(pre.tec):'')+(dp?'<span class="dup">⚠ '+esc(dupTexto(dp))+' Confira antes de criar outro.</span>':'')+'<br><span style="color:var(--mut)">Senha padrão 123456. Confira o login, '+(pre.cpf?'CPF já veio do agendamento: confira e marque o aparelho.':'digite o CPF e marque o aparelho.')+'</span>';
+    o.innerHTML=(pre.tec==='Gestão'?'<b>Vindo da Gestão (migração para a plataforma)</b>':'<b>Vindo do card do APP Técnico</b>')+(pre.veic?'<br>'+esc(pre.veic):'')+(pre.tec&&pre.tec!=='Gestão'?'<br>Técnico: '+esc(pre.tec):'')+(dp?'<span class="dup">⚠ '+esc(dupTexto(dp))+' Confira antes de criar outro.</span>':'')+'<br><span style="color:var(--mut)">Senha padrão 123456. Confira o login, '+(pre.cpf?(pre.tec==='Gestão'?'CPF/CNPJ já veio do Asaas: confira e marque o aparelho.':'CPF já veio do agendamento: confira e marque o aparelho.'):'digite o CPF e marque o aparelho.')+'</span>';
   }
   abrir('mCliente');
   if(pre) setTimeout(()=>{ try{ $('cCpf').focus() }catch(e){} },150);
@@ -9297,6 +9297,8 @@ function desenharAlertas(){
       case 'cerca_bloqueio': return {c:'b',s:ICONES.cadeado};
       case 'volta': return {c:'v',s:ICONES.sinal};
       case 'manutencao': return {c:'m',s:ICONES.chave};
+      case 'servidor_fora': return {c:'b',s:ICONES.raio};   /* 17/10/2026: alarme do servidor */
+      case 'servidor_voltou': return {c:'v',s:ICONES.sinal};
       default: return {c:'i',s:ICONES.sino};
     }
   };
