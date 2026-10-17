@@ -594,6 +594,44 @@ body.hist-on #mapCar{display:none!important}
 .hpanel.achou .hperres{display:flex}
 .hpanel{position:absolute;left:0;right:0;bottom:0;z-index:460;margin:0 auto;max-width:520px;max-height:62%;overflow-y:auto;background:var(--card);border:1px solid var(--line);border-bottom:0;border-radius:18px 18px 0 0;padding:12px 16px 14px;box-shadow:0 -8px 24px rgba(0,0,0,.45);display:none}
 .hpanel.show{display:block}
+/* ===== PLAYER DO HISTÓRICO EM TELA CHEIA (celular, 16/10/2026, pedido do dono: "bem Netflix, clean") =====
+   Ao tocar no play, o painel some, o cabeçalho e a barra de baixo saem e fica só o mapa + este player de vidro. */
+#hMini{display:none}
+@media (max-width:899px){
+  body.hist-cine > header, body.hist-cine > nav{display:none!important}
+  body.hist-cine .hpanel{display:none!important}
+  body.hist-cine #hMini{display:block}
+  #hMini{position:absolute;z-index:470;left:12px;right:12px;bottom:calc(14px + env(safe-area-inset-bottom));max-width:520px;margin:0 auto;
+    padding:14px 16px 12px;border-radius:22px;color:#fff;
+    background:linear-gradient(180deg,rgba(18,20,26,.72),rgba(10,11,15,.86));-webkit-backdrop-filter:blur(18px) saturate(1.4);backdrop-filter:blur(18px) saturate(1.4);
+    border:1px solid rgba(255,255,255,.10);box-shadow:0 20px 50px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.06);
+    animation:hmEntra .38s cubic-bezier(.2,.8,.2,1)}
+  @keyframes hmEntra{from{opacity:0;transform:translateY(24px) scale(.98)}to{opacity:1;transform:none}}
+  #hMini .hmtopo{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+  #hMini .hmtit{min-width:0}
+  #hMini .hmtit b{display:block;font-size:15px;font-weight:800;letter-spacing:.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #hMini .hmtit small{display:block;font-size:12px;color:rgba(255,255,255,.62);margin-top:2px;font-variant-numeric:tabular-nums}
+  #hMini .hmup{flex:none;width:34px;height:34px;border-radius:50%;border:0;background:rgba(255,255,255,.10);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer}
+  #hMini .hmup svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+  #hMini .hmbarra{position:relative;height:22px;display:flex;align-items:center;touch-action:none;cursor:pointer}
+  #hMini .hmtrilho{position:relative;width:100%;height:4px;border-radius:99px;background:rgba(255,255,255,.18);overflow:visible;transition:height .15s}
+  #hMini .hmbarra:active .hmtrilho{height:6px}
+  #hMini .hmfeito{position:absolute;left:0;top:0;bottom:0;width:0;border-radius:99px;background:#fff;box-shadow:0 0 12px rgba(255,255,255,.35)}
+  #hMini .hmbola{position:absolute;top:50%;left:0;width:14px;height:14px;margin:-7px 0 0 -7px;border-radius:50%;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.4);transition:transform .15s}
+  #hMini .hmbarra:active .hmbola{transform:scale(1.25)}
+  #hMini .hmtempos{display:flex;justify-content:space-between;font-size:11px;color:rgba(255,255,255,.5);margin-top:2px;font-variant-numeric:tabular-nums}
+  #hMini .hmctl{display:grid;grid-template-columns:1fr auto auto auto 1fr;align-items:center;gap:18px;margin-top:8px}
+  #hMini .hmvelpt{justify-self:start;font-size:13px;font-weight:800;font-variant-numeric:tabular-nums;color:rgba(255,255,255,.9)}
+  #hMini .hmvelpt small{font-size:11px;font-weight:600;color:rgba(255,255,255,.5);margin-left:2px}
+  #hMini .hmpulo{width:42px;height:42px;border-radius:50%;border:0;background:transparent;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;opacity:.9}
+  #hMini .hmpulo:active{background:rgba(255,255,255,.10)}
+  #hMini .hmpulo svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  #hMini .hmpulo i{position:absolute;font-style:normal;font-size:8.5px;font-weight:800;top:50%;left:50%;transform:translate(-50%,-38%)}
+  #hMini .hmplay{width:58px;height:58px;border-radius:50%;border:0;background:#fff;color:#0b0c10;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.35);transition:transform .12s}
+  #hMini .hmplay:active{transform:scale(.94)}
+  #hMini .hmplay svg{width:26px;height:26px;fill:currentColor}
+  #hMini .hmvel{justify-self:end;height:30px;min-width:44px;padding:0 10px;border-radius:999px;border:1px solid rgba(255,255,255,.22);background:transparent;color:#fff;font:inherit;font-size:12.5px;font-weight:800;cursor:pointer}
+}
 @media (min-width:900px){.hpanel{left:16px;right:auto;margin:0;width:440px;max-width:440px;bottom:16px;border-radius:18px;border-bottom:1px solid var(--line);max-height:calc(100% - 32px)}}
 .hpanel .htop{display:flex;align-items:center;gap:8px;margin-bottom:10px}
 .hpanel .htop h3{font-size:17px;font-weight:700;flex:none}
@@ -2169,6 +2207,19 @@ nav button.on .nemo.txt{color:var(--red2)}
   </section>
 
   <!-- Histórico de rotas (10/10/2026) -->
+  <div id="hMini" aria-label="Reprodução do trajeto">
+    <div class="hmtopo"><div class="hmtit"><b id="hmNome"></b><small id="hmHora">—</small></div>
+      <button type="button" class="hmup" id="hmUp" title="Mostrar o painel do histórico" aria-label="Mostrar o painel do histórico"><svg viewBox="0 0 24 24"><path d="M6 15l6-6 6 6"/></svg></button></div>
+    <div class="hmbarra" id="hmBarra"><div class="hmtrilho"><div class="hmfeito" id="hmFeito"></div><div class="hmbola" id="hmBola"></div></div></div>
+    <div class="hmtempos"><span id="hmIni"></span><span id="hmFim"></span></div>
+    <div class="hmctl">
+      <span class="hmvelpt" id="hmVelPt">0<small>km/h</small></span>
+      <button type="button" class="hmpulo" id="hmVolta" aria-label="Voltar 2 minutos"><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.3-5.6"/><path d="M4 4v4h4"/></svg><i>2</i></button>
+      <button type="button" class="hmplay" id="hmPlay" aria-label="Reproduzir"></button>
+      <button type="button" class="hmpulo" id="hmFrente" aria-label="Avançar 2 minutos"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.3-5.6"/><path d="M20 4v4h-4"/></svg><i>2</i></button>
+      <button type="button" class="hmvel" id="hmVel">1x</button>
+    </div>
+  </div>
   <section class="hpanel" id="hpanel">
     <div class="htop"><h3>Histórico</h3><button type="button" class="hfechar" id="hFechar" title="Fechar o histórico e voltar ao mapa" aria-label="Fechar o histórico e voltar ao mapa">&times;</button></div>
     <div class="hbusca"><input type="search" id="hBusca" placeholder="🔍 Buscar veículo" autocomplete="off" data-lpignore="true" data-1p-ignore aria-label="Buscar veículo, placa ou cliente"><select id="hVeic" aria-label="Veículo"></select></div>
@@ -6200,7 +6251,7 @@ function histLimpar(){
 }
 function histSair(){
   if(!hist.on) return;
-  histLimpar(); hist.on=false;
+  histLimpar(); hist.on=false; try{ hmSair() }catch(e){}
   $('map').classList.remove('hist-on'); $('hpanel').classList.remove('show');
   document.body.classList.remove('hist-on'); $('hpanel').classList.remove('achou');
   if(hist.seguirAntes && ativo()) setSeguir(true);
@@ -6444,9 +6495,10 @@ function histPosicionar(){
   const rot=el&&el.querySelector('.hrot'); if(rot) rot.textContent=hhData(real)+' '+hhmm(real);
   $('hVelPt').innerHTML='<b>'+(f<.5?p.vel:q.vel)+' km/h</b>';
   $('hBarra').value=String(Math.round(hist.t/hist.total*1000));
+  try{ hmSync(real,f<.5?p.vel:q.vel) }catch(e){}
   if(hist.toca && !map.getBounds().pad(-0.15).contains(ll)) map.panTo(ll,{animate:true});
 }
-function histParar(){ hist.toca=false; cancelAnimationFrame(hist.raf); $('hPlay').innerHTML=ICO_PLAY; $('hPlay').setAttribute('aria-label','Reproduzir') }
+function histParar(){ hist.toca=false; cancelAnimationFrame(hist.raf); $('hPlay').innerHTML=ICO_PLAY; $('hPlay').setAttribute('aria-label','Reproduzir'); try{ $('hmPlay').innerHTML=ICO_PLAY; $('hmPlay').setAttribute('aria-label','Reproduzir') }catch(e){} }
 function histQuadro(agora){
   if(!hist.toca) return;
   const dt=Math.min(agora-(hist.ult||agora),100); hist.ult=agora;
@@ -6460,9 +6512,45 @@ $('hPlay').onclick=()=>{
   if(hist.toca){ histParar(); return }
   if(hist.t>=hist.total) hist.t=0;
   hist.toca=true; hist.ult=0; $('hPlay').innerHTML=ICO_PAUSA; $('hPlay').setAttribute('aria-label','Pausar');
+  $('hmPlay').innerHTML=ICO_PAUSA; $('hmPlay').setAttribute('aria-label','Pausar');
+  hmEntrar();
   hist.raf=requestAnimationFrame(histQuadro);
 };
-$('hVel').onclick=()=>{ hist.vel=VELS[(VELS.indexOf(hist.vel)+1)%VELS.length]; $('hVel').textContent=hist.vel+'x' };
+$('hVel').onclick=()=>{ hist.vel=VELS[(VELS.indexOf(hist.vel)+1)%VELS.length]; $('hVel').textContent=hist.vel+'x'; $('hmVel').textContent=hist.vel+'x' };
+/* ===== PLAYER EM TELA CHEIA (celular, 16/10/2026) ===== */
+function hmEntrar(){
+  if(telaLarga() || document.body.classList.contains('hist-cine')) return;
+  const sel=$('hVeic'); $('hmNome').textContent=(sel.options[sel.selectedIndex]||{}).text||'';
+  const pts=hist.pts; $('hmIni').textContent=pts.length?(hist.varios?hhData(pts[0].t)+' ':'')+hhmm(pts[0].t):''; $('hmFim').textContent=pts.length?(hist.varios?hhData(pts[pts.length-1].t)+' ':'')+hhmm(pts[pts.length-1].t):'';
+  $('hmVel').textContent=hist.vel+'x';
+  document.body.classList.add('hist-cine');
+  setTimeout(()=>{ try{ map.invalidateSize(); if(hist.marc) map.panTo(hist.marc.getLatLng(),{animate:true}) }catch(e){} },60);
+}
+function hmSair(){
+  if(!document.body.classList.contains('hist-cine')) return;
+  document.body.classList.remove('hist-cine');
+  setTimeout(()=>{ try{ map.invalidateSize() }catch(e){} },60);
+}
+function hmSync(real,vel){
+  if(!document.body.classList.contains('hist-cine')) return;
+  const pct=Math.max(0,Math.min(100,hist.t/hist.total*100));
+  $('hmFeito').style.width=pct+'%'; $('hmBola').style.left=pct+'%';
+  $('hmHora').textContent=(hist.varios?hhData(real)+' · ':'')+hhmm(real);
+  $('hmVelPt').innerHTML=vel+'<small>km/h</small>';
+}
+$('hmPlay').onclick=()=>$('hPlay').click();
+$('hmVel').onclick=()=>$('hVel').click();
+$('hmUp').onclick=()=>hmSair();
+const hmPular=ms=>{ if(!hist.pts.length) return; hist.t=Math.max(0,Math.min(hist.total,hist.t+ms)); histPosicionar() };
+$('hmVolta').onclick=()=>hmPular(-120000);
+$('hmFrente').onclick=()=>hmPular(120000);
+(function(){ /* arrastar na barra do tempo */
+  const bar=$('hmBarra'); let on=false;
+  const ir=e=>{ const r=bar.getBoundingClientRect(); const f=Math.max(0,Math.min(1,(e.clientX-r.left)/r.width)); hist.t=f*hist.total; histPosicionar() };
+  bar.addEventListener('pointerdown',e=>{ if(!hist.pts.length) return; on=true; try{bar.setPointerCapture(e.pointerId)}catch(_){} ir(e) });
+  bar.addEventListener('pointermove',e=>{ if(on) ir(e) });
+  const fim=()=>{ on=false }; bar.addEventListener('pointerup',fim); bar.addEventListener('pointercancel',fim);
+})();
 $('hBarra').addEventListener('input',()=>{ if(!hist.pts.length) return; hist.t=(+$('hBarra').value/1000)*hist.total; histPosicionar() });
 
 /* ===== SERVIDOR DE FATURAS (Firebase) ===== */
