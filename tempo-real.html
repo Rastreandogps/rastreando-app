@@ -806,6 +806,15 @@ body.hist-on #mapCar{display:none!important}
   .ladoit{display:grid;grid-template-columns:22px minmax(0,1fr) auto;align-items:center;gap:10px;padding:9px 12px;border-bottom:1px solid var(--line);cursor:pointer;
     content-visibility:auto;contain-intrinsic-size:auto 50px;contain:layout paint}
   .ladoit:hover{background:var(--card2)}
+  .ladoit.adm{grid-template-columns:22px minmax(0,1fr) auto 26px}
+  .ladomais{width:26px;height:30px;border:0;background:transparent;color:var(--mut);font-size:20px;font-weight:900;line-height:1;border-radius:8px;cursor:pointer;padding:0}
+  .ladomais:hover{background:var(--card2);color:var(--txt)}
+  .ladomenu{position:fixed;z-index:3000;min-width:210px;background:var(--card);color:var(--txt);border:1px solid var(--line);border-radius:12px;box-shadow:0 12px 32px rgba(0,0,0,.35);padding:6px}
+  .ladomenu .lmtit{font-size:11.5px;font-weight:700;color:var(--mut);padding:6px 10px 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:260px}
+  .ladomenu .lmit{display:flex;align-items:center;gap:8px;width:100%;border:0;background:transparent;color:inherit;font:inherit;font-size:13.5px;font-weight:600;padding:9px 10px;border-radius:8px;cursor:pointer;text-align:left}
+  .ladomenu .lmit:hover{background:var(--card2)}
+  .ladomenu .lmit.perigo{color:#ef4444}
+  .ladomenu .lmit svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
   .ladoit.on{background:rgba(56,225,230,.09);box-shadow:inset 3px 0 0 var(--cyan)}
   .ladock{position:relative;width:18px;height:18px;display:flex;align-items:center;justify-content:center;cursor:pointer}
   .ladock input{position:absolute;opacity:0;width:0;height:0}
@@ -4443,10 +4452,11 @@ function ladoDesenhar(){
   const lista=ladoBase();
   el.innerHTML = lista.map(v=>{
     const e=ladoEst(v);
-    return '<div class="ladoit'+(v.id===selId?' on':'')+'" data-id="'+v.id+'">'+
+    return '<div class="ladoit'+(v.id===selId?' on':'')+(ehAdmin?' adm':'')+'" data-id="'+v.id+'">'+
       '<label class="ladock" title="Mostrar ou esconder no mapa"><input type="checkbox"'+(v.visivel?' checked':'')+' aria-label="Mostrar '+esc(v.nome)+' no mapa"><span></span></label>'+
       '<button type="button" class="ladonm"><b>'+esc(v.nome)+'</b>'+(v.placa?'<small>'+esc(v.placa)+'</small>':'')+'</button>'+
-      '<span class="ladost '+e[0]+'"><em>'+esc(e[1])+'</em>'+(e[2]?'<small>'+esc(e[2])+'</small>':'')+'</span></div>';
+      '<span class="ladost '+e[0]+'"><em>'+esc(e[1])+'</em>'+(e[2]?'<small>'+esc(e[2])+'</small>':'')+'</span>'+
+      (ehAdmin?'<button type="button" class="ladomais" aria-label="Mais opções de '+esc(v.nome)+'" title="Mais opções">⋮</button>':'')+'</div>'; /* 17/10/2026: menu de 3 pontinhos (administrador) */
   }).join('') || '<div class="ladovz">Nenhum veículo'+(ladoFiltro!=='todos'||$('ladoBusca').value?' com esse filtro.':'.')+'</div>';
   ladoAssin = lista.map(v=>v.id).join(',')+'|'+ladoFiltro;
   ladoCabecalho(lista);
@@ -4523,7 +4533,38 @@ $('ladoLista').addEventListener('change',e=>{
   sincronizarChecks(); mudouSelecao(); try{ sincronizarPick() }catch(_){} ladoCabecalho();
   r._k='';
 });
+/* 17/10/2026 (pedido do dono): 3 pontinhos no fim da linha — por enquanto só "Excluir equipamento" (mais opções depois) */
+function ladoMenuFechar(){ const m=document.getElementById('ladoMenu'); if(m) m.remove() }
+function ladoMenuAbrir(btn,v){
+  ladoMenuFechar();
+  const m=document.createElement('div'); m.id='ladoMenu'; m.className='ladomenu'; m.setAttribute('role','menu');
+  m.innerHTML='<div class="lmtit">'+esc(v.nome)+'</div>'+
+    '<button type="button" class="lmit perigo" data-lm="excluir" role="menuitem"><svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg>Excluir equipamento</button>';
+  document.body.appendChild(m);
+  const r=btn.getBoundingClientRect(), w=m.offsetWidth, h=m.offsetHeight;
+  m.style.left=Math.max(8,Math.min(innerWidth-w-8,r.right-w))+'px';
+  m.style.top=(r.bottom+h+8>innerHeight? Math.max(8,r.top-h-4) : r.bottom+4)+'px';
+  m.addEventListener('click',ev=>{
+    const it=ev.target.closest('[data-lm]'); if(!it) return;
+    ladoMenuFechar();
+    if(it.dataset.lm==='excluir') ladoExcluirEquip(v);
+  });
+}
+function ladoExcluirEquip(v){
+  pedirConfirmacao('Excluir este equipamento?','Excluir "'+v.nome+'" (IMEI '+v.imei+')? Ele sai do sistema e da conta de todos os clientes, e o histórico de posições dele também é apagado. Não dá para desfazer.','Excluir',async ()=>{
+    const r=await api('/api/devices/'+v.id,{method:'DELETE'});
+    if(!r.ok && r.status!==204) throw new Error(await msgErro(r,'Não foi possível excluir o equipamento'));
+    if(selId===v.id) selId=null;
+    try{ delete abertosEq[v.id] }catch(e){} vinculos={}; buscando=false; await buscarSeguro(); try{ ladoDesenhar() }catch(e){} try{ desenharAdmin() }catch(e){} try{ carregarVinculos() }catch(e){} try{ atualizar() }catch(e){}
+    toast('Equipamento excluído.');
+  },{perigo:true});
+}
+document.addEventListener('click',e=>{ if(!e.target.closest('#ladoMenu') && !e.target.closest('.ladomais')) ladoMenuFechar() },true);
+window.addEventListener('resize',ladoMenuFechar);
+$('ladoLista').addEventListener('scroll',ladoMenuFechar,{passive:true});
 $('ladoLista').addEventListener('click',e=>{
+  const mb=e.target.closest('.ladomais');
+  if(mb){ e.stopPropagation(); const r=mb.closest('.ladoit'), v=r&&veiculos.find(x=>x.id===+r.dataset.id); if(v){ if(document.getElementById('ladoMenu')) ladoMenuFechar(); else ladoMenuAbrir(mb,v) } return }
   if(e.target.closest('.ladock')) return; /* a caixinha só mostra/esconde no mapa */
   const b=e.target.closest('.ladoit'); if(!b) return;
   const v=veiculos.find(x=>x.id===+b.dataset.id); if(!v) return;
