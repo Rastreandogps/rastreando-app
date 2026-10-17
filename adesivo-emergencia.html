@@ -114,7 +114,7 @@ textarea{resize:vertical;min-height:80px}
 @media (prefers-reduced-motion:reduce){*{transition:none !important;animation:none !important}}
 </style>
 <style>
-/* 17/10/2026: pedido do adesivo de emergência (NFC) — 2 por cliente, grátis; o frete é combinado pelo WhatsApp */
+/* 17/10/2026: pedido do adesivo de emergência (NFC) — 2 por cliente, grátis; entrega calculada pela distância e paga por PIX (17/10, 09h) */
 .brinde{display:flex;gap:14px;align-items:center}
 .brinde .ic{flex:none;width:52px;height:52px;border-radius:14px;background:#EEF3FB;color:var(--navy);display:flex;align-items:center;justify-content:center}
 .brinde .ic svg{width:28px;height:28px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
@@ -126,6 +126,13 @@ textarea{resize:vertical;min-height:80px}
 .ped .st.enviado,.ped .st.entregue{background:var(--green-dim);color:#006B4B}
 .btn-wpp{background:#25D366;color:#fff;text-decoration:none}
 .btn-wpp svg{width:20px;height:20px;fill:currentColor}
+.frete-val{font-family:var(--font-display);font-size:1.9rem;font-weight:800;color:var(--navy);text-align:center;margin:4px 0}
+.frete-det{text-align:center;font-size:.84rem;color:var(--text-3);line-height:1.5}
+.pixbox{text-align:center}
+.pixbox img{width:220px;max-width:100%;border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px;background:#fff;margin:6px auto 10px;display:block}
+.pixbox textarea{font-size:.78rem;min-height:74px;color:var(--text-2);word-break:break-all;margin-bottom:8px}
+.aguarda{display:flex;align-items:center;justify-content:center;gap:8px;font-size:.85rem;color:var(--text-3);margin-top:12px}
+.aguarda .spin{border-color:rgba(36,81,160,.25);border-top-color:var(--navy-light)}
 </style>
 </head>
 <body>
@@ -142,13 +149,14 @@ textarea{resize:vertical;min-height:80px}
   <div class="passos" aria-hidden="true">
     <div class="passo" data-p="1"><div class="bola">1</div>Identificação</div>
     <div class="passo" data-p="2"><div class="bola">2</div>Entrega</div>
-    <div class="passo" data-p="3"><div class="bola">3</div>Pronto</div>
+    <div class="passo" data-p="3"><div class="bola">3</div>Pagamento</div>
+    <div class="passo" data-p="4"><div class="bola">4</div>Pronto</div>
   </div>
 
   <!-- 1. CPF -->
   <section id="tela-cpf" class="tela ativa">
     <h1>Seu adesivo de emergência</h1>
-    <p class="lead">Encoste o celular no adesivo e o app de rastreamento abre na hora, mesmo no celular de outra pessoa. Ideal para um momento de roubo. <b>Cada cliente ganha 2 adesivos.</b> Você paga só o envio.</p>
+    <p class="lead">Encoste o celular no adesivo e o app de rastreamento abre na hora, mesmo no celular de outra pessoa. Ideal para um momento de roubo. <b>Cada cliente ganha 2 adesivos.</b> Você paga só a entrega, calculada pela distância.</p>
     <div class="card">
       <form id="form-cpf" novalidate>
         <div class="field">
@@ -174,7 +182,7 @@ textarea{resize:vertical;min-height:80px}
   <section id="tela-entrega" class="tela">
     <h1 id="ola">Olá</h1>
     <div class="card"><div class="brinde"><div class="ic"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="3"/><path d="M9 9a4 4 0 0 1 0 6M12 7a7 7 0 0 1 0 10"/></svg></div>
-      <div><b>Adesivo de emergência (NFC)</b><p id="brinde-txt">Grátis para clientes. Você paga só o envio, combinado pelo WhatsApp depois do pedido.</p></div></div></div>
+      <div><b>Adesivo de emergência (NFC)</b><p id="brinde-txt">Grátis para clientes. Você paga só a entrega, calculada pela distância até o seu endereço.</p></div></div></div>
     <div class="card" id="card-pedidos" hidden><div class="card-titulo">Seus pedidos</div><div id="lista-pedidos"></div></div>
     <div class="card" id="card-form">
       <div class="card-titulo">Quantos adesivos?</div>
@@ -194,14 +202,32 @@ textarea{resize:vertical;min-height:80px}
         <div class="field"><label for="cidade">Cidade</label><input type="text" id="cidade" maxlength="80" autocomplete="address-level2"></div>
       </div>
       <div class="field"><label for="recebe">Quem vai receber</label><input type="text" id="recebe" maxlength="80" autocomplete="name"></div>
-      <div class="field"><label for="wpp">WhatsApp para combinar o envio</label><input type="tel" id="wpp" inputmode="numeric" maxlength="16" placeholder="(21) 99999-9999" autocomplete="tel"></div>
+      <div class="field"><label for="wpp">WhatsApp de quem recebe</label><input type="tel" id="wpp" inputmode="numeric" maxlength="16" placeholder="(21) 99999-9999" autocomplete="tel"></div>
       <div class="erro-txt" id="form-erro"></div>
-      <button type="button" class="btn btn-ok" id="btn-pedir" style="margin-top:6px">Pedir meus adesivos</button>
+      <button type="button" class="btn btn-pri" id="btn-frete" style="margin-top:6px">Calcular a entrega</button>
+    </div>
+    <div class="card" id="card-frete" hidden>
+      <div class="card-titulo">Entrega</div>
+      <div id="frete-corpo"></div>
     </div>
     <button type="button" class="btn-link" data-recomecar style="display:block;margin:10px auto 0">Consultar outro CPF</button>
   </section>
 
-  <!-- 3. PRONTO -->
+  <!-- 3. PIX -->
+  <section id="tela-pix" class="tela">
+    <h1>Pague a entrega com PIX</h1>
+    <p class="lead">Escaneie o QR Code ou use o PIX copia e cola no app do seu banco. Assim que o pagamento cair, o seu pedido segue para a entrega.</p>
+    <div class="card pixbox">
+      <div class="muted">Valor da entrega</div>
+      <div class="frete-val" id="pix-valor"></div>
+      <div id="pix-box"></div>
+      <div class="aguarda" id="pix-aguarda"><span class="spin"></span>Aguardando o pagamento...</div>
+    </div>
+    <button type="button" class="btn btn-ok" id="btn-ja-paguei">Já paguei</button>
+    <p class="muted" style="text-align:center;margin-top:10px">O PIX vale até amanhã. Se não for pago, o pedido é cancelado sozinho.</p>
+  </section>
+
+  <!-- 4. PRONTO -->
   <section id="tela-ok" class="tela">
     <div class="check-grande"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
     <h1 style="text-align:center">Pedido recebido!</h1>
@@ -225,7 +251,7 @@ textarea{resize:vertical;min-height:80px}
   var _t;
   function toast(msg, tipo) { var t = $('toast'); t.textContent = msg; t.className = 'mostrar ' + (tipo || ''); clearTimeout(_t); _t = setTimeout(function () { t.className = ''; }, 5200); }
   function mostrar(tela, passo) {
-    ['tela-cpf', 'tela-vencido', 'tela-entrega', 'tela-ok'].forEach(function (id) { $(id).classList.toggle('ativa', id === tela); });
+    ['tela-cpf', 'tela-vencido', 'tela-entrega', 'tela-pix', 'tela-ok'].forEach(function (id) { $(id).classList.toggle('ativa', id === tela); });
     document.querySelectorAll('.passo').forEach(function (el) { var p = +el.dataset.p; el.classList.toggle('atual', p === passo); el.classList.toggle('feito', p < passo); });
     window.scrollTo(0, 0);
   }
@@ -252,7 +278,7 @@ textarea{resize:vertical;min-height:80px}
   function cnpjValido(c) { if (!/^\d{14}$/.test(c) || /^(\d)\1+$/.test(c)) return false;
     function calc(n) { var p = n === 12 ? [5,4,3,2,9,8,7,6,5,4,3,2] : [6,5,4,3,2,9,8,7,6,5,4,3,2]; var s = 0; for (var i = 0; i < n; i++) s += Number(c[i]) * p[i]; var r = s % 11; return r < 2 ? 0 : 11 - r; }
     return calc(12) === Number(c[12]) && calc(13) === Number(c[13]); }
-  function recomecar() { S = { sessao: null, r: null, qtd: 2 }; $('cpf').value = ''; $('cpf-erro').textContent = ''; mostrar('tela-cpf', 1); }
+  function recomecar() { pixParar(); S = { sessao: null, r: null, qtd: 2 }; $('card-frete').hidden = true; $('cpf').value = ''; $('cpf-erro').textContent = ''; mostrar('tela-cpf', 1); }
   document.querySelectorAll('[data-recomecar]').forEach(function (b) { b.addEventListener('click', recomecar); });
 
   $('cpf').addEventListener('input', function () {
@@ -280,7 +306,7 @@ textarea{resize:vertical;min-height:80px}
     finally { carregando(btn, false); }
   });
 
-  var NOME_ST = { novo: 'Recebido', frete: 'Frete combinado', enviado: 'Enviado', entregue: 'Entregue', cancelado: 'Cancelado' };
+  var NOME_ST = { aguardando: 'Aguardando PIX', novo: 'Pago · aguardando entrega', frete: 'Frete combinado', enviado: 'Enviado', entregue: 'Entregue', cancelado: 'Cancelado' };
   function montarEntrega() {
     var r = S.r;
     $('ola').textContent = 'Olá, ' + (r.nome || 'cliente');
@@ -297,7 +323,7 @@ textarea{resize:vertical;min-height:80px}
       return;
     }
     $('card-form').hidden = false;
-    $('brinde-txt').textContent = r.restante === 1 && peds.length ? 'Você ainda pode pedir 1 adesivo. Grátis: você paga só o envio, combinado pelo WhatsApp.' : 'Grátis para clientes: até 2 adesivos. Você paga só o envio, combinado pelo WhatsApp depois do pedido.';
+    $('brinde-txt').textContent = r.restante === 1 && peds.length ? 'Você ainda pode pedir 1 adesivo. Grátis: você paga só a entrega, calculada pela distância.' : 'Grátis para clientes: até 2 adesivos. Você paga só a entrega, calculada pela distância até o seu endereço.';
     S.qtd = Math.min(2, r.restante);
     var b2 = document.querySelector('#seg-qtd [data-q="2"]'); b2.disabled = r.restante < 2;
     pintarQtd();
@@ -322,27 +348,99 @@ textarea{resize:vertical;min-height:80px}
     this.value = d.length > 10 ? '(' + d.slice(0, 2) + ') ' + d.slice(2, 7) + '-' + d.slice(7) : d.length > 6 ? '(' + d.slice(0, 2) + ') ' + d.slice(2, 6) + '-' + d.slice(6) : d.length > 2 ? '(' + d.slice(0, 2) + ') ' + d.slice(2) : d;
   });
 
-  $('btn-pedir').addEventListener('click', async function () {
-    var e = { cep: soDig($('cep').value), rua: $('rua').value.trim(), numero: $('numero').value.trim(), complemento: $('comp').value.trim(), bairro: $('bairro').value.trim(), cidade: $('cidade').value.trim(), uf: $('uf').value.trim().toUpperCase() };
-    var recebe = $('recebe').value.trim(), wpp = soDig($('wpp').value), erro = '';
+  function lerEndereco() {
+    return { cep: soDig($('cep').value), rua: $('rua').value.trim(), numero: $('numero').value.trim(), complemento: $('comp').value.trim(), bairro: $('bairro').value.trim(), cidade: $('cidade').value.trim(), uf: $('uf').value.trim().toUpperCase() };
+  }
+  function conferirForm() {
+    var e = lerEndereco(), recebe = $('recebe').value.trim(), wpp = soDig($('wpp').value), erro = '';
     if (e.cep.length !== 8) erro = 'Informe o CEP.';
     else if (e.rua.length < 3 || !e.numero || e.bairro.length < 2 || e.cidade.length < 2 || !/^[A-Z]{2}$/.test(e.uf)) erro = 'Preencha rua, número, bairro, cidade e UF.';
     else if (recebe.length < 3) erro = 'Informe o nome de quem vai receber.';
     else if (!(wpp.length === 10 || wpp.length === 11)) erro = 'Informe um WhatsApp com DDD.';
-    $('form-erro').textContent = erro; if (erro) return;
-    var btn = this; carregando(btn, true, 'Enviando pedido...');
+    $('form-erro').textContent = erro;
+    return erro ? null : { e: e, recebe: recebe, wpp: wpp };
+  }
+  function brl(v) { return Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); }
+  function km(v) { return Number(v || 0).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + ' km'; }
+  /* mexeu no endereço depois de calcular: precisa calcular de novo */
+  ['cep', 'rua', 'numero', 'bairro', 'cidade', 'uf'].forEach(function (id) { $(id).addEventListener('input', function () { if (!$('card-frete').hidden) { $('card-frete').hidden = true; S.frete = null; } }); });
+  var WPP_SVG = $('ok-wpp').querySelector('svg').outerHTML;
+  $('btn-frete').addEventListener('click', async function () {
+    var f = conferirForm(); if (!f) return;
+    var btn = this; carregando(btn, true, 'Calculando a entrega...');
     try {
-      var r = await chamar('nfcPedir', { sessao: S.sessao, qtd: S.qtd, endereco: e, recebe: recebe, whatsapp: wpp });
-      $('ok-prot').textContent = r.protocolo;
-      $('ok-txt').textContent = 'Recebemos o seu pedido de ' + r.qtd + (r.qtd === 1 ? ' adesivo' : ' adesivos') + '. Agora é só combinar o envio com a gente pelo WhatsApp.';
-      var msg = 'Olá! Fiz o pedido do adesivo de emergência (' + r.protocolo + ', ' + r.qtd + (r.qtd === 1 ? ' adesivo' : ' adesivos') + ') e quero combinar o envio para ' + e.cidade + '/' + e.uf + '.';
-      $('ok-wpp').href = 'https://wa.me/' + WPP + '?text=' + encodeURIComponent(msg);
-      mostrar('tela-ok', 3);
+      var r = await chamar('nfcFrete', { sessao: S.sessao, endereco: f.e });
+      S.frete = r; S.form = f;
+      var corpo = '';
+      if (r.foraArea) {
+        corpo = '<div class="aviso ambar"><b>Fora da área de entrega</b>O seu endereço fica a ' + km(r.kmIda) + ' da nossa base. Entregamos até ' + r.maxKm + ' km. Fale com a gente pelo WhatsApp que a gente combina o envio.</div>' +
+          '<button type="button" class="btn btn-wpp" id="btn-pedir-wpp">' + WPP_SVG + 'Pedir e combinar pelo WhatsApp</button>';
+      } else if (r.semCalculo) {
+        corpo = '<div class="aviso azul"><b>Não consegui calcular a entrega agora</b>Faça o pedido e a gente combina o valor da entrega com você pelo WhatsApp.</div>' +
+          '<button type="button" class="btn btn-wpp" id="btn-pedir-wpp">' + WPP_SVG + 'Pedir e combinar pelo WhatsApp</button>';
+      } else {
+        corpo = '<div class="frete-val">' + brl(r.valor) + '</div>' +
+          '<div class="frete-det">' + km(r.kmIda) + ' até você · ' + km(r.kmTotal) + ' ida e volta<br>' + brl(r.fixo) + ' + ' + km(r.kmTotal) + ' × ' + brl(r.porKm) + (r.aprox ? '<br>Distância aproximada pelo seu bairro/CEP.' : '') + '</div>' +
+          '<button type="button" class="btn btn-ok" id="btn-gerar-pix" style="margin-top:14px">Gerar PIX de ' + brl(r.valor) + '</button>';
+      }
+      $('frete-corpo').innerHTML = corpo; $('card-frete').hidden = false;
+      setTimeout(function () { $('card-frete').scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 50);
     } catch (er) {
-      $('form-erro').textContent = er.message || 'Não foi possível enviar.';
+      $('form-erro').textContent = er.message || 'Não foi possível calcular.';
       if (/Sessão expirada|Sessão inválida/.test(er.message || '')) setTimeout(recomecar, 2500);
     } finally { carregando(btn, false); }
   });
+  $('frete-corpo').addEventListener('click', function (ev) {
+    var b = ev.target.closest('button'); if (!b) return;
+    if (b.id === 'btn-gerar-pix') pedir('pix', b);
+    if (b.id === 'btn-pedir-wpp') pedir('whatsapp', b);
+  });
+  async function pedir(modo, btn) {
+    var f = conferirForm(); if (!f) return;
+    carregando(btn, true, modo === 'pix' ? 'Gerando o PIX...' : 'Enviando pedido...');
+    try {
+      var r = await chamar('nfcPedir', { sessao: S.sessao, modo: modo, qtd: S.qtd, endereco: f.e, recebe: f.recebe, whatsapp: f.wpp });
+      S.protocolo = r.protocolo; S.qtdPedida = r.qtd; S.cidade = f.e.cidade + '/' + f.e.uf;
+      if (r.pix) {
+        $('pix-valor').textContent = brl(r.pix.valor);
+        var img = /^[A-Za-z0-9+/=]+$/.test(r.pix.imagem || '') ? '<img alt="QR Code PIX" src="data:image/png;base64,' + r.pix.imagem + '">' : '';
+        $('pix-box').innerHTML = img + '<textarea readonly id="cc">' + esc(r.pix.copiaCola) + '</textarea><button type="button" class="btn btn-sec" id="copiar">Copiar código PIX</button>';
+        $('copiar').addEventListener('click', function () { var ta = $('cc'); try { navigator.clipboard.writeText(ta.value).then(function () { toast('Código PIX copiado. Cole no app do seu banco.', 'ok'); }); } catch (e) { ta.select(); document.execCommand('copy'); toast('Código PIX copiado.', 'ok'); } });
+        mostrar('tela-pix', 3); pixVigiar();
+      } else { pronto(false); }
+    } catch (er) {
+      $('form-erro').textContent = er.message || 'Não foi possível enviar.';
+      toast(er.message || 'Não foi possível enviar.', 'erro');
+      if (/Sessão expirada|Sessão inválida/.test(er.message || '')) setTimeout(recomecar, 2500);
+    } finally { carregando(btn, false); }
+  }
+  var pixT = null;
+  function pixParar() { clearInterval(pixT); pixT = null; }
+  function pixVigiar() { pixParar(); var n = 0; pixT = setInterval(function () { if (++n > 180) { pixParar(); $('pix-aguarda').textContent = 'Já pagou? Toque em "Já paguei".'; return; } conferir(false); }, 5000); }
+  async function conferir(manual) {
+    try {
+      var r = await chamar('nfcStatus', { sessao: S.sessao, protocolo: S.protocolo });
+      if (r.status === 'novo' || r.status === 'enviado' || r.status === 'entregue') { pixParar(); pronto(true); }
+      else if (manual) toast('Ainda não identificamos o pagamento. Tente de novo em 1 minuto.', 'aviso');
+    } catch (e) { if (manual) toast(e.message || 'Não consegui conferir agora.', 'erro'); }
+  }
+  $('btn-ja-paguei').addEventListener('click', async function () { var b = this; carregando(b, true, 'Conferindo...'); await conferir(true); carregando(b, false); });
+  function pronto(pago) {
+    $('ok-prot').textContent = S.protocolo;
+    var q = S.qtdPedida + (S.qtdPedida === 1 ? ' adesivo' : ' adesivos');
+    if (pago) {
+      document.querySelector('#tela-ok h1').textContent = 'Pagamento confirmado!';
+      $('ok-txt').textContent = 'Recebemos o seu pedido de ' + q + '. A gente vai entregar no endereço informado e avisar pelo WhatsApp quando sair para entrega.';
+      $('ok-wpp').innerHTML = WPP_SVG + 'Falar com a gente pelo WhatsApp';
+      $('ok-wpp').href = 'https://wa.me/' + WPP + '?text=' + encodeURIComponent('Olá! Paguei a entrega do adesivo de emergência (' + S.protocolo + ').');
+    } else {
+      document.querySelector('#tela-ok h1').textContent = 'Pedido recebido!';
+      $('ok-txt').textContent = 'Recebemos o seu pedido de ' + q + '. Agora é só combinar a entrega com a gente pelo WhatsApp.';
+      $('ok-wpp').innerHTML = WPP_SVG + 'Combinar a entrega pelo WhatsApp';
+      $('ok-wpp').href = 'https://wa.me/' + WPP + '?text=' + encodeURIComponent('Olá! Fiz o pedido do adesivo de emergência (' + S.protocolo + ', ' + q + ') e quero combinar a entrega para ' + S.cidade + '.');
+    }
+    mostrar('tela-ok', 4);
+  }
   mostrar('tela-cpf', 1);
 })();
 </script>
