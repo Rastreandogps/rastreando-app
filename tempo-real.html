@@ -1860,6 +1860,17 @@ nav button.on .nemo.txt{color:var(--red2)}
 #aview .ameta{font-size:12.5px;color:var(--mut);margin:10px 2px 0}
 #aview .afiltros{display:flex;align-items:center;gap:8px;margin:10px 0 2px;min-width:0}
 #aview .afiltros[hidden]{display:none}
+#aFiltrosEq{flex-wrap:wrap}
+#aview .eqbar{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:6px;flex-basis:100%;width:100%}
+#aview .eqbar b{font-size:13px;margin-right:4px;color:var(--txt)}
+#aview .eqb{height:32px;border:1px solid var(--line);background:var(--card);border-radius:999px;padding:0 12px;font:inherit;font-size:12.5px;font-weight:700;cursor:pointer;color:var(--txt)}
+#aview .eqb.perigo{background:#ef4444;border-color:#ef4444;color:#fff}
+#aview .eqb[disabled]{opacity:.45;cursor:default}
+#aview .eqbar.fora .eqb{background:transparent;color:var(--mut);font-weight:600;border-style:dashed}
+#aList.eqsel details.eq > summary{cursor:pointer}
+#aList.eqsel details.eq .eacoes, #aList.eqsel details.eq .seta{visibility:hidden}
+#aList .eqck{flex:none;width:24px;height:24px;border-radius:7px;border:2px solid #cbd5e1;background:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:900;color:#fff;margin-right:10px;align-self:center}
+#aList .eqck.on{background:#ef4444;border-color:#ef4444}
 #aview .fchips{display:flex;gap:6px;overflow-x:auto;min-width:0;flex:1;padding:2px 2px 4px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 #aview .fchips::-webkit-scrollbar{display:none}
 #aview .fchip,#aview .fordem{flex:none;display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--txt);font:inherit;font-size:12.5px;font-weight:600;cursor:pointer;white-space:nowrap}
@@ -7051,6 +7062,7 @@ function rotuloCliente(v){
   return '';
 }
 let abertosEq={};
+let selEq=null, eqListaAtual=[]; /* 17/10/2026: excluir em massa — null = fora do modo seleção; {id:true} = marcados */
 /* cartão de equipamento: fechado mostra nome, chip e cliente; aberto mostra os comandos. Copiar, lápis e lixeira sempre visíveis. */
 /* data de cadastro do equipamento (11/10/2026): o Traccar não guarda, então o app grava em attributes.cadastradoEm
    ao cadastrar (um por um ou importação). Equipamentos cadastrados antes disso ficam sem data. */
@@ -7125,7 +7137,15 @@ function desenharFiltrosEq(base){
   const chips=FILTROS_EQ.map(f=>{ const n=base.filter(f.ok).length;
     return '<button type="button" class="fchip'+(f.id===filtroEq?' on':'')+(f.alerta&&n>0?' alerta':'')+'" data-fe="'+f.id+'">'+esc(f.t)+' <span>'+n+'</span></button>' }).join('');
   const sl=box.querySelector('.fchips'), x=sl?sl.scrollLeft:0;
-  box.innerHTML='<div class="fchips">'+chips+'</div>';
+  /* 17/10/2026 (pedido do dono): excluir equipamentos em massa */
+  const nSel=Object.keys(selEq||{}).length;
+  box.innerHTML='<div class="fchips">'+chips+'</div>'+
+    (selEq ? '<div class="eqbar"><b>'+nSel+(nSel===1?' selecionado':' selecionados')+'</b>'+
+      '<button type="button" class="eqb" data-eqm="todos">Marcar todos deste filtro</button>'+
+      '<button type="button" class="eqb" data-eqm="nenhum">Desmarcar</button>'+
+      '<button type="button" class="eqb perigo" data-eqm="excluir"'+(nSel?'':' disabled')+'>Excluir '+(nSel||'')+'</button>'+
+      '<button type="button" class="eqb" data-eqm="sair">Cancelar</button></div>'
+    : '<div class="eqbar fora"><button type="button" class="eqb" data-eqm="entrar">☑ Selecionar para excluir em massa</button></div>');
   const novo=box.querySelector('.fchips'); if(novo) novo.scrollLeft=x;
 }
 function desenharEquip(){
@@ -7134,8 +7154,37 @@ function desenharEquip(){
   assinaturaEq=lista.map(v=>v.id).join(',');
   desenharFiltrosEq(base);
   $('aCount').textContent=((q||filtroEq!=='todos')?lista.length+' de ':'')+veiculos.length+' equipamentos';
-  $('aList').innerHTML = lista.map(v=>cartaoEquip(v,null)).join('') || '<div class="vempty">'+(filtroEq!=='todos'?'Nenhum equipamento neste filtro.':'Nenhum equipamento encontrado.')+'</div>';
+  eqListaAtual=lista.map(v=>v.id);
+  $('aList').classList.toggle('eqsel',!!selEq);
+  $('aList').innerHTML = lista.map(v=>{ const h=cartaoEquip(v,null); return selEq ? h.replace('<div class="etopo">','<div class="etopo"><span class="eqck'+(selEq[v.id]?' on':'')+'" aria-hidden="true">'+(selEq[v.id]?'✓':'')+'</span>') : h }).join('') || '<div class="vempty">'+(filtroEq!=='todos'?'Nenhum equipamento neste filtro.':'Nenhum equipamento encontrado.')+'</div>';
 }
+$('aFiltrosEq').addEventListener('click',e=>{
+  const m=e.target.closest('[data-eqm]'); if(!m) return;
+  const a=m.dataset.eqm;
+  if(a==='entrar'){ selEq={}; abertosEq={}; desenharEquip(); return }
+  if(a==='sair'){ selEq=null; desenharEquip(); return }
+  if(a==='todos'){ eqListaAtual.forEach(id=>selEq[id]=true); desenharEquip(); return }
+  if(a==='nenhum'){ selEq={}; desenharEquip(); return }
+  if(a==='excluir'){
+    const ids=Object.keys(selEq).map(Number), vs=ids.map(id=>veiculos.find(x=>x.id===id)).filter(Boolean);
+    if(!vs.length) return;
+    const comCli=vs.filter(v=>clientesDoEquip(v).length||v.contato).length;
+    const nomes=vs.slice(0,8).map(v=>v.nome).join(', ')+(vs.length>8?' e mais '+(vs.length-8):'');
+    pedirConfirmacao('Excluir '+vs.length+(vs.length===1?' equipamento?':' equipamentos?'),
+      'Vão sair do sistema: '+nomes+'.'+(comCli?' Atenção: '+comCli+(comCli===1?' deles está':' deles estão')+' na conta de algum cliente.':'')+' O histórico de posições também é apagado. Não dá para desfazer.',
+      'Excluir '+vs.length, async ()=>{
+        let ok=0, falhas=[];
+        for(const v of vs){
+          $('confOk').textContent='Excluindo '+(ok+falhas.length+1)+' de '+vs.length+'...';
+          try{ const r=await api('/api/devices/'+v.id,{method:'DELETE'}); if(r.ok||r.status===204){ ok++; delete abertosEq[v.id] } else falhas.push(v.nome) }
+          catch(er){ if(er.sessao) throw er; falhas.push(v.nome) }
+        }
+        selEq=null; vinculos={}; buscando=false; await buscarSeguro(); desenharAdmin(); carregarVinculos();
+        toast(ok+(ok===1?' equipamento excluído':' equipamentos excluídos')+(falhas.length?'. Não consegui: '+falhas.join(', '):'.'));
+      },{perigo:true});
+    return;
+  }
+});
 $('aFiltrosEq').addEventListener('click',e=>{ const c=e.target.closest('[data-fe]'); if(!c) return; filtroEq=c.dataset.fe; try{localStorage.setItem('rg_eq_filtro',filtroEq)}catch(er){} desenharEquip() });
 let vinculos={}, abertos={};
 function aparelhosDe(u){
@@ -7302,6 +7351,7 @@ function copiar(txt){
   return Promise.resolve();
 }
 $('aList').addEventListener('click',e=>{
+  if(selEq && abaAdmin==='equip'){ const d=e.target.closest('details.eq[data-id]'); if(d){ e.preventDefault(); e.stopPropagation(); const id=+d.dataset.id; if(selEq[id]) delete selEq[id]; else selEq[id]=true; desenharEquip(); return } }
   const b=e.target.closest('[data-a]'); if(!b) return;
   if(b.dataset.a==='chipsel' && !b.closest('details.cli.selmode')) return; // fora do modo seleção, tocar no veículo abre o cartão como antes
   if(b.closest('summary')) e.preventDefault(); // lápis e lixeira não abrem/fecham o cartão
