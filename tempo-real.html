@@ -4084,7 +4084,7 @@ function mesclar(ds,ps){
       guardarUltimos(v,p,a);
       if(!ehTag(d) && String((d.attributes&&d.attributes.tipoAparelho)||'')!=='rastreador') v.tag = assinaturaTag(v,a); /* 16/10/2026 (revisão: reavalia sempre, para voltar a rastreador quando a voltagem aparecer) */
       if(posZero(p)){ /* 16/10/2026: posição 0,0 = sem GPS; não move o veículo (bateria, ignição e bloqueio continuam valendo) */
-        v.bloqDoRastreador = typeof a.blocked==='boolean';
+        v.bloqDoRastreador = typeof a.blocked==='boolean'; bloqLembrar(v,a);
         v.bloq = typeof a.blocked==='boolean' ? a.blocked : lsGet('rg_bloq_'+v.id)==='1';
         v.vel = 0;
         if(!v.pos && !v.zeroBuscou){ v.zeroBuscou=true; posBoaAnterior(v) } /* app acabou de abrir: busca a última posição boa */
@@ -4102,6 +4102,7 @@ function mesclar(ds,ps){
       { const ul=v.trilha[v.trilha.length-1]; if(v.fix && (!ul || v.fix>ul.t)){ v.trilha.push({t:v.fix,ll:[p.latitude,p.longitude],r:p.course||0}); const lim=Date.now()-6*60000; while(v.trilha.length>80 || (v.trilha.length>2 && v.trilha[0].t<lim)) v.trilha.shift() } }
       v.result = a.result || null;
       v.bloqDoRastreador = typeof a.blocked==='boolean'; /* item 1.3: o que o rastreador informa vence */
+      bloqLembrar(v,a);
       v.bloq = typeof a.blocked==='boolean' ? a.blocked : lsGet('rg_bloq_'+v.id)==='1';
       const nova = [p.latitude,p.longitude];
       if(!v.pos){ v.pos = nova.slice(); criarMarcador(v) }
@@ -5077,6 +5078,14 @@ window.addEventListener('pagehide',dpSaindo);
    Quando a posição do rastreador não diz se está bloqueado, o app usava uma anotação só deste celular.
    Agora a última situação CONFIRMADA fica no servidor (rastreamento_bloq_estado) e todos os celulares leem igual.
    O que o próprio rastreador informa continua valendo acima de tudo. Vale o mais novo (servidor ou este celular). */
+/* 16/10/2026 (MOTTU bloqueada pela cerca "desbloqueava sozinha" na tela): nem todo pacote do rastreador diz se está bloqueado.
+   Nos que não dizem, o app usava a anotação deste aparelho, que não sabia do bloqueio feito pela cerca -> piscava "Liberado".
+   Agora, quando o rastreador informa, o app guarda o que ele disse (só ao mudar) e usa isso nos pacotes seguintes. */
+function bloqLembrar(v,a){
+  if(typeof a.blocked!=='boolean') return;
+  const val=a.blocked?'1':'0'; if(lsGet('rg_bloq_'+v.id)===val) return;
+  lsSet('rg_bloq_'+v.id,val); lsSet('rg_bloqT_'+v.id,String(Date.now()));
+}
 function marcarBloq(id,bloq,avisarServidor){
   lsSet('rg_bloq_'+id,bloq?'1':'0'); lsSet('rg_bloqT_'+id,String(Date.now()));
   if(avisarServidor && lsGet('rg_token')){
