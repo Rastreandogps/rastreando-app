@@ -1060,6 +1060,12 @@ main #sheet .smsult b{max-width:120px}
 #btnWppCli:active{opacity:.6}
 #chipRow .wppnum{font-size:12.5px;font-weight:700;color:#1faa52;margin-left:4px;white-space:nowrap} /* 18/10/2026 */
 #chipRow #vChip{white-space:nowrap}
+/* 18/10/2026: ícone "i" com a explicação escondida (aparece com o mouse em cima, ou tocando no celular) */
+h3.comdica{position:relative;display:flex;align-items:center;gap:6px}
+.dica{flex:none;width:18px;height:18px;border-radius:50%;border:1.5px solid var(--mut);color:var(--mut);font:italic 700 11px/15px Georgia,serif;text-align:center;cursor:help;user-select:none}
+.dica:hover,.dica:focus,.dica.on{border-color:var(--cyan);color:var(--cyan);outline:none}
+h3.comdica .dicatx{display:none;position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:5;background:var(--card);color:var(--txt);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:12.5px;font-weight:400;line-height:1.45;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+h3.comdica .dica:hover~.dicatx,h3.comdica .dica:focus~.dicatx,h3.comdica .dica.on~.dicatx{display:block}
 .chiprow.sem #btnCopiaChip{display:none}
 .status{font-size:12px;font-weight:700;padding:5px 10px;border-radius:20px;white-space:nowrap}
 .status.sm{font-size:11px;padding:4px 8px}
@@ -2875,18 +2881,16 @@ nav button.on .nemo.txt{color:var(--red2)}
     <!-- 16/10/2026 (pedido do dono): IMEI do aparelho, só para o administrador e só nesta janela do lápis -->
     <div id="rnImeiBox" style="display:none;margin-top:8px;align-items:center;gap:8px;font-size:14px;color:var(--mut)">IMEI <b id="rnImei" style="color:var(--txt);font-size:15px;letter-spacing:.3px;user-select:all"></b><button type="button" id="rnImeiCopia" aria-label="Copiar o IMEI" title="Copiar o IMEI" style="width:30px;height:30px;border-radius:8px;border:1px solid var(--line);background:var(--card2);color:var(--mut);display:inline-flex;align-items:center;justify-content:center;cursor:pointer"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg></button></div>
     <div id="rnMotBox" style="display:none;margin-top:6px">
-      <h3 style="font-size:15px;margin-bottom:6px">Motorista deste veículo</h3>
+      <h3 class="comdica" style="font-size:15px;margin-bottom:6px">Motorista deste veículo <span class="dica" tabindex="0" role="button" aria-label="O que é isto?" title="">i</span><span class="dicatx"><b>Quem dirige este veículo</b> (para frota: a empresa é dona e um motorista dirige). Aparece no cartão e vai junto quando você compartilha a localização. Fica salvo no veículo: vale para todos que veem este veículo. Deixe em branco para apagar.</span></h3>
       <label class="flbl" for="rnMotNome">Nome</label>
       <input class="fld" id="rnMotNome" maxlength="40" autocomplete="off" placeholder="Ex.: Carlos">
       <label class="flbl" for="rnMotFone">WhatsApp — com DDD, ex: (21) 99999-8888</label>
       <input class="fld" id="rnMotFone" type="tel" inputmode="tel" autocomplete="off" placeholder="(21) 99999-8888">
-      <p style="font-size:12px;margin:6px 0 0">Fica salvo no veículo: vale para todos que veem este veículo. Deixe em branco para apagar.</p>
     </div>
     <!-- 18/10/2026 (pedido do dono): WhatsApp do cliente gravado no veículo (só administrador). Aparece no cartão e para o técnico na lista Para retirar -->
     <div id="rnWppBox" style="display:none;margin-top:6px">
-      <h3 style="font-size:15px;margin-bottom:6px">WhatsApp do cliente deste veículo</h3>
+      <h3 class="comdica" style="font-size:15px;margin-bottom:6px">WhatsApp do cliente deste veículo <span class="dica" tabindex="0" role="button" aria-label="O que é isto?" title="">i</span><span class="dicatx"><b>O dono do veículo</b>, com quem se combina a retirada. Só você vê e edita. Aparece no cartão e na lista Para retirar do técnico (botões WhatsApp e Ligar). Use quando o veículo não tem cliente cadastrado ou o cliente não tem WhatsApp no cadastro. Se ficar em branco, vale o WhatsApp do cadastro do cliente (o que recebe os avisos automáticos). Deixe em branco para apagar.</span></h3>
       <input class="fld" id="rnWpp" type="tel" inputmode="tel" autocomplete="off" placeholder="(21) 99999-8888" style="margin:0">
-      <p style="font-size:12px;margin:6px 0 0">Aparece no cartão (para você) e na lista Para retirar (para o técnico). Se ficar em branco, vale o WhatsApp do cadastro do cliente.</p>
     </div>
     <div id="rnOdoBox" style="display:none;margin-top:6px">
       <h3 style="font-size:15px;margin-bottom:6px">Odômetro (km)</h3>
@@ -5539,6 +5543,7 @@ $('btnRenome').onclick=e=>{
 };
 $('rnOdoZerar').onclick=()=>{ $('rnOdo').value='0' };
 $('rnImeiCopia').onclick=()=>{ const t=$('rnImei').textContent; if(!t) return; const ok=()=>toast('IMEI copiado.'); if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(ok,()=>prompt('Copie o IMEI:',t)); else prompt('Copie o IMEI:',t) };
+document.addEventListener('click',e=>{ const d=e.target.closest('.dica'); document.querySelectorAll('.dica.on').forEach(x=>{ if(x!==d) x.classList.remove('on') }); if(d){ e.preventDefault(); d.classList.toggle('on') } }); /* 18/10/2026: no celular, tocar no "i" abre/fecha */
 async function salvarWppVeic(v){ /* 18/10/2026: grava o WhatsApp do cliente no veículo (atributo whatsapp no Traccar) */
   if(!ehAdmin || $('rnWppBox').style.display==='none' || $('rnWpp').value===$('rnWpp').dataset.ini) return false;
   const n=normWpp($('rnWpp').value);
