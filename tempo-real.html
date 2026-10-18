@@ -592,6 +592,13 @@ main{position:relative;flex:1;min-height:0;overflow:hidden}
 /* ===== HISTÓRICO DE ROTAS (10/10/2026) ===== */
 #map.hist-on .leaflet-marker-icon:not(.hmk){visibility:hidden;pointer-events:none}
 body.hist-on #follow,body.hist-on #btnEu,body.hist-on #btnTodos,body.hist-on #btnGrupo,body.hist-on #btnSat,body.hist-on #btnAncora,body.hist-on #btnNomes,body.hist-on #btnRet{display:none!important}
+#retChip{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:421;align-items:center;gap:8px;height:34px;padding:0 14px;border-radius:999px;border:1px solid #e3262f;background:var(--card);color:var(--txt);font:inherit;font-size:12.5px;font-weight:700;box-shadow:0 2px 8px rgba(0,0,0,.25);cursor:pointer;white-space:nowrap}
+#retChip span{color:#e3262f;font-size:14px}
+body.hist-on #retChip{display:none!important}
+.retpin{width:40px;height:40px;margin:2px;border-radius:50%;background:#fff;border:3px solid #e3262f;color:#e3262f;font-weight:800;font-size:18px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.4)}
+.retpin.sel{background:#e3262f;color:#fff}
+.rtit[data-id]{cursor:pointer}
+.rtit .rtver{font-size:11.5px;color:var(--mut);margin-top:6px}
 #btnRet .rletra{font-family:inherit;font-weight:800;font-size:18px;line-height:1}
 #btnRet.piscar{background:#e3262f;border-color:#e3262f;color:#fff;animation:retPisca 1.1s ease-in-out infinite}
 @keyframes retPisca{0%,100%{box-shadow:0 0 0 0 rgba(227,38,47,.55),0 4px 14px rgba(0,0,0,.4)}50%{box-shadow:0 0 0 9px rgba(227,38,47,0),0 4px 14px rgba(0,0,0,.4);opacity:.75}}
@@ -2200,6 +2207,7 @@ nav button.on .nemo.txt{color:var(--red2)}
   </button>
   <!-- 18/10/2026 (pedido do dono): atalho da lista Para retirar no mapa (só para quem tem a permissão). Pisca vermelho com veículo novo na lista -->
   <button class="follow" id="btnRet" type="button" style="display:none" title="Para retirar" aria-label="Para retirar"><span class="rletra">R</span><span class="lbl">Para retirar</span></button>
+  <button id="retChip" type="button" style="display:none" title="Tirar do mapa os veículos para retirar">📍 Para retirar no mapa <span aria-hidden="true">✕</span></button>
   <button id="deslizeBtn" type="button" title="Teste: o veículo desliza sem parar, mostrando o trajeto com até 2 minutos de atraso">〰️ Deslize contínuo: <span id="deslizeTxt">desligado</span></button>
   <button id="mapCar" type="button" aria-label="Você tem pedido aguardando pagamento" title="Pedido aguardando pagamento"><svg viewBox="0 0 24 24"><path d="M6 6h15l-1.5 9h-12z"/><path d="M6 6L5 3H2"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/></svg><span class="mcn" id="mapCarN">1</span></button>
   <div class="vazio" id="vazio">Nenhum veículo selecionado<small><span class="vz-cel">Abra a aba Veículos para escolher.</span><span class="vz-pc">Escolha um veículo na lista ao lado.</span></small></div>
@@ -10390,7 +10398,27 @@ async function retCarregar(){
   }catch(e){ $('retSub').textContent=''; $('retLista').innerHTML='<div class="rtvz">'+esc(e.message||'Não consegui carregar.')+'</div>' }
   $('retAtualizar').disabled=false;
 }
+/* 18/10/2026 (pedido do dono): tocar no cartão mostra no mapa os veículos para retirar (o tocado em destaque).
+   É a última posição da lista (não anda sozinho); para ver de novo, abra a lista e toque de novo. "✕" no alto tira do mapa. */
+let retListaAtual=[], retCamada=null;
+function retLimparMapa(){ if(retCamada){ try{ map.removeLayer(retCamada) }catch(e){} retCamada=null } $('retChip').style.display='none' }
+function retMostrarNoMapa(id){
+  const alvo=retListaAtual.find(x=>x.id===id && x.lat!=null); if(!alvo) return;
+  retLimparMapa(); retCamada=L.layerGroup().addTo(map);
+  retListaAtual.filter(x=>x.lat!=null).forEach(x=>{
+    const m=L.marker([x.lat,x.lon],{zIndexOffset:x.id===id?1300:1200,keyboard:false,icon:L.divIcon({className:'',iconSize:[44,44],iconAnchor:[22,22],
+      html:'<div class="retpin'+(x.id===id?' sel':'')+'">R</div><div class="carlabel"><span class="lbnome">'+esc(x.nome)+'</span></div>'})});
+    m.on('click',()=>{ abrir('mRetirar'); retDesenhar(retListaAtual) });
+    m.addTo(retCamada);
+  });
+  fechar(); try{ setSeguir(false) }catch(e){}
+  $('retChip').style.display='flex';
+  map.setView([alvo.lat,alvo.lon],16,{animate:false}); try{ centralizar([alvo.lat,alvo.lon]) }catch(e){}
+}
+$('retChip').onclick=retLimparMapa;
+$('retLista').addEventListener('click',e=>{ if(e.target.closest('a')) return; const c=e.target.closest('.rtit[data-id]'); if(c) retMostrarNoMapa(+c.dataset.id) });
 function retDesenhar(lista){
+  retListaAtual=lista;
   lista.forEach(x=>{ x.km = (retEu && x.lat!=null) ? retKm(retEu.lat,retEu.lon,x.lat,x.lon) : null });
   lista.sort((a,b)=>(a.km==null)-(b.km==null) || (a.km||0)-(b.km||0) || a.nome.localeCompare(b.nome,'pt-BR'));
   $('retSub').textContent = lista.length+(lista.length===1?' veículo':' veículos')+(retEu?' · do mais perto de você ao mais longe':' · ligue a localização do celular para ordenar pelo mais perto');
@@ -10400,10 +10428,10 @@ function retDesenhar(lista){
     const end = x.endereco || (x.lat!=null ? (enderecoGuardado([x.lat,x.lon])||'') : '');
     const quando = x.posEm ? 'última posição: '+haQuanto(new Date(x.posEm).getTime()) : 'sem posição';
     const w = x.whatsapp ? (x.whatsapp.length<=11 ? '55'+x.whatsapp : x.whatsapp) : '';
-    return '<div class="rtit"><div class="rttopo"><div><b>'+esc(x.nome)+'</b>'+(x.placa?' <small style="color:var(--mut)">'+esc(x.placa)+'</small>':'')+'</div>'+(km?'<span class="rtdist">'+km+'<small>em linha reta</small></span>':'')+'</div>'+
+    return '<div class="rtit"'+(x.lat!=null?' data-id="'+x.id+'"':'')+'><div class="rttopo"><div><b>'+esc(x.nome)+'</b>'+(x.placa?' <small style="color:var(--mut)">'+esc(x.placa)+'</small>':'')+'</div>'+(km?'<span class="rtdist">'+km+'<small>em linha reta</small></span>':'')+'</div>'+
       '<div class="rtinfo">'+(x.cliente?'Cliente: <b style="color:var(--txt)">'+esc(x.cliente)+'</b><br>':'')+(x.lat!=null?'<span class="rtend" data-i="'+i+'">'+(end?esc(end):'buscando o endereço...')+'</span><br>':'')+esc(quando)+(x.online?' · online':' · offline')+'</div>'+
       '<div class="rtbt">'+(x.lat!=null?'<a href="https://www.google.com/maps/dir/?api=1&destination='+x.lat+','+x.lon+'" target="_blank" rel="noopener">Navegar</a>':'')+
-      (w?'<a class="wpp" href="https://wa.me/'+w+'" target="_blank" rel="noopener">WhatsApp do cliente</a><a href="tel:+'+w+'">Ligar</a>':'')+'</div></div>';
+      (w?'<a class="wpp" href="https://wa.me/'+w+'" target="_blank" rel="noopener">WhatsApp do cliente</a><a href="tel:+'+w+'">Ligar</a>':'')+'</div>'+(x.lat!=null?'<div class="rtver">Toque no cartão para ver no mapa</div>':'')+'</div>';
   }).join('');
   /* endereço escrito: serviço grátis do OpenStreetMap (o mesmo das paradas do histórico), um por vez e guardado no aparelho; não usa o Google */
   const falta=[]; lista.forEach((x,i)=>{ if(x.lat!=null && !x.endereco && enderecoGuardado([x.lat,x.lon])===null) falta.push({i,ll:[x.lat,x.lon]}) });
