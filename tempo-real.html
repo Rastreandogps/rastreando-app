@@ -145,6 +145,24 @@ body.mapa-google #map .leaflet-top.leaflet-left .leaflet-control-attribution{mar
 .maiscard .mdot.show{display:block}
 .maisgrid>.maiscard:last-child:nth-child(odd){grid-column:1/-1;min-height:0;flex-direction:row;align-items:center}
 .maiscard .mic.s{background:rgba(124,58,237,.14);color:#8b5cf6}
+.maiscard .mic.r{background:rgba(245,184,61,.16);color:var(--amber)} /* 18/10/2026: Para retirar */
+#mRetirar .box2{display:flex;flex-direction:column;max-height:86vh;overflow:hidden}
+#mRetirar .almtopo{flex:none;display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:4px}
+#mRetirar .almtopo h3{margin:0}
+#mRetirar .almx{width:38px;height:38px;flex:none;border-radius:50%;background:var(--card2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;cursor:pointer}
+#mRetirar .almx svg{width:18px;height:18px;fill:none;stroke:var(--txt);stroke-width:2.4;stroke-linecap:round}
+#mRetirar .rtsub{flex:none;font-size:12.5px;color:var(--mut);margin-bottom:10px}
+#mRetirar #retRola{flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+#mRetirar .rtacoes{flex:none;display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.rtit{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 14px;margin-bottom:10px}
+.rtit .rttopo{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.rtit .rttopo b{font-size:15px}
+.rtit .rtdist{flex:none;font-weight:800;font-size:14px;color:var(--amber)}
+.rtit .rtinfo{font-size:12.5px;color:var(--mut);margin-top:3px;line-height:1.45}
+.rtit .rtbt{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.rtit .rtbt a{flex:1 1 auto;text-align:center;padding:9px 10px;border-radius:10px;border:1px solid var(--line);background:var(--card2);color:var(--txt);font-size:13px;font-weight:700;text-decoration:none}
+.rtit .rtbt a.wpp{background:rgba(37,211,102,.14);border-color:rgba(37,211,102,.4);color:#16a34a}
+.rtvz{text-align:center;color:var(--mut);font-size:14px;padding:24px 8px}
 /* lista de serviços (links para os formulários do cliente) */
 .svitem{display:flex;align-items:center;gap:12px;width:100%;padding:14px;background:var(--card);border:1px solid var(--line);border-radius:16px;margin-bottom:10px;text-align:left;color:var(--txt);text-decoration:none}
 .svitem:active{transform:scale(.98)}
@@ -865,6 +883,9 @@ body.hist-on #mapCar{display:none!important}
   main .lado .ladofil button.on{background:var(--card);color:var(--txt);box-shadow:0 1px 3px rgba(0,0,0,.18),0 0 0 1px var(--line)}
   main .lado .ladofil.comtag{grid-template-columns:repeat(5,auto);justify-content:space-between;padding:3px 4px} /* 16/10/2026: com o filtro Tags, os 5 cabem numa linha */
   main .lado .ladofil.comtag button{padding:6px 7px}
+  main .lado .ladofil.comret{display:flex;flex-wrap:wrap;justify-content:space-between;padding:3px 4px} /* 18/10/2026: com Retirados, quebra a linha se não couber */
+  main .lado .ladofil.comret button{flex:1 1 auto;padding:6px 7px}
+  main .lado .ladost.ret em{background:rgba(148,163,184,.18);color:var(--mut)}
   main .lado .ladotodos{margin-top:10px;padding:8px 6px 4px;border-radius:0;background:transparent;font-size:12.5px}
   main .lado .ladotodos small{font-size:11.5px}
   main .lado .ladolista{padding:2px 8px 8px;border-top:1px solid var(--line)}
@@ -2130,7 +2151,7 @@ nav button.on .nemo.txt{color:var(--red2)}
     <div class="ladotopo">
       <div class="ladotit"><b>Veículos</b><small id="ladoN"></small></div>
       <input class="ladobusca" id="ladoBusca" type="search" name="ladoBuscaVeic" placeholder="Buscar nome, placa ou cliente" autocomplete="off" autocapitalize="none" spellcheck="false" readonly data-lpignore="true" data-1p-ignore onfocus="this.removeAttribute('readonly')">
-      <div class="ladofil" id="ladoFil"><button type="button" data-f="todos" class="on">Todos</button><button type="button" data-f="on">Online</button><button type="button" data-f="mov">Andando</button><button type="button" data-f="off">Offline</button><button type="button" data-f="tag" id="ladoFilTag" style="display:none">Tags</button></div>
+      <div class="ladofil" id="ladoFil"><button type="button" data-f="todos" class="on">Todos</button><button type="button" data-f="on">Online</button><button type="button" data-f="mov">Andando</button><button type="button" data-f="off">Offline</button><button type="button" data-f="tag" id="ladoFilTag" style="display:none">Tags</button><button type="button" data-f="ret" id="ladoFilRet" style="display:none">Para retirar</button></div>
       <div class="ladotodos"><label class="ladock" style="width:auto;height:auto;gap:8px"><input type="checkbox" id="ladoTodosCk" aria-label="Mostrar todos da lista no mapa"><span></span><b id="ladoTodosTx" style="font-weight:600">Todos no mapa</b></label><small id="ladoNoMapa"></small></div>
     </div>
     <div class="ladolista" id="ladoLista"></div>
@@ -2825,6 +2846,7 @@ nav button.on .nemo.txt{color:var(--red2)}
     <label class="fchk"><input type="checkbox" id="pmIcone"> Trocar o ícone do veículo no mapa (ligado de fábrica)</label>
     <label class="fchk"><input type="checkbox" id="pmAncora"> Cerca rápida (botão da âncora no veículo)</label>
     <label class="fchk"><input type="checkbox" id="pmEu"> Ver a posição do próprio celular no mapa (botão Minha posição)</label>
+    <label class="fchk"><input type="checkbox" id="pmRetirar"> Ver a lista <b>Para retirar</b> (para técnico: veículos marcados para retirada, pelo mais perto, com o nome e o WhatsApp do cliente)</label>
     <label class="fchk"><input type="checkbox" id="pmFichas"> Cobrar fichas no compartilhar localização (1 ficha por link; o cliente compra pacotes por PIX no app)</label>
     <div class="pmfichas" id="pmFichasBox"><span class="sp">Saldo: <b id="pmFichasSaldo">—</b> fichas</span><input class="fld" id="pmFichasQ" type="text" inputmode="numeric" placeholder="+10" autocomplete="off" aria-label="Fichas para lançar"><button type="button" id="pmFichasLancar">Lançar</button></div>
     <div class="pmval pmmapa"><span class="pmvl">Mapa do app</span><select class="fld" id="pmMapa"><option value="gratis">Grátis (padrão)</option><option value="google">Google Maps</option></select></div>
@@ -2872,6 +2894,15 @@ nav button.on .nemo.txt{color:var(--red2)}
 <!-- Confirmação genérica -->
 <!-- Sua conta: trocar senha (opcional) e sair -->
 <!-- Serviços (11/10/2026): os mesmos formulários do Apps.html (app.rastreandogpsbr.com.br) -->
+<!-- 18/10/2026: lista "Para retirar" (técnico com permissão) -->
+<div class="modal alsheet" id="mRetirar">
+  <div class="box2">
+    <div class="almtopo"><h3>Para retirar</h3><button class="almx" data-close type="button" aria-label="Fechar" title="Fechar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <div class="rtsub" id="retSub">Carregando...</div>
+    <div id="retRola"><div id="retLista"></div></div>
+    <div class="rtacoes"><button class="btn btn-out" id="retAtualizar" type="button">Atualizar</button><button class="btn btn-out" data-close type="button">Fechar</button></div>
+  </div>
+</div>
 <div class="modal alsheet" id="mServ">
   <div class="box2">
     <div class="almtopo"><h3>Serviços</h3><button class="almx" data-close type="button" aria-label="Fechar" title="Fechar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
@@ -4144,6 +4175,7 @@ function mesclar(ds,ps){
     v.online = d.status==='online';
     v.imei = d.uniqueId || ''; v.fone = d.phone || ''; v.contato = d.contact || ''; v.raw = d;
     v.tag = ehTag(d) || (String((d.attributes&&d.attributes.tipoAparelho)||'')!=='rastreador' && !!v.tagSinal && !soDigitos(d.phone)); /* 16/10/2026 */
+    v.retirado = String((d.attributes&&(d.attributes.paraRetirarEm||d.attributes.retiradoEm))||''); /* 18/10/2026: marcado "Para retirar" (menu ⋮ do administrador) */
     v.icone = veicIconeDe(d); v.iconeCor = icCorOk(d.attributes&&d.attributes.iconeCor) ? d.attributes.iconeCor : ''; /* 16/10/2026: ícone do veículo */
     icTrocar(v);
     v.ultimo = d.lastUpdate ? new Date(d.lastUpdate).getTime() : null;
@@ -4413,6 +4445,7 @@ let ladoFiltro='todos', ladoAssin='', ladoUltMs=0, ladoRolandoAte=0, ladoUltList
 const LADO_IC='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17h14M6 17l1.4-5.2A2 2 0 0 1 9.3 10h5.4a2 2 0 0 1 1.9 1.8L18 17"/><path d="M4 17v2M20 17v2"/><circle cx="8" cy="17" r="1.6"/><circle cx="16" cy="17" r="1.6"/></svg>';
 function ladoLigado(){ return telaLarga() && !$('main').classList.contains('semlado') }
 function ladoEst(v){ /* [classe, texto curto, quando] */
+  if(v.retirado){ const m=v.retirado.match(/^(\d{4})-(\d{2})-(\d{2})/); return ['ret','para retirar',m?'desde '+m[3]+'/'+m[2]:''] } /* 18/10/2026 */
   if(v.tag) return v.fix ? ['tag','tag','vista '+haQuanto(v.fix)] : ['off','tag','sem posição']; /* 16/10/2026 */
   if(!v.pos) return ['off','sem sinal',''];
   const q = v.ultimo ? haQuanto(v.ultimo) : '';
@@ -4423,6 +4456,8 @@ function ladoEst(v){ /* [classe, texto curto, quando] */
   return ['on','0 km/h',q];
 }
 function ladoPassa(v){
+  if(ladoFiltro==='ret') return !!v.retirado; /* 18/10/2026: os marcados ficam só na aba Para retirar */
+  if(v.retirado) return false;
   if(ladoFiltro==='tag') return !!v.tag; /* 16/10/2026: as tags ficam fora de Online/Andando/Offline */
   if(v.tag && ladoFiltro!=='todos') return false;
   if(ladoFiltro==='on') return !!(v.pos && v.online);
@@ -4464,7 +4499,8 @@ function ladoDesenhar(){
 function ladoCabecalho(lista){
   lista = lista || ladoUltLista; ladoUltLista = lista;
   try{ const tb=$('ladoFilTag'), tem=temTags(); tb.style.display=tem?'':'none'; $('ladoFil').classList.toggle('comtag',tem); if(!tem && ladoFiltro==='tag'){ ladoFiltro='todos'; $('ladoFil').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.f==='todos')) } }catch(e){}
-  const on=veiculos.filter(v=>v.pos&&v.online&&!v.tag).length;
+  try{ const rb=$('ladoFilRet'), nr=veiculos.filter(v=>v.retirado).length; rb.style.display=nr?'':'none'; rb.textContent='Para retirar'+(nr?' '+nr:''); $('ladoFil').classList.toggle('comret',!!nr); if(!nr && ladoFiltro==='ret'){ ladoFiltro='todos'; $('ladoFil').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.f==='todos')); setTimeout(ladoDesenhar,0) } }catch(e){} /* 18/10/2026 */
+  const on=veiculos.filter(v=>v.pos&&v.online&&!v.tag&&!v.retirado).length;
   $('ladoN').textContent = veiculos.length+(veiculos.length?' · '+on+' online':'');
   const n=lista.filter(v=>v.visivel).length, ck=$('ladoTodosCk');
   ck.checked = lista.length>0 && n===lista.length; ck.indeterminate = n>0 && n<lista.length; ck.disabled=!lista.length;
@@ -4539,6 +4575,9 @@ function ladoMenuAbrir(btn,v){
   ladoMenuFechar();
   const m=document.createElement('div'); m.id='ladoMenu'; m.className='ladomenu'; m.setAttribute('role','menu');
   m.innerHTML='<div class="lmtit">'+esc(v.nome)+'</div>'+
+    (v.retirado
+      ? '<button type="button" class="lmit" data-lm="desretirar" role="menuitem"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>Tirar de "Para retirar"</button>'
+      : '<button type="button" class="lmit" data-lm="retirar" role="menuitem"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/></svg>Marcar para retirar</button>')+ /* 18/10/2026 */
     '<button type="button" class="lmit perigo" data-lm="excluir" role="menuitem"><svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg>Excluir equipamento</button>';
   document.body.appendChild(m);
   const r=btn.getBoundingClientRect(), w=m.offsetWidth, h=m.offsetHeight;
@@ -4548,6 +4587,27 @@ function ladoMenuAbrir(btn,v){
     const it=ev.target.closest('[data-lm]'); if(!it) return;
     ladoMenuFechar();
     if(it.dataset.lm==='excluir') ladoExcluirEquip(v);
+    if(it.dataset.lm==='retirar') ladoRetirarEquip(v,true);
+    if(it.dataset.lm==='desretirar') ladoRetirarEquip(v,false);
+  });
+}
+/* 18/10/2026 (pedido do dono): "Marcar para retirar" (atributo paraRetirarEm no Traccar).
+   Ele sai de Todos/Online/Andando/Offline e passa a aparecer só na aba "Para retirar". Não apaga nada; dá para desfazer.
+   Quem tem a permissão "Ver a lista Para retirar" (ex.: técnico) vê esses veículos no Mais > Para retirar, pelo mais perto. */
+function ladoRetirarEquip(v,marcar){
+  pedirConfirmacao(marcar?'Marcar para retirar?':'Tirar de "Para retirar"?',
+    marcar?'"'+v.nome+'" sai das abas Todos, Online, Andando e Offline e passa a ficar na aba Para retirar (também para os técnicos com permissão). Nada é apagado; dá para desfazer.'
+          :'"'+v.nome+'" volta para as abas Todos, Online, Andando e Offline.',
+    marcar?'Marcar':'Tirar',async ()=>{
+    const at=Object.assign({},(v.raw&&v.raw.attributes)||{});
+    delete at.retiradoEm;
+    if(marcar) at.paraRetirarEm=hojeIso(); else delete at.paraRetirarEm;
+    const r=await api('/api/devices/'+v.id,{method:'PUT',headers:JSONH,body:JSON.stringify(Object.assign({},v.raw,{attributes:at}))});
+    if(!r.ok) throw new Error(await msgErro(r,'Não foi possível salvar'));
+    try{ v.raw=await r.json() }catch(e){ v.raw=Object.assign({},v.raw,{attributes:at}) }
+    v.retirado = marcar ? at.paraRetirarEm : '';
+    try{ ladoDesenhar() }catch(e){} try{ desenharAdmin() }catch(e){}
+    toast(marcar?'Marcado para retirar.':'Tirado de "Para retirar".');
   });
 }
 function ladoExcluirEquip(v){
@@ -5275,7 +5335,7 @@ async function carregarPermissoes(){
     const r=await fetch(DESB_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',body:JSON.stringify({acao:'minhas',token:lsGet('rg_token')})});
     if(!r.ok) return;
     const j=await r.json(); permCli=Object.assign({smsBloqueio:false,reset:false,editarNome:false,cercaRapida:false,minhaPosicao:false},j.perm||{},{appBloqueio:permCli.appBloqueio,cercaBloqueio:permCli.cercaBloqueio,semBloqueio:permCli.semBloqueio,frotista:permCli.frotista}); cobrCli=j.cobranca||null;
-    mostrarBotoesSms(); fichasAplicar();
+    mostrarBotoesSms(); fichasAplicar(); try{ retAplicar() }catch(e){}
   }catch(e){}
 }
 function textoCusto(){
@@ -5565,7 +5625,7 @@ async function salvarPermTraccar(u){
 }
 function mostrarPerm(j){
   const p=j.perm||{}, c=j.cobranca||{pendentes:0,valor:0};
-  $('pmSms').checked=!!p.smsBloqueio; $('pmReset').checked=!!p.reset; $('pmNome').checked=!!p.editarNome; $('pmAncora').checked=!!p.cercaRapida; $('pmEu').checked=!!p.minhaPosicao; $('pmIcone').checked=p.trocarIcone!==false;
+  $('pmSms').checked=!!p.smsBloqueio; $('pmReset').checked=!!p.reset; $('pmNome').checked=!!p.editarNome; $('pmAncora').checked=!!p.cercaRapida; $('pmEu').checked=!!p.minhaPosicao; $('pmIcone').checked=p.trocarIcone!==false; $('pmRetirar').checked=!!p.verRetirar;
   $('pmCob').innerHTML='SMS pela plataforma a cobrar: <b>'+c.pendentes+'</b> = <b>'+brl2(c.valor)+'</b>'+
     (c.faturadoEm?'<br><span style="color:var(--mut);font-size:12px">Último zerado em '+fmtHora(c.faturadoEm)+' · total já faturado: '+(c.totalFaturado||0)+' SMS</span>':'');
   $('pmZerar').disabled=!c.pendentes;
@@ -5582,7 +5642,7 @@ $('pmSalvar').onclick=async()=>{
   try{
     const u=usuarios.find(x=>x.id===permUserId); if(!u) throw new Error('Cliente não encontrado. Feche e abra de novo.');
     await salvarPermTraccar(u);
-    mostrarPerm(await chamarPerm('permSalvar',{perm:{smsBloqueio:$('pmSms').checked,reset:$('pmReset').checked,editarNome:$('pmNome').checked,cercaRapida:$('pmAncora').checked,minhaPosicao:$('pmEu').checked,fichas:$('pmFichas').checked,trocarIcone:$('pmIcone').checked}}));
+    mostrarPerm(await chamarPerm('permSalvar',{perm:{smsBloqueio:$('pmSms').checked,reset:$('pmReset').checked,editarNome:$('pmNome').checked,cercaRapida:$('pmAncora').checked,minhaPosicao:$('pmEu').checked,fichas:$('pmFichas').checked,trocarIcone:$('pmIcone').checked,verRetirar:$('pmRetirar').checked}}));
     await carregarUsuarios(); const u2=usuarios.find(x=>x.id===permUserId); if(u2) mostrarPermTraccar(u2);
     desenharAdmin(); toast('Permissões salvas.')
   }
@@ -10231,6 +10291,53 @@ const LOJA_SVG_CAR='<svg viewBox="0 0 24 24"><path d="M6 6h15l-1.5 9h-12z"/><pat
 $('lojaCarBtn').onclick=()=>{ lojaCarAberto=true; const c=$('lojaCar'); if(c) c.classList.add('aberto'); $('lojaRola').scrollTo({top:0,behavior:'smooth'}) };
 $('maisFat').onclick=()=>irPara('Faturas');
 $('maisServ').onclick=()=>abrir('mServ');
+/* ===== PARA RETIRAR (18/10/2026, pedido do dono) =====
+   Quem tem a permissão "Ver a lista Para retirar" (ex.: técnico) ganha o cartão "Para retirar" no Mais.
+   A lista vem do servidor (veículos marcados pelo administrador), com a distância até o celular, do mais perto ao mais longe. */
+let retEu=null;
+function retAplicar(){
+  const pode=!ehAdmin && !!(permCli&&permCli.verRetirar), grid=document.querySelector('#maisview .maisgrid');
+  let c=$('maisRetirar');
+  if(pode && !c && grid){
+    c=document.createElement('button'); c.className='maiscard'; c.id='maisRetirar'; c.type='button';
+    c.innerHTML='<span class="mic r"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/></svg></span><b>Para retirar</b><small>Veículos para retirada, do mais perto ao mais longe</small>';
+    c.onclick=retAbrir; grid.insertBefore(c,$('maisConta'));
+  }
+  if(!pode && c) c.remove();
+}
+function retKm(a,b,c,d){ const R=6371, r=x=>x*Math.PI/180, dl=r(c-a), dg=r(d-b), h=Math.sin(dl/2)**2+Math.cos(r(a))*Math.cos(r(c))*Math.sin(dg/2)**2; return 2*R*Math.asin(Math.sqrt(h)) }
+function retAbrir(){ abrir('mRetirar'); retCarregar() }
+async function retCarregar(){
+  $('retSub').textContent='Carregando...'; $('retAtualizar').disabled=true;
+  const pegarEu=new Promise(res=>{
+    if(!navigator.geolocation) return res(null);
+    navigator.geolocation.getCurrentPosition(p=>res({lat:p.coords.latitude,lon:p.coords.longitude}),()=>res(null),{enableHighAccuracy:true,timeout:10000,maximumAge:60000});
+  });
+  try{
+    const r=await fetch(DESB_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',body:JSON.stringify({acao:'retirarLista',token:lsGet('rg_token')})});
+    let j={}; try{ j=await r.json() }catch(e){}
+    if(!r.ok) throw new Error(j.erro||('Erro '+r.status));
+    retEu=await pegarEu;
+    retDesenhar(j.lista||[]);
+  }catch(e){ $('retSub').textContent=''; $('retLista').innerHTML='<div class="rtvz">'+esc(e.message||'Não consegui carregar.')+'</div>' }
+  $('retAtualizar').disabled=false;
+}
+function retDesenhar(lista){
+  lista.forEach(x=>{ x.km = (retEu && x.lat!=null) ? retKm(retEu.lat,retEu.lon,x.lat,x.lon) : null });
+  lista.sort((a,b)=>(a.km==null)-(b.km==null) || (a.km||0)-(b.km||0) || a.nome.localeCompare(b.nome,'pt-BR'));
+  $('retSub').textContent = lista.length+(lista.length===1?' veículo':' veículos')+(retEu?' · do mais perto de você ao mais longe':' · ligue a localização do celular para ordenar pelo mais perto');
+  if(!lista.length){ $('retLista').innerHTML='<div class="rtvz">Nenhum veículo para retirar agora.</div>'; return }
+  $('retLista').innerHTML=lista.map(x=>{
+    const km = x.km==null ? '' : (x.km<1 ? Math.round(x.km*1000)+' m' : x.km.toFixed(x.km<10?1:0).replace('.',',')+' km');
+    const quando = x.posEm ? 'última posição: '+haQuanto(new Date(x.posEm).getTime()) : 'sem posição';
+    const w = x.whatsapp ? (x.whatsapp.length<=11 ? '55'+x.whatsapp : x.whatsapp) : '';
+    return '<div class="rtit"><div class="rttopo"><div><b>'+esc(x.nome)+'</b>'+(x.placa?' <small style="color:var(--mut)">'+esc(x.placa)+'</small>':'')+'</div>'+(km?'<span class="rtdist">'+km+'</span>':'')+'</div>'+
+      '<div class="rtinfo">'+(x.cliente?'Cliente: <b style="color:var(--txt)">'+esc(x.cliente)+'</b><br>':'')+(x.endereco?esc(x.endereco)+'<br>':'')+esc(quando)+(x.online?' · online':' · offline')+'</div>'+
+      '<div class="rtbt">'+(x.lat!=null?'<a href="https://www.google.com/maps/dir/?api=1&destination='+x.lat+','+x.lon+'" target="_blank" rel="noopener">Navegar</a>':'')+
+      (w?'<a class="wpp" href="https://wa.me/'+w+'" target="_blank" rel="noopener">WhatsApp do cliente</a><a href="tel:+'+w+'">Ligar</a>':'')+'</div></div>';
+  }).join('');
+}
+$('retAtualizar').onclick=retCarregar;
 $('maisLoja').onclick=()=>{ lojaDesenhar(); abrir('mLoja') };
 $('sLojaBtn').onclick=()=>{ lojaDesenhar(); abrir('mLoja') };
 $('maisIndique').onclick=()=>window.open(INDICACAO_URL,'_blank'); /* página de indicação do dono: o cliente digita o CPF e pega o link dele */
