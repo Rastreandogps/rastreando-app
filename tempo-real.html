@@ -591,7 +591,10 @@ main{position:relative;flex:1;min-height:0;overflow:hidden}
 
 /* ===== HISTÓRICO DE ROTAS (10/10/2026) ===== */
 #map.hist-on .leaflet-marker-icon:not(.hmk){visibility:hidden;pointer-events:none}
-body.hist-on #follow,body.hist-on #btnEu,body.hist-on #btnTodos,body.hist-on #btnGrupo,body.hist-on #btnSat,body.hist-on #btnAncora,body.hist-on #btnNomes{display:none!important}
+body.hist-on #follow,body.hist-on #btnEu,body.hist-on #btnTodos,body.hist-on #btnGrupo,body.hist-on #btnSat,body.hist-on #btnAncora,body.hist-on #btnNomes,body.hist-on #btnRet{display:none!important}
+#btnRet .rletra{font-family:inherit;font-weight:800;font-size:18px;line-height:1}
+#btnRet.piscar{background:#e3262f;border-color:#e3262f;color:#fff;animation:retPisca 1.1s ease-in-out infinite}
+@keyframes retPisca{0%,100%{box-shadow:0 0 0 0 rgba(227,38,47,.55),0 4px 14px rgba(0,0,0,.4)}50%{box-shadow:0 0 0 9px rgba(227,38,47,0),0 4px 14px rgba(0,0,0,.4);opacity:.75}}
 /* 16/10/2026: botão para esconder os nomes do mapa (fica só a setinha) */
 #btnNomes{display:none}
 body.sem-nomes .carlabel{display:none!important}
@@ -2195,6 +2198,8 @@ nav button.on .nemo.txt{color:var(--red2)}
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V5h11v2"/><path d="M9.5 5v14"/><path d="M7.5 19h4"/><path d="M14 13h6M17 13v6"/><path class="nmcorte" d="M3 3l18 18" style="display:none"/></svg>
     <span class="lbl">Nomes</span>
   </button>
+  <!-- 18/10/2026 (pedido do dono): atalho da lista Para retirar no mapa (só para quem tem a permissão). Pisca vermelho com veículo novo na lista -->
+  <button class="follow" id="btnRet" type="button" style="display:none" title="Para retirar" aria-label="Para retirar"><span class="rletra">R</span><span class="lbl">Para retirar</span></button>
   <button id="deslizeBtn" type="button" title="Teste: o veículo desliza sem parar, mostrando o trajeto com até 2 minutos de atraso">〰️ Deslize contínuo: <span id="deslizeTxt">desligado</span></button>
   <button id="mapCar" type="button" aria-label="Você tem pedido aguardando pagamento" title="Pedido aguardando pagamento"><svg viewBox="0 0 24 24"><path d="M6 6h15l-1.5 9h-12z"/><path d="M6 6L5 3H2"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/></svg><span class="mcn" id="mapCarN">1</span></button>
   <div class="vazio" id="vazio">Nenhum veículo selecionado<small><span class="vz-cel">Abra a aba Veículos para escolher.</span><span class="vz-pc">Escolha um veículo na lista ao lado.</span></small></div>
@@ -3919,7 +3924,7 @@ nomesPintar();
 /* coluna de botões redondos do mapa, de cima para baixo, só os visíveis: Seguir, Minha posição, Mostrar todos, Satélite, Âncora */
 function mapaColuna(){
   let top=14;
-  ['follow','btnEu','btnTodos','btnGrupo','btnSat','btnAncora','btnNomes'].forEach(id=>{ const b=$(id); if(!b) return; if(b.style.display==='none' || (b.style.display==='' && getComputedStyle(b).display==='none')) return; b.style.top=top+'px'; top+=52 });
+  ['follow','btnEu','btnTodos','btnGrupo','btnSat','btnAncora','btnNomes','btnRet'].forEach(id=>{ const b=$(id); if(!b) return; if(b.style.display==='none' || (b.style.display==='' && getComputedStyle(b).display==='none')) return; b.style.top=top+'px'; top+=52 });
 }
 $('btnTodos').onclick=()=>{
   const vs=visiveis().filter(v=>v.pos);
@@ -10348,7 +10353,27 @@ function retAplicar(){
     c.onclick=retAbrir; grid.insertBefore(c,$('maisConta'));
   }
   if(!pode && c) c.remove();
+  const bR=$('btnRet'); if(bR){ bR.style.display=pode?'flex':'none'; try{ mapaColuna() }catch(e){} }
+  if(pode) retNovidade();
 }
+/* 18/10/2026: botão "R" do mapa pisca enquanto houver veículo na lista que este aparelho ainda não viu; ao abrir a lista, para */
+function retVistos(){ try{ return JSON.parse(lsGet('rg_ret_vistos')||'null') }catch(e){ return null } }
+function retMarcarVistos(lista){ try{ lsSet('rg_ret_vistos',JSON.stringify(lista.map(x=>x.id))) }catch(e){} retPiscar(false) }
+function retPiscar(sim){ const b=$('btnRet'); if(!b) return; b.classList.toggle('piscar',!!sim); b.title=sim?'Para retirar: tem veículo novo na lista':'Para retirar' }
+async function retBuscar(){
+  const r=await fetch(DESB_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',body:JSON.stringify({acao:'retirarLista',token:lsGet('rg_token')})});
+  let j={}; try{ j=await r.json() }catch(e){}
+  if(!r.ok) throw new Error(j.erro||('Erro '+r.status));
+  return j.lista||[];
+}
+let retConf=0;
+async function retNovidade(){
+  if(ehAdmin || !(permCli&&permCli.verRetirar) || document.hidden || Date.now()-retConf<20000) return;
+  retConf=Date.now();
+  try{ const l=await retBuscar(), vistos=retVistos()||[]; retPiscar(l.some(x=>vistos.indexOf(x.id)<0)) }catch(e){}
+}
+setInterval(retNovidade,120000); /* confere de 2 em 2 minutos com o app aberto */
+document.addEventListener('visibilitychange',()=>{ if(!document.hidden) retNovidade() });
 function retKm(a,b,c,d){ const R=6371, r=x=>x*Math.PI/180, dl=r(c-a), dg=r(d-b), h=Math.sin(dl/2)**2+Math.cos(r(a))*Math.cos(r(c))*Math.sin(dg/2)**2; return 2*R*Math.asin(Math.sqrt(h)) }
 function retAbrir(){ abrir('mRetirar'); retCarregar() }
 async function retCarregar(){
@@ -10358,11 +10383,10 @@ async function retCarregar(){
     navigator.geolocation.getCurrentPosition(p=>res({lat:p.coords.latitude,lon:p.coords.longitude}),()=>res(null),{enableHighAccuracy:true,timeout:10000,maximumAge:60000});
   });
   try{
-    const r=await fetch(DESB_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',body:JSON.stringify({acao:'retirarLista',token:lsGet('rg_token')})});
-    let j={}; try{ j=await r.json() }catch(e){}
-    if(!r.ok) throw new Error(j.erro||('Erro '+r.status));
+    const lista=await retBuscar();
+    retMarcarVistos(lista);
     retEu=await pegarEu;
-    retDesenhar(j.lista||[]);
+    retDesenhar(lista);
   }catch(e){ $('retSub').textContent=''; $('retLista').innerHTML='<div class="rtvz">'+esc(e.message||'Não consegui carregar.')+'</div>' }
   $('retAtualizar').disabled=false;
 }
@@ -10386,6 +10410,7 @@ function retDesenhar(lista){
   if(falta.length) enderecosParadas(falta,(k,t)=>{ const el=document.querySelector('#retLista .rtend[data-i="'+falta[k].i+'"]'); if(el) el.textContent=t||'endereço não encontrado' });
 }
 $('retAtualizar').onclick=retCarregar;
+$('btnRet').onclick=retAbrir;
 $('maisLoja').onclick=()=>{ lojaDesenhar(); abrir('mLoja') };
 $('sLojaBtn').onclick=()=>{ lojaDesenhar(); abrir('mLoja') };
 $('maisIndique').onclick=()=>window.open(INDICACAO_URL,'_blank'); /* página de indicação do dono: o cliente digita o CPF e pega o link dele */
