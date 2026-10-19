@@ -1415,6 +1415,8 @@ nav button{position:relative}
 @keyframes treme{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
 @media (prefers-reduced-motion:reduce){#cpanel .falta.treme{animation:none}}
 .cbusca{display:flex;gap:6px;margin-bottom:6px}
+.tpauto{font-size:12.5px;color:#15803d;background:rgba(22,163,74,.10);border-radius:10px;padding:7px 10px;margin:6px 0 4px;line-height:1.4}
+.tpauto.calc{color:var(--mut);background:var(--card2)}
 /* 19/10/2026: formulário "serviço a caminho" em passos, com pontos A/B/C */
 .camsec{border:1px solid var(--line);border-radius:14px;padding:10px 12px 12px;margin:0 0 10px;background:var(--card)}
 .camlbl{display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:800;margin:0 0 8px;flex-wrap:wrap}
@@ -2695,6 +2697,7 @@ nav button.on .nemo.txt{color:var(--red2)}
       <span class="tpinfo"><b id="tpTxt">1 hora</b><small id="tpAte"></small></span>
       <span class="tpmud">Trocar<svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
     </button>
+    <p class="tpauto" id="tpAuto" style="display:none"></p>
     <div class="tpgav" id="tpGav">
       <div class="tpin">
         <div class="tpgrid" id="tpGrid">
@@ -6667,7 +6670,7 @@ function camPontoAbrir(pf){ const vis=camPontosVisiveis(pf); if(vis.length>=3) r
 $('camAdd').onclick=()=>camPontoAbrir('cam'); $('ceAdd').onclick=()=>camPontoAbrir('ce');
 ['camBox','ceBox'].forEach(id=>$(id).addEventListener('click',e=>{
   const pf=$(id).dataset.campref;
-  const rm=e.target.closest('button[data-camrm]'); if(rm){ const i=+rm.dataset.camrm; camPontoLimpar(i,pf); $(pf+'Pt'+i).style.display='none'; camPontosPintar(pf); return }
+  const rm=e.target.closest('button[data-camrm]'); if(rm){ const i=+rm.dataset.camrm; camPontoLimpar(i,pf); $(pf+'Pt'+i).style.display='none'; camPontosPintar(pf); if(pf==='cam') camTempoAgendar(); return }
   const bu=e.target.closest('button[data-cambus]'); if(bu){ camBuscarEnd(+bu.dataset.cambus,pf) }
 }));
 ['cam','ce'].forEach(pf=>[0,1,2].forEach(i=>{
@@ -6695,7 +6698,7 @@ function camMostrar(v){
   [0,1,2].forEach(i=>{ camPontoLimpar(i,'cam'); $('camPt'+i).style.display=i?'none':'' }); camPontosPintar('cam');
   const m=motLer(v.id); $('camMot').textContent=m&&m.nome?'Motorista: '+m.nome+' (o cliente vê esse nome).':'Sem motorista cadastrado: cadastre no lápis do veículo para o cliente ver o nome.';
 }
-$('camOn').addEventListener('change',()=>{ $('camBox').style.display=$('camOn').checked?'':'none'; if($('camOn').checked) setTimeout(()=>$('camEnd0').focus(),100) });
+$('camOn').addEventListener('change',()=>{ $('camBox').style.display=$('camOn').checked?'':'none'; if($('camOn').checked) setTimeout(()=>$('camEnd0').focus(),100); camTempoAgendar() });
 /* coordenadas em qualquer texto: "-22.78, -43.31" ou link do Google Maps (@lat,lon / ?q=lat,lon / !3d..!4d..) — 12/10/2026 */
 function coordLivre(t){
   const x=String(t||'');
@@ -6711,7 +6714,7 @@ async function camBuscarEnd(i,pf){
   if(cc){
     if(!(cc.lat<=6 && cc.lat>=-34 && cc.lng<=-28 && cc.lng>=-74)){ box.innerHTML='<div class="vazio">Essa posição fica fora do Brasil. Confira o sinal de menos (no Rio as duas começam com \u2212).</div>'; box.classList.add('show'); return }
     const la=+cc.lat.toFixed(6), lo=+cc.lng.toFixed(6), ver='https://www.google.com/maps/search/?api=1&query='+la+','+lo;
-    P[i]={lat:la,lon:lo,endereco:''};
+    P[i]={lat:la,lon:lo,endereco:''}; if(pf==='cam') camTempoAgendar();
     box.classList.remove('show'); inp.blur();
     dst.innerHTML=rot+': <b>'+la.toFixed(5)+', '+lo.toFixed(5)+'</b> (localização exata) · <a href="'+ver+'" target="_blank" rel="noopener">conferir no mapa</a>';
     try{ /* nome da rua só para o texto; o destino fica na posição colada */
@@ -6740,7 +6743,7 @@ async function camBuscarEnd(i,pf){
       const b=e.target.closest('button[data-i]'); if(!b) return;
       const x=lista[+b.dataset.i]; let end=String(x.display_name||'').split(', Região')[0];
       if(numDig && !(x.address&&x.address.house_number)){ const p=end.split(', '); p.splice(1,0,numDig); end=p.join(', ') } /* guarda o número que o frotista digitou */
-      P[i]={lat:+x.lat,lon:+x.lon,endereco:end.slice(0,120)};
+      P[i]={lat:+x.lat,lon:+x.lon,endereco:end.slice(0,120)}; if(pf==='cam') camTempoAgendar();
       inp.value=end.split(',').slice(0,3).join(','); dst.innerHTML=rot+': <b>'+esc(end)+'</b>';
       box.classList.remove('show'); inp.blur();
     };
@@ -6756,7 +6759,7 @@ function camDados(){
 }
 $('btnShare').onclick=()=>{
   const v=veicShare(); if(!v){ toast('Escolha um veículo.'); return }
-  tpEscolher(60,false); tpGaveta(false); $('tpNum').value=''; tpTravas(); tpValidarOutro();
+  tpEscolher(60,false); tpGaveta(false); $('tpNum').value=''; tpTravas(); tpValidarOutro(); tpManual=0; camTempo={min:0,viagem:0,busca:camTempo.busca+1}; $('tpAuto').style.display='none';
   $('shareSub').textContent='Quem receber o link vê só a posição de '+v.nome+' no mapa, sem acesso à sua conta e sem poder bloquear.';
   $('shareRes').style.display='none'; $('shareErro').textContent=''; $('shareGerar').disabled=false; $('shareGerar').textContent='Gerar link';
   $('shareAtivos').innerHTML=''; camMostrar(v); abrir('mShare'); shareCarregarAtivos(); fichasBarra(true);
@@ -6798,11 +6801,41 @@ function tpValidarOutro(){
   d.textContent=tpNome(m)+' · '+tpAteTexto(m).replace('Link vale','vale'); d.classList.remove('mal'); u.disabled=false; return m;
 }
 $('tpSel').onclick=()=>tpGaveta(!$('tpGav').classList.contains('aberta'));
-$('tpGrid').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return; if(b.classList.contains('trava')){ toast('No plano grátis o link vale até 1 hora. Mais tempo é recurso Prime.',5000); return } tpEscolher(+b.dataset.m,false); $('tpNum').value=''; tpValidarOutro(); setTimeout(()=>tpGaveta(false),180) });
+$('tpGrid').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return; if(b.classList.contains('trava')){ toast('No plano grátis o link vale até 1 hora. Mais tempo é recurso Prime.',5000); return } tpEscolher(+b.dataset.m,false); tpManual=shareMin; camTempoNota(); $('tpNum').value=''; tpValidarOutro(); setTimeout(()=>tpGaveta(false),180) });
 $('tpNum').addEventListener('input',()=>{ const v=$('tpNum').value.replace(/\D/g,'').slice(0,3); if(v!==$('tpNum').value) $('tpNum').value=v; tpValidarOutro() });
 $('tpNum').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); $('tpUsar').click() } });
 $('tpUni').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return; if(b.classList.contains('trava')){ toast('Links de dias são recurso Prime.',4000); return } tpUnid=+b.dataset.u; document.querySelectorAll('#tpUni button').forEach(x=>x.classList.toggle('sel',x===b)); tpValidarOutro() });
-$('tpUsar').onclick=()=>{ const m=tpValidarOutro(); if(m===null) return; tpEscolher(m,true); $('tpNum').blur(); tpGaveta(false) };
+$('tpUsar').onclick=()=>{ const m=tpValidarOutro(); if(m===null) return; tpEscolher(m,true); tpManual=shareMin; camTempoNota(); $('tpNum').blur(); tpGaveta(false) };
+/* 19/10/2026 (pedido do dono): no serviço a caminho, o tempo do link entra sozinho = viagem estimada (veículo -> A -> B -> C,
+   OSRM grátis + 25% de trânsito) + 1 hora de folga, arredondado para cima de 15 em 15 min. Se a pessoa escolher um tempo MAIOR, vale o dela;
+   se escolher menor que o necessário, avisa. */
+let tpManual=0, camTempo={min:0,viagem:0,busca:0}, camTempoT=null;
+function camTempoAgendar(){ clearTimeout(camTempoT); camTempoT=setTimeout(camTempoCalcular,350) }
+async function camTempoCalcular(){
+  const pts=[0,1,2].filter(i=>$('camPt'+i).style.display!=='none').map(i=>CAMP.cam[i]).filter(Boolean);
+  const v=veicShare(), el=$('tpAuto');
+  if(!pts.length || !$('camOn').checked){ camTempo={min:0,viagem:0,busca:0}; el.style.display='none'; return }
+  const ll=(v&&v.pos?[{lat:v.pos[0],lon:v.pos[1]}]:[]).concat(pts);
+  if(ll.length<2){ camTempo={min:0,viagem:0,busca:0}; el.style.display='none'; return }
+  const meu=++camTempo.busca; el.className='tpauto calc'; el.textContent='⏱ Calculando o tempo da viagem...'; el.style.display='';
+  try{
+    const r=await fetch('https://router.project-osrm.org/route/v1/driving/'+ll.map(x=>x.lon+','+x.lat).join(';')+'?overview=false');
+    const j=await r.json(), rt=j&&j.routes&&j.routes[0];
+    if(meu!==camTempo.busca) return;
+    if(!rt){ el.className='tpauto calc'; el.textContent='Não consegui calcular a viagem. Escolha o tempo do link.'; camTempo.min=0; return }
+    const viagem=Math.ceil(rt.duration*1.25/60), auto=Math.min(TP_MAX,Math.ceil((viagem+60)/15)*15);
+    camTempo={min:auto,viagem,busca:meu};
+    tpEscolher(Math.max(auto,tpManual||0),true);
+  }catch(e){ if(meu===camTempo.busca){ el.className='tpauto calc'; el.textContent='Não consegui calcular a viagem. Escolha o tempo do link.'; camTempo.min=0 } return }
+  camTempoNota();
+}
+function camTempoNota(){
+  const el=$('tpAuto'); if(!el || !camTempo.min) return;
+  const vg=tpNome(camTempo.viagem).replace(' minutos',' min');
+  if(shareMin<camTempo.min){ el.className='tpauto'; el.style.background='rgba(227,38,47,.10)'; el.style.color='var(--red2)'; el.textContent='⚠️ A viagem estimada é de '+vg+'. Com '+tpNome(shareMin)+' o link pode acabar antes de chegar. Sugerido: '+tpNome(camTempo.min)+'.' }
+  else { el.className='tpauto'; el.style.background=''; el.style.color=''; el.textContent= shareMin>camTempo.min ? '⏱ Viagem estimada de '+vg+'. O link vale o tempo que você escolheu.' : '⏱ Tempo automático: viagem estimada de '+vg+' + 1 hora de folga. Pode trocar se quiser.' }
+  el.style.display='';
+}
 /* 15/10/2026 (fichas): quem paga ficha confere antes (veículo, endereço, WhatsApp, tempo); a ficha não volta depois */
 $('shareGerar').onclick=()=>{
   const v=veicShare(); if(!v) return;
@@ -7276,7 +7309,7 @@ async function fn(acao,extra){
   return j;
 }
 const fmtHora = ms => { try{ return new Date(ms).toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}).replace(',','') }catch(e){ return '' } };
-const brl = n => 'R$ '+Number(n||0).toFixed(2).replace('.',',');
+const brl = n => 'R$ '+Number(n||0).toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.'); /* 19/10/2026: ponto de milhar */
 const dmy = iso => { const m=/^(\d{4})-(\d{2})-(\d{2})/.exec(String(iso||'')); return m ? m[3]+'/'+m[2]+'/'+m[1] : '' };
 const diasDe = (a,b) => Math.round((Date.parse(b+'T00:00:00Z')-Date.parse(a+'T00:00:00Z'))/86400000);
 /* WhatsApp: guardamos só números com 55 na frente (ex: 5521999998888) no campo "telefone" do usuário no Traccar */
@@ -7374,7 +7407,7 @@ function desenharFaturas(){
     : (d.abertas.length ? '<div class="fres bem">Nenhuma fatura vencida. Obrigado!</div>' : '<div class="fres bem">Tudo em dia. Nenhuma fatura em aberto.</div>'));
   let h='';
   if(d.abertas.length){
-    h+='<div class="fsec">EM ABERTO</div>';
+    h+='<div class="fsec">SUA ASSINATURA ATUAL</div>';
     h+=d.abertas.map(f=>{
       const dif=diasDe(d.hoje,f.vencimento);
       const bad = f.vencida ? '<span class="fbad v">Vencida há '+f.diasAtraso+(f.diasAtraso===1?' dia':' dias')+'</span>'
@@ -7403,8 +7436,8 @@ async function anualCarregar(){
 }
 function anualHtml(){
   const a=anualInfo; if(!a || ehAdmin) return '';
-  if(a.ok) return '<div class="fanual"><div class="fat" style="margin-bottom:10px">📅 Plano anual: pague 10 meses e ganhe 2</div>'+
-    '<div class="fav"><b>'+brl(a.valor)+'</b><span>no PIX, à vista</span><i>'+Math.round(a.economia/(a.mensal*12)*100)+'% de economia</i></div>'+
+  if(a.ok) return '<div class="fanual"><div class="fat" style="margin-bottom:10px">🎁 Que tal contratar o plano anual?</div>'+
+    '<div class="fav"><b>'+brl(a.valor)+'</b><span>no PIX, à vista</span><i>Pague 10, ganhe 2 · '+Math.round(a.economia/(a.mensal*12)*100)+'% de economia</i></div>'+
     '<button type="button" id="fAnualBt">Quero o plano anual</button></div>';
   if(a.motivo==='já tem o plano anual' && a.ate) return '<div class="fanual ativo"><div class="fat">✅ Plano anual ativo</div><div class="fas" style="margin:3px 0 0">Seu próximo boleto vence em '+dmy(a.ate)+'.</div></div>';
   return '';
