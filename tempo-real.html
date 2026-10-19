@@ -10378,6 +10378,7 @@ function lojaAbrirPix(r){
   $('ljpStatus').textContent='Aguardando o pagamento… Assim que o banco confirmar, aparece aqui (pode levar alguns instantes).';
   $('ljpPix').style.display=''; $('ljpOk').style.display='none';
   ljpQrMostrar(true); ljpTempoIniciar(Number(r.expiraEmMs||0));
+  try{ const mp=$('mLojaPix'); mp.style.zIndex='1400'; document.body.appendChild(mp) }catch(e){} /* sempre na frente (último da página + camada mais alta) */
   abrir('mLojaPix');
   lojaPoll();
 }
