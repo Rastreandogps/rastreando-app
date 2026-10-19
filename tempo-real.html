@@ -600,6 +600,35 @@ main{position:relative;flex:1;min-height:0;overflow:hidden}
 /* ===== HISTÓRICO DE ROTAS (10/10/2026) ===== */
 #map.hist-on .leaflet-marker-icon:not(.hmk){visibility:hidden;pointer-events:none}
 body.hist-on #follow,body.hist-on #btnEu,body.hist-on #btnTodos,body.hist-on #btnGrupo,body.hist-on #btnSat,body.hist-on #btnAncora,body.hist-on #btnNomes,body.hist-on #btnRet{display:none!important}
+#pontoBtn{position:absolute;top:54px;left:12px;z-index:420;align-items:center;justify-content:center;gap:4px;min-width:34px;height:34px;padding:0 9px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--txt);box-shadow:0 2px 8px rgba(0,0,0,.25);cursor:pointer;font:inherit}
+#pontoBtn b{font-size:12px;font-weight:800}
+#pontoBtn b:empty{display:none}
+body.hist-on #pontoBtn{display:none!important}
+@media (min-width:900px){ #pontoBtn{left:calc(var(--lado,0px) + 12px);z-index:460} }
+#mPonto .box2{display:flex;flex-direction:column;max-height:86vh;overflow:hidden}
+#mPonto .almtopo{flex:none;display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}
+#mPonto .almtopo h3{margin:0}
+#mPonto .almx{width:38px;height:38px;flex:none;border-radius:50%;background:var(--card2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;cursor:pointer}
+#mPonto .almx svg{width:18px;height:18px;fill:none;stroke:var(--txt);stroke-width:2.4;stroke-linecap:round}
+#mPonto #ptRola{flex:1 1 auto;min-height:0;overflow-y:auto}
+.ptlin{display:flex;gap:8px;align-items:center}.ptlin .fld{flex:1;margin:0}.ptlin .btn{width:auto;flex:none;padding:0 16px;height:44px}
+#ptRes{margin-top:8px}
+.ptop{display:block;width:100%;text-align:left;padding:10px 12px;margin-bottom:6px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--txt);font:inherit;font-size:13.5px;cursor:pointer}
+.ptop:hover{border-color:#e3262f}
+.ptmsg{font-size:13px;color:var(--mut);padding:6px 2px}
+.ptsel{margin-top:8px;padding:10px 12px;border-radius:10px;background:rgba(227,38,47,.07);border:1px solid rgba(227,38,47,.35);font-size:13px}
+.ptics{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.ptics button{display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px 6px;border-radius:12px;border:2px solid var(--line);background:var(--card);color:var(--txt);font-size:24px;cursor:pointer}
+.ptics button small{font-size:11.5px;font-weight:700;color:var(--mut)}
+.ptics button.on{border-color:#e3262f;background:rgba(227,38,47,.07)}
+.ptlista{margin-top:14px}
+.ptlista h4{font-size:13px;margin:0 0 6px;color:var(--mut)}
+.ptit{display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;margin-bottom:6px}
+.ptit span.ic{font-size:20px}.ptit .tx{flex:1;min-width:0;font-size:13px}.ptit .tx small{display:block;color:var(--mut);font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ptit button{border:1px solid var(--line);background:var(--card2);color:var(--txt);border-radius:8px;padding:6px 9px;font:inherit;font-size:12px;font-weight:700;cursor:pointer}
+.ptit button.del{color:#e3262f}
+.ptpin{font-size:30px;line-height:1;filter:drop-shadow(0 2px 3px rgba(0,0,0,.45));text-align:center}
+.ptpin .ptnm{display:block;margin:2px auto 0;width:max-content;max-width:160px;font-size:11px;font-weight:800;color:#fff;background:rgba(15,23,42,.88);padding:2px 7px;border-radius:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #retChip{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:421;align-items:center;gap:8px;height:34px;padding:0 14px;border-radius:999px;border:1px solid #e3262f;background:var(--card);color:var(--txt);font:inherit;font-size:12.5px;font-weight:700;box-shadow:0 2px 8px rgba(0,0,0,.25);cursor:pointer;white-space:nowrap}
 #retChip span{color:#e3262f;font-size:14px}
 body.hist-on #retChip{display:none!important}
@@ -2224,6 +2253,8 @@ nav button.on .nemo.txt{color:var(--red2)}
   </button>
   <!-- 18/10/2026 (pedido do dono): atalho da lista Para retirar no mapa (só para quem tem a permissão). Pisca vermelho com veículo novo na lista -->
   <button class="follow" id="btnRet" type="button" style="display:none" title="Para retirar" aria-label="Para retirar"><span class="rletra">R</span><span class="lbl">Para retirar</span></button>
+  <!-- 19/10/2026 (pedido do dono): lupa para marcar um ponto no mapa (endereço ou latitude/longitude), só administrador -->
+  <button id="pontoBtn" type="button" style="display:none" title="Marcar um ponto no mapa (endereço ou coordenadas)" aria-label="Marcar um ponto no mapa"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><b id="pontoN"></b></button>
   <button id="retChip" type="button" style="display:none" title="Tirar do mapa os veículos para retirar">📍 Para retirar no mapa <span aria-hidden="true">✕</span></button>
   <button id="deslizeBtn" type="button" title="Teste: o veículo desliza sem parar, mostrando o trajeto com até 2 minutos de atraso">〰️ Deslize contínuo: <span id="deslizeTxt">desligado</span></button>
   <button id="mapCar" type="button" aria-label="Você tem pedido aguardando pagamento" title="Pedido aguardando pagamento"><svg viewBox="0 0 24 24"><path d="M6 6h15l-1.5 9h-12z"/><path d="M6 6L5 3H2"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/></svg><span class="mcn" id="mapCarN">1</span></button>
@@ -2950,6 +2981,26 @@ nav button.on .nemo.txt{color:var(--red2)}
 <!-- Confirmação genérica -->
 <!-- Sua conta: trocar senha (opcional) e sair -->
 <!-- Serviços (11/10/2026): os mesmos formulários do Apps.html (app.rastreandogpsbr.com.br) -->
+<!-- 19/10/2026: marcar ponto no mapa (administrador) -->
+<div class="modal alsheet" id="mPonto">
+  <div class="box2">
+    <div class="almtopo"><h3>Marcar no mapa</h3><button class="almx" data-close type="button" aria-label="Fechar" title="Fechar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <div id="ptRola">
+      <label class="flbl" for="ptBusca">Endereço ou latitude, longitude</label>
+      <div class="ptlin"><input class="fld" id="ptBusca" type="search" autocomplete="off" placeholder="Ex.: Rua Tal, 100, Duque de Caxias  ou  -22.7856, -43.3117"><button type="button" class="btn btn-red" id="ptBuscar">Buscar</button></div>
+      <div id="ptRes"></div>
+      <div id="ptEscolha" hidden>
+        <div class="ptsel" id="ptSelTxt"></div>
+        <label class="flbl" for="ptNome">Nome da marcação (opcional)</label>
+        <input class="fld" id="ptNome" maxlength="40" autocomplete="off" placeholder="Ex.: Casa do cliente">
+        <label class="flbl">Ícone</label>
+        <div class="ptics" id="ptIcs"><button type="button" data-ic="casa" class="on">🏠<small>Casa</small></button><button type="button" data-ic="pino">📍<small>Pino</small></button><button type="button" data-ic="bandeira">🚩<small>Bandeira</small></button></div>
+        <button type="button" class="btn btn-red" id="ptMarcar" style="width:100%;margin-top:10px">Marcar no mapa</button>
+      </div>
+      <div class="ptlista" id="ptLista"></div>
+    </div>
+  </div>
+</div>
 <!-- 18/10/2026: lista "Para retirar" (técnico com permissão) -->
 <div class="modal alsheet" id="mRetirar">
   <div class="box2">
@@ -4358,7 +4409,73 @@ function animar(now){
   requestAnimationFrame(animar);
 }
 requestAnimationFrame(animar);
-function deslizePintar(){ const b=$('deslizeBtn'); if(!b) return; b.style.display=ehAdmin?'inline-flex':'none'; const on=deslizeLigado(); b.classList.toggle('on',on); $('deslizeTxt').textContent=on?'ligado':'desligado' }
+function deslizePintar(){ const b=$('deslizeBtn'); if(!b) return; b.style.display=ehAdmin?'inline-flex':'none'; try{ $('pontoBtn').style.display=ehAdmin?'inline-flex':'none' }catch(e){} const on=deslizeLigado(); b.classList.toggle('on',on); $('deslizeTxt').textContent=on?'ligado':'desligado' }
+/* ===== MARCAR PONTO NO MAPA (19/10/2026, pedido do dono; só administrador) =====
+   Lupa abaixo do "Deslize contínuo": busca um endereço (OpenStreetMap, grátis) ou aceita "latitude, longitude",
+   escolhe o ícone (casa, pino ou bandeira) e marca no mapa. Fica guardado neste computador; dá para remover. */
+let ptSel=null, ptIc='casa', ptCamada=null;
+const PT_IC={casa:'🏠',pino:'📍',bandeira:'🚩'};
+function ptLer(){ try{ const a=JSON.parse(lsGet('rg_pontos')||'[]'); return Array.isArray(a)?a:[] }catch(e){ return [] } }
+function ptGravar(a){ lsSet('rg_pontos',JSON.stringify(a)); ptDesenharMapa(); ptLista() }
+function ptDesenharMapa(){
+  if(ptCamada){ try{ map.removeLayer(ptCamada) }catch(e){} }
+  ptCamada=L.layerGroup().addTo(map);
+  const a=ptLer();
+  a.forEach(p=>{
+    const m=L.marker([p.lat,p.lon],{zIndexOffset:1000,keyboard:false,icon:L.divIcon({className:'',iconSize:[40,40],iconAnchor:[20,p.ic==='casa'?20:36],
+      html:'<div class="ptpin">'+(PT_IC[p.ic]||'📍')+(p.nome?'<span class="ptnm">'+esc(p.nome)+'</span>':'')+'</div>'})});
+    m.bindPopup('<b>'+esc(p.nome||'Marcação')+'</b><br><small>'+esc(p.end||(p.lat.toFixed(6)+', '+p.lon.toFixed(6)))+'</small><br><a href="https://www.google.com/maps/dir/?api=1&destination='+p.lat+','+p.lon+'" target="_blank" rel="noopener">Navegar</a> · <a href="#" onclick="ptRemover(\''+p.id+'\');return false">Remover</a>');
+    m.addTo(ptCamada);
+  });
+  const n=$('pontoN'); if(n) n.textContent=a.length?String(a.length):'';
+}
+function ptLista(){
+  const a=ptLer();
+  $('ptLista').innerHTML=a.length?'<h4>Marcações no mapa ('+a.length+')</h4>'+a.map(p=>'<div class="ptit"><span class="ic">'+(PT_IC[p.ic]||'📍')+'</span><div class="tx"><b>'+esc(p.nome||'Marcação')+'</b><small>'+esc(p.end||(p.lat.toFixed(6)+', '+p.lon.toFixed(6)))+'</small></div><button type="button" data-ptver="'+p.id+'">Ver</button><button type="button" class="del" data-ptdel="'+p.id+'">Remover</button></div>').join(''):'';
+}
+function ptRemover(id){ ptGravar(ptLer().filter(p=>p.id!==id)); try{ map.closePopup() }catch(e){} toast('Marcação removida.') }
+function ptCoords(t){ const m=String(t).trim().match(/^(-?\d{1,2}(?:[.,]\d+)?)\s*[,; ]\s*(-?\d{1,3}(?:[.,]\d+)?)$/); if(!m) return null; const la=+m[1].replace(',','.'), lo=+m[2].replace(',','.'); return (Math.abs(la)<=90&&Math.abs(lo)<=180&&(la||lo))?{lat:la,lon:lo}:null }
+function ptEscolher(o){
+  ptSel=o; $('ptEscolha').hidden=false;
+  $('ptSelTxt').innerHTML='📍 <b>'+esc(o.end||'Coordenadas')+'</b><br><small>'+o.lat.toFixed(6)+', '+o.lon.toFixed(6)+'</small>';
+  if(!$('ptNome').value && o.curto) $('ptNome').value=o.curto.slice(0,40);
+}
+async function ptBuscar(){
+  const t=$('ptBusca').value.trim(); if(!t) return;
+  $('ptEscolha').hidden=true; ptSel=null;
+  const c=ptCoords(t);
+  if(c){ $('ptRes').innerHTML=''; ptEscolher({lat:c.lat,lon:c.lon,end:'',curto:''}); return }
+  $('ptRes').innerHTML='<div class="ptmsg">Buscando...</div>'; $('ptBuscar').disabled=true;
+  try{
+    const ce=map.getCenter();
+    const r=await fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=6&countrycodes=br&accept-language=pt-BR&addressdetails=1&viewbox='+(ce.lng-1)+','+(ce.lat+1)+','+(ce.lng+1)+','+(ce.lat-1)+'&q='+encodeURIComponent(t));
+    const l=r.ok?await r.json():[];
+    if(!l.length){ $('ptRes').innerHTML='<div class="ptmsg">Nada encontrado. Tente com o número, o bairro e a cidade, ou cole a latitude e longitude.</div>' }
+    else{
+      window._ptOps=l.map(x=>({lat:+x.lat,lon:+x.lon,end:txtEndereco(x)||String(x.display_name||'').split(',').slice(0,4).join(','),curto:String(x.name||'')}));
+      $('ptRes').innerHTML=window._ptOps.map((o,i)=>'<button type="button" class="ptop" data-pti="'+i+'">'+esc(o.end)+'</button>').join('');
+    }
+  }catch(e){ $('ptRes').innerHTML='<div class="ptmsg">Não consegui buscar agora. Tente de novo ou use latitude e longitude.</div>' }
+  $('ptBuscar').disabled=false;
+}
+$('ptBuscar').onclick=ptBuscar;
+$('ptBusca').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); ptBuscar() } });
+$('ptRes').addEventListener('click',e=>{ const b=e.target.closest('[data-pti]'); if(!b) return; ptEscolher(window._ptOps[+b.dataset.pti]); $('ptRes').innerHTML='' });
+$('ptIcs').addEventListener('click',e=>{ const b=e.target.closest('[data-ic]'); if(!b) return; ptIc=b.dataset.ic; $('ptIcs').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b)) });
+$('ptMarcar').onclick=()=>{
+  if(!ptSel) return;
+  const p={id:'p'+Date.now().toString(36),lat:ptSel.lat,lon:ptSel.lon,ic:ptIc,nome:$('ptNome').value.trim().slice(0,40),end:ptSel.end||''};
+  const a=ptLer(); a.push(p); ptGravar(a);
+  fechar(); try{ setSeguir(false) }catch(e){} map.setView([p.lat,p.lon],16); toast('Marcado no mapa.');
+};
+$('ptLista').addEventListener('click',e=>{
+  const v=e.target.closest('[data-ptver]'), d=e.target.closest('[data-ptdel]');
+  if(d){ ptRemover(d.dataset.ptdel); return }
+  if(v){ const p=ptLer().find(x=>x.id===v.dataset.ptver); if(p){ fechar(); try{ setSeguir(false) }catch(e){} map.setView([p.lat,p.lon],16) } }
+});
+$('pontoBtn').onclick=()=>{ if(!ehAdmin) return; $('ptBusca').value=''; $('ptRes').innerHTML=''; $('ptNome').value=''; $('ptEscolha').hidden=true; ptSel=null; ptLista(); abrir('mPonto'); setTimeout(()=>$('ptBusca').focus(),60) };
+setTimeout(()=>{ try{ if(ehAdmin) ptDesenharMapa() }catch(e){} },1500);
+setInterval(()=>{ try{ if(ehAdmin && !ptCamada) ptDesenharMapa() }catch(e){} },5000);
 $('deslizeBtn').onclick=()=>{ lsSet('rg_deslize',deslizeLigado()?'0':'1'); deslizePintar(); toast(deslizeLigado()?'Deslize contínuo ligado (teste). O veículo aparece com até 2 minutos de atraso.':'Deslize contínuo desligado: posição mais recente, como antes.',4000) };
 setInterval(deslizePintar,3000); setTimeout(deslizePintar,500);
 
