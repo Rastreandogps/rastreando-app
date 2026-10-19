@@ -1194,6 +1194,20 @@ h3.comdica .dica:hover~.dicatx,h3.comdica .dica:focus~.dicatx,h3.comdica .dica.o
 #mComb .cbsic{width:18px;height:18px;color:#16a34a}
 #mComb.modo-comb #cbSecMeta,#mComb.modo-comb #cbOdoRow{display:none}
 #mComb.modo-odo #cbSecComb{display:none}
+#mfPromo{display:none}
+#mComb.semmod #cbSecComb,#mComb.semmod #cbSecMeta,#mComb.semmod #snLbl,#mComb.semmod #cbNota{display:none!important}
+#mComb.semmod #mfPromo{display:block}
+.mfpromo{margin-top:12px;border:1.5px solid rgba(245,158,11,.55);border-radius:16px;padding:14px;background:rgba(245,158,11,.08)}
+.mfpromo .mfti{font-weight:800;font-size:15px;margin-bottom:6px}
+.mfpromo ul{list-style:none;padding:0;margin:0 0 10px;font-size:13.5px;line-height:1.6}
+.mfpromo .mfpr{font-size:14px;margin-bottom:10px}
+.mfpromo .mfpr small{display:block;font-size:12px;color:var(--mut);margin-top:2px}
+.mfpromo .mfbt{width:100%;background:linear-gradient(135deg,#fcd34d,#f59e0b);color:#1a1300;font-weight:800;border:0}
+.mfrenova{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px;padding:8px 10px;border-radius:12px;background:rgba(245,158,11,.10);font-size:12.5px}
+.mfrenova span{flex:1}
+.mfrenova button{height:32px;padding:0 12px;border-radius:9px;border:0;background:#d97706;color:#fff;font-weight:700;font-size:12.5px;cursor:pointer}
+.grid.semcomb{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media(max-width:359px){.grid.semcomb{grid-template-columns:repeat(3,1fr)}}
 #mComb .cbsec{margin-top:10px}
 #mComb .cbtot{border-radius:14px;padding:12px 10px;text-align:center;margin:10px 0 6px}
 #mComb .cbtot span{display:block;font-size:12px;opacity:.85}
@@ -1530,6 +1544,20 @@ header nav .nl-pc{display:inline} header nav .nl-cel{display:none}
 .lkcard .lkcd b{display:block;font-size:20px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.05;letter-spacing:-.01em}
 .lkcard .lkcd small{display:block;font-size:11px;color:var(--mut);margin-top:2px}
 .lkcard.acabando .lkcd b{color:var(--red2)}
+.primeselo{display:inline-block;font-size:10px;font-weight:900;letter-spacing:.6px;color:#1a1300;background:linear-gradient(135deg,#fcd34d,#f59e0b);padding:1px 6px;border-radius:6px;vertical-align:1px}
+.lkacesso.trava{color:var(--mut);font-style:normal}
+.lkbtns .lkmais.trava{opacity:.75}
+.tpgrid button.trava,.tpuni button.trava{opacity:.45;position:relative}
+.tpgrid button.trava::after{content:'🔒';position:absolute;top:3px;right:5px;font-size:10px}
+.shplano{font-size:12.5px;line-height:1.45;color:var(--mut);background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:9px 12px;margin:0 0 12px}
+.primepromo{text-align:center;padding:26px 18px;border:1px solid var(--line);border-radius:18px;background:var(--card);max-width:520px;margin:10px auto}
+.primepromo .ppic{font-size:34px;margin-bottom:6px}
+.primepromo b{font-size:16px}
+.primepromo p{font-size:13.5px;color:var(--mut);margin:10px 0 6px}
+.primepromo ul{list-style:none;padding:0;margin:8px 0;text-align:left;font-size:13.5px;line-height:1.5}
+.primepromo li{padding:6px 0;border-bottom:1px solid var(--line)}
+.primepromo .ppsm{font-size:12px}
+.primepromo .ppbt{display:inline-block;margin-top:10px;padding:11px 22px;border-radius:12px;background:linear-gradient(135deg,#fcd34d,#f59e0b);color:#1a1300;font-weight:800;text-decoration:none}
 .lkacesso{margin:8px 0 2px;font-size:12.5px;color:var(--mut);padding:6px 10px;border-radius:10px;background:var(--card2)} /* 19/10/2026 */
 .lkacesso.ok{color:#15803d;background:rgba(34,197,94,.12)}
 .lkcard .lkbar{height:4px;border-radius:4px;background:var(--line);margin:10px 0 10px;overflow:hidden}
@@ -2560,6 +2588,7 @@ nav button.on .nemo.txt{color:var(--red2)}
         <p id="camMot" style="font-size:12px;color:var(--mut);margin:-4px 0 12px 2px"></p>
       </div>
     </div>
+    <div class="shplano" id="sharePlano" style="display:none">Plano grátis: <b>1 link por veículo</b>, de <b>até 1 hora</b>. 🔒 Mais tempo, vários links, + Tempo e saber se o cliente abriu são recurso <span class="primeselo">PRIME</span>.</div>
     <label class="flbl">Por quanto tempo a pessoa pode acompanhar?</label>
     <button class="tpsel" id="tpSel" type="button" aria-expanded="false" aria-controls="tpGav">
       <span class="tpic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
@@ -2932,6 +2961,7 @@ nav button.on .nemo.txt{color:var(--red2)}
     <label class="fchk"><input type="checkbox" id="pmEu"> Ver a posição do próprio celular no mapa (botão Minha posição)</label>
     <label class="fchk"><input type="checkbox" id="pmRetirar"> Ver a lista <b>Para retirar</b> (para técnico: veículos marcados para retirada, pelo mais perto, com o nome e o WhatsApp do cliente)</label>
     <label class="fchk"><input type="checkbox" id="pmFichas"> Cobrar fichas no compartilhar localização (1 ficha por link; o cliente compra pacotes por PIX no app)</label>
+    <div class="pmfichas" id="pmModBox"><span class="sp">Módulo Frota: <b id="pmModSt">—</b></span><button type="button" data-mf="30">+30 dias</button><button type="button" data-mf="0" style="background:#64748b">Tirar</button></div>
     <div class="pmfichas" id="pmFichasBox"><span class="sp">Saldo: <b id="pmFichasSaldo">—</b> fichas</span><input class="fld" id="pmFichasQ" type="text" inputmode="numeric" placeholder="+10" autocomplete="off" aria-label="Fichas para lançar"><button type="button" id="pmFichasLancar">Lançar</button></div>
     <div class="pmval pmmapa"><span class="pmvl">Mapa do app</span><select class="fld" id="pmMapa"><option value="gratis">Grátis (padrão)</option><option value="google">Google Maps</option></select></div>
     <p class="pmvh">Todo cliente começa com o mapa grátis. Se ele reclamar do mapa, troque para o Google aqui (custa por uso; vale na próxima vez que ele abrir o app).</p>
@@ -3212,6 +3242,14 @@ nav button.on .nemo.txt{color:var(--red2)}
       <label class="fchk" id="mtMapaLbl"><input type="checkbox" id="mtMapa"> Mostrar no mapa</label>
     </div>
 
+    <!-- 19/10/2026: Módulo Frota (pago à parte por PIX) -->
+    <div class="mfpromo" id="mfPromo">
+      <div class="mfti">🔒 Combustível e troca de óleo</div>
+      <ul><li>⛽ Quanto o veículo gastou de combustível</li><li>🔧 Aviso de troca de óleo e revisão por km</li><li>📍 Esses valores fixos no cartão e no mapa</li></ul>
+      <div class="mfpr"><b>Módulo Frota</b> · <b>R$ 59,90</b> por 30 dias<small>Pagamento por PIX, libera na hora. Não entra no boleto.</small></div>
+      <button type="button" class="btn mfbt" id="mfLiberar">Liberar agora com PIX</button>
+    </div>
+    <div class="mfrenova" id="mfRenova" style="display:none"><span id="mfRenovaTx"></span><button type="button" id="mfRenovar">Renovar (+30 dias)</button></div>
     <label class="fchk" id="snLbl" style="margin-top:10px"><input type="checkbox" id="snNome"> Esconder o nome no mapa (mostrar só os valores)</label>
     <p class="cbnota" id="cbNota"></p>
     <button class="btn btn-out alfechar" data-close type="button">Fechar</button>
@@ -4569,6 +4607,7 @@ function atualizar(){
     $('sSpeed').textContent=sp?'—':v.vel+' km/h';
     { const ig=$('vIgn'); ig.className='vign '+(v.ign===null?'nd':(v.ign?'on':'off')); ig.title=v.ign===null?'Ignição: sem informação':(v.ign?'Ignição ligada':'Ignição desligada'); ig.setAttribute('aria-label',ig.title) }
     try{ cbQuadro(v) }catch(e){}
+    try{ const okm=modFrota(), cb=$('sCombBtn'); if(cb && (cb.style.display!=='none')!==okm) modFrotaAplicar() }catch(e){}
     $('sBat').textContent=v.bat===null?'—':v.bat+'%';
     $('sVolt').textContent=v.volt===null?'—':v.volt.toFixed(1).replace('.',',')+' V';
     $('sOdo').textContent=fmtOdo(v.odo);
@@ -5546,7 +5585,8 @@ async function carregarPermissoes(){
   try{
     const r=await fetch(DESB_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',body:JSON.stringify({acao:'minhas',token:lsGet('rg_token')})});
     if(!r.ok) return;
-    const j=await r.json(); permCli=Object.assign({smsBloqueio:false,reset:false,editarNome:false,cercaRapida:false,minhaPosicao:false},j.perm||{},{appBloqueio:permCli.appBloqueio,cercaBloqueio:permCli.cercaBloqueio,semBloqueio:permCli.semBloqueio,frotista:permCli.frotista}); cobrCli=j.cobranca||null;
+    const j=await r.json(); permCli=Object.assign({smsBloqueio:false,reset:false,editarNome:false,cercaRapida:false,minhaPosicao:false},j.perm||{},{appBloqueio:permCli.appBloqueio,cercaBloqueio:permCli.cercaBloqueio,semBloqueio:permCli.semBloqueio,frotista:permCli.frotista,modFrotaAteMs:Number(j.modFrotaAteMs||0)}); cobrCli=j.cobranca||null;
+    try{ modFrotaAplicar() }catch(e){}
     mostrarBotoesSms(); fichasAplicar(); try{ retAplicar() }catch(e){}
   }catch(e){}
 }
@@ -5859,6 +5899,7 @@ function mostrarPerm(j){
     (c.faturadoEm?'<br><span style="color:var(--mut);font-size:12px">Último zerado em '+fmtHora(c.faturadoEm)+' · total já faturado: '+(c.totalFaturado||0)+' SMS</span>':'');
   $('pmZerar').disabled=!c.pendentes;
   $('pmFichas').checked=!!p.fichas; pmFichasCarregar();
+  pmModPintar(j.modFrotaAteMs);
 }
 async function abrirPermissoes(userId){
   const u=usuarios.find(x=>x.id===userId); if(!u) return;
@@ -5922,7 +5963,7 @@ function cbGasto(v){
   const z=cbZeroDe(v.id), kmc=z?Math.max(0,km-z.zero):km;
   const lt=kmc/kml; return {km:kmc,lt,rs:lt*preco,zero:z};
 }
-function cbMapaTxt(v){ if(!v || !cbMapaLigado(v.id)) return ''; const g=cbGasto(v); return g?cbBrl(g.rs):'' }
+function cbMapaTxt(v){ if(!v || !modFrota() || !cbMapaLigado(v.id)) return ''; const g=cbGasto(v); return g?cbBrl(g.rs):'' }
 /* 🔧 meta: {km: tamanho da meta, odo0: odômetro (km) quando começou, nome} */
 function metaLer(id){ return lsJ('rg_meta_'+id,null) }
 function metaInfo(v){
@@ -5935,7 +5976,7 @@ function metaInfo(v){
   return {m,falta,pct,alerta:falta<=m.km*0.10};
 }
 function metaMapaInfo(v){
-  if(!v || !metaMapaLigado(v.id)) return null;
+  if(!v || !modFrota() || !metaMapaLigado(v.id)) return null;
   const i=metaInfo(v); if(!i) return null;
   return {txt:i.falta>0?kmTxt(i.falta):'0 km',alerta:i.alerta};
 }
@@ -5974,9 +6015,30 @@ function cbPintar(){
   $('snNome').checked=!!(v&&semNomeLigado(v.id));
 }
 function cbRotular(){ if(!cbVeic) return; const v=veiculos.find(x=>x.id===cbVeic.id); if(v) rotularMarcador(v) }
+/* ===== MÓDULO FROTA (19/10/2026, decisão do dono) =====
+   Combustível e troca de óleo (meta de km) são pagos à parte: R$ 59,90 por 30 dias, por PIX na hora (nunca no boleto).
+   Sem o módulo: o cartão mostra só o odômetro; tocar nele mostra o odômetro e a oferta com o PIX. Quem já usava também perde. */
+const MODFROTA_VALOR='R$ 59,90';
+function modFrota(){ return ehAdmin || Number(permCli&&permCli.modFrotaAteMs||0)>Date.now() }
+function modFrotaAplicar(){
+  const ok=modFrota(), b=$('sCombBtn'); if(b) b.style.display=ok?'':'none';
+  const g=b&&b.closest('.grid'); if(g) g.classList.toggle('semcomb',!ok);
+  try{ cbMapaAtualizar() }catch(e){}
+}
+function modFrotaPintarJanela(){
+  const ok=modFrota(), m=$('mComb'); m.classList.toggle('semmod',!ok);
+  const ate=Number(permCli&&permCli.modFrotaAteMs||0), dias=Math.ceil((ate-Date.now())/86400000);
+  const r=$('mfRenova');
+  if(ok && !ehAdmin && dias<=5){ r.style.display=''; $('mfRenovaTx').textContent='Módulo Frota até '+new Date(ate).toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo'})+(dias<=1?' (vence amanhã)':' (faltam '+dias+' dias)'); }
+  else r.style.display='none';
+}
+$('mfLiberar').onclick=()=>lojaComprarPix('modfrota',$('mfLiberar'),1);
+$('mfRenovar').onclick=()=>lojaComprarPix('modfrota',$('mfRenovar'),1);
+setInterval(()=>{ try{ if(!ehAdmin && $('sCombBtn') && (($('sCombBtn').style.display!=='none')!==modFrota())) modFrotaAplicar() }catch(e){} },60000); /* venceu com o app aberto */
 function abrirComb(modo){
   const v=cartao(); if(!v){ toast('Escolha um veículo.'); return }
   modo=modo==='odo'?'odo':'comb';
+  if(!modFrota()) modo='odo';
   cbVeic=v; $('cbTit').textContent=(modo==='odo'?'Odômetro · ':'Combustível · ')+v.nome;
   $('mComb').classList.toggle('modo-odo',modo==='odo'); $('mComb').classList.toggle('modo-comb',modo==='comb');
   $('cbNota').textContent = modo==='odo'
@@ -5984,7 +6046,7 @@ function abrirComb(modo){
     : 'O valor acompanha o odômetro: conforme o veículo anda, sobe; se o odômetro for zerado, zera junto. É uma estimativa pelo consumo informado. Fica salvo no veículo: vale para todos que veem este veículo.';
   const c=cbLer(v.id); $('cbKml').value=c.kml||''; $('cbPreco').value=c.preco||'';
   const m=metaLer(v.id); $('mtKm').value=m&&m.km?String(m.km):''; $('mtNome').value=m&&m.nome||'';
-  cbPintar(); abrir('mComb');
+  cbPintar(); modFrotaPintarJanela(); abrir('mComb');
 }
 $('sOdoBtn').onclick=()=>abrirComb('odo');
 $('sCombBtn').onclick=()=>abrirComb('comb');
@@ -6184,6 +6246,7 @@ const IC_CAMINHAO='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" st
 /* 15/10/2026: o mesmo cartão de link serve para o "Compartilhar" do veículo e para a aba Compartilhados (comVeic = mostra o veículo) */
 /* 19/10/2026 (pedido do dono): o link foi aberto? quantas vezes, quando e em que aparelho */
 function compAcessoHtml(x){
+  if(!ehPrime()) return '<div class="lkacesso trava">🔒 Saber se o cliente abriu · recurso '+PRIME_SELO+'</div>';
   const n=Number(x.acessos||0);
   const h=ms=>new Date(ms).toDateString()===new Date().toDateString()?compQuando(ms).replace(/^\d\d\/\d\d às /,''):compQuando(ms);
   if(!n) return '<div class="lkacesso" data-acc="'+esc(x.codigo)+'">⏳ Ainda não foi aberto</div>';
@@ -6203,7 +6266,7 @@ function compCardHtml(x,agora,comVeic){
           compAcessoHtml(x)+
           '<div class="lkbtns">'+
             '<button type="button" data-cpcopy="'+esc(x.codigo)+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 012-2h10"/></svg>Copiar</button>'+
-            '<button type="button" class="lkmais" data-cpmais="'+esc(x.codigo)+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Tempo</button>'+
+            '<button type="button" class="lkmais'+(ehPrime()?'':' trava')+'" data-cpmais="'+esc(x.codigo)+'">'+(ehPrime()?'':'🔒 ')+'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Tempo</button>'+
             '<button type="button" class="lkfim" data-cpfim="'+esc(x.codigo)+'">Encerrar</button>'+
           '</div>'+
           '<div class="lkext"><button type="button" data-cpext="15">+15 min</button><button type="button" data-cpext="30">+30 min</button><button type="button" data-cpext="60">+1 h</button><button type="button" data-cpext="180">+3 h</button></div>'+
@@ -6230,7 +6293,19 @@ async function cpCarregar(){
     if($('cpview').classList.contains('show')) cpDesenhar();
   }catch(e){} finally{ cpCarregando=false }
 }
+/* 19/10/2026 (decisão do dono: "pago é pago e free é free"): Prime = frotista (ou administrador).
+   Grátis: 1 link por veículo, até 1 hora, sem "+ Tempo", sem este painel e sem saber se o cliente abriu. O servidor também trava. */
+const ehPrime=()=>ehAdmin||permCli.frotista===true;
+const PRIME_SELO='<span class="primeselo">PRIME</span>';
+function cpPromo(){
+  return '<div class="primepromo"><div class="ppic">🔒</div><b>Painel de compartilhados é recurso '+PRIME_SELO+'</b>'+
+    '<p>Com o Prime você acompanha todos os links num só lugar e ainda tem:</p>'+
+    '<ul><li>👁️ Saber se o cliente <b>abriu o link</b>, a que horas e em que aparelho</li><li>🚚 <b>Serviço a caminho</b> com destino, previsão de chegada e motorista</li><li>⏱️ Links de até <b>7 dias</b> e <b>+ Tempo</b> sem gerar outro</li><li>🔗 <b>Vários links</b> ao mesmo tempo no mesmo veículo</li></ul>'+
+    '<p class="ppsm">No plano grátis: 1 link por veículo, de até 1 hora. Para ver o link, abra o veículo e toque em Compartilhar.</p>'+
+    '<a class="ppbt" href="https://wa.me/'+LOJA_WPP+'?text='+encodeURIComponent('Olá! Quero saber do plano Prime do rastreamento.')+'" target="_blank" rel="noopener">Quero o Prime</a></div>';
+}
 function cpDesenhar(){
+  if(!ehPrime()){ cprGuardar(); $('cpSub').textContent='Recurso Prime'; $('cpLista').innerHTML=cpPromo(); return }
   const agora=Date.now(); cprGuardar();
   $('cpSub').textContent = cpLista.length ? cpLista.length+(cpLista.length===1?' link ativo':' links ativos')+' · os que acabam primeiro aparecem em cima' : 'Links de localização ativos';
   $('cpLista').innerHTML = cpLista.length ? cpLista.map(x=>compCardHtml(x,agora,true)).join('')
@@ -6419,13 +6494,20 @@ function camDados(){
 }
 $('btnShare').onclick=()=>{
   const v=veicShare(); if(!v){ toast('Escolha um veículo.'); return }
-  tpEscolher(60,false); tpGaveta(false); $('tpNum').value=''; tpValidarOutro();
+  tpEscolher(60,false); tpGaveta(false); $('tpNum').value=''; tpTravas(); tpValidarOutro();
   $('shareSub').textContent='Quem receber o link vê só a posição de '+v.nome+' no mapa, sem acesso à sua conta e sem poder bloquear.';
   $('shareRes').style.display='none'; $('shareErro').textContent=''; $('shareGerar').disabled=false; $('shareGerar').textContent='Gerar link';
   $('shareAtivos').innerHTML=''; camMostrar(v); abrir('mShare'); shareCarregarAtivos(); fichasBarra(true);
 };
 /* gaveteirozinho do tempo: 8 tempos prontos + "Outro tempo" (número + min/horas/dias), de 5 min até 7 dias */
 const TP_MIN=5, TP_MAX=7*24*60;
+const tpMax=()=>ehPrime()?TP_MAX:60; /* 19/10/2026: grátis até 1 hora */
+function tpTravas(){
+  const p=ehPrime();
+  document.querySelectorAll('#tpGrid button').forEach(b=>{ const t=!p && +b.dataset.m>60; b.classList.toggle('trava',t); b.title=t?'Recurso Prime':'' });
+  document.querySelectorAll('#tpUni button').forEach(b=>{ const t=!p && b.dataset.u==='1440'; b.classList.toggle('trava',t) });
+  const n=$('sharePlano'); if(n) n.style.display=p?'none':'';
+}
 function tpNome(m){
   if(m<60) return m+' minutos';
   if(m%1440===0) return (m/1440)+(m===1440?' dia':' dias');
@@ -6448,16 +6530,16 @@ function tpGaveta(abrirG){ $('tpAte').textContent=tpAteTexto(shareMin); $('tpGav
 function tpValorOutro(){ const t=$('tpNum').value.trim(); if(!/^\d+$/.test(t)) return null; return parseInt(t,10)*tpUnid }
 function tpValidarOutro(){
   const m=tpValorOutro(), d=$('tpDica'), u=$('tpUsar');
-  if(m===null){ d.textContent='De 5 minutos até 7 dias.'; d.classList.remove('mal'); u.disabled=true; return null }
+  if(m===null){ d.textContent=ehPrime()?'De 5 minutos até 7 dias.':'De 5 minutos até 1 hora (plano grátis).'; d.classList.remove('mal'); u.disabled=true; return null }
   if(m<TP_MIN){ d.textContent='O mínimo é 5 minutos.'; d.classList.add('mal'); u.disabled=true; return null }
-  if(m>TP_MAX){ d.textContent='O máximo é 7 dias.'; d.classList.add('mal'); u.disabled=true; return null }
+  if(m>tpMax()){ d.textContent=ehPrime()?'O máximo é 7 dias.':'No plano grátis o máximo é 1 hora (mais tempo é Prime).'; d.classList.add('mal'); u.disabled=true; return null }
   d.textContent=tpNome(m)+' · '+tpAteTexto(m).replace('Link vale','vale'); d.classList.remove('mal'); u.disabled=false; return m;
 }
 $('tpSel').onclick=()=>tpGaveta(!$('tpGav').classList.contains('aberta'));
-$('tpGrid').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return; tpEscolher(+b.dataset.m,false); $('tpNum').value=''; tpValidarOutro(); setTimeout(()=>tpGaveta(false),180) });
+$('tpGrid').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return; if(b.classList.contains('trava')){ toast('No plano grátis o link vale até 1 hora. Mais tempo é recurso Prime.',5000); return } tpEscolher(+b.dataset.m,false); $('tpNum').value=''; tpValidarOutro(); setTimeout(()=>tpGaveta(false),180) });
 $('tpNum').addEventListener('input',()=>{ const v=$('tpNum').value.replace(/\D/g,'').slice(0,3); if(v!==$('tpNum').value) $('tpNum').value=v; tpValidarOutro() });
 $('tpNum').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); $('tpUsar').click() } });
-$('tpUni').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return; tpUnid=+b.dataset.u; document.querySelectorAll('#tpUni button').forEach(x=>x.classList.toggle('sel',x===b)); tpValidarOutro() });
+$('tpUni').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return; if(b.classList.contains('trava')){ toast('Links de dias são recurso Prime.',4000); return } tpUnid=+b.dataset.u; document.querySelectorAll('#tpUni button').forEach(x=>x.classList.toggle('sel',x===b)); tpValidarOutro() });
 $('tpUsar').onclick=()=>{ const m=tpValidarOutro(); if(m===null) return; tpEscolher(m,true); $('tpNum').blur(); tpGaveta(false) };
 /* 15/10/2026 (fichas): quem paga ficha confere antes (veículo, endereço, WhatsApp, tempo); a ficha não volta depois */
 $('shareGerar').onclick=()=>{
@@ -6504,7 +6586,7 @@ async function compClique(e,lista){
   const c=e.target.closest('button[data-cpcopy]');
   if(c){ toast(await copiarTexto(compLink(c.dataset.cpcopy))?'Link copiado.':'Não consegui copiar.'); return }
   const mx=e.target.closest('button[data-cpmais]');
-  if(mx){ const ext=mx.closest('.lkcard').querySelector('.lkext'); ext.classList.toggle('on'); return }
+  if(mx){ if(!ehPrime()){ toast('Adicionar tempo ao link é recurso Prime. No plano grátis, gere um link novo quando acabar.',5000); return } const ext=mx.closest('.lkcard').querySelector('.lkext'); ext.classList.toggle('on'); return }
   const ex=e.target.closest('button[data-cpext]');
   if(ex){ /* adicionar tempo ao link (12/10/2026): quem tem o link continua vendo, sem precisar mandar de novo */
     const card=ex.closest('.lkcard'), cod=card.dataset.c; card.querySelectorAll('.lkext button').forEach(x=>x.disabled=true);
@@ -7205,8 +7287,19 @@ function linhaAcesso(u){
   return '<div class="s">Último acesso: <b>'+esc(fmtHora(a.ultimoMs))+'</b> ('+haQuanto(a.ultimoMs)+')'+(disp?' · '+disp:'')+'</div>';
 }
 async function carregarCpfs(){
-  try{ const r=await fn('cpfs'); cpfsMapa=r.mapa||{}; if(abaAdmin==='cli' && $('aview').classList.contains('show')) desenharClientes(true) }
+  try{ const r=await fn('cpfs'); cpfsMapa=r.mapa||{}; if(abaAdmin==='cli' && $('aview').classList.contains('show')) desenharClientes(true); cpfsLimparOrfaos() }
   catch(e){}
+}
+/* 19/10/2026 (pedido do dono): CPF de cliente que já foi EXCLUÍDO continuava guardado, e a Gestão mostrava o cliente como
+   "já está na plataforma". Uma vez por abertura do app, apaga o CPF de quem não existe mais (só com a lista de clientes carregada). */
+let cpfsLimpou=false;
+async function cpfsLimparOrfaos(){
+  if(cpfsLimpou || !ehAdmin || !usuarios.length || !cpfsMapa) return;
+  cpfsLimpou=true;
+  const ids=new Set(usuarios.map(u=>String(u.id)));
+  const orfaos=Object.keys(cpfsMapa).filter(id=>cpfsMapa[id] && cpfsMapa[id].cpf && !ids.has(String(id)));
+  if(!orfaos.length || orfaos.length>50) return; /* trava: se "sumiram" muitos de uma vez, algo está errado na lista; não mexe */
+  for(const id of orfaos){ try{ await fn('vincular',{userId:+id,cpf:''}); delete cpfsMapa[id] }catch(e){} }
 }
 let finMapa=null, finEm=0; /* situação financeira de cada cliente (vem do servidor de faturas) */
 function rotuloFin(){
@@ -7751,6 +7844,7 @@ $('aList').addEventListener('click',e=>{
     pedirConfirmacao('Tem certeza que deseja excluir esse cliente?','Excluir "'+(u.name||loginDe(u))+'" ('+loginDe(u).replace(EMAIL_FALSO,'')+')? O cliente perde o acesso ao app para sempre. Os equipamentos continuam cadastrados e podem ser vinculados a outro cliente.','Excluir cliente',async()=>{
       const r=await api('/api/users/'+u.id,{method:'DELETE'});
       if(!r.ok && r.status!==204) throw new Error(await msgErro(r,'Não foi possível excluir o cliente'));
+      try{ await fn('vincular',{userId:u.id,cpf:''}); if(cpfsMapa) delete cpfsMapa[u.id] }catch(e2){ if(e2.sessao) throw e2 } /* 19/10/2026: apaga o CPF dele (a Gestão volta a mostrar "migrar") */
       for(const v of veiculos.filter(x=>casaUsuario(u,x.contato))){
         try{ await api('/api/devices/'+v.id,{method:'PUT',headers:JSONH,body:JSON.stringify(Object.assign({},v.raw,{contact:''}))}) }catch(e2){ if(e2.sessao) throw e2 }
       }
@@ -10301,6 +10395,11 @@ function lojaWppEntrega(nome,rotulo){
 function lojaPagoOk(s){
   $('ljpTit').textContent='Pagamento confirmado';
   $('ljpPix').style.display='none'; $('ljpOk').style.display='';
+  if(Number(s.frotaAteMs)>0){ /* 19/10/2026: Módulo Frota liberado na hora */
+    permCli.modFrotaAteMs=Number(s.frotaAteMs); modFrotaAplicar(); try{ if($('mComb').classList.contains('show')){ $('mComb').classList.remove('semmod'); modFrotaPintarJanela(); cbPintar() } }catch(e){}
+    $('ljpOkTxt').textContent='Módulo Frota liberado até '+new Date(s.frotaAteMs).toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo'})+'. Toque no odômetro de qualquer veículo para configurar o combustível e a troca de óleo.';
+    $('ljpOkWpp').style.display='none'; return;
+  }
   if(Number(s.fichas)>0){ /* 15/10/2026: fichas entram na hora, sem entrega */
     $('ljpOkTxt').textContent=s.fichas+' fichas já estão na sua conta.'+(typeof s.saldo==='number'?' Saldo agora: '+s.saldo+' fichas.':'');
     $('ljpOkWpp').style.display='none';
@@ -10540,6 +10639,16 @@ async function pmFichasCarregar(){
   if(!permUserId) return;
   try{ const j=await chamarPerm('fichasVer'); $('pmFichasSaldo').textContent=j.saldo.toLocaleString('pt-BR') }catch(e){ $('pmFichasSaldo').textContent='?' }
 }
+/* 19/10/2026: Módulo Frota do cliente (cortesia/teste ou tirar) */
+function pmModPintar(ate){ ate=Number(ate||0); $('pmModSt').textContent= ate>Date.now() ? 'ativo até '+new Date(ate).toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo'}) : 'desligado (R$ 59,90 por PIX no app)' }
+$('pmModBox').addEventListener('click',async e=>{
+  const b=e.target.closest('[data-mf]'); if(!b) return;
+  const dias=+b.dataset.mf;
+  if(dias===0 && !confirm('Tirar o Módulo Frota deste cliente agora? Ele perde o combustível e a troca de óleo.')) return;
+  b.disabled=true;
+  try{ const j=await chamarPerm('modFrotaLancar',{dias}); pmModPintar(j.modFrotaAteMs); toast(dias?'Módulo Frota: +30 dias.':'Módulo Frota tirado.') }catch(err){ $('pmErro').textContent=err.message }
+  b.disabled=false;
+});
 $('pmFichasLancar').onclick=async()=>{
   const t=$('pmFichasQ').value.replace(/\s/g,'').replace('−','-'), q=parseInt(t,10);
   if(!/^[+-]?\d+$/.test(t) || !q){ $('pmErro').textContent='Digite quantas fichas (ex.: 10 para dar, -5 para tirar).'; return }
