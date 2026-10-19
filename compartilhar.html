@@ -162,7 +162,7 @@ function tempo(ms) {
 
 let mapa = null, marcador = null, seguir = true, ultimo = null, dados = null, falhas = 0, encerrado = false;
 let endPos = null, endMs = 0, endBusca = false;
-let casa = null, casas = [], linhaRota = null, rotaDe = null, rotaMs = 0, rotaBusca = false, rota = null;
+let casa = null, casas = [], ptsKeyAnt = null, linhaRota = null, rotaDe = null, rotaMs = 0, rotaBusca = false, rota = null;
 /* 19/10/2026: até 3 pontos (A, B, C). Link antigo: só o destino = ponto A */
 const pontosDe = (d) => (d && Array.isArray(d.pontos) && d.pontos.length) ? d.pontos : (d && d.destino ? [d.destino] : []);
 const LETRAS = ['A', 'B', 'C'];
@@ -362,6 +362,11 @@ function desenhar(d) {
       }
     }
     const pts = pontosDe(d);
+    const ptsKey = pts.map((x) => x.lat + ',' + x.lon).join(';');
+    if (ptsKey !== ptsKeyAnt) { /* 19/10/2026: os pontos foram editados no app -> refaz pinos e rota */
+      if (ptsKeyAnt !== null) { casas.forEach((m) => { try { m.remove(); } catch (e) {} }); casas = []; casa = null; if (linhaRota) { linhaRota.remove(); linhaRota = null; } rota = null; rotaDe = null; rotaMs = 0; }
+      ptsKeyAnt = ptsKey;
+    }
     if (ehTec() && pts.length) {
       pts.forEach((pt, i) => {
         const dl = [pt.lat, pt.lon];
