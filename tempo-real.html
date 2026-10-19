@@ -165,6 +165,14 @@ body.mapa-google #map .leaflet-top.leaflet-left .leaflet-control-attribution{mar
 .rtit .rtbt a{flex:1 1 auto;text-align:center;padding:9px 10px;border-radius:10px;border:1px solid var(--line);background:var(--card2);color:var(--txt);font-size:13px;font-weight:700;text-decoration:none}
 .rtit .rtbt a.wpp{background:rgba(37,211,102,.14);border-color:rgba(37,211,102,.4);color:#16a34a}
 .rtvz{text-align:center;color:var(--mut);font-size:14px;padding:24px 8px}
+.rtgrp{border:2px solid #e3262f;border-radius:18px;padding:10px 10px 0;margin-bottom:12px;background:rgba(227,38,47,.05)} /* 19/10/2026: bloco do mesmo dono */
+.rtgrp .rtit{margin-bottom:10px}
+.rtgtopo{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:2px 4px 10px}
+.rtgtopo b{font-size:15px}
+.rtgtopo small{display:block;font-size:12px;color:var(--mut)}
+.rtgbt{display:flex;gap:6px;flex:none}
+.rtgbt a{padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:var(--card2);color:var(--txt);font-size:12.5px;font-weight:700;text-decoration:none}
+.rtgbt a.wpp{background:rgba(37,211,102,.14);border-color:rgba(37,211,102,.4);color:#16a34a}
 /* lista de serviços (links para os formulários do cliente) */
 .svitem{display:flex;align-items:center;gap:12px;width:100%;padding:14px;background:var(--card);border:1px solid var(--line);border-radius:16px;margin-bottom:10px;text-align:left;color:var(--txt);text-decoration:none}
 .svitem:active{transform:scale(.98)}
@@ -1789,6 +1797,12 @@ nav button.on .nemo.txt{color:var(--red2)}
 #mImport .imclipref input{width:18px;height:18px;accent-color:#2563eb}
 #mImport .imclinfo{margin-top:12px;font-size:13px;color:var(--mut);line-height:1.45}
 #mImport .imclinfo b{color:var(--txt)}
+#mImport .imret{margin-top:12px;border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;background:var(--card2)}
+#mImport .imretck{display:flex;gap:10px;align-items:flex-start;cursor:pointer;font-size:14px}
+#mImport .imretck input{width:18px;height:18px;margin-top:2px;flex:none}
+#mImport .imretck small,#mImport .imretinfo{display:block;font-size:12px;color:var(--mut);margin-top:2px;line-height:1.4}
+#mImport .imret.on{border-color:#e3262f}
+#mImport #imRetCampos .fld{margin-bottom:4px}
 #mImport .imaviso{font-size:13px;font-weight:700;color:#e11d48;margin-top:8px;line-height:1.45}
 #mImport .imres{display:flex;flex-wrap:wrap;gap:8px;margin:2px 0 10px}
 #mImport .imres b{font-size:13px;padding:5px 10px;border-radius:9px}
@@ -2669,6 +2683,17 @@ nav button.on .nemo.txt{color:var(--red2)}
           <div class="imclinfo" id="imCliInfo"></div>
         </div>
         <div class="imaviso" id="imAviso"></div>
+        <!-- 19/10/2026 (pedido do dono): importar já marcando "Para retirar", com o dono e o WhatsApp para todos -->
+        <div class="imret" id="imRetBox">
+          <label class="imretck"><input type="checkbox" id="imRet"> <span><b>Já marcar estes veículos "Para retirar"</b><small>Para importar inadimplentes: todos vão direto para a aba Para retirar, com o dono e o WhatsApp abaixo.</small></span></label>
+          <div id="imRetCampos" hidden>
+            <label class="flbl" for="imRetNome">Nome do dono (cliente)</label>
+            <input class="fld" id="imRetNome" maxlength="60" autocomplete="off" placeholder="Ex.: João da Silva">
+            <label class="flbl" for="imRetWpp">WhatsApp do dono — com DDD</label>
+            <input class="fld" id="imRetWpp" type="tel" inputmode="tel" autocomplete="off" placeholder="(21) 99999-8888">
+            <small class="imretinfo">Vale para todos os veículos desta importação. O técnico vê o dono e o WhatsApp na lista Para retirar. Dono diferente? Faça uma importação para cada dono.</small>
+          </div>
+        </div>
       </div>
       <div id="imP0" style="display:none">
         <p>Estas importações já foram cadastradas, mas falta enviar a configuração por SMS. Toque para terminar.</p>
@@ -2902,7 +2927,8 @@ nav button.on .nemo.txt{color:var(--red2)}
     </div>
     <!-- 18/10/2026 (pedido do dono): WhatsApp do cliente gravado no veículo (só administrador). Aparece no cartão e para o técnico na lista Para retirar -->
     <div id="rnWppBox" style="display:none;margin-top:6px">
-      <h3 class="comdica" style="font-size:15px;margin-bottom:6px">WhatsApp do cliente deste veículo <span class="dica" tabindex="0" role="button" aria-label="O que é isto?" title="">i</span><span class="dicatx"><b>O dono do veículo</b>, com quem se combina a retirada. Só você vê e edita. Aparece no cartão e na lista Para retirar do técnico (botões WhatsApp e Ligar). Use quando o veículo não tem cliente cadastrado ou o cliente não tem WhatsApp no cadastro. Se ficar em branco, vale o WhatsApp do cadastro do cliente (o que recebe os avisos automáticos). Deixe em branco para apagar.</span></h3>
+      <h3 class="comdica" style="font-size:15px;margin-bottom:6px">Cliente deste veículo (dono) <span class="dica" tabindex="0" role="button" aria-label="O que é isto?" title="">i</span><span class="dicatx"><b>O dono do veículo</b> (nome e WhatsApp), com quem se combina a retirada. O nome agrupa os veículos do mesmo dono na lista Para retirar. Só você vê e edita. Aparece no cartão e na lista Para retirar do técnico (botões WhatsApp e Ligar). Use quando o veículo não tem cliente cadastrado ou o cliente não tem WhatsApp no cadastro. Se ficar em branco, vale o WhatsApp do cadastro do cliente (o que recebe os avisos automáticos). Deixe em branco para apagar.</span></h3>
+      <input class="fld" id="rnDono" maxlength="60" autocomplete="off" placeholder="Nome do dono (ex.: João da Silva)" style="margin:0 0 6px">
       <input class="fld" id="rnWpp" type="tel" inputmode="tel" autocomplete="off" placeholder="(21) 99999-8888" style="margin:0">
     </div>
     <div id="rnOdoBox" style="display:none;margin-top:6px">
@@ -4202,7 +4228,8 @@ function mesclar(ds,ps){
     v.online = d.status==='online';
     v.imei = d.uniqueId || ''; v.fone = d.phone || ''; v.contato = d.contact || ''; v.raw = d;
     v.tag = ehTag(d) || (String((d.attributes&&d.attributes.tipoAparelho)||'')!=='rastreador' && !!v.tagSinal && !soDigitos(d.phone)); /* 16/10/2026 */
-    v.wppVeic = String((d.attributes&&d.attributes.whatsapp)||'').replace(/\D/g,''); /* 18/10/2026: WhatsApp do cliente gravado no veículo (lápis do administrador) */
+    v.wppVeic = String((d.attributes&&d.attributes.whatsapp)||'').replace(/\D/g,'');
+    v.retDono = String((d.attributes&&d.attributes.retiradaDono)||''); /* 19/10/2026: dono do veículo para a retirada */ /* 18/10/2026: WhatsApp do cliente gravado no veículo (lápis do administrador) */
     v.retirado = String((d.attributes&&(d.attributes.paraRetirarEm||d.attributes.retiradoEm))||''); /* 18/10/2026: marcado "Para retirar" (menu ⋮ do administrador) */
     v.icone = veicIconeDe(d); v.iconeCor = icCorOk(d.attributes&&d.attributes.iconeCor) ? d.attributes.iconeCor : ''; /* 16/10/2026: ícone do veículo */
     icTrocar(v);
@@ -4509,7 +4536,7 @@ function ladoBase(){
     if(!q) return true;
     const b=(v.nome+' '+(v.placa||'')+' '+(v.contato||'')+' '+(ehAdmin?rotuloCliente(v):'')).toLowerCase(); /* o cliente só é procurado quando há texto na busca */
     return b.includes(q) || (qd.length>=3 && b.replace(/\D/g,'').includes(qd));
-  }).sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
+  }).sort((a,b)=> ladoFiltro==='ret' ? ((a.retDono||'~').localeCompare(b.retDono||'~','pt-BR') || a.nome.localeCompare(b.nome,'pt-BR')) : a.nome.localeCompare(b.nome,'pt-BR')); /* 19/10/2026: em Para retirar, agrupado pelo dono */
 }
 function ladoDesenhar(){
   const el=$('ladoLista'); if(!el) return;
@@ -4518,7 +4545,7 @@ function ladoDesenhar(){
     const e=ladoEst(v);
     return '<div class="ladoit'+(v.id===selId?' on':'')+(ehAdmin?' adm':'')+'" data-id="'+v.id+'">'+
       '<label class="ladock" title="Mostrar ou esconder no mapa"><input type="checkbox"'+(v.visivel?' checked':'')+' aria-label="Mostrar '+esc(v.nome)+' no mapa"><span></span></label>'+
-      '<button type="button" class="ladonm"><b>'+esc(v.nome)+'</b>'+(v.placa?'<small>'+esc(v.placa)+'</small>':'')+'</button>'+
+      '<button type="button" class="ladonm"><b>'+esc(v.nome)+'</b>'+(ladoFiltro==='ret'&&v.retDono?'<small>👤 '+esc(v.retDono)+'</small>':(v.placa?'<small>'+esc(v.placa)+'</small>':''))+'</button>'+
       '<span class="ladost '+e[0]+'"><em>'+esc(e[1])+'</em>'+(e[2]?'<small>'+esc(e[2])+'</small>':'')+'</span>'+
       (ehAdmin?'<button type="button" class="ladomais" aria-label="Mais opções de '+esc(v.nome)+'" title="Mais opções">⋮</button>':'')+'</div>'; /* 17/10/2026: menu de 3 pontinhos (administrador) */
   }).join('') || '<div class="ladovz">Nenhum veículo'+(ladoFiltro!=='todos'||$('ladoBusca').value?' com esse filtro.':'.')+'</div>';
@@ -5551,6 +5578,7 @@ $('btnRenome').onclick=e=>{
   const m=motLer(v.id)||{}; $('rnMotNome').value=m.nome||''; $('rnMotFone').value=fmtWpp(m.fone||'');
   $('rnImeiBox').style.display=(ehAdmin&&v.imei)?'flex':'none'; $('rnImei').textContent=ehAdmin?(v.imei||''):''; /* 16/10/2026 */
   $('rnWppBox').style.display=ehAdmin?'':'none'; $('rnWpp').value=ehAdmin?fmtWpp(v.wppVeic||''):''; $('rnWpp').dataset.ini=$('rnWpp').value; /* 18/10/2026 */
+  $('rnDono').value=ehAdmin?(v.retDono||''):''; $('rnDono').dataset.ini=$('rnDono').value; /* 19/10/2026 */
   $('rnOdoBox').style.display=ehAdmin?'':'none'; $('rnOdo').value=v.odo!=null?(v.odo/1000).toFixed(1):''; $('rnOdo').dataset.ini=$('rnOdo').value;
   abrir('mRenome');
 };
@@ -5558,15 +5586,16 @@ $('rnOdoZerar').onclick=()=>{ $('rnOdo').value='0' };
 $('rnImeiCopia').onclick=()=>{ const t=$('rnImei').textContent; if(!t) return; const ok=()=>toast('IMEI copiado.'); if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(ok,()=>prompt('Copie o IMEI:',t)); else prompt('Copie o IMEI:',t) };
 document.addEventListener('click',e=>{ const d=e.target.closest('.dica'); document.querySelectorAll('.dica.on').forEach(x=>{ if(x!==d) x.classList.remove('on') }); if(d){ e.preventDefault(); d.classList.toggle('on') } }); /* 18/10/2026: no celular, tocar no "i" abre/fecha */
 async function salvarWppVeic(v){ /* 18/10/2026: grava o WhatsApp do cliente no veículo (atributo whatsapp no Traccar) */
-  if(!ehAdmin || $('rnWppBox').style.display==='none' || $('rnWpp').value===$('rnWpp').dataset.ini) return false;
-  const n=normWpp($('rnWpp').value);
+  if(!ehAdmin || $('rnWppBox').style.display==='none' || ($('rnWpp').value===$('rnWpp').dataset.ini && $('rnDono').value===$('rnDono').dataset.ini)) return false;
+  const n=normWpp($('rnWpp').value), dono=$('rnDono').value.trim().replace(/\s+/g,' ').slice(0,60);
   if(n===null) throw new Error('WhatsApp inválido. Digite o DDD e o número.');
   const at=Object.assign({},(v.raw&&v.raw.attributes)||{});
   if(n) at.whatsapp=n; else delete at.whatsapp;
+  if(dono) at.retiradaDono=dono; else delete at.retiradaDono; /* 19/10/2026 */
   const r=await api('/api/devices/'+v.id,{method:'PUT',headers:JSONH,body:JSON.stringify(Object.assign({},v.raw,{attributes:at}))});
   if(!r.ok) throw new Error(await msgErro(r,'Não consegui salvar o WhatsApp'));
   try{ v.raw=await r.json() }catch(e){ v.raw=Object.assign({},v.raw,{attributes:at}) }
-  v.wppVeic=n||''; $('rnWpp').dataset.ini=$('rnWpp').value; return true;
+  v.wppVeic=n||''; v.retDono=dono; $('rnWpp').dataset.ini=$('rnWpp').value; $('rnDono').dataset.ini=$('rnDono').value; return true;
 }
 async function salvarOdometro(v){
   if(!ehAdmin || $('rnOdo').value===$('rnOdo').dataset.ini) return false;
@@ -8134,6 +8163,7 @@ $('eSalvar').onclick=async ()=>{
    (IMEI com 15 números, IMEI e chip NUNCA repetidos, placa, cliente existente), mostra a prévia e cadastra só as
    linhas certas, do mesmo jeito do cadastro de um por um. Depois pode mandar APN, IP/Porta e Bloq. imediato por SMS. */
 const IM_MAX=200;
+let imRetLote=null; /* 19/10/2026: {nome,wpp} quando a importação vai direto para "Para retirar" */
 let imLinhas=[], imFase='colar', imCriados=[], imOcupado=false;
 const imChave=n=>{ let t=soDigitos(n); if(t.length>11 && t.indexOf('55')===0) t=t.slice(2); return t.length>=10 ? t.slice(0,2)+t.slice(-8) : t };
 const IM_COLS={imei:{t:'IMEI',d:'Cole a lista de IMEIs (15 números cada). Obrigatório.',ex:'865190073599055\n865190073599111'},
@@ -8184,6 +8214,16 @@ function imAbas(){
 }
 $('imAbas').addEventListener('click',e=>{ const b=e.target.closest('[data-col]'); if(!b) return; if(imCol!=='cliente') imListas[imCol]=$('imTexto').value; imCol=b.dataset.col; $('imTexto').value=imCol==='cliente'?'':imListas[imCol]; imAbas(); if(imCol!=='cliente') $('imTexto').focus() });
 $('imTexto').addEventListener('input',imAbas);
+/* 19/10/2026: importar já "Para retirar" */
+function imRetPintar(){ const on=$('imRet').checked; $('imRetCampos').hidden=!on; $('imRetBox').classList.toggle('on',on); if(on) setTimeout(()=>$('imRetNome').focus(),30) }
+$('imRet').addEventListener('change',imRetPintar);
+function imRetDados(){ /* null = não marcar; {erro} = dado inválido */
+  if(!$('imRet').checked) return null;
+  const nome=$('imRetNome').value.trim().replace(/\s+/g,' '), w=normWpp($('imRetWpp').value);
+  if(nome.length<2) return {erro:'Digite o nome do dono (os veículos vão para "Para retirar").'};
+  if(w===null) return {erro:'WhatsApp do dono inválido. Digite o DDD e o número (ou deixe em branco).'};
+  return {nome, wpp:w||''};
+}
 /* --- Salvar para terminar depois (11/10/2026) ---
    1) Rascunho das listas: o que foi colado nas abas fica guardado até cadastrar (ou tocar em Cancelar).
    2) Importação cadastrada com SMS pendente fica salva sozinha assim que chega na tela do SMS;
@@ -8273,6 +8313,7 @@ function imNova(){
   imCliPreencher(); imAbas();
   carregarUsuarios().then(()=>{ imCliPreencher(); imAbas() }).catch(()=>{});
   $('imTit').textContent='Importar equipamentos';
+  $('imRet').checked=false; $('imRetNome').value=''; $('imRetWpp').value=''; imRetPintar();
   $('imP1').style.display='';
   $('imVoltar').textContent='Cancelar'; $('imOk').textContent='Conferir';
   if(r) setTimeout(()=>toast('Voltei com o que você tinha colado antes.'),200);
@@ -8546,6 +8587,8 @@ function imLer(){
 async function imConferir(){
   const r=imLer();
   if(r.erro){ toast(r.erro,5000); return }
+  const rt=imRetDados(); if(rt&&rt.erro){ toast(rt.erro,5000); $('imRetNome').focus(); return }
+  imRetLote=rt;
   $('imOk').disabled=true; $('imOk').textContent='Conferindo...';
   let todos;
   try{
@@ -8590,7 +8633,7 @@ function imDesenhar(){
   $('imCorpo').innerHTML=imLinhas.map(l=>{
     const st={ok:'Pronto',feito:'Cadastrado ✓',erro:l.erros.join('; '),falhou:'Não cadastrado: '+(l.falha||'erro'),indo:'Cadastrando…'}[l.estado]||'';
     const cls=(l.estado==='erro'||l.estado==='falhou')?'er':'ok';
-    const det=['IMEI '+(l.imeiTxt||'—'), 'Chip '+(l.chip?fmtFone(l.chip):'—'), l.placa?'Placa '+l.placa:'', l.user?'Cliente '+(l.user.name||loginDe(l.user)):'Sem cliente'].filter(Boolean).join(' · ');
+    const det=['IMEI '+(l.imeiTxt||'—'), 'Chip '+(l.chip?fmtFone(l.chip):'—'), l.placa?'Placa '+l.placa:'', l.user?'Cliente '+(l.user.name||loginDe(l.user)):'Sem cliente', (imRetLote&&imFase!=='feito'||l.ret)?'🔧 Para retirar · dono '+((l.ret&&l.ret.nome)||(imRetLote&&imRetLote.nome)||''):''].filter(Boolean).join(' · ');
     const busca=String(l.nome||'')+' '+String(l.imeiTxt||'')+' '+String(l.chip||'')+' '+(l.chip?fmtFone(l.chip):'')+' '+String(l.placa||'');
     const comCk=feito && l.estado==='feito' && l.chip && l.devId; /* 14/10/2026: na fase de enviar, cada equipamento com chip tem uma caixinha */
     const marcado=comCk && !imForaSms.has(String(l.devId));
@@ -8627,6 +8670,7 @@ async function imCadastrar(){
     i++; $('imProg').textContent='Cadastrando '+i+' de '+fila.length+'...'; l.estado='indo'; imDesenhar();
     try{
       const at=Object.assign(l.placa?{placa:l.placa}:{},{cadastradoEm:hojeIso()});
+      if(imRetLote){ at.paraRetirarEm=hojeIso(); at.retiradaDono=imRetLote.nome; if(imRetLote.wpp) at.whatsapp=imRetLote.wpp; l.ret={nome:imRetLote.nome} } /* 19/10/2026 */
       const r=await api('/api/devices',{method:'POST',headers:JSONH,body:JSON.stringify({name:l.nome,uniqueId:l.imei,phone:l.chip,contact:l.user?loginDe(l.user).toLowerCase():'',attributes:at})});
       if(!r.ok) throw new Error(await msgErro(r,'o servidor recusou'));
       const d=await r.json();
@@ -10420,21 +10464,35 @@ $('retLista').addEventListener('click',e=>{ if(e.target.closest('a')) return; co
 function retDesenhar(lista){
   retListaAtual=lista;
   lista.forEach(x=>{ x.km = (retEu && x.lat!=null) ? retKm(retEu.lat,retEu.lon,x.lat,x.lon) : null });
-  lista.sort((a,b)=>(a.km==null)-(b.km==null) || (a.km||0)-(b.km||0) || a.nome.localeCompare(b.nome,'pt-BR'));
-  $('retSub').textContent = lista.length+(lista.length===1?' veículo':' veículos')+(retEu?' · do mais perto de você ao mais longe':' · ligue a localização do celular para ordenar pelo mais perto');
+  const porKm=(a,b)=>(a.km==null)-(b.km==null) || (a.km||0)-(b.km||0) || a.nome.localeCompare(b.nome,'pt-BR');
+  /* 19/10/2026 (pedido do dono): veículos do MESMO DONO ficam juntos num bloco; os blocos seguem a ordem do mais perto
+     (pelo veículo mais perto de cada dono) e, dentro do bloco, também do mais perto ao mais longe */
+  const grupos={}, ordem=[];
+  lista.slice().sort(porKm).forEach(x=>{ const nm=String(x.dono||'').trim(), k=nm?'d:'+nm.toLowerCase():'v:'+x.id; if(!grupos[k]){ grupos[k]={nome:nm,itens:[]}; ordem.push(k) } grupos[k].itens.push(x) });
+  const nDonos=ordem.filter(k=>grupos[k].nome).length;
+  $('retSub').textContent = lista.length+(lista.length===1?' veículo':' veículos')+(nDonos?' · '+nDonos+(nDonos===1?' dono':' donos'):'')+(retEu?' · do mais perto de você ao mais longe':' · ligue a localização do celular para ordenar pelo mais perto');
   if(!lista.length){ $('retLista').innerHTML='<div class="rtvz">Nenhum veículo para retirar agora.</div>'; return }
-  $('retLista').innerHTML=lista.map((x,i)=>{
-    const km = x.km==null ? '' : (x.km<1 ? Math.round(x.km*1000)+' m' : x.km.toFixed(x.km<10?1:0).replace('.',',')+' km');
-    const end = x.endereco || (x.lat!=null ? (enderecoGuardado([x.lat,x.lon])||'') : '');
-    const quando = x.posEm ? 'última posição: '+haQuanto(new Date(x.posEm).getTime()) : 'sem posição';
-    const w = x.whatsapp ? (x.whatsapp.length<=11 ? '55'+x.whatsapp : x.whatsapp) : '';
+  const kmTxt=k=>k==null?'':(k<1?Math.round(k*1000)+' m':k.toFixed(k<10?1:0).replace('.',',')+' km');
+  const wDe=x=>x.whatsapp?(x.whatsapp.length<=11?'55'+x.whatsapp:x.whatsapp):'';
+  let n=0; const plano=[];
+  const card=(x,emGrupo)=>{
+    const i=n++; plano.push(x);
+    const km=kmTxt(x.km), end=x.endereco||(x.lat!=null?(enderecoGuardado([x.lat,x.lon])||''):''), quando=x.posEm?'última posição: '+haQuanto(new Date(x.posEm).getTime()):'sem posição', w=emGrupo?'':wDe(x);
     return '<div class="rtit"'+(x.lat!=null?' data-id="'+x.id+'"':'')+'><div class="rttopo"><div><b>'+esc(x.nome)+'</b>'+(x.placa?' <small style="color:var(--mut)">'+esc(x.placa)+'</small>':'')+'</div>'+(km?'<span class="rtdist">'+km+'<small>em linha reta</small></span>':'')+'</div>'+
-      '<div class="rtinfo">'+(x.cliente?'Cliente: <b style="color:var(--txt)">'+esc(x.cliente)+'</b><br>':'')+(x.lat!=null?'<span class="rtend" data-i="'+i+'">'+(end?esc(end):'buscando o endereço...')+'</span><br>':'')+esc(quando)+(x.online?' · online':' · offline')+'</div>'+
+      '<div class="rtinfo">'+(!emGrupo&&(x.dono||x.cliente)?'Cliente: <b style="color:var(--txt)">'+esc(x.dono||x.cliente)+'</b><br>':'')+(x.lat!=null?'<span class="rtend" data-i="'+i+'">'+(end?esc(end):'buscando o endereço...')+'</span><br>':'')+esc(quando)+(x.online?' · online':' · offline')+'</div>'+
       '<div class="rtbt">'+(x.lat!=null?'<a href="https://www.google.com/maps/dir/?api=1&destination='+x.lat+','+x.lon+'" target="_blank" rel="noopener">Navegar</a>':'')+
       (w?'<a class="wpp" href="https://wa.me/'+w+'" target="_blank" rel="noopener">WhatsApp do cliente</a><a href="tel:+'+w+'">Ligar</a>':'')+'</div>'+(x.lat!=null?'<div class="rtver">Toque no cartão para ver no mapa</div>':'')+'</div>';
+  };
+  $('retLista').innerHTML=ordem.map(k=>{
+    const g=grupos[k];
+    if(!g.nome || g.itens.length<2) return g.itens.map(x=>card(x,false)).join('');
+    const wx=g.itens.find(x=>x.whatsapp), w=wx?wDe(wx):'';
+    return '<div class="rtgrp"><div class="rtgtopo"><div><b>👤 '+esc(g.nome)+'</b><small>'+g.itens.length+' veículos deste dono</small></div>'+
+      (w?'<div class="rtgbt"><a class="wpp" href="https://wa.me/'+w+'" target="_blank" rel="noopener">WhatsApp</a><a href="tel:+'+w+'">Ligar</a></div>':'')+'</div>'+
+      g.itens.map(x=>card(x,true)).join('')+'</div>';
   }).join('');
   /* endereço escrito: serviço grátis do OpenStreetMap (o mesmo das paradas do histórico), um por vez e guardado no aparelho; não usa o Google */
-  const falta=[]; lista.forEach((x,i)=>{ if(x.lat!=null && !x.endereco && enderecoGuardado([x.lat,x.lon])===null) falta.push({i,ll:[x.lat,x.lon]}) });
+  const falta=[]; plano.forEach((x,i)=>{ if(x.lat!=null && !x.endereco && enderecoGuardado([x.lat,x.lon])===null) falta.push({i,ll:[x.lat,x.lon]}) });
   if(falta.length) enderecosParadas(falta,(k,t)=>{ const el=document.querySelector('#retLista .rtend[data-i="'+falta[k].i+'"]'); if(el) el.textContent=t||'endereço não encontrado' });
 }
 $('retAtualizar').onclick=retCarregar;
