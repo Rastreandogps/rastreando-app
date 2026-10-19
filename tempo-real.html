@@ -1530,6 +1530,8 @@ header nav .nl-pc{display:inline} header nav .nl-cel{display:none}
 .lkcard .lkcd b{display:block;font-size:20px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.05;letter-spacing:-.01em}
 .lkcard .lkcd small{display:block;font-size:11px;color:var(--mut);margin-top:2px}
 .lkcard.acabando .lkcd b{color:var(--red2)}
+.lkacesso{margin:8px 0 2px;font-size:12.5px;color:var(--mut);padding:6px 10px;border-radius:10px;background:var(--card2)} /* 19/10/2026 */
+.lkacesso.ok{color:#15803d;background:rgba(34,197,94,.12)}
 .lkcard .lkbar{height:4px;border-radius:4px;background:var(--line);margin:10px 0 10px;overflow:hidden}
 .lkcard .lkbar i{display:block;height:100%;background:#2563eb;border-radius:4px;transition:width .9s linear}
 .lkcard.frota .lkbar i{background:#f59e0b}
@@ -6180,6 +6182,13 @@ function shareTick(){
 const IC_LINK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg>';
 const IC_CAMINHAO='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="18" r="2"/><path d="M8 18h5a3 3 0 0 0 0-6H9a3 3 0 0 1 0-6h4"/><path d="M18 2.5a3.5 3.5 0 0 0-3.5 3.5c0 2.6 3.5 6 3.5 6s3.5-3.4 3.5-6A3.5 3.5 0 0 0 18 2.5z"/><circle cx="18" cy="6" r="1"/></svg>'; /* rota até o destino (genérico: serve para reboque, entrega, técnico, carro) */
 /* 15/10/2026: o mesmo cartão de link serve para o "Compartilhar" do veículo e para a aba Compartilhados (comVeic = mostra o veículo) */
+/* 19/10/2026 (pedido do dono): o link foi aberto? quantas vezes, quando e em que aparelho */
+function compAcessoHtml(x){
+  const n=Number(x.acessos||0);
+  if(!n) return '<div class="lkacesso" data-acc="'+esc(x.codigo)+'">⏳ Ainda não foi aberto</div>';
+  const h=ms=>new Date(ms).toDateString()===new Date().toDateString()?compQuando(ms).replace(/^\d\d\/\d\d às /,''):compQuando(ms);
+  return '<div class="lkacesso ok" data-acc="'+esc(x.codigo)+'">👁️ <b>Aberto'+(n>1?' '+n+' vezes':'')+'</b> · '+(n>1?'1ª vez '+esc(h(x.acessoPrimeiroMs))+' · última '+esc(h(x.acessoUltimoMs)):esc(h(x.acessoPrimeiroMs)))+(x.acessoAparelho?' · '+esc(x.acessoAparelho):'')+'</div>';
+}
 function compCardHtml(x,agora,comVeic){
   const tc=x.tipo==='tec', fr=x.tipo==='frota'||tc, falta=x.expiraMs-agora, tot=Math.max(1,x.expiraMs-x.criadoMs); /* tec = "técnico a caminho" do APP Técnico (15/10/2026) */
   const vv=comVeic ? veiculos.find(q=>q.id===x.deviceId) : null;
@@ -6191,6 +6200,7 @@ function compCardHtml(x,agora,comVeic){
             '<span class="lkt"><b>'+esc(tit)+'</b><small>'+esc(sub)+'</small></span>'+
             '<span class="lkcd"><b>'+esc(tempoFalta(falta))+'</b><small>até '+esc(new Date(x.expiraMs).toDateString()===new Date().toDateString()?compQuando(x.expiraMs).replace(/^\d\d\/\d\d às /,''):compQuando(x.expiraMs))+'</small></span></div>'+
           '<div class="lkbar"><i style="width:'+Math.max(2,Math.min(100,falta/tot*100))+'%"></i></div>'+
+          compAcessoHtml(x)+
           '<div class="lkbtns">'+
             '<button type="button" data-cpcopy="'+esc(x.codigo)+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 012-2h10"/></svg>Copiar</button>'+
             '<button type="button" class="lkmais" data-cpmais="'+esc(x.codigo)+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Tempo</button>'+
@@ -6297,8 +6307,17 @@ async function cprAtualizar(){
     eta.innerHTML='<b class="min">'+(min<60?min+'<small>min</small>':Math.floor(min/60)+'<small>h</small>'+(min%60?' '+(min%60)+'<small>min</small>':''))+'</b><span>Previsão de chegada <b>'+chega+'</b><br>'+cprKm(CPR.rota.m)+' pelas ruas · estimativa, pode variar com o trânsito</span>';
   } else eta.innerHTML='<b class="min">'+cprKm(reta)+'</b><span>de distância em linha reta até o destino</span>';
 }
+let cpAccMs=0;
+async function cpAcessosAtualizar(){ /* 19/10/2026: a cada 1 min troca só a linha "aberto/não aberto" (não mexe no resto do card) */
+  try{
+    const j=await fnAl('compLista',{});
+    (j.lista||[]).forEach(n=>{ const x=cpLista.find(y=>y.codigo===n.codigo); if(!x) return; Object.assign(x,{acessos:n.acessos,acessoPrimeiroMs:n.acessoPrimeiroMs,acessoUltimoMs:n.acessoUltimoMs,acessoAparelho:n.acessoAparelho});
+      document.querySelectorAll('.lkacesso[data-acc="'+CSS.escape(n.codigo)+'"]').forEach(el=>{ el.outerHTML=compAcessoHtml(x) }) });
+  }catch(e){}
+}
 function cpTick(){
   if(!$('cpview').classList.contains('show')){ clearInterval(cpTimer); cpTimer=null; return }
+  if(Date.now()-cpAccMs>60000){ if(cpAccMs) cpAcessosAtualizar(); cpAccMs=Date.now() }
   const agora=Date.now(); let mudou=false;
   document.querySelectorAll('#cpLista .lkcard').forEach(el=>{
     const x=cpLista.find(y=>y.codigo===el.dataset.c); if(!x) return;
