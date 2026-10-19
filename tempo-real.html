@@ -603,6 +603,7 @@ body.hist-on #follow,body.hist-on #btnEu,body.hist-on #btnTodos,body.hist-on #bt
 #retChip{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:421;align-items:center;gap:8px;height:34px;padding:0 14px;border-radius:999px;border:1px solid #e3262f;background:var(--card);color:var(--txt);font:inherit;font-size:12.5px;font-weight:700;box-shadow:0 2px 8px rgba(0,0,0,.25);cursor:pointer;white-space:nowrap}
 #retChip span{color:#e3262f;font-size:14px}
 body.hist-on #retChip{display:none!important}
+body.ret-so #vazio,body.ret-so #sheet{display:none!important} /* 19/10/2026: visão Para retirar do técnico */
 .retpin{width:40px;height:40px;margin:2px;border-radius:50%;background:#fff;border:3px solid #e3262f;color:#e3262f;font-weight:800;font-size:18px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.4)}
 .retpin.sel{background:#e3262f;color:#fff}
 .rtit[data-id]{cursor:pointer}
@@ -4787,6 +4788,7 @@ function ocultosSalvos(){
 }
 function salvarVisibilidade(){
   if(!veiculos.length) return;
+  try{ if(retVisAntes || retTecVis) return }catch(e){} /* 19/10/2026: na visão "Para retirar" o mapa muda só por um tempo; não grava como escolha */
   const oc=veiculos.filter(v=>!v.visivel).map(v=>v.id).sort((a,b)=>a-b).join(','), k=chaveVis(), marca=k+'|'+oc;
   if(marca!==visSalvo){
     if(visSalvo && visSalvo.split('|')[0]===k) visMexeu=true;
@@ -10464,8 +10466,12 @@ async function retCarregar(){
 }
 /* 18/10/2026 (pedido do dono): tocar no cartão mostra no mapa os veículos para retirar (o tocado em destaque).
    É a última posição da lista (não anda sozinho); para ver de novo, abra a lista e toque de novo. "✕" no alto tira do mapa. */
-let retListaAtual=[], retCamada=null;
-function retLimparMapa(){ if(retCamada){ try{ map.removeLayer(retCamada) }catch(e){} retCamada=null } $('retChip').style.display='none' }
+let retListaAtual=[], retCamada=null, retTecVis=null;
+function retLimparMapa(){
+  if(retCamada){ try{ map.removeLayer(retCamada) }catch(e){} retCamada=null } $('retChip').style.display='none';
+  /* 19/10/2026: volta os veículos do próprio login que estavam no mapa antes */
+  if(retTecVis){ const a=retTecVis; retTecVis=null; veiculos.forEach(v=>{ if(a[v.id]!==undefined) v.visivel=a[v.id] }); document.body.classList.remove('ret-so'); try{ sincronizarChecks(); aplicarVisibilidade(); atualizarContagem(); atualizar() }catch(e){} }
+}
 function retMostrarNoMapa(id){
   const alvo=retListaAtual.find(x=>x.id===id && x.lat!=null); if(!alvo) return;
   retLimparMapa(); retCamada=L.layerGroup().addTo(map);
@@ -10476,6 +10482,10 @@ function retMostrarNoMapa(id){
     m.addTo(retCamada);
   });
   fechar(); try{ setSeguir(false) }catch(e){}
+  /* 19/10/2026 (pedido do dono): na visão Para retirar o mapa mostra SÓ os veículos para retirar (somem os do próprio login) */
+  if(!retTecVis){ retTecVis={}; veiculos.forEach(v=>{ retTecVis[v.id]=!!v.visivel }) }
+  veiculos.forEach(v=>{ v.visivel=false }); selId=null; document.body.classList.add('ret-so');
+  try{ sincronizarChecks(); aplicarVisibilidade(); atualizarContagem(); atualizar() }catch(e){}
   $('retChip').style.display='flex';
   map.setView([alvo.lat,alvo.lon],16,{animate:false}); try{ centralizar([alvo.lat,alvo.lon]) }catch(e){}
 }
