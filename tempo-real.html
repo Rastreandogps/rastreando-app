@@ -1195,6 +1195,7 @@ h3.comdica .dica:hover~.dicatx,h3.comdica .dica:focus~.dicatx,h3.comdica .dica.o
 #mComb.modo-comb #cbSecMeta,#mComb.modo-comb #cbOdoRow{display:none}
 #mComb.modo-odo #cbSecComb{display:none}
 #mfPromo{display:none}
+#mLojaPix{z-index:1200} /* 19/10/2026: o PIX abre por cima de qualquer janela (ex.: Odômetro) */
 #mComb.semmod #cbSecMeta,#mComb.semmod #snLbl,#mComb.semmod #cbMapaLbl,#mComb.semmod.modo-odo #cbNota{display:none!important}
 #mComb.semmod.modo-odo #mfPromo{display:block}
 #cbMapaPro{display:none}
@@ -3206,6 +3207,7 @@ nav button.on .nemo.txt{color:var(--red2)}
         <img class="pixqr" id="ljpQr" alt="QR Code do PIX">
         <div class="pixcode" id="ljpCode"></div>
         <button class="btn btn-red" id="ljpCopiar" type="button" style="width:100%;margin-top:10px">Copiar código PIX</button>
+        <p id="ljpTempo" style="display:none;margin:10px 0 0;font-size:14px;font-weight:800;color:#d97706"></p>
         <p id="ljpStatus" style="margin:12px 0 0;font-size:13px">Aguardando o pagamento…</p>
       </div>
       <div id="ljpOk" style="display:none">
@@ -10375,8 +10377,24 @@ function lojaAbrirPix(r){
   $('ljpCopiar').onclick=()=>copiar(r.copiaCola).then(()=>toast('Código PIX copiado')).catch(()=>toast('Não foi possível copiar'));
   $('ljpStatus').textContent='Aguardando o pagamento… Assim que o banco confirmar, aparece aqui (pode levar alguns instantes).';
   $('ljpPix').style.display=''; $('ljpOk').style.display='none';
+  ljpQrMostrar(true); ljpTempoIniciar(Number(r.expiraEmMs||0));
   abrir('mLojaPix');
   lojaPoll();
+}
+/* 19/10/2026: PIX com prazo curto (Premium: 10 minutos). Acabou o tempo: some o QR Code e o código */
+let ljpTempoTimer=null;
+function ljpQrMostrar(sim){ ['ljpQr','ljpCode','ljpCopiar'].forEach(id=>{ $(id).style.display=sim?'':'none' }) }
+function ljpExpirou(){ clearInterval(ljpTempoTimer); ljpQrMostrar(false); $('ljpTempo').style.display='none'; $('ljpStatus').textContent='Este PIX expirou e não pode mais ser pago. Feche e gere outro.' }
+function ljpTempoIniciar(ate){
+  clearInterval(ljpTempoTimer); const el=$('ljpTempo');
+  if(!(ate>0)){ el.style.display='none'; return }
+  const pinta=()=>{
+    const f=ate-Date.now();
+    if(f<=0){ ljpExpirou(); return }
+    const m=Math.floor(f/60000), sg=Math.floor(f%60000/1000);
+    el.textContent='⏱ Este PIX vale por '+m+':'+String(sg).padStart(2,'0'); el.style.display='';
+  };
+  pinta(); ljpTempoTimer=setInterval(pinta,1000);
 }
 function lojaPoll(){ /* pergunta ao servidor a cada 8 s enquanto a janela do PIX está aberta */
   clearTimeout(lojaPollTimer);
@@ -10386,7 +10404,7 @@ function lojaPoll(){ /* pergunta ao servidor a cada 8 s enquanto a janela do PIX
     try{
       const s=await fnLoja('lojaStatus',{pedido:lojaPed.pedido});
       if(s.pago){ lojaPagoOk(s); return }
-      if(s.expirado){ $('ljpStatus').textContent='Este PIX não foi pago e expirou. Feche e gere outro.'; return }
+      if(s.expirado){ ljpExpirou(); return }
     }catch(e){ /* tenta de novo na próxima */ }
     lojaPoll();
   },8000);
@@ -10397,6 +10415,7 @@ function lojaWppEntrega(nome,rotulo){
   window.open('https://wa.me/'+LOJA_WPP+'?text='+encodeURIComponent(msg),'_blank');
 }
 function lojaPagoOk(s){
+  clearInterval(ljpTempoTimer); $('ljpTempo').style.display='none';
   $('ljpTit').textContent='Pagamento confirmado';
   $('ljpPix').style.display='none'; $('ljpOk').style.display='';
   if(Number(s.frotaAteMs)>0){ /* 19/10/2026: Módulo Frota liberado na hora */
