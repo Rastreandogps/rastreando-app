@@ -41,6 +41,11 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 #map{position:fixed;top:0;right:0;bottom:0;left:0;background:#e8ecf0}
 .topo{position:fixed;top:0;left:0;right:0;z-index:500;display:flex;align-items:center;gap:10px;padding:calc(10px + env(safe-area-inset-top)) 14px 10px;background:linear-gradient(var(--bg) 55%,transparent);pointer-events:none}
 .topo img{width:34px;height:34px;border-radius:50%;object-fit:cover;pointer-events:auto}
+/* 15/10/2026: com o app instalado, o link abre DENTRO do app; este botão volta para a tela principal do app */
+.voltaapp{display:none;align-items:center;gap:6px;margin-left:8px;padding:7px 12px;border-radius:999px;background:#e3262f;color:#fff;font:700 12.5px system-ui,-apple-system,Segoe UI,Roboto,sans-serif;text-decoration:none;pointer-events:auto;box-shadow:0 4px 12px rgba(0,0,0,.25);white-space:nowrap}
+body.noapp .topo{z-index:950}
+.topo .vivo{white-space:nowrap}
+.voltaapp svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
 .topo .marca{font-weight:800;letter-spacing:.06em;font-size:15px;line-height:1.05}
 .topo .marca small{display:block;font-weight:600;font-size:10.5px;letter-spacing:.32em;color:var(--mut)}
 .topo .vivo{margin-left:auto;display:flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;letter-spacing:.06em;color:var(--green);border:1px solid currentColor;border-radius:999px;padding:4px 10px;background:var(--card);pointer-events:auto}
@@ -67,6 +72,8 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .btn{height:46px;border-radius:14px;font-weight:700;font-size:14.5px;display:flex;align-items:center;justify-content:center;gap:8px;text-decoration:none}
 .btn svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .btn.pri{background:var(--red);color:#fff}
+.btn.wppTec{margin-top:14px;background:#25D366;color:#fff;width:100%}
+.btn.wppTec svg{fill:none;stroke:#fff;stroke-width:1.8}
 .btn.sec{background:var(--card2);border:1px solid var(--line);color:var(--txt)}
 .valid{display:flex;align-items:center;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line);font-size:12.5px;color:var(--mut)}
 .valid svg{width:15px;height:15px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
@@ -114,7 +121,16 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   <img src="logo.jpeg" alt="" onerror="this.style.display='none'">
   <div class="marca">RASTREANDO<small>GPS</small></div>
   <div class="vivo" id="vivo"><i></i><span>AO VIVO</span></div>
+  <a class="voltaapp" id="voltaApp" href="./tempo-real.html"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>Voltar ao app</a>
 </header>
+<script>
+  /* só aparece quando a página abriu dentro do app instalado (quem recebe o link pelo navegador não vê) */
+  (function(){ try{
+    var b=document.getElementById('voltaApp');
+    var app=(window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone===true;
+    if(app){ b.style.display='inline-flex'; document.body.classList.add('noapp'); /* a barra de cima fica por cima das telas de carregando/link indisponível */ b.addEventListener('click',function(e){ e.preventDefault(); location.replace('./tempo-real.html') }) }
+  }catch(e){} })();
+</script>
 
 <button class="centro on" id="btnCentro" type="button" aria-label="Centralizar no veículo" title="Centralizar no veículo">
   <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="8"/></svg>
@@ -128,6 +144,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   <div class="chips" id="chips"></div>
   <div class="end" id="end"></div>
   <div class="hora" id="hora"></div>
+  <a class="btn wppTec" id="btnWppTec" target="_blank" rel="noopener" style="display:none"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2z"/><path d="M8.5 8.5c.3 2.6 2.4 5 5 5.6l1.2-1.2 2 1-.5 1.6c-3.8.3-8.4-4.3-8.1-8.1l1.6-.5 1 2z"/></svg><span id="btnWppTecTxt">Falar com o técnico</span></a>
   <div class="botoes">
     <a class="btn pri" id="btnRota" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M3 11l18-8-8 18-2-8-8-2z"/></svg>Traçar rota</a>
     <a class="btn sec" id="btnMaps" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M12 22s7-6.1 7-12a7 7 0 10-14 0c0 5.9 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg>Google Maps</a>
@@ -254,6 +271,14 @@ function prepararTec(d) {
     img.alt = '';
     img.onload = () => { foto.textContent = ''; foto.appendChild(img); };
     img.src = FOTOS + String(d.tecnico || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '') + '.jpg';
+    /* 17/10/2026 (pedido do dono): o cliente fala com o técnico pelo WhatsApp (avisar portão, referência, atraso) */
+    const w = String(d.whatsapp || '').replace(/\D/g, '');
+    if (w.length === 10 || w.length === 11) {
+      const b = $('btnWppTec');
+      b.href = 'https://wa.me/55' + w + '?text=' + encodeURIComponent('Olá, ' + d.tecnico + '! Estou acompanhando você pelo link da Rastreando GPS.');
+      $('btnWppTecTxt').textContent = 'Falar com ' + d.tecnico + ' no WhatsApp';
+      b.style.display = 'flex';
+    }
   }
   document.querySelector('.botoes').style.display = 'none';
   const q = 'Mostrar ' + quem();
@@ -431,7 +456,9 @@ function atualizarValidade() {
 async function buscar() {
   if (encerrado) return;
   try {
-    const r = await fetch(FN, { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'omit', body: JSON.stringify({ acao: 'compVer', codigo }) });
+    const corpo = { acao: 'compVer', codigo };
+    if (!buscar._abriu) { buscar._abriu = true; corpo.abriu = 1; corpo.ua = navigator.userAgent || ''; try { const t = localStorage.getItem('rg_token'); if (t) corpo.token = t; } catch (e) {} } /* 19/10/2026: avisa quem criou que o link foi aberto (só na 1ª consulta) */
+    const r = await fetch(FN, { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'omit', body: JSON.stringify(corpo) });
     let j = {}; try { j = await r.json(); } catch (e) {}
     if (r.status === 404 || r.status === 410) { erro('Link indisponível', j.erro || 'Este link não existe ou já foi encerrado.'); return; }
     if (!r.ok) throw new Error(j.erro || ('erro ' + r.status));
