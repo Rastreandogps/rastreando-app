@@ -4534,7 +4534,7 @@ function ladoBase(){
   return veiculos.filter(v=>{
     if(!ladoPassa(v)) return false;
     if(!q) return true;
-    const b=(v.nome+' '+(v.placa||'')+' '+(v.contato||'')+' '+(ehAdmin?rotuloCliente(v):'')).toLowerCase(); /* o cliente só é procurado quando há texto na busca */
+    const b=(v.nome+' '+(v.placa||'')+' '+(v.contato||'')+' '+(ehAdmin?rotuloCliente(v)+' '+(v.retDono||'')+' '+(v.wppVeic||''):'')).toLowerCase(); /* o cliente só é procurado quando há texto na busca; 19/10/2026: também o dono "Para retirar" e o WhatsApp do veículo */
     return b.includes(q) || (qd.length>=3 && b.replace(/\D/g,'').includes(qd));
   }).sort((a,b)=> ladoFiltro==='ret' ? ((a.retDono||'~').localeCompare(b.retDono||'~','pt-BR') || a.nome.localeCompare(b.nome,'pt-BR')) : a.nome.localeCompare(b.nome,'pt-BR')); /* 19/10/2026: em Para retirar, agrupado pelo dono */
 }
@@ -4614,7 +4614,13 @@ function ladoAlternar(aberta){
 try{ if(lsGet('rg_lado')==='0') $('main').classList.add('semlado') }catch(e){}
 $('ladoAba').onclick=()=>ladoAlternar();
 $('ladoFechar').onclick=()=>ladoAlternar(false);
-$('ladoBusca').addEventListener('input',ladoDesenhar);
+$('ladoBusca').addEventListener('input',()=>{ ladoDesenhar(); retMapaBusca() });
+/* 19/10/2026 (pedido do dono): na aba Para retirar, buscar o dono (ex.: "Fabiano") mostra no mapa só os veículos dele */
+let retBuscaT=null;
+function retMapaBusca(){
+  if(ladoFiltro!=='ret' || !retVisAntes) return;
+  clearTimeout(retBuscaT); retBuscaT=setTimeout(()=>{ const ids=new Set(ladoBase().map(v=>v.id)); veiculos.forEach(v=>{ v.visivel=ids.has(v.id) }); sincronizarChecks(); mudouSelecao(); try{ sincronizarPick() }catch(_){} ladoCabecalho() },350);
+}
 $('ladoBusca').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); const b=$('ladoLista').querySelector('.ladoit'); if(b) b.click() } });
 $('vFil').addEventListener('click',e=>{ const b=e.target.closest('[data-f]'); if(!b) return; vFiltro=b.dataset.f; $('vFil').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b)); desenharLista() }); /* 16/10/2026 */
 $('ladoFil').addEventListener('click',e=>{ const b=e.target.closest('[data-f]'); if(!b) return; const ant=ladoFiltro; ladoFiltro=b.dataset.f; $('ladoFil').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b)); ladoDesenhar(); if(ant!==ladoFiltro) retMapa(ladoFiltro==='ret') });
