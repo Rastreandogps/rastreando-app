@@ -5144,7 +5144,7 @@ $('vPick').onclick=e=>{ e.stopPropagation(); abrirPick() };
 
 /* ===== BLOQUEIO / DESBLOQUEIO (comando real) ===== */
 function abrir(id){$(id).classList.add('show')}
-function fechar(){ try{ if(scanAtivo) scanParar() }catch(e){} document.querySelectorAll('.modal').forEach(m=>m.classList.remove('show')) }
+function fechar(){ try{ if(scanAtivo) scanParar() }catch(e){} document.querySelectorAll('.modal').forEach(m=>m.classList.remove('show')); try{ if(typeof frVoltar!=='undefined' && frVoltar){ frVoltar=false; if(ehPrime()) irPara('Frota') } }catch(e){} }
 document.querySelectorAll('[data-close]').forEach(b=>b.onclick=fechar);
 /* 15/10/2026: X no topo de toda janela que já tem um botão de fechar (o X faz o mesmo que esse botão) */
 document.querySelectorAll('.modal').forEach(m=>{
@@ -5624,10 +5624,10 @@ let permCli={smsBloqueio:false,reset:false,editarNome:false,cercaRapida:false,mi
 const brl2 = n => 'R$ '+Number(n||0).toFixed(2).replace('.',',');
 async function carregarPermissoes(){
   try{ fatAtalho() }catch(e){}
-  if(ehAdmin){ permCli={smsBloqueio:true,reset:true,editarNome:true,cercaRapida:true,minhaPosicao:true,appBloqueio:true,cercaBloqueio:true,semBloqueio:false,frotista:true}; cobrCli=null; mostrarBotoesSms(); return }
+  if(ehAdmin){ permCli={smsBloqueio:true,reset:true,editarNome:true,cercaRapida:true,minhaPosicao:true,appBloqueio:true,cercaBloqueio:true,semBloqueio:false,frotista:true}; cobrCli=null; mostrarBotoesSms(); try{ frAbaAplicar() }catch(e){} return }
   if(!lsGet('rg_token')) return;
   /* permissões guardadas no usuário do Traccar: Bloquear/Desbloquear pelo app e cerca que bloqueia (padrão: liberado) */
-  try{ const rs=await minhaSessao(); if(rs.ok){ const me=await rs.json(); permCli.appBloqueio=permAttr(me,'appBloqueio'); permCli.cercaBloqueio=permAttr(me,'cercaBloqueio'); permCli.semBloqueio=attrLig(me,'semBloqueio'); permCli.frotista=attrLig(me,'frotista'); mostrarBotoesSms(); try{ const cv=cartao(); if(cv) motLinha(cv) }catch(e){} } }catch(e){ if(e.sessao) return }
+  try{ const rs=await minhaSessao(); if(rs.ok){ const me=await rs.json(); permCli.appBloqueio=permAttr(me,'appBloqueio'); permCli.cercaBloqueio=permAttr(me,'cercaBloqueio'); permCli.semBloqueio=attrLig(me,'semBloqueio'); permCli.frotista=attrLig(me,'frotista'); mostrarBotoesSms(); try{ frAbaAplicar() }catch(e){} try{ const cv=cartao(); if(cv) motLinha(cv) }catch(e){} } }catch(e){ if(e.sessao) return }
   try{
     const r=await fetch(DESB_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',body:JSON.stringify({acao:'minhas',token:lsGet('rg_token')})});
     if(!r.ok) return;
@@ -6108,7 +6108,7 @@ function frDesenhar(){
   const L=$('frLista'); if(!L) return;
   const premium=modFrota(), d=frDados();
   $('frSub').textContent=veiculos.length+(veiculos.length===1?' veículo':' veículos')+' · combustível e troca de óleo';
-  if(!veiculos.length){ L.innerHTML='<p class="frnota">Nenhum veículo na sua conta.</p>'; return }
+  if(!veiculos.length){ L.innerHTML='<p class="frnota">Nenhum veículo na sua conta.</p>'; frUltN=0; return }
   /* resumo */
   let rs=0, lt=0, nComb=0, nOleo=0, nAlerta=0, nVencido=0;
   d.forEach(x=>{ if(x.g){ rs+=x.g.rs; lt+=x.g.lt; nComb++ } if(x.mi){ nOleo++; if(x.mi.falta<=0) nVencido++; else if(x.mi.alerta) nAlerta++ } });
@@ -6135,16 +6135,19 @@ function frDesenhar(){
     return '<div class="frv'+(mi&&mi.alerta?' alerta':'')+'"><div class="frtop"><b>'+esc(v.nome)+'</b><small>'+(v.placa?esc(v.placa)+' · ':'')+fmtOdo(v.odo)+'</small></div><div class="frlin">'+comb+oleo+'</div></div>';
   }).join('');
   h+='<p class="frnota">O combustível é uma estimativa pelo odômetro e pelo consumo informado em cada veículo. Toque num quadro para ajustar. '+(premium?'Vermelho = faltam 10% ou menos para a troca.':'A contagem da troca de óleo faz parte do ⭐ Premium.')+'</p>';
-  L.innerHTML=h;
+  const st=L.scrollTop; L.innerHTML=h; L.scrollTop=st; frUltN=veiculos.length;
 }
+let frUltN=-1;
 $('frLista').addEventListener('click',e=>{
   const o=e.target.closest('#frOrd button'); if(o){ frOrdem=o.dataset.o; frDesenhar(); return }
   const b=e.target.closest('button[data-fr]'); if(!b) return;
   const v=veiculos.find(x=>String(x.id)===b.dataset.id); if(!v) return;
-  escolherVeiculo(v,true); setTimeout(()=>abrirComb(b.dataset.fr),120);
+  frVoltar=true; escolherVeiculo(v,true); setTimeout(()=>{ abrirComb(b.dataset.fr); if(!$('mComb').classList.contains('show')){ frVoltar=false; irPara('Frota') } },120);
 });
+let frVoltar=false;
 $('frAtualizar').onclick=()=>{ frDesenhar(); vcSincronizar().then(()=>frDesenhar()).catch(()=>{}) };
 setInterval(()=>{ try{ if($('frview').classList.contains('show') && !document.querySelector('.modal.show')) frDesenhar(); frBadgePintar() }catch(e){} },15000);
+setInterval(()=>{ try{ if($('frview').classList.contains('show') && frUltN!==veiculos.length) frDesenhar() }catch(e){} },1500); /* os veículos chegaram depois de abrir a aba */
 function abrirComb(modo){
   const v=cartao(); if(!v){ toast('Escolha um veículo.'); return }
   modo=modo==='odo'?'odo':'comb';
@@ -10242,11 +10245,12 @@ function sair(msg){
   try{ smsAc.itens=[]; smsUltCache={}; smsUltSel=null; cmdAndamento=false; cbVeic=null }catch(e){}
   try{ cprFechar(); shareLista=[] }catch(e){}
   try{ if(emergCamada){ map.removeLayer(emergCamada); emergCamada=null } emergDados=null; emergConf=null; emergEnviados={} }catch(e){}
-  try{ clearTimeout(lojaPollTimer); lojaPed=null }catch(e){}
+  try{ clearTimeout(lojaPollTimer); lojaPed=null; clearInterval(ljpTempoTimer) }catch(e){}
   try{ alCfg={ign:{},volta:{}}; kmLista=[] }catch(e){}
   cercasReset();
   permCli={smsBloqueio:false,reset:false,editarNome:false,cercaRapida:false,minhaPosicao:false,appBloqueio:true,cercaBloqueio:true,semBloqueio:false,frotista:false}; cobrCli=null; try{ FCH.saldo=null; FCH.em=0; fichasAplicar() }catch(e){} /* 15/10/2026: fichas do login anterior saem */
   ehAdmin=false; usuarios=[]; $('aview').classList.remove('show'); try{ $('mapCar').classList.remove('show') }catch(e){}
+  try{ frAbaAplicar() }catch(e){} /* 19/10/2026: a aba Frota some ao sair */
   document.querySelector('nav button[data-tab="Admin"]').style.display='none'; document.querySelector('nav button[data-tab="Faturas"]').style.display='none'; document.querySelector('nav button[data-tab="Mais"]').style.display='none'; cpfsMapa={}; faturasDados=null; aplicarBloqueio(null); euDesligar(); $('btnEu').style.display='none'; try{ meuUsuario=null; mapaAplicar('gratis') }catch(e){} irPara('Mapa');
   auth=null;
   veiculos.forEach(v=>{ if(v.marker&&map.hasLayer(v.marker)) map.removeLayer(v.marker) });
@@ -10481,9 +10485,10 @@ function lojaAbrirPix(r){
   $('ljpCopiar').onclick=()=>copiar(r.copiaCola).then(()=>toast('Código PIX copiado')).catch(()=>toast('Não foi possível copiar'));
   $('ljpStatus').textContent='Aguardando o pagamento… Assim que o banco confirmar, aparece aqui (pode levar alguns instantes).';
   $('ljpPix').style.display=''; $('ljpOk').style.display='none';
-  ljpQrMostrar(true); ljpTempoIniciar(Number(r.expiraEmMs||0));
+  ljpQrMostrar(true);
   try{ const mp=$('mLojaPix'); mp.style.zIndex='1400'; document.body.appendChild(mp) }catch(e){} /* sempre na frente (último da página + camada mais alta) */
   abrir('mLojaPix');
+  ljpTempoIniciar(Number(r.expiraEmMs||0));
   lojaPoll();
 }
 /* 19/10/2026: PIX com prazo curto (Premium: 10 minutos). Acabou o tempo: some o QR Code e o código */
@@ -10494,6 +10499,7 @@ function ljpTempoIniciar(ate){
   clearInterval(ljpTempoTimer); const el=$('ljpTempo');
   if(!(ate>0)){ el.style.display='none'; return }
   const pinta=()=>{
+    if(!$('mLojaPix').classList.contains('show')){ clearInterval(ljpTempoTimer); return } /* janela fechada: para o relógio */
     const f=ate-Date.now();
     if(f<=0){ ljpExpirou(); return }
     const m=Math.floor(f/60000), sg=Math.floor(f%60000/1000);
@@ -10527,6 +10533,9 @@ function lojaPagoOk(s){
     permCli.modFrotaAteMs=Number(s.frotaAteMs); modFrotaAplicar(); try{ if($('mComb').classList.contains('show')){ $('mComb').classList.remove('semmod'); modFrotaPintarJanela(); cbPintar() } }catch(e){}
     $('ljpOkTxt').textContent='Premium liberado até '+new Date(s.frotaAteMs).toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo'})+'. Toque no odômetro de qualquer veículo para usar a contagem regressiva e mostrar no mapa.';
     $('ljpOkWpp').style.display='none'; return;
+  }
+  if(/premium/i.test(s.nome||'')){ /* 19/10/2026: pagou, mas o servidor não conseguiu liberar na hora (o dono recebe aviso) */
+    $('ljpOkTxt').textContent='Pagamento recebido. A liberação do Premium está sendo concluída. Se não aparecer em alguns minutos, fale com a gente.'; $('ljpOkWpp').style.display='none'; return;
   }
   if(Number(s.fichas)>0){ /* 15/10/2026: fichas entram na hora, sem entrega */
     $('ljpOkTxt').textContent=s.fichas+' fichas já estão na sua conta.'+(typeof s.saldo==='number'?' Saldo agora: '+s.saldo+' fichas.':'');
