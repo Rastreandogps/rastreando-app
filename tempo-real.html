@@ -3317,7 +3317,7 @@ nav button.on .nemo.txt{color:var(--red2)}
       <label class="fchk" id="cbPainelLbl"><input type="checkbox" id="cbPainel" checked> Usar o odômetro do painel</label>
       <div class="cbzero" id="cbZero"><span id="cbZeroTx"></span><button type="button" id="cbZerar">Zerar de novo</button></div>
       <label class="fchk" id="cbMapaLbl"><input type="checkbox" id="cbMapa"> Mostrar no mapa</label>
-      <div class="mfmapa" id="cbMapaPro"><span>🔒 Mostrar no mapa</span><button type="button" id="cbMapaAss">⭐ Assinar Premium · R$ 19,90</button></div>
+      <div class="mfmapa" id="cbMapaPro"><span>🔒 Mostrar no mapa</span><button type="button" id="cbMapaAss">⭐ Assinar Premium</button></div>
     </div>
 
     <div class="cbsec" id="cbSecMeta">
@@ -3335,7 +3335,7 @@ nav button.on .nemo.txt{color:var(--red2)}
     <div class="mfpromo" id="mfPromo">
       <div class="mfti">🔒 Contagem regressiva do odômetro</div>
       <ul><li>🔧 Quantos km faltam para a troca de óleo e a revisão</li><li>🔔 Aviso no celular quando chegar a quilometragem</li><li>📍 Combustível e km que faltam fixos no mapa</li></ul>
-      <div class="mfpr"><b>⭐ Premium</b> · <b>R$ 19,90</b> por 30 dias<small>Pagamento por PIX, libera na hora. Não entra no boleto.</small></div>
+      <div class="mfpr"><b>⭐ Premium</b> · 30 dias<small>Pagamento por PIX, libera na hora. Não entra no boleto. O valor aparece ao gerar o PIX.</small></div>
       <button type="button" class="btn mfbt" id="mfLiberar">Liberar agora com PIX</button>
     </div>
     <div class="mfrenova" id="mfRenova" style="display:none"><span id="mfRenovaTx"></span><button type="button" id="mfRenovar">Renovar (+30 dias)</button></div>
@@ -6104,10 +6104,10 @@ function cbPintar(){
 }
 function cbRotular(){ if(!cbVeic) return; const v=veiculos.find(x=>x.id===cbVeic.id); if(v) rotularMarcador(v) }
 /* ===== MÓDULO FROTA (19/10/2026, decisão do dono) =====
-   Pago à parte (Premium): R$ 19,90 por 30 dias, por PIX na hora (nunca no boleto).
+   Pago à parte (Premium): 30 dias por PIX na hora (nunca no boleto). O valor é calculado pelo servidor (por veículo) e o app NÃO mostra o preço por veículo (decisão do dono, 19/10/2026).
    Grátis para todos: odômetro e o quadro do combustível (valor só no cartão e na janela).
    Premium: contagem regressiva do odômetro (meta de km / troca de óleo, com aviso) e "Mostrar no mapa". */
-const MODFROTA_VALOR='R$ 19,90';
+const MODFROTA_VALOR='30 dias por PIX';
 function modFrota(){ return ehAdmin || Number(permCli&&permCli.modFrotaAteMs||0)>Date.now() }
 function modFrotaAplicar(){
   try{ cbMapaAtualizar() }catch(e){}
@@ -6154,11 +6154,11 @@ function frDesenhar(){
   /* resumo */
   let rs=0, lt=0, nComb=0, nOleo=0, nAlerta=0, nVencido=0;
   d.forEach(x=>{ if(x.g){ rs+=x.g.rs; lt+=x.g.lt; nComb++ } if(x.mi){ nOleo++; if(x.mi.falta<=0) nVencido++; else if(x.mi.alerta) nAlerta++ } });
-  const oleoTx = !premium ? '<div class="oleo"><span>🔧 Troca de óleo</span><b>🔒 Premium</b><small>'+MODFROTA_VALOR+' / 30 dias</small></div>'
+  const oleoTx = !premium ? '<div class="oleo"><span>🔧 Troca de óleo</span><b>🔒 Premium</b><small>'+MODFROTA_VALOR+'</small></div>'
     : '<div class="oleo '+(nVencido||nAlerta?'ruim':'ok')+'"><span>🔧 Troca de óleo</span><b>'+(nVencido?nVencido+' vencida'+(nVencido>1?'s':''):nAlerta?nAlerta+' perto':nOleo?'Em dia':'—')+'</b><small>'+(nOleo?nOleo+' com contagem':'nenhuma contagem')+'</small></div>';
   let h='<div class="frres">'+
     (premium ? '<div class="comb"><span>⛽ Combustível</span><b>'+(nComb?cbBrl(rs):'—')+'</b><small>'+(nComb?cbLtTxt(lt)+' · '+nComb+' veíc.':'configure nos veículos')+'</small></div>'
-             : '<div class="comb"><span>⛽ Combustível</span><b>🔒 Premium</b><small>'+MODFROTA_VALOR+' / 30 dias</small></div>')+
+             : '<div class="comb"><span>⛽ Combustível</span><b>🔒 Premium</b><small>'+MODFROTA_VALOR+'</small></div>')+
     '<div><span>🚗 Veículos</span><b>'+veiculos.length+'</b><small>'+veiculos.filter(v=>v.online).length+' online</small></div>'+
     oleoTx+'</div>';
   h+='<div class="frord" id="frOrd"><button type="button" data-o="oleo" class="'+(frOrdem==='oleo'?'on':'')+'">Óleo mais perto</button><button type="button" data-o="comb" class="'+(frOrdem==='comb'?'on':'')+'">Mais gasto</button><button type="button" data-o="nome" class="'+(frOrdem==='nome'?'on':'')+'">Nome</button></div>';
@@ -10183,7 +10183,7 @@ function kmFormulario(mostrar){
   $('kmValor').value=''; $('kmNome').value=''; $('kmRep').checked=false; $('kmErro').textContent=''; atualizarKmTexto();
   if(mostrar){ const sel=$('kmVeic'), v=typeof ativo==='function'?ativo():null; if(v && [...sel.options].some(o=>o.value===String(v.id))) sel.value=String(v.id); setTimeout(()=>$('kmValor').focus(),50) }
 }
-$('kmNovo').onclick=()=>{ if(!modFrota()){ toast('O lembrete de km faz parte do ⭐ Premium (R$ 19,90 por 30 dias). Toque no Odômetro do veículo para assinar.',6000); return } kmFormulario(true) };
+$('kmNovo').onclick=()=>{ if(!modFrota()){ toast('O lembrete de km faz parte do ⭐ Premium. Toque no Odômetro do veículo para assinar.',6000); return } kmFormulario(true) };
 $('kmCancelar').onclick=()=>kmFormulario(false);
 $('alTIgn').onclick=()=>abrir('mAlIgn');
 $('alTVolta').onclick=()=>abrir('mAlVolta');
@@ -10848,7 +10848,7 @@ async function pmFichasCarregar(){
   try{ const j=await chamarPerm('fichasVer'); $('pmFichasSaldo').textContent=j.saldo.toLocaleString('pt-BR') }catch(e){ $('pmFichasSaldo').textContent='?' }
 }
 /* 19/10/2026: Módulo Frota do cliente (cortesia/teste ou tirar) */
-function pmModPintar(ate){ ate=Number(ate||0); $('pmModSt').textContent= ate>Date.now() ? 'ativo até '+new Date(ate).toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo'}) : 'desligado (R$ 19,90 por PIX no app)' }
+function pmModPintar(ate){ ate=Number(ate||0); $('pmModSt').textContent= ate>Date.now() ? 'ativo até '+new Date(ate).toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo'}) : 'desligado (R$ 5,90 por veículo, PIX no app)' }
 $('pmModBox').addEventListener('click',async e=>{
   const b=e.target.closest('[data-mf]'); if(!b) return;
   let dias=0; $('pmErro').textContent='';
