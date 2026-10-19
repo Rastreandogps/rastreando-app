@@ -393,6 +393,17 @@ nav button.trav{opacity:.35}
 .fres.info{background:var(--card);border:1px solid var(--line);color:var(--txt);font-weight:500}
 .fsec{font-size:13px;font-weight:700;color:var(--mut);margin:18px 0 4px;letter-spacing:.04em}
 .fcard{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-top:8px}
+/* 19/10/2026: oferta do plano anual nas Faturas */
+.fanual{margin-top:12px;border-radius:16px;padding:14px;background:linear-gradient(135deg,rgba(22,163,74,.12),rgba(22,163,74,.04));border:1.5px solid rgba(22,163,74,.45)}
+.fanual .fat{font-weight:800;font-size:15.5px}
+.fanual .fas{font-size:13px;color:var(--mut);margin:3px 0 10px;line-height:1.4}
+.fanual .fav{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.fanual .fav b{font-size:22px;color:#16a34a}
+.fanual .fav span{font-size:12.5px;color:var(--mut)}
+.fanual .fav i{font-style:normal;font-size:12px;font-weight:800;color:#fff;background:#16a34a;border-radius:999px;padding:2px 8px}
+.fanual button{width:100%;height:42px;border-radius:12px;border:0;background:#16a34a;color:#fff;font-weight:800;font-size:14.5px;cursor:pointer}
+.fanual.ativo{background:var(--card);border-color:var(--line)}
+.fanual.ativo .fat{font-size:14px}
 .fcard .ft{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
 .fcard .fv{font-size:18px;font-weight:700}
 .fcard .fd{font-size:13px;color:var(--mut);margin-top:2px}
@@ -7379,9 +7390,26 @@ function desenharFaturas(){
     h+='<div class="fsec">PAGAS RECENTEMENTE</div>';
     h+=d.pagas.map(f=>'<div class="fcard"><div class="ft"><div><div class="fv" style="font-size:16px">'+brl(f.valor)+'</div><div class="fd">Vencimento '+dmy(f.vencimento)+(f.pagoEm?' · pago em '+dmy(f.pagoEm):'')+'</div></div><span class="fbad p">Paga</span></div></div>').join('');
   }
-  L.innerHTML=h;
+  L.innerHTML=anualHtml()+h;
+  if(!ehAdmin && !anualInfo && !anualBuscando) anualCarregar();
 }
-$('fAtualizar').onclick=()=>abrirFaturas(true);
+/* 19/10/2026 (decisão do dono): PLANO ANUAL — paga 10, usa 12, no PIX. O servidor calcula pela mensalidade do cliente. */
+let anualInfo=null, anualBuscando=false;
+async function anualCarregar(){
+  anualBuscando=true;
+  try{ anualInfo=await fnLoja('anualVer',{}) }catch(e){ anualInfo={ok:false,motivo:'erro'} }
+  anualBuscando=false;
+  if($('fview').classList.contains('show') && faturasDados) desenharFaturas();
+}
+function anualHtml(){
+  const a=anualInfo; if(!a || ehAdmin) return '';
+  if(a.ok) return '<div class="fanual"><div class="fat" style="margin-bottom:10px">📅 Plano anual: pague 10 meses e ganhe 2</div>'+
+    '<div class="fav"><b>'+brl(a.valor)+'</b><span>no PIX, à vista</span><i>'+Math.round(a.economia/(a.mensal*12)*100)+'% de economia</i></div>'+
+    '<button type="button" id="fAnualBt">Quero o plano anual</button></div>';
+  if(a.motivo==='já tem o plano anual' && a.ate) return '<div class="fanual ativo"><div class="fat">✅ Plano anual ativo</div><div class="fas" style="margin:3px 0 0">Seu próximo boleto vence em '+dmy(a.ate)+'.</div></div>';
+  return '';
+}
+$('fAtualizar').onclick=()=>{ anualInfo=null; abrirFaturas(true) };
 $('fResumo').addEventListener('click',async e=>{
   const b=e.target.closest('#fJaPaguei'); if(!b) return;
   b.disabled=true; const t0=b.textContent; b.textContent='Liberando...';
@@ -7392,6 +7420,15 @@ $('fResumo').addEventListener('click',async e=>{
   }catch(err){ toast(err.message); b.disabled=false; b.textContent=t0 }
 });
 $('fList').addEventListener('click',async e=>{
+  const an=e.target.closest('#fAnualBt');
+  if(an){ /* o servidor confere de novo o valor na hora de gerar o PIX */
+    if(an.disabled) return; an.disabled=true; const t0=an.textContent; an.textContent='Gerando PIX...';
+    try{ const r=await fnLoja('lojaComprar',{produto:'anual',qtd:1});
+      if(r.semCpf||r.semCadastro) toast('Seu CPF ainda não está vinculado ao financeiro. Fale com a gente pelo WhatsApp.',5000);
+      else if(r.anualIndisponivel){ toast('O plano anual não está disponível para a sua conta agora. Fale com a gente pelo WhatsApp.',5000); anualInfo={ok:false,motivo:r.motivo}; desenharFaturas() }
+      else lojaAbrirPix(r);
+    }catch(err){ toast(err.message) }
+    an.disabled=false; an.textContent=t0; return }
   const b=e.target.closest('[data-a="pix"]'); if(!b) return;
   b.disabled=true; const t0=b.textContent; b.textContent='Gerando PIX...';
   try{
@@ -10394,7 +10431,7 @@ function sair(msg){
   permCli={smsBloqueio:false,reset:false,editarNome:false,cercaRapida:false,minhaPosicao:false,appBloqueio:true,cercaBloqueio:true,semBloqueio:false,frotista:false}; cobrCli=null; try{ FCH.saldo=null; FCH.em=0; fichasAplicar() }catch(e){} /* 15/10/2026: fichas do login anterior saem */
   ehAdmin=false; usuarios=[]; $('aview').classList.remove('show'); try{ $('mapCar').classList.remove('show') }catch(e){}
   try{ frAbaAplicar() }catch(e){} /* 19/10/2026: a aba Frota some ao sair */
-  document.querySelector('nav button[data-tab="Admin"]').style.display='none'; document.querySelector('nav button[data-tab="Faturas"]').style.display='none'; document.querySelector('nav button[data-tab="Mais"]').style.display='none'; cpfsMapa={}; faturasDados=null; aplicarBloqueio(null); euDesligar(); $('btnEu').style.display='none'; try{ meuUsuario=null; mapaAplicar('gratis') }catch(e){} irPara('Mapa');
+  document.querySelector('nav button[data-tab="Admin"]').style.display='none'; document.querySelector('nav button[data-tab="Faturas"]').style.display='none'; document.querySelector('nav button[data-tab="Mais"]').style.display='none'; cpfsMapa={}; faturasDados=null; try{ anualInfo=null }catch(e){} aplicarBloqueio(null); euDesligar(); $('btnEu').style.display='none'; try{ meuUsuario=null; mapaAplicar('gratis') }catch(e){} irPara('Mapa');
   auth=null;
   veiculos.forEach(v=>{ if(v.marker&&map.hasLayer(v.marker)) map.removeLayer(v.marker) });
   veiculos=[]; selId=null; primeiraCarga=true; assinaturaLista='';
@@ -10672,6 +10709,10 @@ function lojaPagoOk(s){
   clearInterval(ljpTempoTimer); $('ljpTempo').style.display='none';
   $('ljpTit').textContent='Pagamento confirmado';
   $('ljpPix').style.display='none'; $('ljpOk').style.display='';
+  if(s.anual){ /* 19/10/2026: plano anual */
+    $('ljpOkTxt').textContent = s.anual.ok && s.anual.proxVenc ? 'Plano anual ativado! Seu próximo boleto só vence em '+dmy(s.anual.proxVenc)+'.' : 'Pagamento recebido! Estamos ajustando o seu plano anual; em instantes o próximo boleto passa para daqui a 12 meses.';
+    $('ljpOkWpp').style.display='none'; anualInfo=null; try{ if($('fview').classList.contains('show')) abrirFaturas(true) }catch(e){} return;
+  }
   if(Number(s.frotaAteMs)>0){ /* 19/10/2026: Módulo Frota liberado na hora */
     permCli.modFrotaAteMs=Number(s.frotaAteMs); modFrotaAplicar(); try{ if($('mComb').classList.contains('show')){ $('mComb').classList.remove('semmod'); modFrotaPintarJanela(); cbPintar() } }catch(e){}
     $('ljpOkTxt').textContent='Premium liberado até '+new Date(s.frotaAteMs).toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo'})+'. Toque no odômetro de qualquer veículo para usar a contagem regressiva e mostrar no mapa.';
