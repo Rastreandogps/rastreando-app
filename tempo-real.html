@@ -6185,8 +6185,8 @@ const IC_CAMINHAO='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" st
 /* 19/10/2026 (pedido do dono): o link foi aberto? quantas vezes, quando e em que aparelho */
 function compAcessoHtml(x){
   const n=Number(x.acessos||0);
-  if(!n) return '<div class="lkacesso" data-acc="'+esc(x.codigo)+'">⏳ Ainda não foi aberto</div>';
   const h=ms=>new Date(ms).toDateString()===new Date().toDateString()?compQuando(ms).replace(/^\d\d\/\d\d às /,''):compQuando(ms);
+  if(!n) return '<div class="lkacesso" data-acc="'+esc(x.codigo)+'">⏳ Ainda não foi aberto</div>';
   return '<div class="lkacesso ok" data-acc="'+esc(x.codigo)+'">👁️ <b>Aberto'+(n>1?' '+n+' vezes':'')+'</b> · '+(n>1?'1ª vez '+esc(h(x.acessoPrimeiroMs))+' · última '+esc(h(x.acessoUltimoMs)):esc(h(x.acessoPrimeiroMs)))+(x.acessoAparelho?' · '+esc(x.acessoAparelho):'')+'</div>';
 }
 function compCardHtml(x,agora,comVeic){
