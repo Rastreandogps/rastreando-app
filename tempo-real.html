@@ -1195,8 +1195,13 @@ h3.comdica .dica:hover~.dicatx,h3.comdica .dica:focus~.dicatx,h3.comdica .dica.o
 #mComb.modo-comb #cbSecMeta,#mComb.modo-comb #cbOdoRow{display:none}
 #mComb.modo-odo #cbSecComb{display:none}
 #mfPromo{display:none}
-#mComb.semmod #cbSecComb,#mComb.semmod #cbSecMeta,#mComb.semmod #snLbl,#mComb.semmod #cbNota{display:none!important}
-#mComb.semmod #mfPromo{display:block}
+#mComb.semmod #cbSecMeta,#mComb.semmod #snLbl,#mComb.semmod #cbMapaLbl,#mComb.semmod.modo-odo #cbNota{display:none!important}
+#mComb.semmod.modo-odo #mfPromo{display:block}
+#cbMapaPro{display:none}
+#mComb.semmod #cbMapaPro{display:flex}
+.mfmapa{align-items:center;gap:8px;margin-top:10px;font-size:13.5px;color:var(--mut)}
+.mfmapa span{flex:1}
+.mfmapa button{height:34px;padding:0 12px;border-radius:10px;border:0;background:linear-gradient(135deg,#fcd34d,#f59e0b);color:#1a1300;font-weight:800;font-size:12.5px;cursor:pointer;white-space:nowrap}
 .mfpromo{margin-top:12px;border:1.5px solid rgba(245,158,11,.55);border-radius:16px;padding:14px;background:rgba(245,158,11,.08)}
 .mfpromo .mfti{font-weight:800;font-size:15px;margin-bottom:6px}
 .mfpromo ul{list-style:none;padding:0;margin:0 0 10px;font-size:13.5px;line-height:1.6}
@@ -2961,7 +2966,7 @@ nav button.on .nemo.txt{color:var(--red2)}
     <label class="fchk"><input type="checkbox" id="pmEu"> Ver a posição do próprio celular no mapa (botão Minha posição)</label>
     <label class="fchk"><input type="checkbox" id="pmRetirar"> Ver a lista <b>Para retirar</b> (para técnico: veículos marcados para retirada, pelo mais perto, com o nome e o WhatsApp do cliente)</label>
     <label class="fchk"><input type="checkbox" id="pmFichas"> Cobrar fichas no compartilhar localização (1 ficha por link; o cliente compra pacotes por PIX no app)</label>
-    <div class="pmfichas" id="pmModBox"><span class="sp">Módulo Frota: <b id="pmModSt">—</b></span><button type="button" data-mf="30">+30 dias</button><button type="button" data-mf="0" style="background:#64748b">Tirar</button></div>
+    <div class="pmfichas" id="pmModBox"><span class="sp">⭐ Premium (odômetro/mapa): <b id="pmModSt">—</b></span><button type="button" data-mf="30">+30 dias</button><button type="button" data-mf="0" style="background:#64748b">Tirar</button></div>
     <div class="pmfichas" id="pmFichasBox"><span class="sp">Saldo: <b id="pmFichasSaldo">—</b> fichas</span><input class="fld" id="pmFichasQ" type="text" inputmode="numeric" placeholder="+10" autocomplete="off" aria-label="Fichas para lançar"><button type="button" id="pmFichasLancar">Lançar</button></div>
     <div class="pmval pmmapa"><span class="pmvl">Mapa do app</span><select class="fld" id="pmMapa"><option value="gratis">Grátis (padrão)</option><option value="google">Google Maps</option></select></div>
     <p class="pmvh">Todo cliente começa com o mapa grátis. Se ele reclamar do mapa, troque para o Google aqui (custa por uso; vale na próxima vez que ele abrir o app).</p>
@@ -3229,6 +3234,7 @@ nav button.on .nemo.txt{color:var(--red2)}
       <label class="fchk" id="cbPainelLbl"><input type="checkbox" id="cbPainel" checked> Usar o odômetro do painel</label>
       <div class="cbzero" id="cbZero"><span id="cbZeroTx"></span><button type="button" id="cbZerar">Zerar de novo</button></div>
       <label class="fchk" id="cbMapaLbl"><input type="checkbox" id="cbMapa"> Mostrar no mapa</label>
+      <div class="mfmapa" id="cbMapaPro"><span>🔒 Mostrar no mapa</span><button type="button" id="cbMapaAss">⭐ Assinar Premium · R$ 19,90</button></div>
     </div>
 
     <div class="cbsec" id="cbSecMeta">
@@ -3244,9 +3250,9 @@ nav button.on .nemo.txt{color:var(--red2)}
 
     <!-- 19/10/2026: Módulo Frota (pago à parte por PIX) -->
     <div class="mfpromo" id="mfPromo">
-      <div class="mfti">🔒 Combustível e troca de óleo</div>
-      <ul><li>⛽ Quanto o veículo gastou de combustível</li><li>🔧 Aviso de troca de óleo e revisão por km</li><li>📍 Esses valores fixos no cartão e no mapa</li></ul>
-      <div class="mfpr"><b>Módulo Frota</b> · <b>R$ 59,90</b> por 30 dias<small>Pagamento por PIX, libera na hora. Não entra no boleto.</small></div>
+      <div class="mfti">🔒 Contagem regressiva do odômetro</div>
+      <ul><li>🔧 Quantos km faltam para a troca de óleo e a revisão</li><li>🔔 Aviso no celular quando chegar a quilometragem</li><li>📍 Combustível e km que faltam fixos no mapa</li></ul>
+      <div class="mfpr"><b>⭐ Premium</b> · <b>R$ 19,90</b> por 30 dias<small>Pagamento por PIX, libera na hora. Não entra no boleto.</small></div>
       <button type="button" class="btn mfbt" id="mfLiberar">Liberar agora com PIX</button>
     </div>
     <div class="mfrenova" id="mfRenova" style="display:none"><span id="mfRenovaTx"></span><button type="button" id="mfRenovar">Renovar (+30 dias)</button></div>
@@ -4607,7 +4613,6 @@ function atualizar(){
     $('sSpeed').textContent=sp?'—':v.vel+' km/h';
     { const ig=$('vIgn'); ig.className='vign '+(v.ign===null?'nd':(v.ign?'on':'off')); ig.title=v.ign===null?'Ignição: sem informação':(v.ign?'Ignição ligada':'Ignição desligada'); ig.setAttribute('aria-label',ig.title) }
     try{ cbQuadro(v) }catch(e){}
-    try{ const okm=modFrota(), cb=$('sCombBtn'); if(cb && (cb.style.display!=='none')!==okm) modFrotaAplicar() }catch(e){}
     $('sBat').textContent=v.bat===null?'—':v.bat+'%';
     $('sVolt').textContent=v.volt===null?'—':v.volt.toFixed(1).replace('.',',')+' V';
     $('sOdo').textContent=fmtOdo(v.odo);
@@ -6016,29 +6021,28 @@ function cbPintar(){
 }
 function cbRotular(){ if(!cbVeic) return; const v=veiculos.find(x=>x.id===cbVeic.id); if(v) rotularMarcador(v) }
 /* ===== MÓDULO FROTA (19/10/2026, decisão do dono) =====
-   Combustível e troca de óleo (meta de km) são pagos à parte: R$ 59,90 por 30 dias, por PIX na hora (nunca no boleto).
-   Sem o módulo: o cartão mostra só o odômetro; tocar nele mostra o odômetro e a oferta com o PIX. Quem já usava também perde. */
-const MODFROTA_VALOR='R$ 59,90';
+   Pago à parte (Premium): R$ 19,90 por 30 dias, por PIX na hora (nunca no boleto).
+   Grátis para todos: odômetro e o quadro do combustível (valor só no cartão e na janela).
+   Premium: contagem regressiva do odômetro (meta de km / troca de óleo, com aviso) e "Mostrar no mapa". */
+const MODFROTA_VALOR='R$ 19,90';
 function modFrota(){ return ehAdmin || Number(permCli&&permCli.modFrotaAteMs||0)>Date.now() }
 function modFrotaAplicar(){
-  const ok=modFrota(), b=$('sCombBtn'); if(b) b.style.display=ok?'':'none';
-  const g=b&&b.closest('.grid'); if(g) g.classList.toggle('semcomb',!ok);
   try{ cbMapaAtualizar() }catch(e){}
 }
 function modFrotaPintarJanela(){
   const ok=modFrota(), m=$('mComb'); m.classList.toggle('semmod',!ok);
   const ate=Number(permCli&&permCli.modFrotaAteMs||0), dias=Math.ceil((ate-Date.now())/86400000);
   const r=$('mfRenova');
-  if(ok && !ehAdmin && dias<=5){ r.style.display=''; $('mfRenovaTx').textContent='Módulo Frota até '+new Date(ate).toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo'})+(dias<=1?' (vence amanhã)':' (faltam '+dias+' dias)'); }
+  if(ok && !ehAdmin && dias<=5){ r.style.display=''; $('mfRenovaTx').textContent='Premium até '+new Date(ate).toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo'})+(dias<=1?' (vence amanhã)':' (faltam '+dias+' dias)'); }
   else r.style.display='none';
 }
 $('mfLiberar').onclick=()=>lojaComprarPix('modfrota',$('mfLiberar'),1);
 $('mfRenovar').onclick=()=>lojaComprarPix('modfrota',$('mfRenovar'),1);
-setInterval(()=>{ try{ if(!ehAdmin && $('sCombBtn') && (($('sCombBtn').style.display!=='none')!==modFrota())) modFrotaAplicar() }catch(e){} },60000); /* venceu com o app aberto */
+$('cbMapaAss').onclick=()=>lojaComprarPix('modfrota',$('cbMapaAss'),1);
+let mfUlt=null; setInterval(()=>{ try{ const ok=modFrota(); if(!ehAdmin && mfUlt!==null && mfUlt!==ok){ modFrotaAplicar(); if($('mComb').classList.contains('show')){ modFrotaPintarJanela(); cbPintar() } } mfUlt=ok }catch(e){} },60000); /* venceu com o app aberto */
 function abrirComb(modo){
   const v=cartao(); if(!v){ toast('Escolha um veículo.'); return }
   modo=modo==='odo'?'odo':'comb';
-  if(!modFrota()) modo='odo';
   cbVeic=v; $('cbTit').textContent=(modo==='odo'?'Odômetro · ':'Combustível · ')+v.nome;
   $('mComb').classList.toggle('modo-odo',modo==='odo'); $('mComb').classList.toggle('modo-comb',modo==='comb');
   $('cbNota').textContent = modo==='odo'
@@ -9999,7 +10003,7 @@ function kmFormulario(mostrar){
   $('kmValor').value=''; $('kmNome').value=''; $('kmRep').checked=false; $('kmErro').textContent=''; atualizarKmTexto();
   if(mostrar){ const sel=$('kmVeic'), v=typeof ativo==='function'?ativo():null; if(v && [...sel.options].some(o=>o.value===String(v.id))) sel.value=String(v.id); setTimeout(()=>$('kmValor').focus(),50) }
 }
-$('kmNovo').onclick=()=>kmFormulario(true);
+$('kmNovo').onclick=()=>{ if(!modFrota()){ toast('O lembrete de km faz parte do ⭐ Premium (R$ 19,90 por 30 dias). Toque no Odômetro do veículo para assinar.',6000); return } kmFormulario(true) };
 $('kmCancelar').onclick=()=>kmFormulario(false);
 $('alTIgn').onclick=()=>abrir('mAlIgn');
 $('alTVolta').onclick=()=>abrir('mAlVolta');
@@ -10397,7 +10401,7 @@ function lojaPagoOk(s){
   $('ljpPix').style.display='none'; $('ljpOk').style.display='';
   if(Number(s.frotaAteMs)>0){ /* 19/10/2026: Módulo Frota liberado na hora */
     permCli.modFrotaAteMs=Number(s.frotaAteMs); modFrotaAplicar(); try{ if($('mComb').classList.contains('show')){ $('mComb').classList.remove('semmod'); modFrotaPintarJanela(); cbPintar() } }catch(e){}
-    $('ljpOkTxt').textContent='Módulo Frota liberado até '+new Date(s.frotaAteMs).toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo'})+'. Toque no odômetro de qualquer veículo para configurar o combustível e a troca de óleo.';
+    $('ljpOkTxt').textContent='Premium liberado até '+new Date(s.frotaAteMs).toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo'})+'. Toque no odômetro de qualquer veículo para usar a contagem regressiva e mostrar no mapa.';
     $('ljpOkWpp').style.display='none'; return;
   }
   if(Number(s.fichas)>0){ /* 15/10/2026: fichas entram na hora, sem entrega */
@@ -10640,13 +10644,13 @@ async function pmFichasCarregar(){
   try{ const j=await chamarPerm('fichasVer'); $('pmFichasSaldo').textContent=j.saldo.toLocaleString('pt-BR') }catch(e){ $('pmFichasSaldo').textContent='?' }
 }
 /* 19/10/2026: Módulo Frota do cliente (cortesia/teste ou tirar) */
-function pmModPintar(ate){ ate=Number(ate||0); $('pmModSt').textContent= ate>Date.now() ? 'ativo até '+new Date(ate).toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo'}) : 'desligado (R$ 59,90 por PIX no app)' }
+function pmModPintar(ate){ ate=Number(ate||0); $('pmModSt').textContent= ate>Date.now() ? 'ativo até '+new Date(ate).toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo'}) : 'desligado (R$ 19,90 por PIX no app)' }
 $('pmModBox').addEventListener('click',async e=>{
   const b=e.target.closest('[data-mf]'); if(!b) return;
   const dias=+b.dataset.mf;
-  if(dias===0 && !confirm('Tirar o Módulo Frota deste cliente agora? Ele perde o combustível e a troca de óleo.')) return;
+  if(dias===0 && !confirm('Tirar o Premium deste cliente agora? Ele perde a contagem regressiva do odômetro e o mostrar no mapa.')) return;
   b.disabled=true;
-  try{ const j=await chamarPerm('modFrotaLancar',{dias}); pmModPintar(j.modFrotaAteMs); toast(dias?'Módulo Frota: +30 dias.':'Módulo Frota tirado.') }catch(err){ $('pmErro').textContent=err.message }
+  try{ const j=await chamarPerm('modFrotaLancar',{dias}); pmModPintar(j.modFrotaAteMs); toast(dias?'Premium: +30 dias.':'Premium tirado.') }catch(err){ $('pmErro').textContent=err.message }
   b.disabled=false;
 });
 $('pmFichasLancar').onclick=async()=>{
