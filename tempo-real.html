@@ -1404,6 +1404,22 @@ nav button{position:relative}
 @keyframes treme{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
 @media (prefers-reduced-motion:reduce){#cpanel .falta.treme{animation:none}}
 .cbusca{display:flex;gap:6px;margin-bottom:6px}
+/* 19/10/2026: formulário "serviço a caminho" em passos, com pontos A/B/C */
+.camsec{border:1px solid var(--line);border-radius:14px;padding:10px 12px 12px;margin:0 0 10px;background:var(--card)}
+.camlbl{display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:800;margin:0 0 8px;flex-wrap:wrap}
+.camlbl small{font-weight:500;font-size:11.5px;color:var(--mut);flex-basis:100%;margin-left:30px;margin-top:-4px;line-height:1.3}
+.camn{width:22px;height:22px;border-radius:50%;background:var(--txt);color:var(--bg);font-size:12px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;flex:none}
+.campt{margin-top:8px;padding-top:8px;border-top:1px dashed var(--line)}
+#camPt0{border-top:0;padding-top:0;margin-top:0}
+.camph{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.camlet{width:24px;height:24px;border-radius:50%;background:#e3262f;color:#fff;font-weight:900;font-size:13px;display:inline-flex;align-items:center;justify-content:center;flex:none}
+.camlet.b{background:#2563eb}.camlet.c{background:#7c3aed}
+.camptt{font-size:12.5px;color:var(--mut);flex:1;min-width:0}
+.camrm{width:28px;height:28px;border-radius:50%;border:1px solid var(--line);background:var(--card2);color:var(--mut);font-size:13px;cursor:pointer;flex:none}
+.camdest{font-size:12.5px;color:var(--mut);margin:0 0 4px 2px}
+.camdest b{color:var(--txt)}
+.camadd{width:100%;height:36px;margin-top:8px;border-radius:10px;border:1.5px dashed var(--line);background:transparent;color:var(--txt);font-size:13px;font-weight:700;cursor:pointer}
+.camadd:disabled{display:none}
 .cbusca .fld{flex:1;margin:0}
 .cres{border:1px solid var(--line);border-radius:12px;background:var(--card2);margin-bottom:10px;max-height:150px;overflow-y:auto;display:none}
 .cres.show{display:block}
@@ -1482,6 +1498,8 @@ header nav .nl-pc{display:inline} header nav .nl-cel{display:none}
 .lketa.chegou b.min{color:#16a34a}
 .lkcasa div{width:34px;height:34px;border-radius:50% 50% 50% 4px;transform:rotate(-45deg);background:#16a34a;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center}
 .lkcasa svg{width:16px;height:16px;transform:rotate(45deg);fill:none;stroke:#fff;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+.lkcasa b{transform:rotate(45deg);color:#fff;font-weight:900;font-size:14px}
+.lkcasa.la div{background:#e3262f}.lkcasa.lb div{background:#2563eb}.lkcasa.lc div{background:#7c3aed}
 .lkveicm{position:relative;width:40px;height:40px}
 .lkseta{width:40px;height:40px;border-radius:50%;background:#2f6bff;border:3px solid #fff;box-shadow:0 0 0 7px rgba(47,107,255,.25),0 3px 10px rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;box-sizing:border-box}
 .lkseta svg{width:20px;height:20px;fill:#fff;transition:transform .4s}
@@ -2623,16 +2641,38 @@ nav button.on .nemo.txt{color:var(--red2)}
     <!-- 12/10/2026 (frotista): "serviço a caminho" para o cliente do frotista -->
     <div id="shareCam" style="display:none">
       <label class="fchk"><input type="checkbox" id="camOn"> <b>Serviço a caminho</b> (o seu cliente acompanha o motorista e vê a previsão de chegada)</label>
-      <div id="camBox" style="display:none">
-        <label class="flbl" for="camTit">Título que o cliente vê</label>
-        <input class="fld" id="camTit" maxlength="40" autocomplete="off" placeholder="Digite o título (se deixar vazio: Serviço a caminho)">
-        <label class="flbl" for="camEnd">Endereço do cliente (destino)</label>
-        <div class="cbusca"><input class="fld" id="camEnd" placeholder="Endereço, link do Google Maps ou -22.78, -43.31" autocomplete="off" enterkeyhint="search"><button class="mini" id="camBuscar" type="button">Buscar</button></div>
-        <div class="cres" id="camRes"></div>
-        <div id="camDest" style="font-size:12.5px;color:var(--mut);margin:0 0 10px 2px"></div>
-        <label class="flbl" for="camWpp">WhatsApp do cliente (opcional): ele recebe o link automaticamente</label>
-        <input class="fld" id="camWpp" type="tel" inputmode="tel" autocomplete="off" placeholder="(21) 99999-8888">
-        <p id="camMot" style="font-size:12px;color:var(--mut);margin:-4px 0 12px 2px"></p>
+      <div id="camBox" style="display:none"><!-- 19/10/2026: formulário em 3 passos e até 3 pontos (A, B, C) -->
+        <div class="camsec">
+          <div class="camlbl"><span class="camn">1</span>Nome do serviço <small>o cliente vê no topo da página · opcional</small></div>
+          <input class="fld" id="camTit" maxlength="40" autocomplete="off" placeholder="Ex.: Reboque a caminho">
+        </div>
+        <div class="camsec">
+          <div class="camlbl"><span class="camn">2</span>Para onde o veículo vai <small>até 3 pontos: ex. A busca o carro, B entrega</small></div>
+        <div class="campt" id="camPt0">
+          <div class="camph"><span class="camlet a">A</span><span class="camptt" id="camPtT0"></span><button type="button" class="camrm" data-camrm="0" title="Tirar este ponto" style="display:none">✕</button></div>
+          <div class="cbusca"><input class="fld" id="camEnd0" placeholder="Endereço, link do Google Maps ou -22.78, -43.31" autocomplete="off" enterkeyhint="search"><button class="mini" type="button" data-cambus="0">Buscar</button></div>
+          <div class="cres" id="camRes0"></div>
+          <div class="camdest" id="camDest0"></div>
+        </div>
+        <div class="campt" id="camPt1" style="display:none">
+          <div class="camph"><span class="camlet b">B</span><span class="camptt" id="camPtT1"></span><button type="button" class="camrm" data-camrm="1" title="Tirar este ponto" style="display:none">✕</button></div>
+          <div class="cbusca"><input class="fld" id="camEnd1" placeholder="Endereço, link do Google Maps ou -22.78, -43.31" autocomplete="off" enterkeyhint="search"><button class="mini" type="button" data-cambus="1">Buscar</button></div>
+          <div class="cres" id="camRes1"></div>
+          <div class="camdest" id="camDest1"></div>
+        </div>
+        <div class="campt" id="camPt2" style="display:none">
+          <div class="camph"><span class="camlet c">C</span><span class="camptt" id="camPtT2"></span><button type="button" class="camrm" data-camrm="2" title="Tirar este ponto" style="display:none">✕</button></div>
+          <div class="cbusca"><input class="fld" id="camEnd2" placeholder="Endereço, link do Google Maps ou -22.78, -43.31" autocomplete="off" enterkeyhint="search"><button class="mini" type="button" data-cambus="2">Buscar</button></div>
+          <div class="cres" id="camRes2"></div>
+          <div class="camdest" id="camDest2"></div>
+        </div>
+          <button type="button" class="camadd" id="camAdd">+ Adicionar outro ponto</button>
+        </div>
+        <div class="camsec">
+          <div class="camlbl"><span class="camn">3</span>WhatsApp do cliente <small>opcional · ele recebe o link na hora</small></div>
+          <input class="fld" id="camWpp" type="tel" inputmode="tel" autocomplete="off" placeholder="(21) 99999-8888">
+          <p id="camMot" style="font-size:12px;color:var(--mut);margin:6px 0 0 2px"></p>
+        </div>
       </div>
     </div>
     <div class="shplano" id="sharePlano" style="display:none">Plano grátis: <b>1 link por veículo</b>, de <b>até 1 hora</b>. 🔒 Mais tempo, vários links, + Tempo e saber se o cliente abriu são recurso <span class="primeselo">PRIME</span>.</div>
@@ -6368,11 +6408,14 @@ function compAcessoHtml(x){
   if(!n) return '<div class="lkacesso" data-acc="'+esc(x.codigo)+'">⏳ Ainda não foi aberto</div>';
   return '<div class="lkacesso ok" data-acc="'+esc(x.codigo)+'">👁️ <b>Aberto'+(n>1?' '+n+' vezes':'')+'</b> · '+(n>1?'1ª vez '+esc(h(x.acessoPrimeiroMs))+' · última '+esc(h(x.acessoUltimoMs)):esc(h(x.acessoPrimeiroMs)))+(x.acessoAparelho?' · '+esc(x.acessoAparelho):'')+'</div>';
 }
+/* 19/10/2026: pontos do link (A, B, C); link antigo só tem o destino */
+function compPontos(x){ return (Array.isArray(x.pontos)&&x.pontos.length)?x.pontos:(x.destLat!=null?[{lat:x.destLat,lon:x.destLon,endereco:x.destEnd||''}]:[]) }
 function compCardHtml(x,agora,comVeic){
   const tc=x.tipo==='tec', fr=x.tipo==='frota'||tc, falta=x.expiraMs-agora, tot=Math.max(1,x.expiraMs-x.criadoMs); /* tec = "técnico a caminho" do APP Técnico (15/10/2026) */
   const vv=comVeic ? veiculos.find(q=>q.id===x.deviceId) : null;
   const tit = tc ? 'Técnico a caminho'+(x.tecnico?' · '+x.tecnico:'') : (fr?(x.titulo||'Serviço a caminho'):'Localização compartilhada');
-  const sub = tc ? (x.os?'OS '+x.os+' · ':'')+'Criado '+compQuando(x.criadoMs) : (fr&&x.destEnd?'Destino: '+x.destEnd:'Criado '+compQuando(x.criadoMs));
+  const pts=compPontos(x);
+  const sub = tc ? (x.os?'OS '+x.os+' · ':'')+'Criado '+compQuando(x.criadoMs) : (fr&&pts.length>1?pts.map((pt,i)=>CAM_LET[i]+': '+(pt.endereco||(pt.lat.toFixed(4)+', '+pt.lon.toFixed(4)))).join(' → '):(fr&&x.destEnd?'Destino: '+x.destEnd:'Criado '+compQuando(x.criadoMs)));
   return '<div class="lkcard'+(fr?' frota':'')+(falta<10*60000?' acabando':'')+'" data-c="'+esc(x.codigo)+'">'+
           (comVeic?'<div class="lkveic"><b>'+esc(vv?vv.nome:('Veículo '+x.deviceId))+'</b><span class="lkvb">'+(vv&&x.destLat!=null?'<button type="button" class="lkrbt'+(CPR.cod===x.codigo?' on':'')+'" data-cprota="'+esc(x.codigo)+'">Ver rota</button>':'')+(vv?'<button type="button" data-cpver="'+x.deviceId+'">Ver no mapa</button>':'')+'</span></div>':'')+
           '<div class="lktop"><span class="lkic">'+(fr?IC_CAMINHAO:IC_LINK)+'</span>'+
@@ -6461,8 +6504,9 @@ function cprAbrir(cod){
   card.querySelector('.lkbar').insertAdjacentElement('afterend',el);
   const mapa=L.map(el.querySelector('.lkmapa'),{zoomControl:false,attributionControl:false}).setView([x.destLat,x.destLon],14);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(mapa);
-  const casa=L.marker([x.destLat,x.destLon],{icon:L.divIcon({className:'lkcasa',html:'<div><svg viewBox="0 0 24 24"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/></svg></div>',iconSize:[34,34],iconAnchor:[17,34]})}).addTo(mapa);
-  Object.assign(CPR,{cod,el,mapa,casa});
+  const pts=compPontos(x);
+  const casa=pts.map((pt,i)=>L.marker([pt.lat,pt.lon],{icon:L.divIcon({className:'lkcasa'+(pts.length>1?' l'+CAM_LET[i].toLowerCase():''),html:'<div>'+(pts.length>1?'<b>'+CAM_LET[i]+'</b>':'<svg viewBox="0 0 24 24"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/></svg>')+'</div>',iconSize:[34,34],iconAnchor:[17,34]})}).addTo(mapa));
+  Object.assign(CPR,{cod,el,mapa,casa,pts});
   const b=card.querySelector('.lkrbt'); if(b) b.classList.add('on');
   cprAtualizar(); CPR.timer=setInterval(cprAtualizar,15000);
 }
@@ -6471,22 +6515,22 @@ async function cprAtualizar(){
   if(!$('cpview').classList.contains('show')){ cprFechar(); return }
   if(document.visibilityState==='hidden') return;
   const x=cpLista.find(y=>y.codigo===CPR.cod); if(!x){ cprFechar(); return }
-  const v=veiculos.find(q=>q.id===x.deviceId), p=cprPos(v), dest=[x.destLat,x.destLon], eta=CPR.el.querySelector('.lketa');
+  const v=veiculos.find(q=>q.id===x.deviceId), p=cprPos(v), pts=CPR.pts||compPontos(x), fim=pts[pts.length-1], dest=[fim.lat,fim.lon], eta=CPR.el.querySelector('.lketa');
   if(!p){ eta.innerHTML='<b class="min">—</b><span>Sem posição do veículo agora.</span>'; return }
   if(!CPR.carro) CPR.carro=L.marker(p,{zIndexOffset:500,icon:L.divIcon({className:'',html:'<div class="lkveicm"><div class="lknome">'+esc(v.nome||'Veículo')+'</div><div class="lkseta"><svg viewBox="0 0 24 24"><path d="M12 2l7 19-7-4-7 4z"/></svg></div></div>',iconSize:[40,40],iconAnchor:[20,20]})}).addTo(CPR.mapa);
   else CPR.carro.setLatLng(p);
   try{ const sv=CPR.carro.getElement().querySelector('.lkseta svg'); sv.style.transform='rotate('+(Number(v.rumo)||0)+'deg)' }catch(e){} /* seta aponta para onde o veículo vai */
-  if(!CPR.ajustou){ CPR.mapa.fitBounds(L.latLngBounds([p,dest]),{padding:[36,36],maxZoom:16}); CPR.ajustou=true }
+  if(!CPR.ajustou){ CPR.mapa.fitBounds(L.latLngBounds([p].concat(pts.map(q=>[q.lat,q.lon]))),{padding:[36,36],maxZoom:16}); CPR.ajustou=true }
   const reta=cprDist(p,dest);
-  if(reta<150){ eta.classList.add('chegou'); eta.innerHTML='<b class="min">Chegou</b><span>O veículo está no local de destino.</span>'; if(CPR.linha){ CPR.linha.remove(); CPR.linha=null } return }
+  if(reta<150){ eta.classList.add('chegou'); eta.innerHTML='<b class="min">Chegou</b><span>O veículo está no '+(pts.length>1?'ponto '+CAM_LET[pts.length-1]+' (final).':'local de destino.')+'</span>'; if(CPR.linha){ CPR.linha.remove(); CPR.linha=null } return }
   eta.classList.remove('chegou');
   if(!CPR.busca && (!CPR.rota || Date.now()-CPR.rotaMs>60000 || cprDist(CPR.rotaDe,p)>150) && Date.now()-CPR.rotaMs>20000){
     CPR.busca=true; CPR.rotaMs=Date.now(); const cod=CPR.cod;
     try{
-      const r=await fetch('https://router.project-osrm.org/route/v1/driving/'+p[1]+','+p[0]+';'+dest[1]+','+dest[0]+'?overview=simplified&geometries=geojson');
+      const r=await fetch('https://router.project-osrm.org/route/v1/driving/'+[p[1]+','+p[0]].concat(pts.map(q=>q.lon+','+q.lat)).join(';')+'?overview=simplified&geometries=geojson');
       const j=await r.json(), rt=j&&j.routes&&j.routes[0];
       if(rt && CPR.cod===cod){
-        CPR.rota={m:rt.distance,s:rt.duration,ll:rt.geometry.coordinates.map(c=>[c[1],c[0]])}; CPR.rotaDe=p;
+        CPR.rota={m:rt.distance,s:rt.duration,ll:rt.geometry.coordinates.map(c=>[c[1],c[0]]),legs:(rt.legs||[]).map(l=>({s:l.duration}))}; CPR.rotaDe=p;
         if(!CPR.linha) CPR.linha=L.polyline(CPR.rota.ll,{color:'#2f6bff',weight:5,opacity:.85}).addTo(CPR.mapa); else CPR.linha.setLatLngs(CPR.rota.ll);
       }
     }catch(e){ /* sem rota: mostra a distância em linha reta */ }
@@ -6495,8 +6539,10 @@ async function cprAtualizar(){
   if(CPR.rota && CPR.rotaDe && cprDist(CPR.rotaDe,p)<400){
     const min=Math.max(1,Math.round(CPR.rota.s*1.25/60)); /* +25% por causa do trânsito (estimativa, igual à página do cliente) */
     const chega=new Date(Date.now()+min*60000).toLocaleTimeString('pt-BR',{timeZone:'America/Sao_Paulo',hour:'2-digit',minute:'2-digit'});
-    eta.innerHTML='<b class="min">'+(min<60?min+'<small>min</small>':Math.floor(min/60)+'<small>h</small>'+(min%60?' '+(min%60)+'<small>min</small>':''))+'</b><span>Previsão de chegada <b>'+chega+'</b><br>'+cprKm(CPR.rota.m)+' pelas ruas · estimativa, pode variar com o trânsito</span>';
-  } else eta.innerHTML='<b class="min">'+cprKm(reta)+'</b><span>de distância em linha reta até o destino</span>';
+    let porPonto='';
+    if(pts.length>1 && CPR.rota.legs && CPR.rota.legs.length===pts.length){ let ac=0; porPonto=' · '+CPR.rota.legs.map((l,i)=>{ ac+=l.s*1.25; return '<b>'+CAM_LET[i]+'</b> '+new Date(Date.now()+Math.max(1,Math.round(ac/60))*60000).toLocaleTimeString('pt-BR',{timeZone:'America/Sao_Paulo',hour:'2-digit',minute:'2-digit'}) }).join(' · ') }
+    eta.innerHTML='<b class="min">'+(min<60?min+'<small>min</small>':Math.floor(min/60)+'<small>h</small>'+(min%60?' '+(min%60)+'<small>min</small>':''))+'</b><span>Previsão de chegada '+(pts.length>1?'ao ponto '+CAM_LET[pts.length-1]+' ':'')+'<b>'+chega+'</b>'+porPonto+'<br>'+cprKm(CPR.rota.m)+' pelas ruas · estimativa, pode variar com o trânsito</span>';
+  } else eta.innerHTML='<b class="min">'+cprKm(reta)+'</b><span>de distância em linha reta até '+(pts.length>1?'o ponto '+CAM_LET[pts.length-1]:'o destino')+'</span>';
 }
 let cpAccMs=0;
 async function cpAcessosAtualizar(){ /* 19/10/2026: a cada 1 min troca só a linha "aberto/não aberto" (não mexe no resto do card) */
@@ -6539,15 +6585,32 @@ function shareMostrarResultado(url,expiraMs,nome,cam){
   $('shareNativo').style.display=navigator.share?'':'none';
 }
 /* 12/10/2026 (frotista): "serviço a caminho" */
-let camSel=null, camBuscaAnt=0;
+let camPts=[null,null,null], camBuscaAnt=0; /* 19/10/2026: até 3 pontos (A, B, C) */
+const CAM_LET=['A','B','C'], CAM_DICA=['Onde o veículo vai primeiro (ex.: onde está o carro do cliente)','Para onde leva depois (ex.: oficina)','Último ponto'];
+function camPontosVisiveis(){ return [0,1,2].filter(i=>$('camPt'+i).style.display!=='none') }
+function camPontosPintar(){
+  const vis=camPontosVisiveis();
+  vis.forEach(i=>{ $('camPtT'+i).textContent=CAM_DICA[i]; $('camPt'+i).querySelector('.camrm').style.display=(i>0 && i===vis[vis.length-1])?'':'none' });
+  $('camAdd').disabled=vis.length>=3;
+}
+function camPontoLimpar(i){ camPts[i]=null; $('camEnd'+i).value=''; $('camDest'+i).textContent=''; $('camRes'+i).classList.remove('show'); $('camRes'+i).innerHTML='' }
+$('camAdd').onclick=()=>{ const vis=camPontosVisiveis(); if(vis.length>=3) return; const i=vis.length; $('camPt'+i).style.display=''; camPontoLimpar(i); camPontosPintar(); setTimeout(()=>$('camEnd'+i).focus(),80) };
+$('camBox').addEventListener('click',e=>{
+  const rm=e.target.closest('button[data-camrm]'); if(rm){ const i=+rm.dataset.camrm; camPontoLimpar(i); $('camPt'+i).style.display='none'; camPontosPintar(); return }
+  const bu=e.target.closest('button[data-cambus]'); if(bu){ camBuscarEnd(+bu.dataset.cambus) }
+});
+[0,1,2].forEach(i=>{
+  $('camEnd'+i).addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); camBuscarEnd(i) } });
+  $('camEnd'+i).addEventListener('input',()=>{ if(camPts[i] && $('camEnd'+i).value.trim()!==camPts[i].endereco.split(',').slice(0,3).join(',')){ camPts[i]=null; $('camDest'+i).textContent='' } });
+});
 function camMostrar(v){
   const pode=ehAdmin||permCli.frotista; $('shareCam').style.display=pode?'':'none';
-  $('camOn').checked=false; $('camBox').style.display='none'; camSel=null;
-  $('camTit').value=''; /* 15/10/2026 (pedido do dono): o título começa vazio, sem texto pronto */ $('camEnd').value=''; $('camWpp').value=''; $('camDest').textContent='';
-  $('camRes').classList.remove('show'); $('camRes').innerHTML='';
+  $('camOn').checked=false; $('camBox').style.display='none';
+  $('camTit').value=''; /* 15/10/2026 (pedido do dono): o título começa vazio, sem texto pronto */ $('camWpp').value='';
+  [0,1,2].forEach(i=>{ camPontoLimpar(i); $('camPt'+i).style.display=i?'none':'' }); camPontosPintar();
   const m=motLer(v.id); $('camMot').textContent=m&&m.nome?'Motorista: '+m.nome+' (o cliente vê esse nome).':'Sem motorista cadastrado: cadastre no lápis do veículo para o cliente ver o nome.';
 }
-$('camOn').addEventListener('change',()=>{ $('camBox').style.display=$('camOn').checked?'':'none'; if($('camOn').checked) setTimeout(()=>$('camEnd').focus(),100) });
+$('camOn').addEventListener('change',()=>{ $('camBox').style.display=$('camOn').checked?'':'none'; if($('camOn').checked) setTimeout(()=>$('camEnd0').focus(),100) });
 /* coordenadas em qualquer texto: "-22.78, -43.31" ou link do Google Maps (@lat,lon / ?q=lat,lon / !3d..!4d..) — 12/10/2026 */
 function coordLivre(t){
   const x=String(t||'');
@@ -6555,21 +6618,22 @@ function coordLivre(t){
   return m?lerCoordenadas(m[1]+', '+m[2]):lerCoordenadas(x);
 }
 const ehLinkCurto=t=>/(maps\.app\.goo\.gl|goo\.gl\/maps)/i.test(String(t||''));
-async function camBuscarEnd(){
-  const q=$('camEnd').value.trim(), box=$('camRes'); camSel=null; $('camDest').textContent='';
+async function camBuscarEnd(i){
+  i=i||0; const inp=$('camEnd'+i), dst=$('camDest'+i), rot='Ponto '+CAM_LET[i];
+  const q=inp.value.trim(), box=$('camRes'+i); camPts[i]=null; dst.textContent='';
   if(ehLinkCurto(q)){ box.innerHTML='<div class="vazio">Esse link curto (maps.app.goo.gl) não traz a posição. No Google Maps, segure o dedo no lugar e copie os números (ex.: -22.78, -43.31).</div>'; box.classList.add('show'); return }
   const cc=coordLivre(q);
   if(cc){
     if(!(cc.lat<=6 && cc.lat>=-34 && cc.lng<=-28 && cc.lng>=-74)){ box.innerHTML='<div class="vazio">Essa posição fica fora do Brasil. Confira o sinal de menos (no Rio as duas começam com \u2212).</div>'; box.classList.add('show'); return }
     const la=+cc.lat.toFixed(6), lo=+cc.lng.toFixed(6), ver='https://www.google.com/maps/search/?api=1&query='+la+','+lo;
-    camSel={lat:la,lon:lo,endereco:''};
-    box.classList.remove('show'); $('camEnd').blur();
-    $('camDest').innerHTML='Destino: <b>'+la.toFixed(5)+', '+lo.toFixed(5)+'</b> (localização exata) · <a href="'+ver+'" target="_blank" rel="noopener">conferir no mapa</a>';
+    camPts[i]={lat:la,lon:lo,endereco:''};
+    box.classList.remove('show'); inp.blur();
+    dst.innerHTML=rot+': <b>'+la.toFixed(5)+', '+lo.toFixed(5)+'</b> (localização exata) · <a href="'+ver+'" target="_blank" rel="noopener">conferir no mapa</a>';
     try{ /* nome da rua só para o texto; o destino fica na posição colada */
       const r=await fetch('https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=18&accept-language=pt-BR&lat='+la+'&lon='+lo);
       const j=r.ok?await r.json():null, a=(j&&j.address)||{};
       const end=[a.road,a.house_number,a.suburb||a.neighbourhood,a.city||a.town].filter(Boolean).join(', ');
-      if(end && camSel && camSel.lat===la && camSel.lon===lo){ camSel.endereco=end.slice(0,120); $('camDest').innerHTML='Destino: <b>'+esc(end)+'</b> (localização exata) · <a href="'+ver+'" target="_blank" rel="noopener">conferir no mapa</a>' }
+      if(end && camPts[i] && camPts[i].lat===la && camPts[i].lon===lo){ camPts[i].endereco=end.slice(0,120); dst.innerHTML=rot+': <b>'+esc(end)+'</b> (localização exata) · <a href="'+ver+'" target="_blank" rel="noopener">conferir no mapa</a>' }
     }catch(e){}
     return;
   }
@@ -6591,22 +6655,23 @@ async function camBuscarEnd(){
       const b=e.target.closest('button[data-i]'); if(!b) return;
       const x=lista[+b.dataset.i]; let end=String(x.display_name||'').split(', Região')[0];
       if(numDig && !(x.address&&x.address.house_number)){ const p=end.split(', '); p.splice(1,0,numDig); end=p.join(', ') } /* guarda o número que o frotista digitou */
-      camSel={lat:+x.lat,lon:+x.lon,endereco:end.slice(0,120)};
-      $('camEnd').value=end.split(',').slice(0,3).join(','); $('camDest').textContent='Destino: '+end;
-      box.classList.remove('show'); $('camEnd').blur();
+      camPts[i]={lat:+x.lat,lon:+x.lon,endereco:end.slice(0,120)};
+      inp.value=end.split(',').slice(0,3).join(','); dst.innerHTML=rot+': <b>'+esc(end)+'</b>';
+      box.classList.remove('show'); inp.blur();
     };
   }catch(e){ box.innerHTML='<div class="vazio">Não consegui buscar agora. Confira a internet.</div>' }
 }
-$('camBuscar').onclick=camBuscarEnd;
-$('camEnd').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); camBuscarEnd() } });
-$('camEnd').addEventListener('input',()=>{ if(camSel && $('camEnd').value.trim()!==camSel.endereco.split(',').slice(0,3).join(',')){ camSel=null; $('camDest').textContent='' } });
 function camDados(){
   if(!$('camOn').checked || $('shareCam').style.display==='none') return null;
   const titulo=$('camTit').value.trim()||'Serviço a caminho';
-  if($('camEnd').value.trim() && !camSel) throw new Error('Toque em Buscar e escolha o endereço do cliente na lista (ou cole a localização do Google Maps).');
+  const pontos=[];
+  for(const i of camPontosVisiveis()){
+    if($('camEnd'+i).value.trim() && !camPts[i]) throw new Error('Ponto '+CAM_LET[i]+': toque em Buscar e escolha o endereço na lista (ou cole a localização do Google Maps).');
+    if(camPts[i]) pontos.push(camPts[i]);
+  }
   const w=normWpp($('camWpp').value); if(w===null) throw new Error('WhatsApp do cliente inválido. Digite o DDD e o número.');
   lsSet('rg_cam_tit',titulo);
-  return {titulo:titulo, destino:camSel, cliWpp:w||'', linkBase:COMP_BASE};
+  return {titulo:titulo, destino:pontos[0]||null, pontos, cliWpp:w||'', linkBase:COMP_BASE};
 }
 $('btnShare').onclick=()=>{
   const v=veicShare(); if(!v){ toast('Escolha um veículo.'); return }
@@ -6664,7 +6729,7 @@ $('shareGerar').onclick=()=>{
   let cam; try{ cam=camDados() }catch(e){ $('shareErro').textContent=e.message; return }
   $('shareErro').textContent='';
   const L=[['Veículo',esc(v.nome)],['Tipo',cam?'Serviço a caminho · '+esc(cam.titulo):'Localização compartilhada']];
-  if(cam) L.push(['Endereço',cam.destino?(esc(cam.destino.endereco)||('Coordenadas '+cam.destino.lat.toFixed(5)+', '+cam.destino.lon.toFixed(5))):'<span style="color:var(--red2)">sem endereço (não vai mostrar destino)</span>','dest'],
+  if(cam) L.push([cam.pontos.length>1?'Pontos':'Endereço',cam.pontos.length?cam.pontos.map((pt,i)=>(cam.pontos.length>1?'<b>'+CAM_LET[i]+'</b> ':'')+(esc(pt.endereco)||('Coordenadas '+pt.lat.toFixed(5)+', '+pt.lon.toFixed(5)))).join('<br>'):'<span style="color:var(--red2)">sem endereço (não vai mostrar destino)</span>','dest'],
                  ['WhatsApp do cliente',cam.cliWpp?esc(fmtWpp(cam.cliWpp))+' (recebe na hora)':'não vai mensagem automática']);
   L.push(['Válido por',esc(tpNome(shareMin))]);
   $('fcLista').innerHTML=L.map(x=>'<div class="fcflin'+(x[2]?' '+x[2]:'')+'"><span>'+x[0]+'</span><b>'+x[1]+'</b></div>').join('');
