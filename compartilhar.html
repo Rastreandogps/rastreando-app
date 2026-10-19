@@ -72,6 +72,8 @@ body.noapp .topo{z-index:950}
 .btn{height:46px;border-radius:14px;font-weight:700;font-size:14.5px;display:flex;align-items:center;justify-content:center;gap:8px;text-decoration:none}
 .btn svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .btn.pri{background:var(--red);color:#fff}
+.btn.wppTec{margin-top:14px;background:#25D366;color:#fff;width:100%}
+.btn.wppTec svg{fill:none;stroke:#fff;stroke-width:1.8}
 .btn.sec{background:var(--card2);border:1px solid var(--line);color:var(--txt)}
 .valid{display:flex;align-items:center;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line);font-size:12.5px;color:var(--mut)}
 .valid svg{width:15px;height:15px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
@@ -139,6 +141,7 @@ body.noapp .topo{z-index:950}
   <div class="chips" id="chips"></div>
   <div class="end" id="end"></div>
   <div class="hora" id="hora"></div>
+  <a class="btn wppTec" id="btnWppTec" target="_blank" rel="noopener" style="display:none"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2z"/><path d="M8.5 8.5c.3 2.6 2.4 5 5 5.6l1.2-1.2 2 1-.5 1.6c-3.8.3-8.4-4.3-8.1-8.1l1.6-.5 1 2z"/></svg><span id="btnWppTecTxt">Falar com o técnico</span></a>
   <div class="botoes">
     <a class="btn pri" id="btnRota" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M3 11l18-8-8 18-2-8-8-2z"/></svg>Traçar rota</a>
     <a class="btn sec" id="btnMaps" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M12 22s7-6.1 7-12a7 7 0 10-14 0c0 5.9 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg>Google Maps</a>
@@ -262,6 +265,14 @@ function prepararTec(d) {
     img.alt = '';
     img.onload = () => { foto.textContent = ''; foto.appendChild(img); };
     img.src = FOTOS + String(d.tecnico || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '') + '.jpg';
+    /* 17/10/2026 (pedido do dono): o cliente fala com o técnico pelo WhatsApp (avisar portão, referência, atraso) */
+    const w = String(d.whatsapp || '').replace(/\D/g, '');
+    if (w.length === 10 || w.length === 11) {
+      const b = $('btnWppTec');
+      b.href = 'https://wa.me/55' + w + '?text=' + encodeURIComponent('Olá, ' + d.tecnico + '! Estou acompanhando você pelo link da Rastreando GPS.');
+      $('btnWppTecTxt').textContent = 'Falar com ' + d.tecnico + ' no WhatsApp';
+      b.style.display = 'flex';
+    }
   }
   document.querySelector('.botoes').style.display = 'none';
   const q = 'Mostrar ' + quem();
@@ -424,7 +435,9 @@ function atualizarValidade() {
 async function buscar() {
   if (encerrado) return;
   try {
-    const r = await fetch(FN, { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'omit', body: JSON.stringify({ acao: 'compVer', codigo }) });
+    const corpo = { acao: 'compVer', codigo };
+    if (!buscar._abriu) { buscar._abriu = true; corpo.abriu = 1; corpo.ua = navigator.userAgent || ''; try { const t = localStorage.getItem('rg_token'); if (t) corpo.token = t; } catch (e) {} } /* 19/10/2026: avisa quem criou que o link foi aberto (só na 1ª consulta) */
+    const r = await fetch(FN, { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'omit', body: JSON.stringify(corpo) });
     let j = {}; try { j = await r.json(); } catch (e) {}
     if (r.status === 404 || r.status === 410) { erro('Link indisponível', j.erro || 'Este link não existe ou já foi encerrado.'); return; }
     if (!r.ok) throw new Error(j.erro || ('erro ' + r.status));
