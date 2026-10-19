@@ -607,6 +607,8 @@ body.ret-so #vazio,body.ret-so #sheet{display:none!important} /* 19/10/2026: vis
 .retpin{width:40px;height:40px;margin:2px;border-radius:50%;background:#fff;border:3px solid #e3262f;color:#e3262f;font-weight:800;font-size:18px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.4)}
 .retpin.sel{background:#e3262f;color:#fff}
 .rtit[data-id]{cursor:pointer}
+.rtit.rtdest{border-color:#e3262f;box-shadow:0 0 0 3px rgba(227,38,47,.25);animation:rtDest 1.6s ease-out}
+@keyframes rtDest{0%{background:rgba(227,38,47,.18)}100%{background:var(--card)}}
 .rtit .rtver{font-size:11.5px;color:var(--mut);margin-top:6px}
 #btnRet .rletra{font-family:inherit;font-weight:800;font-size:18px;line-height:1}
 #btnRet.piscar{background:#e3262f;border-color:#e3262f;color:#fff;animation:retPisca 1.1s ease-in-out infinite}
@@ -10478,7 +10480,7 @@ function retMostrarNoMapa(id){
   retListaAtual.filter(x=>x.lat!=null).forEach(x=>{
     const m=L.marker([x.lat,x.lon],{zIndexOffset:x.id===id?1300:1200,keyboard:false,icon:L.divIcon({className:'',iconSize:[44,44],iconAnchor:[22,22],
       html:'<div class="retpin'+(x.id===id?' sel':'')+'">R</div><div class="carlabel"><span class="lbnome">'+esc(x.nome)+'</span></div>'})});
-    m.on('click',()=>{ abrir('mRetirar'); retDesenhar(retListaAtual) });
+    m.on('click',()=>{ abrir('mRetirar'); retDesenhar(retListaAtual); retIrAoCard(x.id) }); /* 19/10/2026: abre direto no card deste veículo */
     m.addTo(retCamada);
   });
   fechar(); try{ setSeguir(false) }catch(e){}
@@ -10490,6 +10492,13 @@ function retMostrarNoMapa(id){
   map.setView([alvo.lat,alvo.lon],16,{animate:false}); try{ centralizar([alvo.lat,alvo.lon]) }catch(e){}
 }
 $('retChip').onclick=retLimparMapa;
+function retIrAoCard(id){
+  setTimeout(()=>{
+    const c=document.querySelector('#retLista .rtit[data-id="'+id+'"]'); if(!c) return;
+    const r=$('retRola'); try{ r.scrollTop += c.getBoundingClientRect().top - r.getBoundingClientRect().top - 12 }catch(e){ c.scrollIntoView({block:'start'}) }
+    c.classList.remove('rtdest'); void c.offsetWidth; c.classList.add('rtdest');
+  },60);
+}
 $('retLista').addEventListener('click',e=>{ if(e.target.closest('a')) return; const c=e.target.closest('.rtit[data-id]'); if(c) retMostrarNoMapa(+c.dataset.id) });
 function retDesenhar(lista){
   retListaAtual=lista;
