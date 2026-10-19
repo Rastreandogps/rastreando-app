@@ -2232,6 +2232,12 @@ nav button.on .nemo.txt{color:var(--red2)}
 /* moeda girando (só animação do navegador, sem imagem a mais): dá uma volta e descansa; quem pediu "menos movimento" no celular vê parada */
 .fchmoeda{animation:fchGira 4.5s ease-in-out infinite;backface-visibility:visible}
 .fchsaldo .fchmoeda{animation-duration:3.5s}
+#mSemFichas .sfbox{max-width:380px;width:calc(100% - 32px);text-align:center;border-radius:22px;padding:26px 22px 18px}
+#mSemFichas .sfmoeda{width:84px;height:84px;margin:0 auto 12px;display:flex}
+#mSemFichas h3{font-size:21px;margin:0 0 8px}
+#mSemFichas p{font-size:14.5px;color:var(--mut);line-height:1.45;margin:0 0 18px}
+#mSemFichas .btn{width:100%;margin-top:8px}
+#mSemFichas .sfcomprar{background:linear-gradient(135deg,#fcd34d,#f59e0b);color:#1a1300;font-weight:800;border:0;height:48px;font-size:16px}
 @keyframes fchGira{0%,62%{transform:perspective(300px) rotateY(0);filter:brightness(1)}
   72%{transform:perspective(300px) rotateY(90deg);filter:brightness(1.35)}
   82%{transform:perspective(300px) rotateY(180deg);filter:brightness(.9)}
@@ -3226,6 +3232,16 @@ nav button.on .nemo.txt{color:var(--red2)}
   </div>
 </div>
 <!-- Fichas Rastreando (15/10/2026): saldo, pacotes por PIX e extrato -->
+<!-- 19/10/2026 (pedido do dono): aviso grande quando as fichas acabam -->
+<div class="modal" id="mSemFichas" style="z-index:1250;align-items:center">
+  <div class="box2 sfbox">
+    <span class="fchmoeda sfmoeda"><svg viewBox="0 0 24 24"><path d="M14.5 8.5h-3.2a2 2 0 000 4h1.4a2 2 0 010 4H9.5M12 7v1.5M12 16.5V18"/></svg></span>
+    <h3>Suas fichas acabaram</h3>
+    <p>Cada link de localização usa <b>1 ficha</b>. Compre mais para continuar acompanhando e compartilhando com seus clientes.</p>
+    <button class="btn sfcomprar" id="sfComprar" type="button">Comprar fichas</button>
+    <button class="btn btn-out" id="sfNao" type="button">Agora não</button>
+  </div>
+</div>
 <div class="modal alsheet" id="mFichas">
   <div class="box2">
     <div class="almtopo"><h3>Fichas Rastreando</h3><button class="almx" data-close type="button" aria-label="Fechar" title="Fechar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
@@ -5236,7 +5252,7 @@ function fechar(){ try{ if(scanAtivo) scanParar() }catch(e){} document.querySele
 document.querySelectorAll('[data-close]').forEach(b=>b.onclick=fechar);
 /* 15/10/2026: X no topo de toda janela que já tem um botão de fechar (o X faz o mesmo que esse botão) */
 document.querySelectorAll('.modal').forEach(m=>{
-  const proprio={mScan:'scanFechar',mBio:'bioNao',mImport:'imVoltar',mSmsM:'smCancelar',mLojaCanc:'lcVoltar',mOdoZerar:'ozNao',mOdoAjustar:'oaNao',mCercaBloq:'cbqNao',mFchConf:'fcNao'}; /* janelas com botão de fechar próprio */
+  const proprio={mSemFichas:'sfNao',mScan:'scanFechar',mBio:'bioNao',mImport:'imVoltar',mSmsM:'smCancelar',mLojaCanc:'lcVoltar',mOdoZerar:'ozNao',mOdoAjustar:'oaNao',mCercaBloq:'cbqNao',mFchConf:'fcNao'}; /* janelas com botão de fechar próprio */
   const box=m.querySelector('.box2'), fc=(proprio[m.id] && document.getElementById(proprio[m.id])) || m.querySelector('[data-close]');
   if(!box || !fc || m.querySelector('.almx,.ldx,.mxauto')) return;
   const x=document.createElement('button'); x.type='button'; x.className='mxauto'; x.title='Fechar'; x.setAttribute('aria-label','Fechar');
@@ -6837,8 +6853,13 @@ function camTempoNota(){
   el.style.display='';
 }
 /* 15/10/2026 (fichas): quem paga ficha confere antes (veículo, endereço, WhatsApp, tempo); a ficha não volta depois */
+/* 19/10/2026: fichas acabaram -> janela grande com "Comprar fichas" (antes era só uma linha vermelha) */
+function semFichasAbrir(){ $('shareErro').textContent=''; abrir('mSemFichas') }
+$('sfNao').onclick=()=>$('mSemFichas').classList.remove('show');
+$('sfComprar').onclick=()=>{ $('mSemFichas').classList.remove('show'); fichasAbrir() };
 $('shareGerar').onclick=()=>{
   const v=veicShare(); if(!v) return;
+  if(!ehAdmin && permCli.fichas===true && typeof FCH.saldo==='number' && FCH.saldo<1){ semFichasAbrir(); return }
   if(ehAdmin || permCli.fichas!==true){ shareGerarAgora(); return }
   let cam; try{ cam=camDados() }catch(e){ $('shareErro').textContent=e.message; return }
   $('shareErro').textContent='';
@@ -6863,7 +6884,7 @@ async function shareGerarAgora(){
     if(typeof j.fichas==='number'){ FCH.saldo=j.fichas; fichasPintar() }
     shareMostrarResultado(compLink(j.codigo),j.expiraMs,v.nome,cam?{titulo:cam.titulo,empresa:j.empresa||'',motorista:(j.motorista&&j.motorista.nome)||'',motFone:(j.motorista&&j.motorista.fone)||'',cliWpp:cam.cliWpp,wpp:j.wpp}:null);
     b.textContent='Gerar outro link'; shareCarregarAtivos();
-  }catch(e){ $('shareErro').textContent=e.message||'Não consegui gerar o link.'; b.textContent='Gerar link'; if(permCli.fichas===true) fichasBarra(true) }
+  }catch(e){ if(/sem fichas|fichas insuficientes/i.test(e.message||'')){ semFichasAbrir() } else $('shareErro').textContent=e.message||'Não consegui gerar o link.'; b.textContent='Gerar link'; if(permCli.fichas===true) fichasBarra(true) }
   b.disabled=false;
 }
 async function copiarTexto(t){
