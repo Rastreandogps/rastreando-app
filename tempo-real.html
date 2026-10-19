@@ -4512,7 +4512,7 @@ function ladoEst(v){ /* [classe, texto curto, quando] */
   return ['on','0 km/h',q];
 }
 function ladoPassa(v){
-  if(ladoFiltro==='ret') return !!v.retirado; /* 18/10/2026: os marcados ficam só na aba Para retirar */
+  if(ladoFiltro==='ret') return !!v.retirado || retFixo(v.id); /* 18/10/2026: os marcados ficam só na aba Para retirar; 19/10/2026: + os fixados (ex.: moto do técnico) */
   if(v.retirado) return false;
   if(ladoFiltro==='tag') return !!v.tag; /* 16/10/2026: as tags ficam fora de Online/Andando/Offline */
   if(v.tag && ladoFiltro!=='todos') return false;
@@ -4536,7 +4536,7 @@ function ladoBase(){
     if(!q) return true;
     const b=(v.nome+' '+(v.placa||'')+' '+(v.contato||'')+' '+(ehAdmin?rotuloCliente(v)+' '+(v.retDono||'')+' '+(v.wppVeic||''):'')).toLowerCase(); /* o cliente só é procurado quando há texto na busca; 19/10/2026: também o dono "Para retirar" e o WhatsApp do veículo */
     return b.includes(q) || (qd.length>=3 && b.replace(/\D/g,'').includes(qd));
-  }).sort((a,b)=> ladoFiltro==='ret' ? ((a.retDono||'~').localeCompare(b.retDono||'~','pt-BR') || a.nome.localeCompare(b.nome,'pt-BR')) : a.nome.localeCompare(b.nome,'pt-BR')); /* 19/10/2026: em Para retirar, agrupado pelo dono */
+  }).sort((a,b)=> ladoFiltro==='ret' ? ((a.retirado?1:0)-(b.retirado?1:0)) || /* 19/10/2026: os fixados (📌) ficam no topo */ ((a.retDono||'~').localeCompare(b.retDono||'~','pt-BR') || a.nome.localeCompare(b.nome,'pt-BR')) : a.nome.localeCompare(b.nome,'pt-BR')); /* 19/10/2026: em Para retirar, agrupado pelo dono */
 }
 function ladoDesenhar(){
   const el=$('ladoLista'); if(!el) return;
@@ -4545,7 +4545,7 @@ function ladoDesenhar(){
     const e=ladoEst(v);
     return '<div class="ladoit'+(v.id===selId?' on':'')+(ehAdmin?' adm':'')+'" data-id="'+v.id+'">'+
       '<label class="ladock" title="Mostrar ou esconder no mapa"><input type="checkbox"'+(v.visivel?' checked':'')+' aria-label="Mostrar '+esc(v.nome)+' no mapa"><span></span></label>'+
-      '<button type="button" class="ladonm"><b>'+esc(v.nome)+'</b>'+(ladoFiltro==='ret'&&v.retDono?'<small>👤 '+esc(v.retDono)+'</small>':(v.placa?'<small>'+esc(v.placa)+'</small>':''))+'</button>'+
+      '<button type="button" class="ladonm"><b>'+(ladoFiltro==='ret'&&!v.retirado&&retFixo(v.id)?'📌 ':'')+esc(v.nome)+'</b>'+(ladoFiltro==='ret'&&v.retDono?'<small>👤 '+esc(v.retDono)+'</small>':(v.placa?'<small>'+esc(v.placa)+'</small>':''))+'</button>'+
       '<span class="ladost '+e[0]+'"><em>'+esc(e[1])+'</em>'+(e[2]?'<small>'+esc(e[2])+'</small>':'')+'</span>'+
       (ehAdmin?'<button type="button" class="ladomais" aria-label="Mais opções de '+esc(v.nome)+'" title="Mais opções">⋮</button>':'')+'</div>'; /* 17/10/2026: menu de 3 pontinhos (administrador) */
   }).join('') || '<div class="ladovz">Nenhum veículo'+(ladoFiltro!=='todos'||$('ladoBusca').value?' com esse filtro.':'.')+'</div>';
@@ -4629,7 +4629,7 @@ let retVisAntes=null;
 function retMapa(entrar){
   if(entrar){
     if(!retVisAntes){ retVisAntes={}; veiculos.forEach(v=>{ retVisAntes[v.id]=!!v.visivel }) }
-    veiculos.forEach(v=>{ v.visivel=!!v.retirado });
+    veiculos.forEach(v=>{ v.visivel=!!v.retirado || retFixo(v.id) });
   } else {
     if(!retVisAntes) return;
     veiculos.forEach(v=>{ if(retVisAntes[v.id]!==undefined) v.visivel=retVisAntes[v.id] }); retVisAntes=null;
@@ -4644,6 +4644,15 @@ $('ladoLista').addEventListener('change',e=>{
   r._k='';
 });
 /* 17/10/2026 (pedido do dono): 3 pontinhos no fim da linha — por enquanto só "Excluir equipamento" (mais opções depois) */
+/* 19/10/2026 (pedido do dono): fixar um veículo (ex.: a moto do técnico) para aparecer JUNTO na aba Para retirar, no mapa e na lista.
+   Fica guardado neste computador. */
+function retFixos(){ try{ const a=JSON.parse(lsGet('rg_ret_fixos')||'[]'); return Array.isArray(a)?a:[] }catch(e){ return [] } }
+function retFixo(id){ return retFixos().indexOf(id)>=0 }
+function retFixar(v,sim){
+  const a=retFixos().filter(x=>x!==v.id); if(sim) a.push(v.id); lsSet('rg_ret_fixos',JSON.stringify(a));
+  if(ladoFiltro==='ret'){ v.visivel=!!sim; try{ sincronizarChecks(); mudouSelecao() }catch(e){} }
+  ladoDesenhar(); toast(sim?'"'+v.nome+'" vai aparecer junto na aba Para retirar.':'"'+v.nome+'" não aparece mais na aba Para retirar.');
+}
 function ladoMenuFechar(){ const m=document.getElementById('ladoMenu'); if(m) m.remove() }
 function ladoMenuAbrir(btn,v){
   ladoMenuFechar();
@@ -4651,7 +4660,10 @@ function ladoMenuAbrir(btn,v){
   m.innerHTML='<div class="lmtit">'+esc(v.nome)+'</div>'+
     (v.retirado
       ? '<button type="button" class="lmit" data-lm="desretirar" role="menuitem"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>Tirar de "Para retirar"</button>'
-      : '<button type="button" class="lmit" data-lm="retirar" role="menuitem"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/></svg>Marcar para retirar</button>')+ /* 18/10/2026 */
+      : (retFixo(v.id)
+          ? '<button type="button" class="lmit" data-lm="desfixar" role="menuitem"><svg viewBox="0 0 24 24"><path d="M12 17v5"/><path d="M9 10.8V4h6v6.8l3 3.2H6z"/><path d="M3 3l18 18"/></svg>Não mostrar na aba Para retirar</button>'
+          : '<button type="button" class="lmit" data-lm="fixar" role="menuitem"><svg viewBox="0 0 24 24"><path d="M12 17v5"/><path d="M9 10.8V4h6v6.8l3 3.2H6z"/></svg>Mostrar junto na aba Para retirar</button>')+
+        '<button type="button" class="lmit" data-lm="retirar" role="menuitem"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/></svg>Marcar para retirar</button>')+ /* 18/10/2026 */
     '<button type="button" class="lmit perigo" data-lm="excluir" role="menuitem"><svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg>Excluir equipamento</button>';
   document.body.appendChild(m);
   const r=btn.getBoundingClientRect(), w=m.offsetWidth, h=m.offsetHeight;
@@ -4662,6 +4674,8 @@ function ladoMenuAbrir(btn,v){
     ladoMenuFechar();
     if(it.dataset.lm==='excluir') ladoExcluirEquip(v);
     if(it.dataset.lm==='retirar') ladoRetirarEquip(v,true);
+    if(it.dataset.lm==='fixar') retFixar(v,true);
+    if(it.dataset.lm==='desfixar') retFixar(v,false);
     if(it.dataset.lm==='desretirar') ladoRetirarEquip(v,false);
   });
 }
