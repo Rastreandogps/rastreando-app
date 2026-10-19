@@ -6143,7 +6143,7 @@ $('frLista').addEventListener('click',e=>{
   const v=veiculos.find(x=>String(x.id)===b.dataset.id); if(!v) return;
   escolherVeiculo(v,true); setTimeout(()=>abrirComb(b.dataset.fr),120);
 });
-$('frAtualizar').onclick=()=>frDesenhar();
+$('frAtualizar').onclick=()=>{ frDesenhar(); vcSincronizar().then(()=>frDesenhar()).catch(()=>{}) };
 setInterval(()=>{ try{ if($('frview').classList.contains('show') && !document.querySelector('.modal.show')) frDesenhar(); frBadgePintar() }catch(e){} },15000);
 function abrirComb(modo){
   const v=cartao(); if(!v){ toast('Escolha um veículo.'); return }
@@ -6300,7 +6300,7 @@ async function vcSincronizar(){
         if(lsJ('rg_comb_'+id,null) || l.meta || l.combMapa || l.metaMapa) vcEnviar(id); else lsSet('rg_vcfg_mig_'+id,'1');
       }
     });
-    if(mudou){ try{ cbMapaAtualizar(); const v=cartao(); if(v){ cbQuadro(v); motLinha(v) } }catch(e){} }
+    if(mudou){ try{ cbMapaAtualizar(); const v=cartao(); if(v){ cbQuadro(v); motLinha(v) } }catch(e){} try{ if($('frview').classList.contains('show')) frDesenhar(); frBadgePintar() }catch(e){} }
   }catch(e){} finally{ VC.rodando=false }
 }
 setTimeout(vcSincronizar,3500);
