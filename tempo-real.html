@@ -336,6 +336,9 @@ body.mapa-google #map .leaflet-top.leaflet-left .leaflet-control-attribution{mar
 #verComo .vctx small{display:block;font-size:11.5px;opacity:.85}
 #verComo #vcSair{flex:none;border:0;border-radius:999px;padding:7px 14px;background:#fff;color:#4c1d95;font:inherit;font-size:12.5px;font-weight:800;cursor:pointer}
 #aview .ico.ver{color:#6d28d9;border-color:rgba(109,40,217,.35);background:rgba(109,40,217,.1)}
+#mManOS .almtopo{flex:none;display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}#mManOS .almtopo h3{margin:0}
+#mManOS .almx{width:38px;height:38px;flex:none;border-radius:50%;background:var(--card2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;cursor:pointer}
+#mManOS .almx svg{width:18px;height:18px;fill:none;stroke:var(--txt);stroke-width:2.4;stroke-linecap:round} /* 20/10/2026 */
 #mIcone .almtopo,#mVerComo .almtopo{flex:none;display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}
 #mVerComo .almtopo h3{margin:0}
 #mIcone .almx,#mVerComo .almx{width:38px;height:38px;flex:none;border-radius:50%;background:var(--card2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;cursor:pointer}
@@ -3211,6 +3214,40 @@ nav button.on .nemo.txt{color:var(--red2)}
     <button class="btn btn-out alfechar" id="asFechar" type="button">Fechar</button>
   </div>
 </div>
+<!-- 20/10/2026 (pedido do dono): ordem de manutenção pelo menu ⋮ do veículo (mesma ordem da Gestão, já com veículo, placa e cliente) -->
+<div class="modal alsheet" id="mManOS">
+  <div class="box2">
+    <div class="almtopo"><h3>🛠️ Ordem de manutenção</h3><button class="almx" data-close type="button" aria-label="Fechar" title="Fechar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <p class="asinfo" id="moCli"></p>
+    <div id="moCliSelW" style="display:none"><label class="flbl" for="moCliSel">Cliente</label><select class="fld" id="moCliSel"></select></div>
+    <label class="flbl" for="moModelo">Veículo</label>
+    <input class="fld" type="text" id="moModelo" maxlength="45" autocomplete="off" placeholder="Modelo do veículo">
+    <div style="display:flex;gap:8px">
+      <div style="flex:1"><label class="flbl" for="moPlaca">Placa</label><input class="fld" type="text" id="moPlaca" maxlength="8" autocomplete="off" autocapitalize="characters" placeholder="Placa (opcional)"></div>
+      <div style="flex:1"><label class="flbl" for="moBloq">Bloqueio</label><select class="fld" id="moBloq"><option value="">Escolha</option><option value="com">Com bloqueio</option><option value="sem">Sem bloqueio</option></select></div>
+    </div>
+    <label class="flbl" for="moTel">Telefone do cliente</label>
+    <input class="fld" type="tel" id="moTel" maxlength="20" autocomplete="off" placeholder="Em branco: usa o do cadastro do Asaas">
+    <label class="flbl" for="moMotivo">Motivo</label>
+    <select class="fld" id="moMotivo">
+      <option value="">Escolha o motivo</option>
+      <option value="sem_sinal">Veículo não aparece no aplicativo / sem sinal</option>
+      <option value="localizacao">Localização errada ou atrasada</option>
+      <option value="bloqueio">Bloqueio não funciona</option>
+      <option value="solto">Equipamento solto ou danificado</option>
+      <option value="outro">Outro</option>
+    </select>
+    <label class="flbl" for="moDesc">O que está acontecendo (opcional)</label>
+    <textarea class="fld" id="moDesc" rows="2" maxlength="450" placeholder="Ex.: sem sinal desde segunda, cliente disse que mexeu na bateria"></textarea>
+    <label class="flbl" for="moLink">🛰️ Link do monitoramento (opcional)</label>
+    <input class="fld" type="text" id="moLink" inputmode="url" autocomplete="off" spellcheck="false" placeholder="Em branco: usa o endereço do cadastro do Asaas">
+    <button type="button" class="btn btn-out" id="moLocal" style="width:100%;margin-top:6px">📍 Usar a localização atual do veículo</button>
+    <p class="asinfo" style="margin-top:10px">Vai para o APP Técnico como <b>pendente</b> (Pedidos de manutenção): lá você escolhe o técnico e a data. O IMEI do aparelho vai junto.</p>
+    <div class="ferr" id="moErro"></div>
+    <button class="btn" id="moEnviar" type="button" style="width:100%;background:#16a34a;color:#fff">Enviar ao APP Técnico</button>
+    <button class="btn btn-out alfechar" data-close type="button">Cancelar</button>
+  </div>
+</div>
 <!-- 16/10/2026: administrador entra no app como o cliente (abre em outra aba, com acesso temporário) -->
 <div class="modal alsheet" id="mVerComo">
   <div class="box2" style="max-width:440px">
@@ -5053,6 +5090,7 @@ function ladoMenuAbrir(btn,v){
           ? '<button type="button" class="lmit" data-lm="desfixar" role="menuitem"><svg viewBox="0 0 24 24"><path d="M12 17v5"/><path d="M9 10.8V4h6v6.8l3 3.2H6z"/><path d="M3 3l18 18"/></svg>Não mostrar na aba Para retirar</button>'
           : '<button type="button" class="lmit" data-lm="fixar" role="menuitem"><svg viewBox="0 0 24 24"><path d="M12 17v5"/><path d="M9 10.8V4h6v6.8l3 3.2H6z"/></svg>Mostrar junto na aba Para retirar</button>')+
         '<button type="button" class="lmit" data-lm="retirar" role="menuitem"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/></svg>Marcar para retirar</button>')+ /* 18/10/2026 */
+    '<button type="button" class="lmit" data-lm="manut" role="menuitem"><svg viewBox="0 0 24 24"><path d="M12 2l2.4 2.4 3.3-.6.6 3.3L21 9.5l-1.4 3 1.4 3-2.7 2.4-.6 3.3-3.3-.6L12 22l-2.4-2.4-3.3.6-.6-3.3L3 14.5l1.4-3L3 8.5l2.7-2.4.6-3.3 3.3.6z"/><circle cx="12" cy="12" r="3.2"/></svg>Manutenção (APP Técnico)</button>'+ /* 20/10/2026 */
     '<button type="button" class="lmit perigo" data-lm="excluir" role="menuitem"><svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg>Excluir equipamento</button>';
   document.body.appendChild(m);
   const r=btn.getBoundingClientRect(), w=m.offsetWidth, h=m.offsetHeight;
@@ -5062,6 +5100,7 @@ function ladoMenuAbrir(btn,v){
     const it=ev.target.closest('[data-lm]'); if(!it) return;
     ladoMenuFechar();
     if(it.dataset.lm==='excluir') ladoExcluirEquip(v);
+    if(it.dataset.lm==='manut') manOSAbrir(v);
     if(it.dataset.lm==='retirar') ladoRetirarEquip(v,true);
     if(it.dataset.lm==='fixar') retFixar(v,true);
     if(it.dataset.lm==='desfixar') retFixar(v,false);
@@ -5097,6 +5136,62 @@ function ladoExcluirEquip(v){
     toast('Equipamento excluído.');
   },{perigo:true});
 }
+/* 20/10/2026 (pedido do dono): ordem de manutenção pelo ⋮ — faz o mesmo que o botão 🛠️ Manutenção da Gestão
+   (servidor: manOS -> mesma rotina "man_criar" da Gestão), mas já leva veículo, placa, cliente, telefone e IMEI. */
+const MO={v:null, cls:[], dup:false};
+function moCliAtual(){ return MO.cls.find(u=>u.id===+$('moCliSel').value) || MO.cls[0] || null }
+function moCliPintar(){
+  const u=moCliAtual();
+  $('moCli').innerHTML=u ? '<b>'+esc(u.name||loginDe(u))+'</b>'+(MO.cls.length>1?'':' · '+esc(loginDe(u).replace(EMAIL_FALSO,''))) : '<b style="color:var(--red2)">Este veículo não está na conta de nenhum cliente.</b> Vincule o veículo a um cliente primeiro.';
+  $('moTel').value=u&&u.phone?String(u.phone):'';
+  if(u && !$('moBloq').dataset.mexeu) $('moBloq').value=attrLig(u,'semBloqueio')?'sem':'com';
+  $('moEnviar').disabled=!u; MO.dup=false; $('moEnviar').textContent='Enviar ao APP Técnico'; $('moErro').textContent='';
+}
+function manOSAbrir(v){
+  MO.v=v; MO.cls=clientesDoEquip(v); MO.dup=false;
+  const m=/\[([^\]]+)\]/.exec(String(v.nome||''));
+  $('moModelo').value=(m?m[1]:String(v.nome||'')).trim().slice(0,45);
+  $('moPlaca').value=String(v.placa||'').toUpperCase().slice(0,8);
+  delete $('moBloq').dataset.mexeu; $('moBloq').value='';
+  $('moCliSel').innerHTML=MO.cls.map(u=>'<option value="'+u.id+'">'+esc((u.name||'')+' · '+loginDe(u).replace(EMAIL_FALSO,''))+'</option>').join('');
+  $('moCliSelW').style.display=MO.cls.length>1?'':'none';
+  $('moMotivo').value=''; $('moDesc').value=''; $('moLink').value='';
+  $('moLocal').style.display=v.pos?'':'none';
+  moCliPintar();
+  abrir('mManOS');
+}
+$('moCliSel').onchange=moCliPintar;
+$('moBloq').onchange=()=>{ $('moBloq').dataset.mexeu='1' };
+['moModelo','moPlaca','moBloq','moMotivo','moDesc','moLink','moTel'].forEach(id=>$(id).addEventListener('input',()=>{ if(MO.dup){ MO.dup=false; $('moEnviar').textContent='Enviar ao APP Técnico' } }));
+$('moLocal').onclick=()=>{ const v=MO.v; if(!v||!v.pos) return; $('moLink').value='https://www.google.com/maps?q='+Number(v.pos[0]).toFixed(6)+','+Number(v.pos[1]).toFixed(6) };
+/* aviso na hora para o APP Técnico (mesmo da Gestão: só o protocolo). Se falhar, o APP acha o pedido na conferência normal. */
+function moAvisarApp(protocolo){
+  try{
+    fetch('https://firestore.googleapis.com/v1/projects/rastreando-gps/databases/(default)/documents:commit?key=AIzaSyCnWCqWOBgk5D4d3KmDM-XiIxEoMojRyd8',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',
+      body:JSON.stringify({writes:[{update:{name:'projects/rastreando-gps/databases/(default)/documents/agendamentos_pendentes/'+protocolo,fields:{idPedido:{stringValue:protocolo},tipo:{stringValue:'remocao'},lido:{booleanValue:false}}},
+        updateTransforms:[{fieldPath:'criadoEm',setToServerValue:'REQUEST_TIME'}]}]})}).catch(()=>{});
+  }catch(e){}
+}
+$('moEnviar').onclick=async()=>{
+  const b=$('moEnviar'); if(b.disabled) return;
+  const v=MO.v, u=moCliAtual(); if(!v||!u) return;
+  const modelo=$('moModelo').value.trim(), bloq=$('moBloq').value, motivo=$('moMotivo').value, link=$('moLink').value.trim();
+  if(modelo.length<2){ $('moErro').textContent='Informe o modelo do veículo.'; return }
+  if(!bloq){ $('moErro').textContent='Escolha se é com ou sem bloqueio.'; return }
+  if(!motivo){ $('moErro').textContent='Escolha o motivo da manutenção.'; return }
+  if(link && !/^https?:\/\/\S+$/i.test(link)){ $('moErro').textContent='O link precisa começar com http:// ou https://'; return }
+  b.disabled=true; b.textContent='Enviando...'; $('moErro').textContent='';
+  try{
+    const j=await fnAdm('manOS',{userId:u.id,deviceId:v.id,modelo,placa:$('moPlaca').value.trim(),bloqueio:bloq,telefone:$('moTel').value.trim(),motivo,descricao:$('moDesc').value.trim(),link,confirmarDuplicado:MO.dup});
+    moAvisarApp(j.protocolo);
+    $('mManOS').classList.remove('show');
+    toast('Ordem de manutenção enviada ao APP Técnico ('+j.protocolo+').'+(link?' Com o link do monitoramento.':j.temEndereco?'':' Sem endereço no cadastro: complete lá.'),5000);
+  }catch(e){
+    b.disabled=false;
+    if(/Já existe um pedido de manutenção pendente/.test(e.message)){ MO.dup=true; $('moErro').textContent=e.message; b.textContent='Criar outro mesmo assim'; return }
+    b.textContent='Enviar ao APP Técnico'; $('moErro').textContent=e.message;
+  }
+};
 document.addEventListener('click',e=>{ if(!e.target.closest('#ladoMenu') && !e.target.closest('.ladomais')) ladoMenuFechar() },true);
 window.addEventListener('resize',ladoMenuFechar);
 $('ladoLista').addEventListener('scroll',ladoMenuFechar,{passive:true});
