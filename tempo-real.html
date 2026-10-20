@@ -866,7 +866,7 @@ body.hist-on #mapCar{display:none!important}
 @media (min-width:900px){.vazio .vz-pc{display:inline}}
 
 /* Cartão do veículo (arrastável) */
-#cartRecolher,#cartMini{display:none}
+#cartRecolher,#cartMini,#ruaBox{display:none}
 .sheet{position:absolute;left:0;right:0;bottom:0;z-index:450;margin:0 auto;max-width:520px;background:var(--card);border:1px solid var(--line);border-bottom:0;border-radius:18px 18px 0 0;padding:0 16px 14px;box-shadow:0 -8px 24px rgba(0,0,0,.45);transition:transform .22s ease;will-change:transform}
 .sheet.drag{transition:none}
 @media (max-width:899px){ .sheet{transition:transform .3s cubic-bezier(.2,.8,.2,1)} } /* 16/10/2026: assentar suave depois de soltar */
@@ -1023,10 +1023,25 @@ body.hist-on #mapCar{display:none!important}
   main #sheet .dragzone{grid-column:1 / 3;grid-row:1;padding:14px 14px 12px 18px;cursor:default;min-width:0}
   main #sheet .dragzone .row{flex-direction:row;align-items:center;justify-content:flex-start;gap:14px;flex-wrap:nowrap}
   main #sheet .dragzone .row > div:first-of-type{min-width:0}
-  main #sheet .vrua{width:124px;height:74px}
-  main #sheet .vrua .vrmsg{font-size:12px}
-  main #sheet .vrua .vrtag{font-size:10.5px;padding:3px 7px}
-  main #sheet .dragzone .row:has(.vrua.on)::before{display:none}
+  /* 20/10/2026 (pedido do dono): no computador a vista da rua sai do cartão e vira um quadro grande ao lado dele */
+  main #sheet .vrua{display:none!important}
+  main.comrua #sheet{right:calc(16px + var(--ruaw) + 12px)}
+  main{--ruaw:380px}
+  main.comrua:not(.cartmin) #ruaBox{display:block}
+  #ruaBox{position:absolute;z-index:450;right:16px;bottom:16px;width:var(--ruaw);height:var(--ruah,200px);padding:0;border:1px solid var(--line);border-radius:20px;overflow:hidden;cursor:pointer;
+    background:linear-gradient(135deg,rgba(56,225,230,.16),rgba(154,163,178,.22)),var(--card);color:var(--mut);box-shadow:0 18px 50px rgba(0,0,0,.30),0 2px 8px rgba(0,0,0,.12)}
+  #ruaBox img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:none}
+  #ruaBox.foto img{display:block}
+  #ruaBox .rbmsg{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:12px;font-size:14px;font-weight:700;line-height:1.35}
+  #ruaBox.foto .rbmsg{display:none}
+  #ruaBox .rbtag{position:absolute;left:10px;bottom:10px;max-width:calc(100% - 20px);background:rgba(15,23,42,.7);color:#fff;font-size:12px;font-weight:700;padding:5px 10px;border-radius:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:none}
+  #ruaBox.foto .rbtag{display:block}
+  #ruaBox.foto::after{content:"⤢";position:absolute;right:10px;top:10px;width:28px;height:28px;border-radius:8px;background:rgba(15,23,42,.6);color:#fff;font-size:16px;display:flex;align-items:center;justify-content:center}
+  #ruaBox.trava{background:linear-gradient(135deg,#9cc8ee 0 45%,#b9c2ca 45% 62%,#6b7280 62%)}
+  #ruaBox.trava::before{content:"";position:absolute;inset:0;backdrop-filter:blur(4px);background:rgba(15,23,42,.4)}
+  #ruaBox.trava .rbmsg{color:#fff;z-index:1;font-size:16px}
+  #ruaBox.trava .rbmsg b{display:block;margin-top:6px;color:#fde047}
+  #ruaBox.trava .rbmsg small{display:block;margin-top:4px;font-weight:600;opacity:.85;font-size:12px}
   main #sheet .dragzone .row::before{content:"";width:46px;height:46px;border-radius:50%;flex:none;background:rgba(154,163,178,.14) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239aa3b2' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 16v-5l2-5h10l2 5v5'/%3E%3Cpath d='M3 16h18v3H3z'/%3E%3Ccircle cx='7.5' cy='16' r='1.5'/%3E%3Ccircle cx='16.5' cy='16' r='1.5'/%3E%3C/svg%3E") center/22px no-repeat}
   main #sheet:has(#vStatus.st-move) .dragzone .row::before{background:rgba(51,209,122,.15) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2322c55e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 16v-5l2-5h10l2 5v5'/%3E%3Cpath d='M3 16h18v3H3z'/%3E%3Ccircle cx='7.5' cy='16' r='1.5'/%3E%3Ccircle cx='16.5' cy='16' r='1.5'/%3E%3C/svg%3E") center/22px no-repeat}
   main #sheet:has(#vStatus.st-stop) .dragzone .row::before{background:rgba(56,225,230,.13) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2322b8c4' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 16v-5l2-5h10l2 5v5'/%3E%3Cpath d='M3 16h18v3H3z'/%3E%3Ccircle cx='7.5' cy='16' r='1.5'/%3E%3Ccircle cx='16.5' cy='16' r='1.5'/%3E%3C/svg%3E") center/22px no-repeat}
@@ -2424,6 +2439,7 @@ nav button.on .nemo.txt{color:var(--red2)}
   <button id="mapCar" type="button" aria-label="Você tem pedido aguardando pagamento" title="Pedido aguardando pagamento"><svg viewBox="0 0 24 24"><path d="M6 6h15l-1.5 9h-12z"/><path d="M6 6L5 3H2"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/></svg><span class="mcn" id="mapCarN">1</span></button>
   <div class="vazio" id="vazio">Nenhum veículo selecionado<small><span class="vz-cel">Abra a aba Veículos para escolher.</span><span class="vz-pc">Escolha um veículo na lista ao lado.</span></small></div>
 
+  <button id="ruaBox" class="ruabox" type="button" aria-label="Vista da rua"><img id="ruaBoxImg" alt=""><span class="rbmsg" id="ruaBoxMsg"></span><span class="rbtag" id="ruaBoxTag"></span></button><!-- 20/10/2026: vista da rua grande, ao lado do cartão (computador) -->
   <button id="cartMini" type="button" title="Mostrar o cartão do veículo" aria-label="Mostrar o cartão do veículo"><span class="cmdot" id="cmDot"></span><b id="cmNome"></b><small id="cmSt"></small><span class="cmup"><svg viewBox="0 0 24 24"><path d="M6 15l6-6 6 6"/></svg></span></button>
   <section class="sheet" id="sheet">
     <button id="cartRecolher" type="button" title="Abaixar o cartão (mais mapa)" aria-label="Abaixar o cartão"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
@@ -4896,6 +4912,7 @@ function atualizar(){
   sheet.style.display = v ? (telaLarga()?'grid':'block') : 'none';
   $('vazio').style.display = (v || !veiculos.length) ? 'none' : 'block';
   if(typeof hist!=='undefined' && hist && hist.on){ sheet.style.display='none'; $('vazio').style.display='none' }
+  if(!v || sheet.style.display==='none'){ try{ ruaEsconder() }catch(e){} } /* 20/10/2026: sem cartão, sem vista da rua */
   try{ ladoCartao(); ladoAtualizar() }catch(e){}
   if(v){
     const [txt,cls]=status(v);
@@ -6670,15 +6687,20 @@ const RUA={parada:{}, ponto:{}, mostrando:''};
 function ruaDist(a,b,c,d){ const R=6371000, r=Math.PI/180, x=(d-b)*r*Math.cos((a+c)/2*r), y=(c-a)*r; return Math.sqrt(x*x+y*y)*R }
 function ruaRumo(a,b,c,d){ const r=Math.PI/180, y=Math.sin((d-b)*r)*Math.cos(c*r), x=Math.cos(a*r)*Math.sin(c*r)-Math.sin(a*r)*Math.cos(c*r)*Math.cos((d-b)*r); return (Math.atan2(y,x)/r+360)%360 }
 function ruaHora(ms){ return new Date(ms).toLocaleTimeString('pt-BR',{timeZone:'America/Sao_Paulo',hour:'2-digit',minute:'2-digit'}) }
-function ruaPintar(cls,msg,tag,img){
-  const b=$('vRua'); b.className='vrua on'+(cls?' '+cls:'');
+function ruaPintar(cls,msg,tag,img,msgGrande){
+  const b=$('vRua'), g=$('ruaBox');
+  b.className='vrua on'+(cls?' '+cls:''); g.className='ruabox'+(cls?' '+cls:'');
   $('vRuaMsg').innerHTML=msg||''; $('vRuaTag').textContent=tag||'';
-  const im=$('vRuaImg'); if(img){ if(im.getAttribute('src')!==img) im.src=img } else if(im.getAttribute('src')) im.removeAttribute('src');
+  $('ruaBoxMsg').innerHTML=msgGrande||msg||''; $('ruaBoxTag').textContent=tag||'';
+  [$('vRuaImg'),$('ruaBoxImg')].forEach(im=>{ if(img){ if(im.getAttribute('src')!==img) im.src=img } else if(im.getAttribute('src')) im.removeAttribute('src') });
+  $('main').classList.add('comrua');
+  try{ const h=sheet.offsetHeight; if(h>60) $('main').style.setProperty('--ruah',Math.max(h,250)+'px') }catch(e){} /* no mínimo 250 px; acompanha a altura do cartão */
 }
+function ruaEsconder(){ $('vRua').className='vrua'; $('ruaBox').className='ruabox'; $('main').classList.remove('comrua'); RUA.mostrando='' }
 function ruaAtualizar(v){
   const b=$('vRua');
-  if(!v || !v.pos || !ehPrime()){ b.className='vrua'; RUA.mostrando=''; return }
-  if(!modFrota()){ RUA.mostrando=''; ruaPintar('trava','🔒 Vista da rua<b>⭐ Premium</b>'); return }
+  if(!v || !v.pos || !ehPrime() || sheet.style.display==='none'){ ruaEsconder(); return }
+  if(!modFrota()){ RUA.mostrando=''; ruaPintar('trava','🔒 Vista da rua<b>⭐ Premium</b>',null,null,'🔒 Vista da rua<b>⭐ Assinar Premium</b><small>Veja a foto da rua onde o veículo está parado</small>'); return }
   const lat=+v.pos[0], lon=+v.pos[1], andando=v.vel>2 && v.ign!==false, agora=Date.now();
   let pr=RUA.parada[v.id];
   if(andando){ RUA.parada[v.id]={lat,lon,t:agora,andou:true}; ruaPintar('','🚗 Em movimento'); return }
@@ -6692,7 +6714,7 @@ function ruaAtualizar(v){
   if(pt==='buscando') return;
   RUA.ponto[k]='buscando'; ruaPintar('','Carregando a<br>vista da rua...');
   const loc=pr.lat.toFixed(6)+','+pr.lon.toFixed(6), base='https://maps.googleapis.com/maps/api/streetview';
-  const foto=(h)=>base+'?size=400x240&location='+loc+'&radius=60&source=outdoor&fov=80&pitch=0'+(h!=null?'&heading='+Math.round(h):'')+'&return_error_code=true&key='+encodeURIComponent(GOOGLE_SV_CHAVE);
+  const foto=(h)=>base+'?size=640x400&location='+loc+'&radius=60&source=outdoor&fov=80&pitch=0'+(h!=null?'&heading='+Math.round(h):'')+'&return_error_code=true&key='+encodeURIComponent(GOOGLE_SV_CHAVE);
   fetch(base+'/metadata?location='+loc+'&radius=60&source=outdoor&key='+encodeURIComponent(GOOGLE_SV_CHAVE),{credentials:'omit'})
     .then(r=>r.json()).then(j=>{
       if(!j || j.status!=='OK'){ RUA.ponto[k]=(j&&(j.status==='ZERO_RESULTS'||j.status==='NOT_FOUND'))?'sem':{erro:Date.now()}; ruaRedesenhar(); return }
@@ -6701,6 +6723,8 @@ function ruaAtualizar(v){
     }).catch(()=>{ RUA.ponto[k]={url:foto(null)}; ruaRedesenhar() }); /* sem resposta da conferência: tenta a foto direto */
 }
 function ruaRedesenhar(){ try{ const v=veiculos.find(x=>x.id===selId); if(v) ruaAtualizar(v) }catch(e){} }
+$('ruaBoxImg').addEventListener('error',()=>{ const k=RUA.mostrando; if(k) RUA.ponto[k]={erro:Date.now()}; RUA.mostrando=''; ruaRedesenhar() });
+$('ruaBox').addEventListener('click',e=>{ e.stopPropagation(); $('vRua').click() });
 $('vRuaImg').addEventListener('error',()=>{ /* sem foto no ponto ou limite do dia atingido: não tenta de novo nesta abertura */
   const k=RUA.mostrando; if(k) RUA.ponto[k]={erro:Date.now()}; RUA.mostrando=''; ruaRedesenhar();
 });
