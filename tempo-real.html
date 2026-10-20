@@ -1910,6 +1910,13 @@ nav button.on .nemo.txt{color:var(--red2)}
 #aview .abar .atab{width:42px;height:38px;padding:0;display:flex;align-items:center;justify-content:center;border-radius:10px}
 #aview .abar .atab svg{width:20px;height:20px}
 #aview .abar .search{flex:1;min-width:0;margin:0;height:44px}
+/* 20/10/2026 (pedido do dono): no celular a busca ficava espremida entre os botões. Lá ela desce para uma linha
+   inteira embaixo dos botões; o + fica no fim da linha de cima. Computador sem mudança. */
+@media (max-width:640px){
+  #aview .abar{flex-wrap:wrap;row-gap:10px}
+  #aview .abar .search{order:9;flex:1 1 100%;height:46px}
+  #aview .abar .aico.anovo{margin-left:auto}
+}
 #aview .aico{flex:none;width:44px;height:44px;border-radius:13px;border:1px solid var(--line);background:var(--card);color:var(--mut);display:flex;align-items:center;justify-content:center;cursor:pointer}
 /* importar equipamentos em massa (11/10/2026) */
 #mImport{align-items:center;padding:12px}
