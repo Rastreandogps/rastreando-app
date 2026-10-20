@@ -6226,7 +6226,11 @@ function frDesenhar(){
   const L=$('frLista'); if(!L) return;
   const premium=modFrota(), d=frDados(), VS=frVeics();
   $('frSub').textContent=VS.length+(VS.length===1?' veículo':' veículos')+(ehAdmin?' configurados':'')+' · combustível e troca de óleo';
-  if(!VS.length){ L.innerHTML='<p class="frnota">'+(ehAdmin&&veiculos.length?'Nenhum veículo configurado. Toque no Odômetro de um veículo no mapa e configure o combustível ou a troca de óleo para ele aparecer aqui.':'Nenhum veículo na sua conta.')+'</p>'; frUltN=frChave(); return }
+  if(!VS.length){
+    const ocN=ehAdmin?frOcultos().filter(id=>veiculos.some(v=>v.id===id)).length:0; /* 20/10/2026: tirou todos com o ✕ -> mostra como trazer de volta */
+    L.innerHTML = ocN ? '<p class="frnota">Você tirou '+(ocN===1?'o veículo':'os '+ocN+' veículos')+' do seu painel.</p><p class="frnota"><button type="button" class="btn btn-out" id="frVerOc" style="width:auto;padding:0 16px">Mostrar de novo '+(ocN===1?'o veículo tirado':'os '+ocN+' veículos tirados')+'</button></p>'
+      : '<p class="frnota">'+(ehAdmin&&veiculos.length?'Nenhum veículo configurado. Toque no Odômetro de um veículo no mapa e configure o combustível ou a troca de óleo para ele aparecer aqui.':'Nenhum veículo na sua conta.')+'</p>';
+    frUltN=frChave(); return }
   /* resumo */
   let rs=0, lt=0, nComb=0, nOleo=0, nAlerta=0, nVencido=0;
   d.forEach(x=>{ if(x.g){ rs+=x.g.rs; lt+=x.g.lt; nComb++ } if(x.mi){ nOleo++; if(x.mi.falta<=0) nVencido++; else if(x.mi.alerta) nAlerta++ } });
