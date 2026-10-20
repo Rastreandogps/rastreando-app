@@ -1930,6 +1930,11 @@ nav button.on .nemo.txt{color:var(--red2)}
 #mImport .imdica{font-size:12.5px;color:var(--mut);margin-bottom:6px}
 #mImport .imcli{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:12px;min-height:200px}
 #mImport .imclilin{display:flex;gap:8px;align-items:center}
+.imclimais{margin-top:10px;display:flex;flex-direction:column;gap:6px}
+.imclimais .imcm{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:6px 6px 6px 12px;font-size:14px}
+.imclimais .imcm span{flex:1;min-width:0}
+.imclimais .imcm button{width:30px;height:30px;border-radius:50%;border:1px solid var(--line);background:var(--card2);color:var(--mut);cursor:pointer}
+.imclimais select{height:40px;border-radius:10px;border:1px dashed var(--line);background:transparent;color:var(--txt);font:inherit;font-size:14px;padding:0 10px}
 #imCli{flex:1;min-width:0;height:44px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--txt);font:inherit;font-size:14.5px;padding:0 10px}
 #imCliX{flex:none;width:44px;height:44px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--mut);font-size:16px;cursor:pointer}
 #imCliX:disabled{opacity:.35;cursor:default}
@@ -2861,6 +2866,7 @@ nav button.on .nemo.txt{color:var(--red2)}
         <div class="imcli" id="imCliBox" style="display:none">
           <div class="imclilin"><select id="imCli" aria-label="Cliente para todos"></select><button type="button" id="imCliX" aria-label="Não vincular a ninguém" title="Não vincular a ninguém">✕</button></div>
           <label class="imclipref"><input type="checkbox" id="imCliPref"> Deixar como preferido (já vem escolhido nas próximas importações)</label>
+          <div class="imclimais" id="imCliMais"></div><!-- 20/10/2026: mais clientes vendo os mesmos equipamentos (ex.: frota com 3 logins) -->
           <div class="imclinfo" id="imCliInfo"></div>
         </div>
         <div class="imaviso" id="imAviso"></div>
@@ -5263,7 +5269,7 @@ document.querySelectorAll('[data-close]').forEach(b=>b.onclick=fechar);
 document.querySelectorAll('.modal').forEach(m=>{
   const proprio={mSemFichas:'sfNao',mScan:'scanFechar',mBio:'bioNao',mImport:'imVoltar',mSmsM:'smCancelar',mLojaCanc:'lcVoltar',mOdoZerar:'ozNao',mOdoAjustar:'oaNao',mCercaBloq:'cbqNao',mFchConf:'fcNao'}; /* janelas com botão de fechar próprio */
   const box=m.querySelector('.box2'), fc=(proprio[m.id] && document.getElementById(proprio[m.id])) || m.querySelector('[data-close]');
-  if(!box || !fc || m.querySelector('.almx,.ldx,.mxauto')) return;
+  if(!box || !fc || m.querySelector('.almx,.ldx,.mxauto,.imx')) return; /* 20/10/2026: a importação já tem X próprio (aparecia X duplo) */
   const x=document.createElement('button'); x.type='button'; x.className='mxauto'; x.title='Fechar'; x.setAttribute('aria-label','Fechar');
   x.innerHTML='<svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>';
   x.onclick=()=>fc.click();
@@ -8801,7 +8807,7 @@ let imListas={imei:'',chip:'',placa:'',cliente:'',nome:''}, imCol='nome';
 function imDesencontro(ni){ return ['chip','placa','nome'].filter(c=>{ const n=imItens(c).length; if(!n) return false; return c==='chip' ? n!==ni : n>ni }) }
 /* cliente único da importação + preferido (guardado só neste aparelho/navegador) */
 const IM_PREF='imCliPref';
-let imCliId='';
+let imCliId='', imCliMaisIds=[]; /* 20/10/2026: outros clientes que também vão ver os equipamentos */
 function imPrefLer(){ try{ return localStorage.getItem(IM_PREF)||'' }catch(e){ return '' } }
 function imPrefGravar(id){ try{ id ? localStorage.setItem(IM_PREF,String(id)) : localStorage.removeItem(IM_PREF) }catch(e){} }
 function imClientes(){ return usuarios.filter(u=>!u.administrator).slice().sort((a,b)=>String(a.name||loginDe(a)).localeCompare(String(b.name||loginDe(b)),'pt-BR',{sensitivity:'base'})) }
@@ -8812,15 +8818,24 @@ function imCliPreencher(){
   $('imCli').innerHTML='<option value="">Ninguém (não vincular)</option>'+cs.map(u=>{ const nm=u.name||loginDe(u), lg=loginDe(u).replace(EMAIL_FALSO,''); return '<option value="'+esc(String(u.id))+'">'+esc(nm)+(lg && lg.toLowerCase()!==String(nm).toLowerCase()?' ('+esc(lg)+')':'')+'</option>' }).join('');
   $('imCli').value=imCliId; imCliMostrar();
 }
+function imCliMaisUsers(){ const cs=imClientes(); return imCliMaisIds.map(id=>cs.find(u=>String(u.id)===String(id))).filter(Boolean) }
 function imCliMostrar(){
   const u=imCliUser(), ni=imItens('imei').length;
+  imCliMaisIds=imCliMaisIds.filter(id=>String(id)!==String(imCliId));
+  const box=$('imCliMais'), mais=imCliMaisUsers(), nm=x=>x.name||loginDe(x);
+  if(!u){ box.innerHTML=''; imCliMaisIds=[] }
+  else box.innerHTML = mais.map(x=>'<div class="imcm"><span>+ '+esc(nm(x))+'</span><button type="button" data-imcmx="'+esc(String(x.id))+'" aria-label="Tirar '+esc(nm(x))+'">✕</button></div>').join('') +
+    '<select id="imCliAdd" aria-label="Adicionar outro cliente"><option value="">+ Adicionar outro cliente (também vai ver estes equipamentos)</option>'+imClientes().filter(x=>String(x.id)!==String(imCliId)&&!imCliMaisIds.includes(String(x.id))).map(x=>'<option value="'+esc(String(x.id))+'">'+esc(nm(x))+'</option>').join('')+'</select>';
   $('imCliX').disabled=!u;
   $('imCliPref').checked=!!u && imPrefLer()===String(u.id);
   $('imCliPref').disabled=!u;
-  $('imCliInfo').innerHTML = u ? 'Os '+(ni||'')+(ni===1?' equipamento':' equipamentos')+' desta importação vão para <b>'+esc(u.name||loginDe(u))+'</b>.' : 'Nenhum cliente: os equipamentos são cadastrados sem vínculo (dá para vincular depois).';
+  const todos=u?[u].concat(mais):[], nomes=todos.map(x=>'<b>'+esc(nm(x))+'</b>');
+  $('imCliInfo').innerHTML = u ? 'Os '+(ni||'')+(ni===1?' equipamento':' equipamentos')+' desta importação vão para '+(nomes.length>1?nomes.slice(0,-1).join(', ')+' e '+nomes[nomes.length-1]:nomes[0])+'.' : 'Nenhum cliente: os equipamentos são cadastrados sem vínculo (dá para vincular depois).';
 }
 $('imCli').addEventListener('change',()=>{ imCliId=$('imCli').value; imCliMostrar(); imAbas() });
 $('imCliX').onclick=()=>{ imCliId=''; $('imCli').value=''; imCliMostrar(); imAbas() };
+$('imCliMais').addEventListener('change',e=>{ if(e.target.id!=='imCliAdd'||!e.target.value) return; imCliMaisIds.push(String(e.target.value)); imCliMostrar(); imRascGravar() });
+$('imCliMais').addEventListener('click',e=>{ const b=e.target.closest('button[data-imcmx]'); if(!b) return; imCliMaisIds=imCliMaisIds.filter(id=>id!==b.dataset.imcmx); imCliMostrar(); imRascGravar() });
 $('imCliPref').addEventListener('change',()=>{ const u=imCliUser(); if(!u){ $('imCliPref').checked=false; return } if($('imCliPref').checked){ imPrefGravar(u.id); toast((u.name||loginDe(u))+' ficou como preferido.') } else { imPrefGravar(''); imCliId=''; $('imCli').value=''; imCliMostrar(); imAbas(); toast('Preferido removido. Nenhum cliente escolhido.') } });
 /* lista de uma aba: um item por linha; tira só as linhas em branco do fim (as do meio contam como "esse não tem") */
 function imItens(col){ const l=String(imListas[col]||'').replace(/\r/g,'').split('\n').map(x=>x.trim()); while(l.length && !l[l.length-1]) l.pop(); return l }
@@ -8857,7 +8872,7 @@ let imLoteAtual=null, imReaberto=false, imCancelArm=false;
 function imSalvosLer(){ try{ const a=JSON.parse(localStorage.getItem(IM_SALVOS)||'[]'); return Array.isArray(a)?a:[] }catch(e){ return [] } }
 function imSalvosGravar(a){ try{ a.length ? localStorage.setItem(IM_SALVOS,JSON.stringify(a)) : localStorage.removeItem(IM_SALVOS) }catch(e){} imBadge() }
 function imBadge(){ const n=imSalvosLer().length, b=$('imBadge'); if(!b) return; let env=false; try{ env=!!imEnv }catch(e){} b.textContent=n; b.classList.toggle('show',n>0); b.classList.toggle('env',env); $('aImportar').title=n?'Importar equipamentos ('+n+(n===1?' salva para terminar)':' salvas para terminar)'):'Importar equipamentos em lista' }
-function imRascGravar(){ if(imFase!=='colar') return; try{ const tem=Object.keys(imListas).some(k=>String(imListas[k]||'').trim()); tem ? localStorage.setItem(IM_RASC,JSON.stringify({listas:imListas,cliId:imCliId})) : localStorage.removeItem(IM_RASC) }catch(e){} }
+function imRascGravar(){ if(imFase!=='colar') return; try{ const tem=Object.keys(imListas).some(k=>String(imListas[k]||'').trim()); tem ? localStorage.setItem(IM_RASC,JSON.stringify({listas:imListas,cliId:imCliId,cliMais:imCliMaisIds})) : localStorage.removeItem(IM_RASC) }catch(e){} }
 function imRascLer(){ try{ const r=JSON.parse(localStorage.getItem(IM_RASC)||'null'); return r&&r.listas?r:null }catch(e){ return null } }
 function imRascApagar(){ try{ localStorage.removeItem(IM_RASC) }catch(e){} }
 /* guarda (ou atualiza) a importação atual na lista de salvas */
@@ -8929,9 +8944,9 @@ function imAbrirLote(id){
 function imNova(){
   imPrepararModal();
   imLinhas=[]; imCriados=[]; imFase='colar'; imLoteAtual=null; imReaberto=false; imForaSms=new Set();
-  imListas={imei:'',chip:'',placa:'',cliente:'',nome:''}; imCol='nome'; imCliId=imPrefLer();
+  imListas={imei:'',chip:'',placa:'',cliente:'',nome:''}; imCol='nome'; imCliId=imPrefLer(); imCliMaisIds=[];
   const r=imRascLer();
-  if(r){ Object.keys(imListas).forEach(k=>{ imListas[k]=String(r.listas[k]||'') }); imCliId=r.cliId||'' }
+  if(r){ Object.keys(imListas).forEach(k=>{ imListas[k]=String(r.listas[k]||'') }); imCliId=r.cliId||''; imCliMaisIds=Array.isArray(r.cliMais)?r.cliMais.map(String):[] }
   $('imTexto').value=imListas[imCol];
   imCliPreencher(); imAbas();
   carregarUsuarios().then(()=>{ imCliPreencher(); imAbas() }).catch(()=>{});
@@ -9204,7 +9219,7 @@ function imLer(){
   const dif=imDesencontro(I.length);
   if(dif.length) return {erro:'As listas não batem: '+I.length+' IMEI(s), mas '+dif.map(c=>L[c].length+' em '+IM_COLS[c].t).join(', ')+'. Confira antes de continuar.'};
   const v=(c,i)=>L[c][i]||'';
-  return {linhas:I.map((im,i)=>{ const imei=soDigitos(im); return {n:i+1, nome:v('nome',i)||imei, nomeVazio:!v('nome',i), imei, imeiTxt:im, chip:sem55(v('chip',i)), chipTxt:v('chip',i), placa:v('placa',i).toUpperCase().replace(/[^A-Z0-9]/g,''), placaTxt:v('placa',i), clienteId:imCliId} })};
+  return {linhas:I.map((im,i)=>{ const imei=soDigitos(im); return {n:i+1, nome:v('nome',i)||imei, nomeVazio:!v('nome',i), imei, imeiTxt:im, chip:sem55(v('chip',i)), chipTxt:v('chip',i), placa:v('placa',i).toUpperCase().replace(/[^A-Z0-9]/g,''), placaTxt:v('placa',i), clienteId:imCliId, maisIds:imCliId?imCliMaisIds.slice():[]} })};
 }
 /* confere cada linha contra as listas e contra o servidor */
 async function imConferir(){
@@ -9239,6 +9254,8 @@ async function imConferir(){
     if(l.placa && !/^[A-Z]{3}[0-9][A-Z0-9][0-9]{2}$/.test(l.placa)) e.push('placa inválida');
     l.user=null;
     if(l.clienteId){ l.user=clientes.find(u=>String(u.id)===String(l.clienteId)) || null; if(!l.user) e.push('cliente escolhido não existe mais') }
+    l.maisUsers=(l.maisIds||[]).map(id=>clientes.find(u=>String(u.id)===String(id))).filter(Boolean); /* 20/10/2026 */
+    if((l.maisIds||[]).length!==l.maisUsers.length) e.push('um dos outros clientes não existe mais');
     l.erros=e; l.estado=e.length?'erro':'ok';
   });
   imLinhas=r.linhas; imFase='previa';
@@ -9256,7 +9273,7 @@ function imDesenhar(){
   $('imCorpo').innerHTML=imLinhas.map(l=>{
     const st={ok:'Pronto',feito:'Cadastrado ✓',erro:l.erros.join('; '),falhou:'Não cadastrado: '+(l.falha||'erro'),indo:'Cadastrando…'}[l.estado]||'';
     const cls=(l.estado==='erro'||l.estado==='falhou')?'er':'ok';
-    const det=['IMEI '+(l.imeiTxt||'—'), 'Chip '+(l.chip?fmtFone(l.chip):'—'), l.placa?'Placa '+l.placa:'', l.user?'Cliente '+(l.user.name||loginDe(l.user)):'Sem cliente', (imRetLote&&imFase!=='feito'||l.ret)?'🔧 Para retirar · dono '+((l.ret&&l.ret.nome)||(imRetLote&&imRetLote.nome)||''):''].filter(Boolean).join(' · ');
+    const det=['IMEI '+(l.imeiTxt||'—'), 'Chip '+(l.chip?fmtFone(l.chip):'—'), l.placa?'Placa '+l.placa:'', l.user?(l.maisUsers&&l.maisUsers.length?'Clientes '+[l.user].concat(l.maisUsers).map(x=>x.name||loginDe(x)).join(', '):'Cliente '+(l.user.name||loginDe(l.user))):'Sem cliente', (imRetLote&&imFase!=='feito'||l.ret)?'🔧 Para retirar · dono '+((l.ret&&l.ret.nome)||(imRetLote&&imRetLote.nome)||''):''].filter(Boolean).join(' · ');
     const busca=String(l.nome||'')+' '+String(l.imeiTxt||'')+' '+String(l.chip||'')+' '+(l.chip?fmtFone(l.chip):'')+' '+String(l.placa||'');
     const comCk=feito && l.estado==='feito' && l.chip && l.devId; /* 14/10/2026: na fase de enviar, cada equipamento com chip tem uma caixinha */
     const marcado=comCk && !imForaSms.has(String(l.devId));
@@ -9298,6 +9315,7 @@ async function imCadastrar(){
       if(!r.ok) throw new Error(await msgErro(r,'o servidor recusou'));
       const d=await r.json();
       if(l.user){ try{ await vincular(l.user.id,d.id) }catch(e){ if(e.sessao) throw e; l.vincFalhou=true } }
+      for(const mu of (l.user?(l.maisUsers||[]):[])){ try{ await vincular(mu.id,d.id) }catch(e){ if(e.sessao) throw e; l.vincFalhou=true } } /* 20/10/2026: os outros clientes também */
       l.estado='feito'; l.devId=d.id; imCriados.push({id:d.id,nome:l.nome,chip:l.chip});
     }catch(e){ if(e.sessao){ imOcupado=false; return } l.estado='falhou'; l.falha=e.message||'erro' }
     imDesenhar();
