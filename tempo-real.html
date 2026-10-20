@@ -889,13 +889,14 @@ body.hist-on #mapCar{display:none!important}
   .ladofil button.on{background:var(--cyan);border-color:var(--cyan);color:#06292a}
   .ladolista{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:0;contain:strict;will-change:scroll-position}
   /* 14/10/2026 (pedido do dono): sem ícone; uma linha fina separando cada veículo */
-  .ladoit{display:grid;grid-template-columns:22px minmax(0,1fr) auto 24px;align-items:center;gap:10px;padding:9px 12px;border-bottom:1px solid var(--line);cursor:pointer;
+  .ladoit{display:grid;grid-template-columns:22px minmax(0,1fr) auto 40px;align-items:center;gap:10px;padding:9px 12px;border-bottom:1px solid var(--line);cursor:pointer;
     content-visibility:auto;contain-intrinsic-size:auto 50px;contain:layout paint}
   .ladoit:hover{background:var(--card2)}
-  .ladoit.adm{grid-template-columns:22px minmax(0,1fr) auto 24px 22px}
+  .ladoit.adm{grid-template-columns:22px minmax(0,1fr) auto 40px 22px}
   /* 20/10/2026 (pedido do dono): compartilhar direto da lista, sem precisar abrir o cartão */
-  .ladoshr{width:24px;height:30px;margin-right:-4px;border:0;background:transparent;color:var(--mut);border-radius:8px;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center}
-  .ladoshr svg{width:16px;height:16px}
+  .ladoshr{width:40px;height:30px;margin-right:-4px;border:0;background:transparent;color:var(--mut);border-radius:8px;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center}
+  .ladoshr svg{width:36px;height:16px;transition:transform .12s}
+  .ladoshr:hover svg{transform:scale(1.08)}
   .ladoshr:hover{background:var(--card2);color:var(--cyan)}
   .ladomais{width:26px;height:30px;border:0;background:transparent;color:var(--mut);font-size:20px;font-weight:900;line-height:1;border-radius:8px;cursor:pointer;padding:0}
   .ladomais:hover{background:var(--card2);color:var(--txt)}
@@ -4996,7 +4997,7 @@ function ladoDesenhar(){
       '<label class="ladock" title="Mostrar ou esconder no mapa"><input type="checkbox"'+(v.visivel?' checked':'')+' aria-label="Mostrar '+esc(v.nome)+' no mapa"><span></span></label>'+
       '<button type="button" class="ladonm"><b>'+(ladoFiltro==='ret'&&!v.retirado&&retFixo(v.id)?'📌 ':'')+esc(v.nome)+'</b>'+(ladoFiltro==='ret'&&v.retDono?'<small>👤 '+esc(v.retDono)+'</small>':(v.placa?'<small>'+esc(v.placa)+'</small>':''))+'</button>'+
       '<span class="ladost '+e[0]+'"><em>'+esc(e[1])+'</em>'+(e[2]?'<small>'+esc(e[2])+'</small>':'')+'</span>'+
-      '<button type="button" class="ladoshr" aria-label="Compartilhar a localização de '+esc(v.nome)+'" title="Compartilhar localização"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg></button>'+
+      '<button type="button" class="ladoshr" aria-label="Compartilhar a localização de '+esc(v.nome)+'" title="Compartilhar localização"><svg viewBox="0 0 40 18"><circle cx="8" cy="9" r="7.5" fill="#dc2626"/><text x="8" y="12.6" text-anchor="middle" font-size="10" font-weight="800" fill="#fff" font-family="system-ui,sans-serif">A</text><path d="M17.5 9h6.5" stroke="#16a34a" stroke-width="2.2" stroke-linecap="round"/><path d="M22 5.6 25.4 9 22 12.4" fill="none" stroke="#16a34a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="32" cy="9" r="7.5" fill="#2563eb"/><text x="32" y="12.6" text-anchor="middle" font-size="10" font-weight="800" fill="#fff" font-family="system-ui,sans-serif">B</text></svg></button>'+
       (ehAdmin?'<button type="button" class="ladomais" aria-label="Mais opções de '+esc(v.nome)+'" title="Mais opções">⋮</button>':'')+'</div>'; /* 17/10/2026: menu de 3 pontinhos (administrador) */
   }).join('') || '<div class="ladovz">Nenhum veículo'+(ladoFiltro!=='todos'||$('ladoBusca').value?' com esse filtro.':'.')+'</div>';
   ladoAssin = lista.map(v=>v.id).join(',')+'|'+ladoFiltro;
