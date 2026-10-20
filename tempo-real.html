@@ -3959,8 +3959,32 @@ const VEIC_ICONES={
     '<path d="M-11.5 -8H11.5M-11.5 1H11.5M-11.5 10H11.5M-11.5 19H11.5M-11.5 28H11.5" stroke="rgba(15,23,42,.13)" stroke-width="1"/><rect x="-13.4" y="-30" width="3" height="3.6" rx="1" fill="#111827"/><rect x="10.4" y="-30" width="3" height="3.6" rx="1" fill="#111827"/>'+
     icLata(-10.5,-37,21,17,4,c)+icVidro('M-8.8 -33.8Q0 -35.6 8.8 -33.8L8.2 -29.8Q0 -30.8 -8.2 -29.8Z')+'<rect x="-7.6" y="-29" width="15.2" height="7.4" rx="1.6" fill="'+c+'"/>'+
     icFar([-9.4,5.2],-36.8,4.2)+icLan([-10.6,6.6],36.6,4)},
+  /* 20/10/2026 (pedido do dono): mais caminhões de serviço — prancha (vazia e carregada), vasculhante e munck */
+  prancha:{n:'Prancha',L:66,cor:'#facc15',d:c=>icSombra(23,66,2,-33)+
+    '<rect x="-13" y="-26" width="3" height="3.4" rx="1" fill="#111827"/><rect x="10" y="-26" width="3" height="3.4" rx="1" fill="#111827"/>'+
+    '<rect x="-11.5" y="-16" width="23" height="45" rx="1.2" fill="#64748b" stroke="rgba(15,23,42,.5)" stroke-width="1"/>'+
+    '<path d="M-11.5 -16V29M11.5 -16V29" stroke="'+c+'" stroke-width="1.8"/><path d="M-8 -12H8M-8 -5H8M-8 2H8M-8 9H8M-8 16H8M-8 23H8" stroke="rgba(255,255,255,.18)" stroke-width="1"/>'+
+    '<rect x="-10" y="29" width="7" height="4" rx=".8" fill="#475569"/><rect x="3" y="29" width="7" height="4" rx=".8" fill="#475569"/>'+
+    icLata(-10.4,-33,20.8,15,4,c)+icVidro('M-8.8 -29.8Q0 -31.6 8.8 -29.8L8.2 -25.8Q0 -26.8 -8.2 -25.8Z')+'<rect x="-7.6" y="-25" width="15.2" height="5.6" rx="1.4" fill="'+c+'"/>'+icFar([-9.2,5],-32.8,4.2)+icLan([-11,7],28,4)},
+  pranchacarro:{n:'Prancha com carro',L:66,cor:'#facc15',d:c=>VEIC_ICONES.prancha.d(c)+
+    '<g transform="translate(0,7) scale(.62)">'+icLata(-10,-22,20,44,7,'#e2e8f0')+icVidro('M-7.8 -9.4Q0 -12 7.8 -9.4L6.7 -3.2Q0 -4.4 -6.7 -3.2Z')+icVidro('M-6.7 10Q0 11.2 6.7 10L7.3 14.6Q0 16.2 -7.3 14.6Z')+'</g>'},
+  vasculhante:{n:'Vasculhante',L:60,cor:'#f97316',d:c=>icSombra(23,60,3,-30)+
+    '<rect x="-13" y="-23" width="3" height="3.4" rx="1" fill="#111827"/><rect x="10" y="-23" width="3" height="3.4" rx="1" fill="#111827"/>'+
+    '<rect x="-11.5" y="-14" width="23" height="40" rx="10" fill="#cbd5e1" stroke="rgba(15,23,42,.5)" stroke-width="1"/>'+
+    '<rect x="-6" y="-14" width="12" height="40" rx="5" fill="rgba(255,255,255,.35)"/><path d="M-11.5 -2H11.5M-11.5 10H11.5" stroke="rgba(15,23,42,.25)" stroke-width="1.4"/>'+
+    '<circle cx="0" cy="-7" r="2.6" fill="#94a3b8" stroke="rgba(15,23,42,.45)" stroke-width=".8"/><circle cx="0" cy="16" r="2.6" fill="#94a3b8" stroke="rgba(15,23,42,.45)" stroke-width=".8"/>'+
+    '<circle cx="0" cy="27.5" r="4" fill="#1f2937" stroke="'+c+'" stroke-width="1.6"/><circle cx="0" cy="27.5" r="1.4" fill="'+c+'"/>'+
+    icLata(-10.4,-30,20.8,15,4,c)+icVidro('M-8.8 -26.8Q0 -28.6 8.8 -26.8L8.2 -22.8Q0 -23.8 -8.2 -22.8Z')+'<rect x="-7.6" y="-22" width="15.2" height="5.6" rx="1.4" fill="'+c+'"/>'+icFar([-9.2,5],-29.8,4.2)+icLan([-11,7],25.5,4)},
+  munck:{n:'Munck',L:60,cor:'#2563eb',d:c=>icSombra(23,60,2,-30)+
+    '<rect x="-13" y="-23" width="3" height="3.4" rx="1" fill="#111827"/><rect x="10" y="-23" width="3" height="3.4" rx="1" fill="#111827"/>'+
+    '<rect x="-11.5" y="-8" width="23" height="38" rx="1.2" fill="#e5e7eb" stroke="rgba(15,23,42,.5)" stroke-width="1"/>'+
+    '<path d="M-11.5 -8V30M11.5 -8V30" stroke="#94a3b8" stroke-width="2"/><path d="M-9 4H9M-9 16H9" stroke="rgba(15,23,42,.12)" stroke-width="1"/>'+
+    '<rect x="-11.5" y="-14" width="23" height="6" rx="1" fill="#475569"/><circle cx="0" cy="-11" r="4.4" fill="#facc15" stroke="rgba(15,23,42,.5)" stroke-width="1"/>'+
+    '<path d="M0 -11L7 22" stroke="#facc15" stroke-width="4.2" stroke-linecap="round"/><path d="M0 -11L7 22" stroke="rgba(15,23,42,.35)" stroke-width="1" stroke-dasharray="2 3"/>'+
+    '<circle cx="7" cy="23" r="1.8" fill="#1f2937"/>'+
+    icLata(-10.4,-30,20.8,15,4,c)+icVidro('M-8.8 -26.8Q0 -28.6 8.8 -26.8L8.2 -22.8Q0 -23.8 -8.2 -22.8Z')+'<rect x="-7.6" y="-22" width="15.2" height="5.6" rx="1.4" fill="'+c+'"/>'+icFar([-9.2,5],-29.8,4.2)+icLan([-11,7],29.6,4)},
 };
-const VEIC_ORDEM=['carro','moto','motoesp','motobau','picape','van','caminhao','onibus','guincho','carreta'];
+const VEIC_ORDEM=['carro','moto','motoesp','motobau','picape','van','caminhao','onibus','guincho','prancha','pranchacarro','vasculhante','munck','carreta'];
 const VEIC_CORES=[['Branco','#f8fafc'],['Prata','#cbd5e1'],['Preto','#1f2937'],['Vermelho','#dc2626'],['Azul','#2563eb'],['Verde','#16a34a'],['Amarelo','#facc15']];
 function icCorOk(c){ return /^#[0-9a-f]{6}$/i.test(String(c||'')) }
 function veicIconeDe(d){ const a=(d&&d.attributes)||{}; return VEIC_ICONES[a.icone] ? a.icone : '' }
@@ -4966,6 +4990,7 @@ $('ladoLista').addEventListener('change',e=>{
   const r=e.target.closest('.ladoit'); if(!r) return;
   const v=veiculos.find(x=>x.id===+r.dataset.id); if(!v) return;
   v.visivel=e.target.checked;
+  if(retVisAntes) retVisAntes[v.id]=v.visivel; /* 20/10/2026: o que a pessoa marca/desmarca na aba Para retirar continua valendo ao voltar para Todos */
   sincronizarChecks(); mudouSelecao(); try{ sincronizarPick() }catch(_){} ladoCabecalho();
   r._k='';
 });
@@ -5048,7 +5073,7 @@ $('ladoLista').addEventListener('click',e=>{
 });
 $('ladoTodosCk').addEventListener('change',e=>{
   const marcar=e.target.checked, lista=ladoBase();
-  lista.forEach(v=>{ v.visivel=marcar });
+  lista.forEach(v=>{ v.visivel=marcar; if(retVisAntes) retVisAntes[v.id]=marcar });
   sincronizarChecks(); mudouSelecao(); try{ sincronizarPick() }catch(_){} ladoDesenhar();
 });
 $('ladoLista').addEventListener('scroll',()=>{ ladoRolandoAte=Date.now()+1200 },{passive:true});
@@ -5243,7 +5268,7 @@ $('pickBusca').addEventListener('keydown',e=>{ if(e.key==='Enter'){ const b=$('p
 $('pickList').addEventListener('change',e=>{
   const r=e.target.closest('.pitem'); if(!r) return;
   const v=veiculos.find(x=>x.id===+r.dataset.id); if(!v) return;
-  v.visivel=e.target.checked;
+  v.visivel=e.target.checked; if(retVisAntes) retVisAntes[v.id]=v.visivel;
   sincronizarChecks(); mudouSelecao(); sincronizarPick();
 });
 $('pickAll').addEventListener('change',e=>{
