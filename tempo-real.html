@@ -6202,8 +6202,10 @@ function frAbaAplicar(){
   if(!ok && $('frview').classList.contains('show')) irPara('Mapa');
   frBadgePintar();
 }
-/* 20/10/2026 (pedido do dono): no administrador, o painel mostra só os veículos marcados para aparecer no mapa (como o cliente vê só os dele) */
-function frVeics(){ return ehAdmin ? veiculos.filter(v=>v.visivel) : veiculos }
+/* 20/10/2026 (pedido do dono): no administrador, o painel mostra só os veículos que ELE configurou (combustível ou troca de óleo).
+   Os outros clientes da plataforma não entram. O cliente continua vendo todos os veículos dele. */
+function frConfigurado(v){ const c=lsJ('rg_comb_'+v.id,null); return !!(metaLer(v.id) || (c && cbNumDec(c.kml)>0 && cbNumDec(c.preco)>0)) }
+function frVeics(){ return ehAdmin ? veiculos.filter(frConfigurado) : veiculos }
 function frChave(){ return frVeics().map(v=>v.id).join(',') }
 function frDados(){
   return frVeics().map(v=>{
@@ -6219,8 +6221,8 @@ function frBadgePintar(){
 function frDesenhar(){
   const L=$('frLista'); if(!L) return;
   const premium=modFrota(), d=frDados(), VS=frVeics();
-  $('frSub').textContent=VS.length+(VS.length===1?' veículo':' veículos')+(ehAdmin?' marcados no mapa (de '+veiculos.length+')':'')+' · combustível e troca de óleo';
-  if(!VS.length){ L.innerHTML='<p class="frnota">'+(ehAdmin&&veiculos.length?'Nenhum veículo marcado no mapa. Marque na lista de veículos os que quer ver aqui.':'Nenhum veículo na sua conta.')+'</p>'; frUltN=frChave(); return }
+  $('frSub').textContent=VS.length+(VS.length===1?' veículo':' veículos')+(ehAdmin?' configurados':'')+' · combustível e troca de óleo';
+  if(!VS.length){ L.innerHTML='<p class="frnota">'+(ehAdmin&&veiculos.length?'Nenhum veículo configurado. Toque no Odômetro de um veículo no mapa e configure o combustível ou a troca de óleo para ele aparecer aqui.':'Nenhum veículo na sua conta.')+'</p>'; frUltN=frChave(); return }
   /* resumo */
   let rs=0, lt=0, nComb=0, nOleo=0, nAlerta=0, nVencido=0;
   d.forEach(x=>{ if(x.g){ rs+=x.g.rs; lt+=x.g.lt; nComb++ } if(x.mi){ nOleo++; if(x.mi.falta<=0) nVencido++; else if(x.mi.alerta) nAlerta++ } });
