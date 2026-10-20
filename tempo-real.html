@@ -1026,7 +1026,7 @@ body.hist-on #mapCar{display:none!important}
   /* 20/10/2026 (pedido do dono): no computador a vista da rua sai do cartão e vira um quadro grande ao lado dele */
   main #sheet .vrua{display:none!important}
   main.comrua #sheet{right:calc(16px + var(--ruaw) + 12px)}
-  main{--ruaw:380px}
+  main{--ruaw:clamp(220px,16vw,320px)}
   main.comrua:not(.cartmin) #ruaBox{display:block}
   #ruaBox{position:absolute;z-index:450;right:16px;bottom:16px;width:var(--ruaw);height:var(--ruah,200px);padding:0;border:1px solid var(--line);border-radius:20px;overflow:hidden;cursor:pointer;
     background:linear-gradient(135deg,rgba(56,225,230,.16),rgba(154,163,178,.22)),var(--card);color:var(--mut);box-shadow:0 18px 50px rgba(0,0,0,.30),0 2px 8px rgba(0,0,0,.12)}
@@ -6694,7 +6694,7 @@ function ruaPintar(cls,msg,tag,img,msgGrande){
   $('ruaBoxMsg').innerHTML=msgGrande||msg||''; $('ruaBoxTag').textContent=tag||'';
   [$('vRuaImg'),$('ruaBoxImg')].forEach(im=>{ if(img){ if(im.getAttribute('src')!==img) im.src=img } else if(im.getAttribute('src')) im.removeAttribute('src') });
   $('main').classList.add('comrua');
-  try{ const h=sheet.offsetHeight; if(h>60) $('main').style.setProperty('--ruah',Math.max(h,250)+'px') }catch(e){} /* no mínimo 250 px; acompanha a altura do cartão */
+  try{ const h=sheet.offsetHeight; if(h>60) $('main').style.setProperty('--ruah',Math.max(h,170)+'px') }catch(e){} /* acompanha a altura do cartão */
 }
 function ruaEsconder(){ $('vRua').className='vrua'; $('ruaBox').className='ruabox'; $('main').classList.remove('comrua'); RUA.mostrando='' }
 function ruaAtualizar(v){
