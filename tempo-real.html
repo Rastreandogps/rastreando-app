@@ -2064,6 +2064,17 @@ nav button.on .nemo.txt{color:var(--red2)}
 .afila button{flex:none;border:0;border-radius:9px;padding:7px 11px;font-size:12.5px;font-weight:700;cursor:pointer}
 .afila .ir{background:#2563eb;color:#fff}
 .afila .fora{background:transparent;color:var(--mut)}
+/* 20/10/2026: no celular a faixa vazava para os lados (nome cortado e botões escondidos): ocupa a largura toda,
+   o texto quebra em linhas e os botões ficam embaixo, lado a lado */
+.afila.on{align-items:stretch;width:100%;box-sizing:border-box}
+.afila .afrow{min-width:0}
+@media (max-width:640px){
+  .afila .afrow{flex-wrap:wrap;gap:8px}
+  .afila .t{flex:1 1 100%}
+  .afila .t b,.afila .t small{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere}
+  .afila .afrow button{flex:1 1 0;padding:10px 12px;font-size:14px;white-space:nowrap}
+  .afila .fora{background:var(--card2);border:1px solid var(--line)}
+}
 .corigem{background:rgba(37,99,235,.08);border:1px solid rgba(37,99,235,.25);border-radius:10px;padding:8px 10px;font-size:12.5px;margin:0 0 10px;display:none}
 .corigem.on{display:block}
 .corigem .dup,.afila .dup{display:block;color:var(--red2);font-weight:700;margin-top:3px}
