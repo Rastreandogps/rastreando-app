@@ -6202,22 +6202,25 @@ function frAbaAplicar(){
   if(!ok && $('frview').classList.contains('show')) irPara('Mapa');
   frBadgePintar();
 }
+/* 20/10/2026 (pedido do dono): no administrador, o painel mostra só os veículos marcados para aparecer no mapa (como o cliente vê só os dele) */
+function frVeics(){ return ehAdmin ? veiculos.filter(v=>v.visivel) : veiculos }
+function frChave(){ return frVeics().map(v=>v.id).join(',') }
 function frDados(){
-  return veiculos.map(v=>{
+  return frVeics().map(v=>{
     const g=cbGasto(v), mi=modFrota()?metaInfo(v):null;
     return {v,g,mi};
   });
 }
 function frBadgePintar(){
   const el=$('frBadge'); if(!el) return;
-  let n=0; if(ehPrime() && modFrota()) veiculos.forEach(v=>{ const i=metaInfo(v); if(i && i.alerta) n++ });
+  let n=0; if(ehPrime() && modFrota()) frVeics().forEach(v=>{ const i=metaInfo(v); if(i && i.alerta) n++ });
   el.textContent=n?String(n):''; el.style.display=n?'':'none';
 }
 function frDesenhar(){
   const L=$('frLista'); if(!L) return;
-  const premium=modFrota(), d=frDados();
-  $('frSub').textContent=veiculos.length+(veiculos.length===1?' veículo':' veículos')+' · combustível e troca de óleo';
-  if(!veiculos.length){ L.innerHTML='<p class="frnota">Nenhum veículo na sua conta.</p>'; frUltN=0; return }
+  const premium=modFrota(), d=frDados(), VS=frVeics();
+  $('frSub').textContent=VS.length+(VS.length===1?' veículo':' veículos')+(ehAdmin?' marcados no mapa (de '+veiculos.length+')':'')+' · combustível e troca de óleo';
+  if(!VS.length){ L.innerHTML='<p class="frnota">'+(ehAdmin&&veiculos.length?'Nenhum veículo marcado no mapa. Marque na lista de veículos os que quer ver aqui.':'Nenhum veículo na sua conta.')+'</p>'; frUltN=frChave(); return }
   /* resumo */
   let rs=0, lt=0, nComb=0, nOleo=0, nAlerta=0, nVencido=0;
   d.forEach(x=>{ if(x.g){ rs+=x.g.rs; lt+=x.g.lt; nComb++ } if(x.mi){ nOleo++; if(x.mi.falta<=0) nVencido++; else if(x.mi.alerta) nAlerta++ } });
@@ -6226,7 +6229,7 @@ function frDesenhar(){
   let h='<div class="frres">'+
     (premium ? '<div class="comb"><span>⛽ Combustível</span><b>'+(nComb?cbBrl(rs):'—')+'</b><small>'+(nComb?cbLtTxt(lt)+' · '+nComb+' veíc.':'configure nos veículos')+'</small></div>'
              : '<div class="comb"><span>⛽ Combustível</span><b>🔒 Premium</b><small>'+MODFROTA_VALOR+'</small></div>')+
-    '<div><span>🚗 Veículos</span><b>'+veiculos.length+'</b><small>'+veiculos.filter(v=>v.online).length+' online</small></div>'+
+    '<div><span>🚗 Veículos</span><b>'+VS.length+'</b><small>'+VS.filter(v=>v.online).length+' online</small></div>'+
     oleoTx+'</div>';
   h+='<div class="frord" id="frOrd"><button type="button" data-o="oleo" class="'+(frOrdem==='oleo'?'on':'')+'">Óleo mais perto</button><button type="button" data-o="comb" class="'+(frOrdem==='comb'?'on':'')+'">Mais gasto</button><button type="button" data-o="nome" class="'+(frOrdem==='nome'?'on':'')+'">Nome</button></div>';
   const ord=d.slice().sort((a,b)=>{
@@ -6246,7 +6249,7 @@ function frDesenhar(){
     return '<div class="frv'+(mi&&mi.alerta?' alerta':mi&&mi.atencao?' atencao':'')+'"><div class="frtop"><b>'+esc(v.nome)+'</b><span class="frodo">Odômetro <b>'+fmtOdo(v.odo)+'</b></span>'+(v.placa?'<small>'+esc(v.placa)+'</small>':'')+'</div><div class="frlin">'+comb+oleo+'</div></div>';
   }).join('');
   h+='<p class="frnota">O combustível é uma estimativa pelo odômetro e pelo consumo informado em cada veículo. Toque num quadro para ajustar. '+(premium?'Troca de óleo: verde = folga, amarelo = faltam 30% ou menos (hora de agendar), vermelho = faltam 10% ou menos.':'Neste painel, o combustível e a contagem da troca de óleo fazem parte do ⭐ Premium.')+'</p>';
-  const st=L.scrollTop; L.innerHTML=h; L.scrollTop=st; frUltN=veiculos.length;
+  const st=L.scrollTop; L.innerHTML=h; L.scrollTop=st; frUltN=frChave();
 }
 let frUltN=-1;
 $('frLista').addEventListener('click',e=>{
@@ -6258,7 +6261,7 @@ $('frLista').addEventListener('click',e=>{
 let frVoltar=false;
 $('frAtualizar').onclick=()=>{ frDesenhar(); vcSincronizar().then(()=>frDesenhar()).catch(()=>{}) };
 setInterval(()=>{ try{ if($('frview').classList.contains('show') && !document.querySelector('.modal.show')) frDesenhar(); frBadgePintar() }catch(e){} },15000);
-setInterval(()=>{ try{ if($('frview').classList.contains('show') && frUltN!==veiculos.length) frDesenhar() }catch(e){} },1500); /* os veículos chegaram depois de abrir a aba */
+setInterval(()=>{ try{ if($('frview').classList.contains('show') && frUltN!==frChave()) frDesenhar() }catch(e){} },1500); /* os veículos chegaram depois de abrir a aba */
 function abrirComb(modo){
   const v=cartao(); if(!v){ toast('Escolha um veículo.'); return }
   modo=modo==='odo'?'odo':'comb';
