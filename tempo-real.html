@@ -1023,6 +1023,10 @@ body.hist-on #mapCar{display:none!important}
   main #sheet .dragzone{grid-column:1 / 3;grid-row:1;padding:14px 14px 12px 18px;cursor:default;min-width:0}
   main #sheet .dragzone .row{flex-direction:row;align-items:center;justify-content:flex-start;gap:14px;flex-wrap:nowrap}
   main #sheet .dragzone .row > div:first-of-type{min-width:0}
+  main #sheet .vrua{width:124px;height:74px}
+  main #sheet .vrua .vrmsg{font-size:12px}
+  main #sheet .vrua .vrtag{font-size:10.5px;padding:3px 7px}
+  main #sheet .dragzone .row:has(.vrua.on)::before{display:none}
   main #sheet .dragzone .row::before{content:"";width:46px;height:46px;border-radius:50%;flex:none;background:rgba(154,163,178,.14) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239aa3b2' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 16v-5l2-5h10l2 5v5'/%3E%3Cpath d='M3 16h18v3H3z'/%3E%3Ccircle cx='7.5' cy='16' r='1.5'/%3E%3Ccircle cx='16.5' cy='16' r='1.5'/%3E%3C/svg%3E") center/22px no-repeat}
   main #sheet:has(#vStatus.st-move) .dragzone .row::before{background:rgba(51,209,122,.15) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2322c55e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 16v-5l2-5h10l2 5v5'/%3E%3Cpath d='M3 16h18v3H3z'/%3E%3Ccircle cx='7.5' cy='16' r='1.5'/%3E%3Ccircle cx='16.5' cy='16' r='1.5'/%3E%3C/svg%3E") center/22px no-repeat}
   main #sheet:has(#vStatus.st-stop) .dragzone .row::before{background:rgba(56,225,230,.13) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2322b8c4' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 16v-5l2-5h10l2 5v5'/%3E%3Cpath d='M3 16h18v3H3z'/%3E%3Ccircle cx='7.5' cy='16' r='1.5'/%3E%3Ccircle cx='16.5' cy='16' r='1.5'/%3E%3C/svg%3E") center/22px no-repeat}
@@ -1099,6 +1103,20 @@ body.hist-on #mapCar{display:none!important}
 .handlewrap{padding:10px 0 12px}
 .handle{display:block;width:44px;height:5px;border-radius:3px;background:var(--line);margin:0 auto}
 .row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+/* 20/10/2026 (pedido do dono): Vista da rua no lugar do ícone do carrinho — só frotista Premium, só com o veículo parado */
+.vrua{display:none;position:relative;flex:none;width:92px;height:58px;padding:0;border:1px solid var(--line);border-radius:12px;overflow:hidden;cursor:pointer;
+  background:linear-gradient(135deg,rgba(56,225,230,.16),rgba(154,163,178,.18));color:var(--mut)}
+.vrua.on{display:block}
+.vrua img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:none}
+.vrua.foto img{display:block}
+.vrua .vrmsg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:4px;font-size:10.5px;font-weight:700;line-height:1.2}
+.vrua.foto .vrmsg{display:none}
+.vrua .vrtag{position:absolute;left:4px;bottom:4px;max-width:calc(100% - 8px);background:rgba(15,23,42,.68);color:#fff;font-size:9.5px;font-weight:700;padding:2px 5px;border-radius:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:none}
+.vrua.foto .vrtag{display:block}
+.vrua.trava{background:linear-gradient(135deg,#9cc8ee 0 45%,#b9c2ca 45% 62%,#6b7280 62%)}
+.vrua.trava::before{content:"";position:absolute;inset:0;backdrop-filter:blur(3px);background:rgba(15,23,42,.35)}
+.vrua.trava .vrmsg{color:#fff;z-index:1}
+.vrua.trava .vrmsg b{display:block;margin-top:2px;color:#fde047}
 .vname{font-size:18px;font-weight:700}
 .plate{font-size:12px;color:var(--mut);letter-spacing:.08em;margin-top:2px}
 .plate.vimei{font-size:11px;letter-spacing:.03em;opacity:.8;margin-top:1px;user-select:all;white-space:nowrap}
@@ -2412,6 +2430,7 @@ nav button.on .nemo.txt{color:var(--red2)}
     <div class="dragzone" id="dragzone">
       <div class="handlewrap"><span class="handle"></span></div>
       <div class="row">
+        <button type="button" class="vrua" id="vRua" aria-label="Vista da rua"><img id="vRuaImg" alt=""><span class="vrmsg" id="vRuaMsg"></span><span class="vrtag" id="vRuaTag"></span></button>
         <div>
           <div class="vname"><button id="vPick" class="vpick" type="button" aria-label="Trocar de veículo" title="Trocar de veículo"><span id="vName"></span><svg class="pickseta" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button><span class="vign" id="vIgn" title="Ignição" aria-label="Ignição"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="4"/><path d="M10.4 12.6 20 3"/><path d="M16 7l3 3"/><path d="M14 9l2 2"/></svg></span><button id="btnRenome" aria-label="Editar nome do veículo" title="Editar nome"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></button><button id="btnIcone" type="button" aria-label="Trocar o ícone do veículo no mapa" title="Trocar o ícone no mapa"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/></svg></button></div>
           <div class="plate" id="vPlate"></div><div class="plate vimei" id="vImei" style="display:none"></div>
@@ -4932,6 +4951,7 @@ function atualizar(){
     mostrarBotoesSms();
     $('btnUnblock').disabled=cmdAndamento||sp;
     $('btnNav').disabled=sp; $('btnRua').disabled=sp;
+    try{ ruaAtualizar(v) }catch(e){}
     aplicarSheet();
   }
   document.querySelectorAll('.vrow').forEach(r=>{
@@ -6641,6 +6661,55 @@ $('btnNav').onclick=()=>{
   const v=ativo(); if(!v) return;
   window.open('https://www.google.com/maps/dir/?api=1&destination='+v.pos[0].toFixed(6)+','+v.pos[1].toFixed(6)+'&travelmode=driving','_blank','noopener');
 };
+/* ===== VISTA DA RUA NO CARTÃO (20/10/2026, pedido do dono) =====
+   Só frotista com Premium (e o administrador). A foto só aparece com o veículo PARADO há 2 minutos ou mais (1 foto por
+   parada; andando não pede nada). Antes da foto, pergunta ao Google se existe imagem no ponto (consulta grátis) e
+   vira a câmera para o veículo. Chave própria, liberada só para a Street View Static API e só para os sites do app. */
+const GOOGLE_SV_CHAVE='AIzaSyCl6JbmnYFEIfN0yCP_B5sL5KH_ol-tNNc';
+const RUA={parada:{}, ponto:{}, mostrando:''};
+function ruaDist(a,b,c,d){ const R=6371000, r=Math.PI/180, x=(d-b)*r*Math.cos((a+c)/2*r), y=(c-a)*r; return Math.sqrt(x*x+y*y)*R }
+function ruaRumo(a,b,c,d){ const r=Math.PI/180, y=Math.sin((d-b)*r)*Math.cos(c*r), x=Math.cos(a*r)*Math.sin(c*r)-Math.sin(a*r)*Math.cos(c*r)*Math.cos((d-b)*r); return (Math.atan2(y,x)/r+360)%360 }
+function ruaHora(ms){ return new Date(ms).toLocaleTimeString('pt-BR',{timeZone:'America/Sao_Paulo',hour:'2-digit',minute:'2-digit'}) }
+function ruaPintar(cls,msg,tag,img){
+  const b=$('vRua'); b.className='vrua on'+(cls?' '+cls:'');
+  $('vRuaMsg').innerHTML=msg||''; $('vRuaTag').textContent=tag||'';
+  const im=$('vRuaImg'); if(img){ if(im.getAttribute('src')!==img) im.src=img } else if(im.getAttribute('src')) im.removeAttribute('src');
+}
+function ruaAtualizar(v){
+  const b=$('vRua');
+  if(!v || !v.pos || !ehPrime()){ b.className='vrua'; RUA.mostrando=''; return }
+  if(!modFrota()){ RUA.mostrando=''; ruaPintar('trava','🔒 Vista da rua<b>⭐ Premium</b>'); return }
+  const lat=+v.pos[0], lon=+v.pos[1], andando=v.vel>2 && v.ign!==false, agora=Date.now();
+  let pr=RUA.parada[v.id];
+  if(andando){ RUA.parada[v.id]={lat,lon,t:agora,andou:true}; ruaPintar('','🚗 Em movimento'); return }
+  if(!pr || ruaDist(pr.lat,pr.lon,lat,lon)>60){ pr=RUA.parada[v.id]={lat,lon,t:agora,andou:!!pr}; }
+  /* primeira vez que o app vê o veículo e ele já está parado: mostra na hora (não dá para saber há quanto tempo) */
+  if(pr.andou && agora-pr.t<120000){ ruaPintar('','⏳ Parou agora<br>a foto vem em 2 min'); return }
+  const k=pr.lat.toFixed(4)+','+pr.lon.toFixed(4), pt=RUA.ponto[k], tag=pr.andou?'Parado aqui desde '+ruaHora(pr.t):'Vista da rua';
+  if(pt==='sem'){ ruaPintar('','Sem vista da rua<br>neste ponto'); return }
+  if(pt && pt.erro){ if(agora-pt.erro<300000){ ruaPintar('','Vista da rua<br>indisponível agora'); return } delete RUA.ponto[k] } /* tenta de novo depois de 5 min */
+  if(pt && pt.url){ ruaPintar('foto','',tag,pt.url); RUA.mostrando=k; return }
+  if(pt==='buscando') return;
+  RUA.ponto[k]='buscando'; ruaPintar('','Carregando a<br>vista da rua...');
+  const loc=pr.lat.toFixed(6)+','+pr.lon.toFixed(6), base='https://maps.googleapis.com/maps/api/streetview';
+  const foto=(h)=>base+'?size=400x240&location='+loc+'&radius=60&source=outdoor&fov=80&pitch=0'+(h!=null?'&heading='+Math.round(h):'')+'&return_error_code=true&key='+encodeURIComponent(GOOGLE_SV_CHAVE);
+  fetch(base+'/metadata?location='+loc+'&radius=60&source=outdoor&key='+encodeURIComponent(GOOGLE_SV_CHAVE),{credentials:'omit'})
+    .then(r=>r.json()).then(j=>{
+      if(!j || j.status!=='OK'){ RUA.ponto[k]=(j&&(j.status==='ZERO_RESULTS'||j.status==='NOT_FOUND'))?'sem':{erro:Date.now()}; ruaRedesenhar(); return }
+      const h=j.location?ruaRumo(j.location.lat,j.location.lng,pr.lat,pr.lon):null; /* câmera virada para o veículo */
+      RUA.ponto[k]={url:foto(h)}; ruaRedesenhar();
+    }).catch(()=>{ RUA.ponto[k]={url:foto(null)}; ruaRedesenhar() }); /* sem resposta da conferência: tenta a foto direto */
+}
+function ruaRedesenhar(){ try{ const v=veiculos.find(x=>x.id===selId); if(v) ruaAtualizar(v) }catch(e){} }
+$('vRuaImg').addEventListener('error',()=>{ /* sem foto no ponto ou limite do dia atingido: não tenta de novo nesta abertura */
+  const k=RUA.mostrando; if(k) RUA.ponto[k]={erro:Date.now()}; RUA.mostrando=''; ruaRedesenhar();
+});
+$('vRua').addEventListener('click',e=>{
+  e.stopPropagation();
+  if($('vRua').classList.contains('trava')){ lojaComprarPix('modfrota',$('vRua'),1); return }
+  const v=veiculos.find(x=>x.id===selId); if(!v||!v.pos) return;
+  window.open('https://www.google.com/maps/@?api=1&map_action=pano&viewpoint='+v.pos[0].toFixed(6)+','+v.pos[1].toFixed(6),'_blank','noopener');
+});
 $('btnRua').onclick=()=>{
   const v=ativo(); if(!v) return;
   window.open('https://www.google.com/maps/@?api=1&map_action=pano&viewpoint='+v.pos[0].toFixed(6)+','+v.pos[1].toFixed(6),'_blank','noopener');
