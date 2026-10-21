@@ -1611,6 +1611,7 @@ body.desenhando .follow,body.desenhando .sheet,body.desenhando .vazio{display:no
 @media (max-width:640px){ .frord .frpedir3d{margin-left:0;width:100%} }
 .frpedir{height:32px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--txt);font:inherit;font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap}
 .frpedir:hover{border-color:var(--cyan)}
+.frchk.trava{height:28px;padding:0 12px;border-radius:999px;border:1px dashed #f59e0b;background:rgba(245,158,11,.10);color:#b45309;font:inherit;font-size:12px;font-weight:800;cursor:pointer}
 .frchk small{font-size:11px;color:var(--mut);white-space:nowrap}
 .frchk.atras small{color:#b45309;font-weight:700}
 .frv .frodo{font-size:12px;color:var(--mut);white-space:nowrap;background:var(--card2);border-radius:999px;padding:3px 9px}
@@ -3231,7 +3232,6 @@ nav button.on .nemo.txt{color:var(--red2)}
     <label class="fchk"><input type="checkbox" id="pmRetirar"> Ver a lista <b>Para retirar</b> (para técnico: veículos marcados para retirada, pelo mais perto, com o nome e o WhatsApp do cliente)</label>
     <label class="fchk"><input type="checkbox" id="pmFichas"> Cobrar fichas no compartilhar localização (1 ficha por link; o cliente compra pacotes por PIX no app)</label>
     <div class="pmfichas" id="pmLogoBox"><span class="sp">🖼️ Logo do cliente: <b id="pmLogoSt">—</b></span><button type="button" id="pmLogoAbrir">Ver / enviar logo</button></div>
-    <div class="pmfichas" id="pmGiroBox"><span class="sp">🔄 Giros extras da vista da rua: <b id="pmGiroSt">—</b></span><input class="fld" id="pmGiroQtd" type="text" inputmode="numeric" maxlength="4" value="10" autocomplete="off" title="Quantos giros dar (negativo tira)"><button type="button" id="pmGiroDar">Liberar giros</button></div>
     <div class="pmfichas" id="pmModBox"><span class="sp">⭐ Premium (odômetro/mapa): <b id="pmModSt">—</b></span><input class="fld" id="pmModDias" type="text" inputmode="numeric" maxlength="3" value="30" autocomplete="off" title="Dias de teste grátis"><button type="button" data-mf="dar">Liberar dias</button><button type="button" data-mf="0" style="background:#64748b">Tirar</button></div>
     <div class="pmfichas" id="pmFichasBox"><span class="sp">Saldo: <b id="pmFichasSaldo">—</b> fichas</span><input class="fld" id="pmFichasQ" type="text" inputmode="numeric" placeholder="+10" autocomplete="off" aria-label="Fichas para lançar"><button type="button" id="pmFichasLancar">Lançar</button></div>
     <div class="pmval pmmapa"><span class="pmvl">Mapa do app</span><select class="fld" id="pmMapa"><option value="gratis">Grátis (padrão)</option><option value="google">Google Maps</option></select></div>
@@ -6432,7 +6432,6 @@ function mostrarPerm(j){
   $('pmZerar').disabled=!c.pendentes;
   $('pmFichas').checked=!!p.fichas; pmFichasCarregar();
   pmModPintar(j.modFrotaAteMs);
-  $('pmGiroSt').textContent=(Number(j.girosExtra||0))+' (além dos 10 grátis por dia)';
   $('pmLogoSt').textContent='…'; fnAdm('logoVer',{userId:permUserId}).then(r=>{ $('pmLogoSt').textContent=r.img?'enviada'+(r.nome?' ('+r.nome+')':''):'nenhuma' }).catch(()=>{ $('pmLogoSt').textContent='?' });
 }
 async function abrirPermissoes(userId){
@@ -6649,6 +6648,7 @@ const FR_CHK={}; /* o que foi digitado (o painel redesenha a cada 15 s) */
 function frChkLer(id){ try{ return JSON.parse(lsGet('rg_chk_'+id)||'null') }catch(e){ return null } }
 function frChkHtml(v){
   if(v.tag || v.odo==null) return '';
+  if(!ehAdmin && !modFrota()) return '<button type="button" class="frchk trava" data-chktrava="1" title="Checkout do odômetro: recurso Premium">🔒 Checkout · ⭐ Premium</button>'; /* 21/10/2026: sem Premium, sem checkout nem foto */
   const c=frChkLer(v.id), dias=c&&c.em?Math.floor((Date.now()-c.em)/86400000):null, atras=dias==null||dias>=7;
   const info=c&&c.em?'último '+new Date(c.em).toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo',day:'2-digit',month:'2-digit'})+(c.dif!=null&&Math.abs(c.dif)>=0.1?' ('+(c.dif>0?'+':'')+String(c.dif).replace('.',',')+' km)':''):'nunca feito';
   return '<span class="frchk'+(atras?' atras':'')+'" title="Checkout: digite o km do painel do veículo. A diferença conta como km rodado (combustível e troca de óleo recalculam).">'+
@@ -6722,7 +6722,7 @@ async function frChkSalvar(id){
 $('frLista').addEventListener('input',e=>{ const i=e.target.closest('.frchkin'); if(i) FR_CHK[+i.dataset.id]=i.value.replace(/[^\d.,]/g,'') });
 $('frLista').addEventListener('keydown',e=>{ const i=e.target.closest('.frchkin'); if(i && e.key==='Enter'){ e.preventDefault(); frChkSalvar(+i.dataset.id) } });
 $('frLista').addEventListener('click',e=>{
-  if(e.target.closest('[data-pedirtodos]')){ chkLinkAbrir(0); return }
+  if(e.target.closest('[data-pedirtodos]')||e.target.closest('[data-chktrava]')){ if(!ehAdmin && !modFrota()){ toast('O checkout do odômetro pelos motoristas faz parte do Premium. Assine para usar.',4500); lojaComprarPix('modfrota',btnFantasma(),1); return } chkLinkAbrir(0); return }
   const o=e.target.closest('#frOrd button'); if(o){ frOrdem=o.dataset.o; frDesenhar(); return }
   if(e.target.closest('.frchkin')) return;
   const ck=e.target.closest('[data-chk]'); if(ck){ frChkSalvar(+ck.dataset.chk); return }
@@ -6987,7 +6987,7 @@ function brandAplicar(){ /* canto superior esquerdo: logo do cliente quando ele 
 function logoMaisTxt(){ try{ brandAplicar() }catch(e){}  const t=$('maisLogoTxt'); if(t) t.textContent=!modFrota()?'⭐ Recurso Premium':(LG.meu?'Logo ativa'+(LG.meu.nome?' · '+LG.meu.nome:''):'Sua marca no link de localização') }
 function logoPrevPintar(){ const e=$('lgImg'); if(LG.img){ e.style.backgroundImage='url("'+LG.img+'")'; e.classList.add('tem') } else { e.style.backgroundImage=''; e.classList.remove('tem') } $('lgNmPrev').textContent=$('lgNome').value.trim()||'Nome da empresa' }
 async function logoAbrir(alvo){
-  if(!alvo && !modFrota()){ toast('A sua logo é um recurso do Premium. Assine para usar.'); try{ lojaComprarPix('modfrota',$('maisLogo')||document.createElement('button'),1) }catch(e){} return }
+  if(!alvo && !modFrota()){ toast('A sua logo é um recurso do Premium. Assine para usar.'); try{ lojaComprarPix('modfrota',btnFantasma(),1) }catch(e){} return }
   LG.alvo=alvo; LG.img=''; $('lgNome').value=''; $('lgErro').textContent=''; $('lgRemover').style.display='none';
   const u=alvo?usuarios.find(x=>x.id===alvo):null;
   $('lgTit').textContent=alvo?'Logo de '+((u&&u.name)||'cliente'):'Sua logo';
@@ -7043,6 +7043,7 @@ $('lgRemover').onclick=async()=>{
 };
 $('pmLogoAbrir').onclick=()=>logoAbrir(permUserId);
 function ruaComLogo(txt){ const l=LG.meu; return l&&l.img ? '<img class="rblogo" src="'+l.img+'" alt="">'+txt : txt }
+const btnFantasma=()=>document.createElement('button'); /* 21/10/2026: botão de mentira para o PIX não apagar o conteúdo do quadro */
 function ruaAdmLigada(){ try{ return localStorage.getItem('rg_rua_adm')==='1' }catch(e){ return false } }
 $('btnRuaVer').addEventListener('pointerdown',e=>e.stopPropagation());
 $('btnRuaVer').onclick=e=>{ e.stopPropagation(); const lig=!ruaAdmLigada(); try{ localStorage.setItem('rg_rua_adm',lig?'1':'0') }catch(_){} ruaRedesenhar(); toast(lig?'Vista da rua ligada (só para você).':'Vista da rua desligada (só para você). Os clientes Premium continuam vendo.') };
@@ -7115,7 +7116,7 @@ $('vRuaImg').addEventListener('error',()=>{ /* sem foto no ponto ou limite do di
 });
 $('vRua').addEventListener('click',e=>{
   e.stopPropagation();
-  if($('vRua').classList.contains('trava')){ lojaComprarPix('modfrota',$('vRua'),1); return }
+  if($('vRua').classList.contains('trava')){ lojaComprarPix('modfrota',btnFantasma(),1); return }
   const v=veiculos.find(x=>x.id===selId); if(!v||!v.pos) return;
   window.open('https://www.google.com/maps/@?api=1&map_action=pano&viewpoint='+v.pos[0].toFixed(6)+','+v.pos[1].toFixed(6),'_blank','noopener');
 });
@@ -11413,15 +11414,18 @@ async function fnLoja(acao,extra){
   return j;
 }
 let lojaPed=null, lojaPollTimer=null;
+let lojaComprando=false; /* 21/10/2026: um PIX por vez, de qualquer botão (o dono clicou em 4 lugares e saíram 4 cobranças) */
 async function lojaComprarPix(k,btn,q){
-  if(btn.disabled) return;
+  if(btn.disabled || lojaComprando) return;
+  if($('mLojaPix').classList.contains('show') && lojaPed && lojaPed.produto===k){ return } /* o PIX deste produto já está na tela */
+  lojaComprando=true;
   btn.disabled=true; const t0=btn.textContent; btn.textContent='Gerando PIX...';
   try{
     const r=await fnLoja('lojaComprar',{produto:k,qtd:q||1});
     if(r.semCpf||r.semCadastro) toast('Seu CPF ainda não está vinculado ao financeiro. Peça pelo WhatsApp que a gente resolve na hora.',5000);
-    else lojaAbrirPix(r);
+    else { r.produto=k; lojaAbrirPix(r) }
   }catch(e){ toast(e.message) }
-  btn.disabled=false; btn.textContent=t0;
+  lojaComprando=false; btn.disabled=false; btn.textContent=t0;
 }
 function lojaAbrirPix(r){
   lojaPed=r;
@@ -11733,13 +11737,7 @@ async function pmFichasCarregar(){
 }
 /* 19/10/2026: Módulo Frota do cliente (cortesia/teste ou tirar) */
 function pmModPintar(ate){ ate=Number(ate||0); $('pmModSt').textContent= ate>Date.now() ? 'ativo até '+new Date(ate).toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo'}) : 'desligado (R$ 5,90 por veículo, PIX no app)' }
-$('pmGiroDar').onclick=async()=>{ /* 20/10/2026: o administrador dá giros extras (não vencem; número negativo tira) */
-  const q=parseInt($('pmGiroQtd').value,10); $('pmErro').textContent='';
-  if(!q || Math.abs(q)>500){ $('pmErro').textContent='Digite de 1 a 500 giros (negativo tira).'; $('pmGiroQtd').focus(); return }
-  const b=$('pmGiroDar'); b.disabled=true;
-  try{ const j=await chamarPerm('ruaGiroLancar',{qtd:q}); $('pmGiroSt').textContent=j.girosExtra+' (além dos 10 grátis por dia)'; toast(q>0?'+'+q+' giros liberados.':'Giros retirados.') }catch(err){ $('pmErro').textContent=err.message }
-  b.disabled=false;
-};
+/* 21/10/2026: a linha "Giros extras da vista da rua" foi retirada das Permissões (pedido do dono); o servidor ainda aceita giros já dados */
 $('pmModBox').addEventListener('click',async e=>{
   const b=e.target.closest('[data-mf]'); if(!b) return;
   let dias=0; $('pmErro').textContent='';
