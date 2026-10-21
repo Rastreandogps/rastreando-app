@@ -351,6 +351,17 @@ body.mapa-google #map .leaflet-top.leaflet-left .leaflet-control-attribution{mar
 #mChkLink .almx{width:38px;height:38px;flex:none;border-radius:50%;background:var(--card2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;cursor:pointer}
 #mChkLink .almx svg{width:18px;height:18px;fill:none;stroke:var(--txt);stroke-width:2.4;stroke-linecap:round}
 .cllink{border:1px dashed var(--line);border-radius:12px;padding:10px 12px;font-size:12.5px;word-break:break-all;background:var(--card2);margin:4px 0 6px;user-select:all}
+#mPremium .almtopo{flex:none;display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}#mPremium .almtopo h3{margin:0}
+#mPremium .almx{width:38px;height:38px;flex:none;border-radius:50%;background:var(--card2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;cursor:pointer}
+#mPremium .almx svg{width:18px;height:18px;fill:none;stroke:var(--txt);stroke-width:2.4;stroke-linecap:round}
+.prtopo{border-radius:16px;padding:16px;margin:4px 0 12px;background:linear-gradient(135deg,#fde68a,#f59e0b);color:#1f2937;text-align:center}
+.prval small{display:block;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;opacity:.8}
+.prval b{display:block;font-size:34px;font-weight:900;line-height:1.15;margin:4px 0}
+.prval span{display:block;font-size:12.5px;font-weight:600;opacity:.85}
+.prlista{display:flex;flex-direction:column;gap:8px;margin-bottom:10px}
+.prlista>div{display:flex;gap:12px;align-items:flex-start;padding:10px 12px;border-radius:12px;background:var(--card2);border:1px solid var(--line)}
+.prlista i{font-style:normal;font-size:22px;line-height:1;flex:none;width:28px;text-align:center;margin-top:2px}
+.prlista b{display:block;font-size:14px}.prlista small{display:block;color:var(--mut);font-size:12.5px;line-height:1.4;margin-top:2px}
 #mLogo .almtopo{flex:none;display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}#mLogo .almtopo h3{margin:0}
 #mLogo .almx{width:38px;height:38px;flex:none;border-radius:50%;background:var(--card2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;cursor:pointer}
 #mLogo .almx svg{width:18px;height:18px;fill:none;stroke:var(--txt);stroke-width:2.4;stroke-linecap:round}
@@ -3379,6 +3390,24 @@ nav button.on .nemo.txt{color:var(--red2)}
     <button class="btn" id="clWpp" type="button" style="width:100%;background:#16a34a;color:#fff">Enviar no WhatsApp</button>
     <button class="btn btn-out" id="clCopiar" type="button" style="width:100%;margin-top:8px">Copiar link</button>
     <button class="btn-link" id="clNovo" type="button" style="display:block;margin:12px auto 0;background:none;border:0;color:var(--mut);font:inherit;font-size:12.5px;text-decoration:underline;cursor:pointer">Gerar um link novo (o antigo para de funcionar)</button>
+  </div>
+</div>
+<!-- 21/10/2026 (pedido do dono): quadro do Premium antes do PIX — valor e tudo que vem junto -->
+<div class="modal alsheet" id="mPremium">
+  <div class="box2 prbox" style="max-width:480px">
+    <div class="almtopo"><h3>⭐ Premium</h3><button class="almx" data-close type="button" aria-label="Fechar" title="Fechar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <div class="prtopo"><div class="prval"><small>30 dias por PIX</small><b id="prValor">…</b><span id="prValSub">para todos os veículos da sua conta</span></div></div>
+    <div class="prlista">
+      <div><i>🛣️</i><div><b>Vista da rua</b><small>Foto do lugar onde o veículo está parado, ao lado do cartão, e giro 360° dentro do app.</small></div></div>
+      <div><i>📊</i><div><b>Painel da Frota completo</b><small>Combustível gasto e troca de óleo de todos os veículos, num lugar só.</small></div></div>
+      <div><i>🔧</i><div><b>Contagem regressiva do odômetro</b><small>Troca de óleo e lembretes por km, com aviso no celular e no mapa.</small></div></div>
+      <div><i>📲</i><div><b>Checkout do odômetro pelos motoristas</b><small>Um link só para todos: o motorista escolhe a placa, digita o km e manda a foto do painel.</small></div></div>
+      <div><i>🖼️</i><div><b>Sua logo no app e nos links</b><small>Sua marca no topo do app e na página que o seu cliente abre.</small></div></div>
+    </div>
+    <p class="asinfo" id="prNota">Pagou, libera na hora. Renovar soma mais 30 dias ao que falta. Sem fidelidade.</p>
+    <div class="ferr" id="prErro"></div>
+    <button class="btn" id="prComprar" type="button" style="width:100%;background:#16a34a;color:#fff;height:48px;font-size:15px">Quero o Premium · gerar PIX</button>
+    <button class="btn btn-out alfechar" data-close type="button" style="margin-top:8px">Agora não</button>
   </div>
 </div>
 <!-- 20/10/2026 (pedido do dono): logo do cliente (frotista Premium) -->
@@ -6571,9 +6600,9 @@ function modFrotaPintarJanela(){
   if(ok && !ehAdmin && dias<=5){ r.style.display=''; $('mfRenovaTx').textContent='Premium até '+new Date(ate).toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo'})+(dias<=1?' (vence amanhã)':' (faltam '+dias+' dias)'); }
   else r.style.display='none';
 }
-$('mfLiberar').onclick=()=>lojaComprarPix('modfrota',$('mfLiberar'),1);
-$('mfRenovar').onclick=()=>lojaComprarPix('modfrota',$('mfRenovar'),1);
-$('cbMapaAss').onclick=()=>lojaComprarPix('modfrota',$('cbMapaAss'),1);
+$('mfLiberar').onclick=()=>premiumOferecer();
+$('mfRenovar').onclick=()=>premiumOferecer();
+$('cbMapaAss').onclick=()=>premiumOferecer();
 let mfUlt=null; setInterval(()=>{ try{ const ok=modFrota(); if(!ehAdmin && mfUlt!==null && mfUlt!==ok){ modFrotaAplicar(); if($('mComb').classList.contains('show')){ modFrotaPintarJanela(); cbPintar() } } mfUlt=ok }catch(e){} },60000); /* venceu com o app aberto */
 /* ===== PAINEL DA FROTA (19/10/2026, pedido do dono) =====
    Aba "Frota", só para frotista (e administrador). Junta, de todos os veículos, o que já existe no cartão de cada um:
@@ -6722,7 +6751,7 @@ async function frChkSalvar(id){
 $('frLista').addEventListener('input',e=>{ const i=e.target.closest('.frchkin'); if(i) FR_CHK[+i.dataset.id]=i.value.replace(/[^\d.,]/g,'') });
 $('frLista').addEventListener('keydown',e=>{ const i=e.target.closest('.frchkin'); if(i && e.key==='Enter'){ e.preventDefault(); frChkSalvar(+i.dataset.id) } });
 $('frLista').addEventListener('click',e=>{
-  if(e.target.closest('[data-pedirtodos]')||e.target.closest('[data-chktrava]')){ if(!ehAdmin && !modFrota()){ toast('O checkout do odômetro pelos motoristas faz parte do Premium. Assine para usar.',4500); lojaComprarPix('modfrota',btnFantasma(),1); return } chkLinkAbrir(0); return }
+  if(e.target.closest('[data-pedirtodos]')||e.target.closest('[data-chktrava]')){ if(!ehAdmin && !modFrota()){ premiumOferecer(); return } chkLinkAbrir(0); return }
   const o=e.target.closest('#frOrd button'); if(o){ frOrdem=o.dataset.o; frDesenhar(); return }
   if(e.target.closest('.frchkin')) return;
   const ck=e.target.closest('[data-chk]'); if(ck){ frChkSalvar(+ck.dataset.chk); return }
@@ -6987,7 +7016,7 @@ function brandAplicar(){ /* canto superior esquerdo: logo do cliente quando ele 
 function logoMaisTxt(){ try{ brandAplicar() }catch(e){}  const t=$('maisLogoTxt'); if(t) t.textContent=!modFrota()?'⭐ Recurso Premium':(LG.meu?'Logo ativa'+(LG.meu.nome?' · '+LG.meu.nome:''):'Sua marca no link de localização') }
 function logoPrevPintar(){ const e=$('lgImg'); if(LG.img){ e.style.backgroundImage='url("'+LG.img+'")'; e.classList.add('tem') } else { e.style.backgroundImage=''; e.classList.remove('tem') } $('lgNmPrev').textContent=$('lgNome').value.trim()||'Nome da empresa' }
 async function logoAbrir(alvo){
-  if(!alvo && !modFrota()){ toast('A sua logo é um recurso do Premium. Assine para usar.'); try{ lojaComprarPix('modfrota',btnFantasma(),1) }catch(e){} return }
+  if(!alvo && !modFrota()){ toast('A sua logo é um recurso do Premium. Assine para usar.'); try{ premiumOferecer() }catch(e){} return }
   LG.alvo=alvo; LG.img=''; $('lgNome').value=''; $('lgErro').textContent=''; $('lgRemover').style.display='none';
   const u=alvo?usuarios.find(x=>x.id===alvo):null;
   $('lgTit').textContent=alvo?'Logo de '+((u&&u.name)||'cliente'):'Sua logo';
@@ -7043,7 +7072,22 @@ $('lgRemover').onclick=async()=>{
 };
 $('pmLogoAbrir').onclick=()=>logoAbrir(permUserId);
 function ruaComLogo(txt){ const l=LG.meu; return l&&l.img ? '<img class="rblogo" src="'+l.img+'" alt="">'+txt : txt }
-const btnFantasma=()=>document.createElement('button'); /* 21/10/2026: botão de mentira para o PIX não apagar o conteúdo do quadro */
+const btnFantasma=()=>document.createElement('button');
+/* 21/10/2026 (pedido do dono): nada de PIX direto. Primeiro o quadro do Premium (valor + o que vem junto); o PIX só no botão de lá. */
+let PR_VAL=null;
+async function premiumOferecer(){
+  if(ehAdmin){ toast('Você é o administrador: o Premium já está liberado para você.'); return }
+  $('prErro').textContent=''; $('prComprar').disabled=false;
+  const ate=Number(permCli&&permCli.modFrotaAteMs||0), ativo=ate>Date.now();
+  $('prNota').textContent=ativo?'Seu Premium vale até '+new Date(ate).toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo'})+'. Renovar soma mais 30 dias ao que falta.':'Pagou, libera na hora. Renovar soma mais 30 dias ao que falta. Sem fidelidade.';
+  $('prComprar').textContent=ativo?'Renovar o Premium · gerar PIX':'Quero o Premium · gerar PIX';
+  $('prValor').textContent=PR_VAL?brl(PR_VAL):'…';
+  try{ const m=$('mPremium'); m.style.zIndex='1400'; document.body.appendChild(m) }catch(e){}
+  abrir('mPremium');
+  try{ const j=await fnAdm('modFrotaCotar',{}); PR_VAL=Number(j.valor); $('prValor').textContent=brl(PR_VAL) }
+  catch(e){ $('prValor').textContent='—'; $('prErro').textContent=e.message }
+}
+$('prComprar').onclick=()=>{ lojaComprarPix('modfrota',$('prComprar'),1) }; /* 21/10/2026: botão de mentira para o PIX não apagar o conteúdo do quadro */
 function ruaAdmLigada(){ try{ return localStorage.getItem('rg_rua_adm')==='1' }catch(e){ return false } }
 $('btnRuaVer').addEventListener('pointerdown',e=>e.stopPropagation());
 $('btnRuaVer').onclick=e=>{ e.stopPropagation(); const lig=!ruaAdmLigada(); try{ localStorage.setItem('rg_rua_adm',lig?'1':'0') }catch(_){} ruaRedesenhar(); toast(lig?'Vista da rua ligada (só para você).':'Vista da rua desligada (só para você). Os clientes Premium continuam vendo.') };
@@ -7116,7 +7160,7 @@ $('vRuaImg').addEventListener('error',()=>{ /* sem foto no ponto ou limite do di
 });
 $('vRua').addEventListener('click',e=>{
   e.stopPropagation();
-  if($('vRua').classList.contains('trava')){ lojaComprarPix('modfrota',btnFantasma(),1); return }
+  if($('vRua').classList.contains('trava')){ premiumOferecer(); return }
   const v=veiculos.find(x=>x.id===selId); if(!v||!v.pos) return;
   window.open('https://www.google.com/maps/@?api=1&map_action=pano&viewpoint='+v.pos[0].toFixed(6)+','+v.pos[1].toFixed(6),'_blank','noopener');
 });
