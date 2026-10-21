@@ -168,6 +168,7 @@ async function abrir() {
     setTimeout(() => { try { $('km').focus(); } catch (e) {} }, 200);
   } catch (e) {
     if (e.status === 404 && VEIC) { VEIC = null; try { history.replaceState(null, '', '?c=' + encodeURIComponent(codigo)); } catch (x) {} abrir(); return; } /* veículo saiu da lista: volta para as placas */
+    if (e.status === 410 && /indisponível no momento/i.test(e.message)) { falhar('Serviço indisponível no momento', 'Tente mais tarde ou fale com a empresa.'); return; }
     if (e.status === 404 || e.status === 410) falhar('Link indisponível', e.message);
     else falhar('Sem conexão', 'Não consegui abrir. Confira a internet e abra o link de novo.');
   }
