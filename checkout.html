@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="theme-color" content="#0f1115">
+<title>Odômetro do veículo · Rastreando GPS</title>
+<link rel="icon" type="image/png" href="favicon.png">
+<!--
+  Página pública do CHECKOUT DO ODÔMETRO (Rastreando GPS, 20/10/2026, ideia do dono).
+  O frotista manda este link para o motorista. O motorista digita o km do painel e envia: vira o checkout do veículo
+  (a diferença conta como km rodado; combustível e troca de óleo recalculam). Sem login: só quem tem o código do link.
+  Servidor: rastreamentoDesbloqueio, ações chkLinkVer e chkLinkEnviar.
+-->
+<style>
+:root{--bg:#0f1115;--card:#181b22;--card2:#20242d;--line:#2a2f3a;--txt:#f1f5f9;--mut:#94a3b8;--green:#22c55e;--red:#ef4444;--cyan:#22d3ee}
+@media (prefers-color-scheme: light){:root{--bg:#f4f6f9;--card:#fff;--card2:#eef2f6;--line:#e2e8f0;--txt:#0f172a;--mut:#64748b}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--txt);font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-text-size-adjust:100%}
+.pg{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;align-items:center;padding:calc(16px + env(safe-area-inset-top)) 16px calc(20px + env(safe-area-inset-bottom))}
+.topo{width:100%;max-width:440px;display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.topo img{width:40px;height:40px;border-radius:50%;object-fit:cover}
+.topo.comlogo img{border-radius:11px;object-fit:contain;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.18)}
+.topo b{display:block;font-weight:800;font-size:15.5px;letter-spacing:.04em}
+.topo small{display:block;font-size:11px;color:var(--mut)}
+.card{width:100%;max-width:440px;background:var(--card);border:1px solid var(--line);border-radius:22px;padding:20px 18px 18px;box-shadow:0 14px 40px rgba(0,0,0,.25)}
+.ico{display:flex;justify-content:center;margin:2px 0 10px}
+.ico svg{width:190px;height:auto}
+h1{margin:0;text-align:center;font-size:21px;line-height:1.25}
+.veic{text-align:center;margin:6px 0 2px;font-weight:800;font-size:16px}
+.placa{text-align:center;color:var(--mut);font-size:13px;letter-spacing:.12em}
+.dica{color:var(--mut);font-size:13.5px;line-height:1.45;text-align:center;margin:12px 0 14px}
+.campo{position:relative}
+.campo input{width:100%;height:66px;border-radius:16px;border:2px solid var(--line);background:var(--card2);color:var(--txt);font:inherit;font-size:30px;font-weight:800;text-align:center;letter-spacing:.06em;padding:0 56px 0 16px}
+.campo input:focus{outline:none;border-color:var(--cyan)}
+.campo span{position:absolute;right:16px;top:50%;transform:translateY(-50%);font-weight:800;color:var(--mut)}
+.ult{text-align:center;font-size:12.5px;color:var(--mut);margin-top:8px;min-height:18px}
+.erro{color:var(--red);font-weight:700;font-size:13.5px;text-align:center;min-height:20px;margin:10px 0 4px;line-height:1.4}
+button{width:100%;height:56px;border:0;border-radius:16px;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;font:inherit;font-size:17px;font-weight:800;cursor:pointer;box-shadow:0 8px 20px rgba(22,163,74,.3)}
+button:disabled{opacity:.6}
+.ok{text-align:center;padding:8px 0}
+.ok .bola{width:84px;height:84px;border-radius:50%;margin:6px auto 12px;background:rgba(34,197,94,.14);display:flex;align-items:center;justify-content:center}
+.ok .bola svg{width:44px;height:44px;stroke:var(--green);fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+.ok h2{margin:0 0 6px;font-size:22px}
+.ok p{margin:0;color:var(--mut);font-size:14px;line-height:1.5}
+.ok b{color:var(--txt)}
+.rod{margin-top:16px;font-size:11px;color:var(--mut);display:flex;align-items:center;gap:6px}
+.rod img{width:15px;height:15px;border-radius:50%;object-fit:cover}
+.carrega{color:var(--mut);text-align:center;padding:40px 0}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div class="pg">
+  <div class="topo" id="topo"><img id="topoImg" src="logo.jpeg" alt="" onerror="this.style.display='none'"><div><b id="topoNome">RASTREANDO GPS</b><small id="topoSub">Odômetro do veículo</small></div></div>
+  <div class="card">
+    <div class="carrega" id="carrega">Carregando…</div>
+    <div id="form" hidden>
+      <div class="ico" aria-hidden="true">
+        <!-- desenho próprio de um painel com odômetro -->
+        <svg viewBox="0 0 200 120">
+          <defs><linearGradient id="g1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1e293b"/><stop offset="1" stop-color="#0b1220"/></linearGradient></defs>
+          <path d="M14 104a86 86 0 0 1 172 0" fill="url(#g1)" stroke="#334155" stroke-width="4"/>
+          <path d="M32 100a68 68 0 0 1 136 0" fill="none" stroke="#22d3ee" stroke-width="5" stroke-linecap="round" stroke-dasharray="4 10" opacity=".55"/>
+          <path d="M132 50a68 68 0 0 1 36 50" fill="none" stroke="#ef4444" stroke-width="5" stroke-linecap="round" opacity=".8"/>
+          <line x1="100" y1="100" x2="58" y2="72" stroke="#f97316" stroke-width="5" stroke-linecap="round"/>
+          <circle cx="100" cy="100" r="9" fill="#f97316"/><circle cx="100" cy="100" r="4" fill="#0b1220"/>
+          <rect x="66" y="62" width="68" height="19" rx="4" fill="#020617" stroke="#475569" stroke-width="1.5"/>
+          <text x="100" y="76" text-anchor="middle" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="11.5" font-weight="700" fill="#22d3ee" textLength="56" lengthAdjust="spacingAndGlyphs">048530</text>
+        </svg>
+      </div>
+      <h1>Qual é o km do painel?</h1>
+      <div class="veic" id="veic"></div>
+      <div class="placa" id="placa"></div>
+      <p class="dica">Olhe o <b>odômetro</b> no painel do veículo e digite só os números, sem ponto e sem vírgula.</p>
+      <div class="campo"><input id="km" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="9" autocomplete="off" placeholder="000000" aria-label="Km do painel"><span>km</span></div>
+      <div class="ult" id="ult"></div>
+      <div class="erro" id="erro"></div>
+      <button type="button" id="enviar">Enviar</button>
+    </div>
+    <div class="ok" id="ok" hidden>
+      <div class="bola"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+      <h2>Obrigado!</h2>
+      <p id="okTxt"></p>
+    </div>
+    <div class="ok" id="falha" hidden>
+      <h2 id="falhaTit">Link indisponível</h2>
+      <p id="falhaTxt"></p>
+    </div>
+  </div>
+  <div class="rod" id="rod" hidden><img src="logo.jpeg" alt="" onerror="this.style.display='none'">Rastreado por Rastreando GPS</div>
+</div>
+<script>
+const FN = 'https://southamerica-east1-rastreando-assinaturas.cloudfunctions.net/rastreamentoDesbloqueio';
+const $ = id => document.getElementById(id);
+const codigo = (new URLSearchParams(location.search).get('c') || '').trim();
+const num = n => Number(n || 0).toLocaleString('pt-BR');
+async function chamar(acao, extra) {
+  const r = await fetch(FN, { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'omit', body: JSON.stringify(Object.assign({ acao, codigo }, extra || {})) });
+  let j = {}; try { j = await r.json(); } catch (e) {}
+  if (!r.ok) { const e = new Error(j.erro || 'Não consegui falar com o servidor. Confira a internet.'); e.status = r.status; throw e; }
+  return j;
+}
+function falhar(tit, txt) { $('carrega').hidden = true; $('form').hidden = true; $('falha').hidden = false; $('falhaTit').textContent = tit; $('falhaTxt').textContent = txt; }
+async function abrir() {
+  if (!/^[A-Za-z0-9]{12,20}$/.test(codigo)) { falhar('Link inválido', 'Confira se o link foi copiado inteiro, ou peça um novo para a empresa.'); return; }
+  try {
+    const d = await chamar('chkLinkVer');
+    $('veic').textContent = d.nome || 'Veículo';
+    $('placa').textContent = d.placa ? String(d.placa).replace(/^([A-Z]{3})(\d)/, '$1-$2') : '';
+    $('ult').textContent = d.ultimo && d.ultimo.km ? 'Último registro: ' + num(d.ultimo.km) + ' km em ' + new Date(d.ultimo.em).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' }) : '';
+    if (d.logo && /^data:image\//.test(d.logo.img || '')) { /* logo do cliente (frotista Premium) */
+      $('topo').classList.add('comlogo'); $('topoImg').style.display = ''; $('topoImg').src = d.logo.img;
+      $('topoNome').textContent = d.logo.nome || ''; if (!d.logo.nome) $('topoNome').style.display = 'none';
+      $('rod').hidden = false;
+    }
+    document.title = 'Odômetro · ' + (d.nome || 'Veículo');
+    $('carrega').hidden = true; $('form').hidden = false;
+    setTimeout(() => { try { $('km').focus(); } catch (e) {} }, 200);
+  } catch (e) {
+    if (e.status === 404 || e.status === 410) falhar('Link indisponível', e.message);
+    else falhar('Sem conexão', 'Não consegui abrir. Confira a internet e abra o link de novo.');
+  }
+}
+$('km').addEventListener('input', () => { const v = $('km').value.replace(/\D/g, '').slice(0, 9); if ($('km').value !== v) $('km').value = v; $('erro').textContent = ''; });
+$('km').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); enviar(); } });
+$('enviar').onclick = enviar;
+async function enviar() {
+  const b = $('enviar'); if (b.disabled) return;
+  const km = Number($('km').value.replace(/\D/g, ''));
+  if (!(km > 0)) { $('erro').textContent = 'Digite o km que aparece no painel.'; $('km').focus(); return; }
+  b.disabled = true; b.textContent = 'Enviando…'; $('erro').textContent = '';
+  try {
+    const r = await chamar('chkLinkEnviar', { km });
+    $('form').hidden = true; $('ok').hidden = false;
+    $('okTxt').innerHTML = 'Registramos <b>' + num(r.km) + ' km</b> no ' + (r.nome || 'veículo').replace(/[<>&]/g, '') + '.<br>Pode fechar esta página. Na próxima semana, use este mesmo link.';
+  } catch (e) {
+    $('erro').textContent = e.message; b.disabled = false; b.textContent = 'Enviar';
+  }
+}
+abrir();
+</script>
+</body>
+</html>
