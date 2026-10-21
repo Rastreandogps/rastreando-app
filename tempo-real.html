@@ -4047,7 +4047,7 @@ try{ const a=sessionStorage.getItem('rg_aba'); if(a && a!=='Mapa') ABA_SALVA=a }
 function abaAgora(){ if(ABA_SALVA) return ABA_SALVA; const b=document.querySelector('nav button.on'); return (b&&b.dataset.tab)||'Mapa' }
 function abaRestaurar(){ /* chamado depois de saber se é administrador */
   const a=ABA_SALVA; ABA_SALVA=null; if(!a) return;
-  const b=document.querySelector('nav button[data-tab="'+a+'"]'), pode=!!b && (a!=='Admin'||ehAdmin) && (a!=='Frota'||ehAdmin||(permCli&&permCli.frotista===true)||lsFlag('rg_aba_frota_ok'));
+  const b=document.querySelector('nav button[data-tab="'+a+'"]'), pode=!!b && (a!=='Admin'||ehAdmin) && !((a==='Faturas'||a==='Mais')&&ehAdmin) && (a!=='Frota'||ehAdmin||(permCli&&permCli.frotista===true)||lsFlag('rg_aba_frota_ok'));
   if(pode){ try{ irPara(a) }catch(e){ irPara('Mapa') } } else if(GM_PENDENTE){ GM_PENDENTE=false; mapaGoogleLigar() }
 }
 async function mapaGoogleLigar(){
@@ -6887,15 +6887,17 @@ function vcAplicar(id,c){
   lsFlagSet('rg_comb_mapa_'+id,!!c.combMapa); lsFlagSet('rg_meta_mapa_'+id,!!c.metaMapa); lsFlagSet('rg_frota_'+id,!!c.frota);
   lsJset('rg_mot_'+id,c.mot&&(c.mot.nome||c.mot.fone)?{nome:c.mot.nome||'',fone:c.mot.fone||''}:null); if(!c.mot) lsSet('rg_mot_'+id,'null');
   lsSet('rg_vcfg_em_'+id,String(c.em||0)); lsSet('rg_vcfg_mig_'+id,'1');
-  if(c.chk) lsJset('rg_chk_'+id,c.chk); /* 20/10/2026: último checkout do odômetro */
+  if(c.chk){ const lc=frChkLer(id); if(c.chk.miniIgual && lc && lc.mini) c.chk.mini=lc.mini; lsJset('rg_chk_'+id,c.chk) } /* 20/10/2026: último checkout do odômetro */
 }
-async function vcSincronizar(){
+async function vcSincronizar(soFrota){
   if(VC.rodando || document.visibilityState!=='visible' || !veiculos.length) return;
   const tok=lsGet('rg_token'); if(!tok) return;
   VC.rodando=true;
   try{
-    const ids=veiculos.map(v=>v.id).slice(0,300);
-    const r=await fetch(DESB_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',body:JSON.stringify({acao:'vcfgLer',token:tok,ids})});
+    const ids=(soFrota?frVeics():veiculos).map(v=>v.id).slice(0,300); /* 21/10/2026: na aba Frota, só os veículos dela */
+    if(!ids.length) return;
+    const chkEm={}; ids.forEach(id=>{ const c=frChkLer(id); if(c&&c.em) chkEm[id]=c.em }); /* o servidor só manda a miniatura da foto se mudou */
+    const r=await fetch(DESB_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',body:JSON.stringify({acao:'vcfgLer',token:tok,ids,chkEm})});
     if(!r.ok) return;
     const j=await r.json(), cfg=j.cfg||{}; let mudou=false;
     ids.forEach(id=>{
@@ -6903,7 +6905,7 @@ async function vcSincronizar(){
       const c=cfg[String(id)], emLocal=+(lsGet('rg_vcfg_em_'+id)||0);
       if(c){ if((c.em||0)>emLocal){ vcAplicar(id,c); mudou=true }
         /* 20/10/2026: o checkout (do painel ou do link do motorista) não muda o "em" da configuração: confere à parte */
-        if(c.chk && c.chk.em){ const lc=frChkLer(id); if(!lc || (lc.em||0)<c.chk.em){ lsJset('rg_chk_'+id,c.chk); mudou=true } } }
+        if(c.chk && c.chk.em){ const lc=frChkLer(id); if(!lc || (lc.em||0)<c.chk.em){ if(c.chk.miniIgual && lc && lc.mini) c.chk.mini=lc.mini; lsJset('rg_chk_'+id,c.chk); mudou=true } } }
       else if(!lsGet('rg_vcfg_mig_'+id)){                       /* 1ª vez: leva para o servidor o que já estava neste aparelho */
         const l=vcLocal(id);
         if(lsJ('rg_comb_'+id,null) || l.meta || l.combMapa || l.metaMapa || l.frota) vcEnviar(id); else lsSet('rg_vcfg_mig_'+id,'1');
@@ -6914,7 +6916,7 @@ async function vcSincronizar(){
 }
 setTimeout(vcSincronizar,3500);
 setInterval(vcSincronizar,120000);
-setInterval(()=>{ try{ if($('frview').classList.contains('show')) vcSincronizar() }catch(e){} },20000); /* 21/10/2026: com o Painel da Frota aberto, o checkout do motorista (e a foto) aparece em até 20 s */
+setInterval(()=>{ try{ if($('frview').classList.contains('show')) vcSincronizar(true) }catch(e){} },20000); /* 21/10/2026: com o Painel da Frota aberto, o checkout do motorista (e a foto) aparece em até 20 s */
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') setTimeout(vcSincronizar,1500) });
 /* chamado a cada atualização: troca o rótulo do mapa só se mudou; com a janela aberta, atualiza os valores */
 function cbMapaAtualizar(){
