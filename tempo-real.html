@@ -1602,6 +1602,13 @@ body.desenhando .follow,body.desenhando .sheet,body.desenhando .vazio{display:no
 .frv .frtop .frtira:hover{color:var(--red2);border-color:var(--red2)}
 .frchk .frchkmini{width:30px;height:30px;border-radius:8px;object-fit:cover;margin-left:6px;cursor:zoom-in;border:1px solid var(--line);box-shadow:0 1px 4px rgba(0,0,0,.15)}
 .frtopbts{display:flex;align-items:center;gap:12px}
+/* 21/10/2026: botão do link único com realce 3D, na linha da ordem */
+.frord{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:14px!important}
+.frord .frpedir3d{margin-left:auto;height:40px;padding:0 18px;border-radius:12px;border:0;cursor:pointer;font:inherit;font-size:13.5px;font-weight:800;color:#fff;
+  background:linear-gradient(180deg,#22c55e,#15803d);box-shadow:0 4px 0 #166534,0 8px 16px rgba(22,101,52,.35),inset 0 1px 0 rgba(255,255,255,.35);transform:translateY(0);transition:transform .08s,box-shadow .08s}
+.frord .frpedir3d:hover{filter:brightness(1.05)}
+.frord .frpedir3d:active{transform:translateY(3px);box-shadow:0 1px 0 #166534,0 4px 10px rgba(22,101,52,.3),inset 0 1px 0 rgba(255,255,255,.3)}
+@media (max-width:640px){ .frord .frpedir3d{margin-left:0;width:100%} }
 .frpedir{height:32px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--txt);font:inherit;font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap}
 .frpedir:hover{border-color:var(--cyan)}
 .frchk small{font-size:11px;color:var(--mut);white-space:nowrap}
@@ -2718,7 +2725,7 @@ nav button.on .nemo.txt{color:var(--red2)}
   <!-- 19/10/2026 (pedido do dono): painel da frota, só para frotista -->
   <section class="alview" id="frview">
     <div class="vtop">
-      <div class="vtitle"><h2>Painel da Frota</h2><span class="frtopbts"><button type="button" class="frpedir" id="frPedirTodos" style="display:none" title="Um link só para todos os motoristas: cada um escolhe a placa">📲 Pedir odômetro aos motoristas</button><button class="linkbtn" id="frAtualizar">Atualizar</button></span></div>
+      <div class="vtitle"><h2>Painel da Frota</h2><span class="frtopbts"><button class="linkbtn" id="frAtualizar">Atualizar</button></span></div>
       <div class="vcount" id="frSub">Combustível e troca de óleo de cada veículo</div>
     </div>
     <div class="vlist" id="frLista"></div>
@@ -6588,7 +6595,7 @@ function frDesenhar(){
   const L=$('frLista'); if(!L) return;
   const premium=modFrota(), d=frDados(), VS=frVeics();
   $('frSub').textContent=VS.length+(VS.length===1?' veículo':' veículos')+' na aba Frota'+' · combustível e troca de óleo';
-  $('frPedirTodos').style.display=(!ehAdmin && VS.length)?'':'none'; /* link único: só o cliente (o administrador usa o link por veículo) */
+
   if(!VS.length){
     L.innerHTML='<p class="frnota">'+(veiculos.length?'Nenhum veículo na aba Frota ainda. No mapa, toque no Odômetro ou no Combustível do veículo e marque <b>"Mostrar na aba Frota"</b>.':'Nenhum veículo na sua conta.')+'</p>';
     frUltN=frChave(); return }
@@ -6602,7 +6609,7 @@ function frDesenhar(){
              : '<div class="comb"><span>⛽ Combustível</span><b>🔒 Premium</b><small>'+MODFROTA_VALOR+'</small></div>')+
     '<div><span>🚗 Veículos</span><b>'+VS.length+'</b><small>'+VS.filter(v=>v.online).length+' online</small></div>'+
     oleoTx+'</div>';
-  h+='<div class="frord" id="frOrd"><button type="button" data-o="oleo" class="'+(frOrdem==='oleo'?'on':'')+'">Óleo mais perto</button><button type="button" data-o="comb" class="'+(frOrdem==='comb'?'on':'')+'">Mais gasto</button><button type="button" data-o="nome" class="'+(frOrdem==='nome'?'on':'')+'">Nome</button></div>';
+  h+='<div class="frord" id="frOrd"><button type="button" data-o="oleo" class="'+(frOrdem==='oleo'?'on':'')+'">Óleo mais perto</button><button type="button" data-o="comb" class="'+(frOrdem==='comb'?'on':'')+'">Mais gasto</button><button type="button" data-o="nome" class="'+(frOrdem==='nome'?'on':'')+'">Nome</button>'+(!ehAdmin?'<button type="button" class="frpedir3d" data-pedirtodos="1" title="Um link só para todos os motoristas: cada um escolhe a placa, digita o km e tira a foto do painel">📲 Pedir odômetro aos motoristas</button>':'')+'</div>'; /* 21/10/2026: botão do link único junto da ordem (pedido do dono) */
   const ord=d.slice().sort((a,b)=>{
     if(frOrdem==='comb') return (b.g?b.g.rs:-1)-(a.g?a.g.rs:-1);
     if(frOrdem==='nome') return String(a.v.nome).localeCompare(String(b.v.nome),'pt-BR');
@@ -6635,7 +6642,7 @@ function frChkHtml(v){
   const info=c&&c.em?'último '+new Date(c.em).toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo',day:'2-digit',month:'2-digit'})+(c.dif!=null&&Math.abs(c.dif)>=0.1?' ('+(c.dif>0?'+':'')+String(c.dif).replace('.',',')+' km)':''):'nunca feito';
   return '<span class="frchk'+(atras?' atras':'')+'" title="Checkout: digite o km do painel do veículo. A diferença conta como km rodado (combustível e troca de óleo recalculam).">'+
     '<input class="frchkin" data-id="'+v.id+'" name="frchk_'+v.id+'_'+Date.now()%100000+'" type="text" inputmode="numeric" maxlength="9" autocomplete="off" data-lpignore="true" data-1p-ignore data-form-type="other" readonly onfocus="this.removeAttribute(\'readonly\')" placeholder="Checkout km" value="'+esc(FR_CHK[v.id]||'')+'">'+ /* 20/10/2026: readonly até tocar = o navegador não preenche com o login salvo */
-    '<button type="button" class="frchkok" data-chk="'+v.id+'" title="Salvar o km do painel">Salvar</button>'+(c&&c.mini&&/^data:image\//.test(c.mini)?'<img class="frchkmini" src="'+c.mini+'" data-chkfoto="'+v.id+'" alt="Foto do painel" title="Ver a foto do painel enviada pelo motorista">':'')+'<button type="button" class="frchklk" data-chklk="'+v.id+'" title="Manda um link para o motorista digitar o km do painel">📲 Pedir valor do odômetro</button><small>'+info+(c&&c.por==='motorista'?' · pelo motorista':'')+'</small></span>';
+    '<button type="button" class="frchkok" data-chk="'+v.id+'" title="Salvar o km do painel">Salvar</button>'+(c&&c.mini&&/^data:image\//.test(c.mini)?'<img class="frchkmini" src="'+c.mini+'" data-chkfoto="'+v.id+'" alt="Foto do painel" title="Ver a foto do painel enviada pelo motorista">':'')+''+(ehAdmin?'<button type="button" class="frchklk" data-chklk="'+v.id+'" title="Manda um link para o motorista digitar o km do painel">📲 Pedir valor do odômetro</button>':'')+'<small>'+info+(c&&c.por==='motorista'?' · pelo motorista':'')+'</small></span>';
 }
 /* fotos do painel (servidor chkFotoVer): a grande em cima, as últimas embaixo para comparar */
 let CF={id:null,fotos:[]};
@@ -6683,7 +6690,7 @@ $('clWpp').onclick=()=>{
   window.open('https://wa.me/'+(f?(f.length<=11?'55'+f:f):'')+'?text='+encodeURIComponent(msg),'_blank','noopener');
 };
 $('clNovo').onclick=()=>{ if((CL.id||CL.univ) && confirm(CL.univ?'Gerar um link novo? O link que os motoristas têm hoje para de funcionar (para todos).':'Gerar um link novo? O link que o motorista tem hoje para de funcionar.')) chkLinkAbrir(CL.id,true) };
-$('frPedirTodos').onclick=()=>chkLinkAbrir(0);
+
 async function frChkSalvar(id){
   const v=veiculos.find(x=>x.id===id); if(!v) return;
   const km=Math.round(cbNum(FR_CHK[id]||''));
@@ -6704,6 +6711,7 @@ async function frChkSalvar(id){
 $('frLista').addEventListener('input',e=>{ const i=e.target.closest('.frchkin'); if(i) FR_CHK[+i.dataset.id]=i.value.replace(/[^\d.,]/g,'') });
 $('frLista').addEventListener('keydown',e=>{ const i=e.target.closest('.frchkin'); if(i && e.key==='Enter'){ e.preventDefault(); frChkSalvar(+i.dataset.id) } });
 $('frLista').addEventListener('click',e=>{
+  if(e.target.closest('[data-pedirtodos]')){ chkLinkAbrir(0); return }
   const o=e.target.closest('#frOrd button'); if(o){ frOrdem=o.dataset.o; frDesenhar(); return }
   if(e.target.closest('.frchkin')) return;
   const ck=e.target.closest('[data-chk]'); if(ck){ frChkSalvar(+ck.dataset.chk); return }
