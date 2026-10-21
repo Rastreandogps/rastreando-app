@@ -11619,8 +11619,11 @@ async function lojaManter(ped,btn){
   catch(e){ toast(e.message); btn.disabled=false }
 }
 /* ----- carrinho piscando no topo do mapa: pedidos esperando pagamento (inclui os com cancelamento agendado) ----- */
+let LOJA_MAPA_LISTA=[]; /* 21/10/2026: guarda a última lista p/ o carrinho sumir sozinho quando o PIX vence */
 function lojaMapaPintar(lista){
-  const n=(lista||[]).filter(p=>p.estado==='aguardando').length, b=$('mapCar'); if(!b) return;
+  LOJA_MAPA_LISTA=lista||[];
+  const agora=Date.now();
+  const n=LOJA_MAPA_LISTA.filter(p=>p.estado==='aguardando' && !(Number(p.expiraEmMs)>0 && agora>=Number(p.expiraEmMs))).length, b=$('mapCar'); if(!b) return;
   $('mapCarN').textContent=n; b.classList.toggle('show', n>0 && !ehAdmin);
   try{ const q=$('sLojaN'); q.textContent=n; q.hidden=!(n>0 && !ehAdmin) }catch(e){}
 }
@@ -11630,6 +11633,7 @@ async function lojaMapaAtualizar(){
   try{ const r=await fnLoja('lojaPedidos',{}); lojaMapaPintar(r.lista) }catch(e){ /* sem rede: deixa como está */ }
 }
 setInterval(lojaMapaAtualizar,120000); /* confere a cada 2 min (só com o app na tela) */
+setInterval(()=>{ try{ if(LOJA_MAPA_LISTA.length) lojaMapaPintar(LOJA_MAPA_LISTA) }catch(e){} },30000); /* repinta a cada 30 s, sem rede: PIX vencido sai do carrinho */
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') lojaMapaAtualizar() });
 $('mapCar').onclick=()=>{ lojaCarAberto=true; lojaDesenhar(); abrir('mLoja') };
 /* ===== MENSALIDADE PELO CARD DO CLIENTE (15/10/2026) =====
