@@ -48,6 +48,14 @@ body.noapp .topo{z-index:950}
 .voltaapp svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
 .topo .marca{font-weight:800;letter-spacing:.06em;font-size:15px;line-height:1.05}
 .topo .marca small{display:block;font-weight:600;font-size:10.5px;letter-spacing:.32em;color:var(--mut)}
+/* 20/10/2026 (pedido do dono): logo do cliente (frotista Premium) no topo; a marca da Rastreando fica no rodapé do cartão */
+.topo.comlogo img{width:42px;height:42px;border-radius:11px;object-fit:contain;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.18)}
+.topo.comlogo .marca{letter-spacing:.02em;font-size:15.5px;max-width:52vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.topo.comlogo .marca small{letter-spacing:.04em;font-size:11px}
+.rastpor{display:none;align-items:center;justify-content:center;gap:6px;margin-top:10px;font-size:11px;color:var(--mut)}
+.rastpor.on{display:flex}
+.rastpor img{width:15px;height:15px;border-radius:50%;object-fit:cover}
+.tec .foto.logo{background-size:contain!important;background-repeat:no-repeat!important;background-position:center!important;background-color:#fff!important;color:transparent!important}
 .topo .vivo{margin-left:auto;display:flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;letter-spacing:.06em;color:var(--green);border:1px solid currentColor;border-radius:999px;padding:4px 10px;background:var(--card);pointer-events:auto}
 .topo .vivo i{width:7px;height:7px;border-radius:50%;background:currentColor;animation:pisca 1.6s ease-in-out infinite}
 .topo .vivo.parado{color:var(--mut)}
@@ -150,6 +158,7 @@ body.noapp .topo{z-index:950}
     <a class="btn sec" id="btnMaps" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M12 22s7-6.1 7-12a7 7 0 10-14 0c0 5.9 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg>Google Maps</a>
   </div>
   <div class="valid"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span id="valid"></span></div>
+  <div class="rastpor" id="rastPor"><img src="logo.jpeg" alt="" onerror="this.style.display='none'">Rastreado por Rastreando GPS</div><!-- 20/10/2026: aparece quando o link tem a logo do cliente -->
 </section>
 
 <div class="tela show" id="telaCarrega"><div class="spin"></div><p>Carregando a localização…</p></div>
@@ -343,11 +352,23 @@ function mostrarEta() {
   }
 }
 
+/* 20/10/2026: logo do cliente (frotista Premium) no topo e na foto do serviço a caminho */
+let logoAplicada = false;
+function aplicarLogo(lg) {
+  if (logoAplicada || !lg || !/^data:image\//.test(lg.img || '')) return; logoAplicada = true;
+  const t = document.querySelector('.topo'), im = t.querySelector('img'), mc = t.querySelector('.marca');
+  t.classList.add('comlogo'); im.style.display = ''; im.src = lg.img;
+  mc.innerHTML = ''; mc.appendChild(document.createTextNode(lg.nome || '')); const sm = document.createElement('small'); sm.textContent = 'Acompanhamento ao vivo'; mc.appendChild(sm);
+  if (!lg.nome) mc.style.display = 'none';
+  $('rastPor').classList.add('on');
+  const f = $('tecFoto'); if (f && dados && dados.tipo === 'frota') { f.classList.add('logo'); f.style.backgroundImage = 'url("' + lg.img + '")'; }
+}
 function desenhar(d) {
-  dados = d;
+  if (d.logo) { dados = d; aplicarLogo(d.logo); }
   $('telaCarrega').classList.remove('show');
   $('cartao').style.display = '';
   if (d.tipo === 'tec' || d.tipo === 'frota') prepararTec(d);
+  if (d.logo && d.tipo === 'frota') { const f = $('tecFoto'); if (f && !f.classList.contains('logo')) { f.classList.add('logo'); f.style.backgroundImage = 'url("' + d.logo.img + '")'; } }
   $('nome').textContent = d.nome;
   $('placa').textContent = d.placa ? d.placa.replace(/^([A-Z]{3})(\d)/, '$1-$2') : '';
   $('placa').style.display = d.placa && !ehTec() ? '' : 'none';
@@ -457,7 +478,7 @@ async function buscar() {
   if (encerrado) return;
   try {
     const corpo = { acao: 'compVer', codigo };
-    if (!buscar._abriu) { buscar._abriu = true; corpo.abriu = 1; corpo.ua = navigator.userAgent || ''; try { const t = localStorage.getItem('rg_token'); if (t) corpo.token = t; } catch (e) {} } /* 19/10/2026: avisa quem criou que o link foi aberto (só na 1ª consulta) */
+    if (!buscar._abriu) { buscar._abriu = true; corpo.abriu = 1; corpo.logo = 1; /* 20/10/2026: pede a logo do cliente só na abertura */ corpo.ua = navigator.userAgent || ''; try { const t = localStorage.getItem('rg_token'); if (t) corpo.token = t; } catch (e) {} } /* 19/10/2026: avisa quem criou que o link foi aberto (só na 1ª consulta) */
     const r = await fetch(FN, { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'omit', body: JSON.stringify(corpo) });
     let j = {}; try { j = await r.json(); } catch (e) {}
     if (r.status === 404 || r.status === 410) { erro('Link indisponível', j.erro || 'Este link não existe ou já foi encerrado.'); return; }
