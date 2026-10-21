@@ -117,6 +117,8 @@ body.noapp .topo{z-index:950}
 .casa svg{width:17px;height:17px;transform:rotate(45deg);fill:none;stroke:#fff;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
 .casa b{transform:rotate(45deg);color:#fff;font-weight:900;font-size:15px;font-family:system-ui,sans-serif}
 .casa.b div{background:#2563eb}.casa.c div{background:#7c3aed}
+.casa{position:relative}.casa.passou div{background:#9ca3af!important} /* 21/10/2026: ponto já passado */
+.casa i.okv{position:absolute;top:-4px;right:-4px;width:19px;height:19px;border-radius:50%;background:#16a34a;color:#fff;border:2px solid #fff;font:900 11px/15px system-ui,sans-serif;text-align:center;font-style:normal;box-shadow:0 1px 4px rgba(0,0,0,.3)}
 .eta .info .pts{display:block;margin-top:3px}.eta .info .pts i{display:inline-block;width:16px;height:16px;border-radius:50%;background:var(--red);color:#fff;font-style:normal;font-weight:800;font-size:10.5px;text-align:center;line-height:16px;margin-right:3px;vertical-align:1px}.eta .info .pts i.b{background:#2563eb}.eta .info .pts i.c{background:#7c3aed}
 .leaflet-control-attribution{font-size:10px}
 .leaflet-top{top:calc(58px + env(safe-area-inset-top))}
@@ -190,6 +192,10 @@ let mapa = null, marcador = null, seguir = true, ultimo = null, dados = null, fa
 let endPos = null, endMs = 0, endBusca = false;
 let casa = null, casas = [], ptsKeyAnt = null, linhaRota = null, rotaDe = null, rotaMs = 0, rotaBusca = false, rota = null;
 /* 19/10/2026: até 3 pontos (A, B, C). Link antigo: só o destino = ponto A */
+/* 21/10/2026: o servidor diz se o veículo já passou no ponto A (B); a rota e a previsão seguem só com o que falta */
+const passouDe = (d) => (d && Array.isArray(d.passou)) ? d.passou : [];
+const passouEm = (d, i) => { const q = passouDe(d)[i]; return q && q.ms ? q.ms : 0; };
+const faltamDe = (d) => { const pts = pontosDe(d); return pts.map((x, i) => i).filter((i) => i === pts.length - 1 || !passouEm(d, i)); };
 const pontosDe = (d) => (d && Array.isArray(d.pontos) && d.pontos.length) ? d.pontos : (d && d.destino ? [d.destino] : []);
 const LETRAS = ['A', 'B', 'C'];
 /* animação suave da setinha (mesma do tempo-real.html): desliza da posição antiga até a nova
@@ -294,8 +300,8 @@ function prepararTec(d) {
   $('btnCentro').setAttribute('aria-label', q); $('btnCentro').title = q;
 }
 function iconeCasa(i, total) {
-  const letra = total > 1 ? LETRAS[i] : '';
-  return L.divIcon({ html: '<div class="casa ' + (letra ? letra.toLowerCase() : '') + '"><div>' + (letra ? '<b>' + letra + '</b>' : '<svg viewBox="0 0 24 24"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/></svg>') + '</div></div>', className: '', iconSize: [40, 40], iconAnchor: [20, 38] });
+  const letra = total > 1 ? LETRAS[i] : '', ok = total > 1 && passouEm(dados, i);
+  return L.divIcon({ html: '<div class="casa ' + (letra ? letra.toLowerCase() : '') + (ok ? ' passou' : '') + '"><div>' + (letra ? '<b>' + letra + '</b>' : '<svg viewBox="0 0 24 24"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/></svg>') + '</div>' + (ok ? '<i class="okv">✓</i>' : '') + '</div>', className: '', iconSize: [40, 40], iconAnchor: [20, 38] });
 }
 function fmtKm(m) { return m < 1000 ? Math.round(m / 10) * 10 + ' m' : (m / 1000).toFixed(m < 10000 ? 1 : 0).replace('.', ',') + ' km'; }
 /* rota pelas ruas: serviço público OSRM (sem trânsito), no máximo 1 consulta por minuto ou quando o técnico anda mais de 150 m */
@@ -342,8 +348,13 @@ function mostrarEta() {
     const min = Math.max(1, Math.round(rota.s * 1.25 / 60)); /* +25% por causa do trânsito (estimativa) */
     $('etaMin').innerHTML = (min < 60 ? min + '<small>min</small>' : Math.floor(min / 60) + '<small>h</small>' + (min % 60 ? ' ' + (min % 60) + '<small>min</small>' : ''));
     let porPonto = '';
-    if (pts.length > 1 && rota.legs && rota.legs.length === pts.length) { /* 19/10/2026: hora prevista em cada ponto (A, B, C) */
-      let acum = 0; porPonto = '<span class="pts">' + rota.legs.map((l, i) => { acum += l.s * 1.25; return '<i class="' + LETRAS[i].toLowerCase() + '">' + LETRAS[i] + '</i>' + hora(Date.now() + Math.max(1, Math.round(acum / 60)) * 60000); }).join(' · ') + '</span>';
+    const falt = faltamDe(d);
+    if (pts.length > 1 && rota.legs && rota.legs.length === falt.length) { /* 19/10/2026: hora prevista em cada ponto (A, B, C); 21/10: ponto passado mostra ✓ e a hora */
+      porPonto = '<span class="pts">' + pts.map((x, i) => {
+        if (passouEm(d, i)) return '<i class="' + LETRAS[i].toLowerCase() + '">' + LETRAS[i] + '</i>✓ passou ' + hora(passouEm(d, i));
+        const k = falt.indexOf(i), acum = rota.legs.slice(0, k + 1).reduce((t, l) => t + l.s * 1.25, 0);
+        return '<i class="' + LETRAS[i].toLowerCase() + '">' + LETRAS[i] + '</i>' + hora(Date.now() + Math.max(1, Math.round(acum / 60)) * 60000);
+      }).join(' · ') + '</span>';
     }
     $('etaInfo').innerHTML = 'Previsão de chegada ' + (pts.length > 1 ? 'ao ponto ' + LETRAS[pts.length - 1] + ' (final) ' : '') + '<b>' + hora(Date.now() + min * 60000) + '</b>' + porPonto + '<br>' + fmtKm(rota.m) + ' pelas ruas · estimativa, pode variar com o trânsito';
   } else {
@@ -364,7 +375,8 @@ function aplicarLogo(lg) {
   const f = $('tecFoto'); if (f && dados && dados.tipo === 'frota') { f.classList.add('logo'); f.style.backgroundImage = 'url("' + lg.img + '")'; }
 }
 function desenhar(d) {
-  if (d.logo) { dados = d; aplicarLogo(d.logo); }
+  dados = d; /* 21/10/2026: voltou (tinha ficado só quando havia logo) */
+  if (d.logo) aplicarLogo(d.logo);
   $('telaCarrega').classList.remove('show');
   $('cartao').style.display = '';
   if (d.tipo === 'tec' || d.tipo === 'frota') prepararTec(d);
@@ -408,7 +420,7 @@ function desenhar(d) {
       }
     }
     const pts = pontosDe(d);
-    const ptsKey = pts.map((x) => x.lat + ',' + x.lon).join(';');
+    const ptsKey = pts.map((x) => x.lat + ',' + x.lon).join(';') + '|' + JSON.stringify(passouDe(d)); /* 21/10/2026: passou no A também refaz pinos e rota */
     if (ptsKey !== ptsKeyAnt) { /* 19/10/2026: os pontos foram editados no app -> refaz pinos e rota */
       if (ptsKeyAnt !== null) { casas.forEach((m) => { try { m.remove(); } catch (e) {} }); casas = []; casa = null; if (linhaRota) { linhaRota.remove(); linhaRota = null; } rota = null; rotaDe = null; rotaMs = 0; }
       ptsKeyAnt = ptsKey;
@@ -421,7 +433,7 @@ function desenhar(d) {
       });
       casa = casas[0];
       mostrarEta();
-      buscarRota(p, pts);
+      buscarRota(p, faltamDe(d).map((i) => pts[i]));
     }
     if (seguir) centralizar(false);
     endereco(p.lat, p.lon);
