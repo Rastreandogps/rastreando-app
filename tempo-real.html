@@ -6601,7 +6601,7 @@ function frChkHtml(v){
   const c=frChkLer(v.id), dias=c&&c.em?Math.floor((Date.now()-c.em)/86400000):null, atras=dias==null||dias>=7;
   const info=c&&c.em?'último '+new Date(c.em).toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo',day:'2-digit',month:'2-digit'})+(c.dif!=null&&Math.abs(c.dif)>=0.1?' ('+(c.dif>0?'+':'')+String(c.dif).replace('.',',')+' km)':''):'nunca feito';
   return '<span class="frchk'+(atras?' atras':'')+'" title="Checkout: digite o km do painel do veículo. A diferença conta como km rodado (combustível e troca de óleo recalculam).">'+
-    '<input class="frchkin" data-id="'+v.id+'" type="text" inputmode="numeric" maxlength="9" autocomplete="off" placeholder="Checkout km" value="'+esc(FR_CHK[v.id]||'')+'">'+
+    '<input class="frchkin" data-id="'+v.id+'" name="frchk_'+v.id+'_'+Date.now()%100000+'" type="text" inputmode="numeric" maxlength="9" autocomplete="off" data-lpignore="true" data-1p-ignore data-form-type="other" readonly onfocus="this.removeAttribute(\'readonly\')" placeholder="Checkout km" value="'+esc(FR_CHK[v.id]||'')+'">'+ /* 20/10/2026: readonly até tocar = o navegador não preenche com o login salvo */
     '<button type="button" class="frchkok" data-chk="'+v.id+'" aria-label="Salvar checkout">✓</button><button type="button" class="frchklk" data-chklk="'+v.id+'" title="Link para o motorista informar o km">🔗 Motorista</button><small>'+info+(c&&c.por==='motorista'?' · pelo motorista':'')+'</small></span>';
 }
 /* link fixo do motorista (página checkout.html): servidor chkLinkCriar; "novo" troca o código e o antigo para de valer */
