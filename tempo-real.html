@@ -1779,6 +1779,14 @@ header nav .nl-pc{display:inline} header nav .nl-cel{display:none}
 .primepromo li{padding:6px 0;border-bottom:1px solid var(--line)}
 .primepromo .ppsm{font-size:12px}
 .primepromo .ppbt{display:inline-block;margin-top:10px;padding:11px 22px;border-radius:12px;background:linear-gradient(135deg,#fcd34d,#f59e0b);color:#1a1300;font-weight:800;text-decoration:none}
+/* 21/10/2026: já passou no ponto A (B) */
+.lkpass{margin:8px 0 2px;display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;font-size:12.5px;color:var(--mut)}
+.lkpass .ok{color:#15803d;font-weight:700}
+.lkpass button{border:1px solid var(--bd,#d8dee8);background:var(--card2);color:var(--txt,inherit);border-radius:9px;padding:5px 10px;font-size:12.5px;font-weight:700;cursor:pointer}
+.lkpass button.desf{background:none;border:0;padding:2px 4px;text-decoration:underline;font-weight:600;color:var(--mut)}
+.lkcasa{position:relative}
+.lkcasa.passou div{background:#9ca3af!important}
+.lkcasa i.okv{position:absolute;top:-7px;right:-7px;width:18px;height:18px;border-radius:50%;background:#16a34a;color:#fff;border:2px solid #fff;font:900 11px/14px system-ui;text-align:center;font-style:normal;box-shadow:0 1px 4px rgba(0,0,0,.3)}
 .lkacesso{margin:8px 0 2px;font-size:12.5px;color:var(--mut);padding:6px 10px;border-radius:10px;background:var(--card2)} /* 19/10/2026 */
 .lkacesso.ok{color:#15803d;background:rgba(34,197,94,.12)}
 .lkcard .lkbar{height:4px;border-radius:4px;background:var(--line);margin:10px 0 10px;overflow:hidden}
@@ -7242,6 +7250,22 @@ $('ceSalvar').onclick=async()=>{
 };
 /* 19/10/2026: pontos do link (A, B, C); link antigo só tem o destino */
 function compPontos(x){ return (Array.isArray(x.pontos)&&x.pontos.length)?x.pontos:(x.destLat!=null?[{lat:x.destLat,lon:x.destLon,endereco:x.destEnd||''}]:[]) }
+/* 21/10/2026: "já passou no ponto A?" — o servidor confere pelo GPS (inclusive pontos guardados sem sinal); aqui só mostra */
+const compPassou=x=>Array.isArray(x.passou)?x.passou:[];
+const compPassouChave=x=>JSON.stringify(compPassou(x));
+function compPassHtml(x){
+  const pts=compPontos(x); if(x.tipo!=='frota'||pts.length<2) return '';
+  const ps=compPassou(x), h=ms=>new Date(ms).toLocaleTimeString('pt-BR',{timeZone:'America/Sao_Paulo',hour:'2-digit',minute:'2-digit'});
+  const como={gps:'pelo GPS',aprox:'pela rota, aproximado',manual:'marcado à mão'};
+  let html='', prox=-1;
+  for(let i=0;i<pts.length-1;i++){
+    const q=ps[i];
+    if(q&&q.ms) html+='<span class="ok">✓ Passou no '+CAM_LET[i]+' às '+h(q.ms)+'</span><small>('+(como[q.como]||'')+')</small><button type="button" class="desf" data-cppass="'+esc(x.codigo)+'" data-i="'+i+'" data-desf="1">Desfazer</button>';
+    else if(prox<0) prox=i;
+  }
+  if(prox>=0) html+='<button type="button" data-cppass="'+esc(x.codigo)+'" data-i="'+prox+'">✓ Já passou no '+CAM_LET[prox]+'</button>';
+  return '<div class="lkpass" data-pass="'+esc(x.codigo)+'">'+html+'</div>';
+}
 function compCardHtml(x,agora,comVeic){
   const tc=x.tipo==='tec', fr=x.tipo==='frota'||tc, falta=x.expiraMs-agora, tot=Math.max(1,x.expiraMs-x.criadoMs); /* tec = "técnico a caminho" do APP Técnico (15/10/2026) */
   const vv=comVeic ? veiculos.find(q=>q.id===x.deviceId) : null;
@@ -7255,6 +7279,7 @@ function compCardHtml(x,agora,comVeic){
             '<span class="lkcd"><b>'+esc(tempoFalta(falta))+'</b><small>até '+esc(new Date(x.expiraMs).toDateString()===new Date().toDateString()?compQuando(x.expiraMs).replace(/^\d\d\/\d\d às /,''):compQuando(x.expiraMs))+'</small></span></div>'+
           '<div class="lkbar"><i style="width:'+Math.max(2,Math.min(100,falta/tot*100))+'%"></i></div>'+
           (!comVeic&&x.tipo==='frota'?'<button type="button" class="lked" data-cped="'+esc(x.codigo)+'">✏️ Editar pontos</button>':'')+
+          compPassHtml(x)+
           compAcessoHtml(x)+
           '<div class="lkbtns">'+
             '<button type="button" data-cpcopy="'+esc(x.codigo)+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 012-2h10"/></svg>Copiar</button>'+
@@ -7338,17 +7363,27 @@ function cprAbrir(cod){
   const mapa=L.map(el.querySelector('.lkmapa'),{zoomControl:false,attributionControl:false}).setView([x.destLat,x.destLon],14);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(mapa);
   const pts=compPontos(x);
-  const casa=pts.map((pt,i)=>L.marker([pt.lat,pt.lon],{icon:L.divIcon({className:'lkcasa'+(pts.length>1?' l'+CAM_LET[i].toLowerCase():''),html:'<div>'+(pts.length>1?'<b>'+CAM_LET[i]+'</b>':'<svg viewBox="0 0 24 24"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/></svg>')+'</div>',iconSize:[34,34],iconAnchor:[17,34]})}).addTo(mapa));
-  Object.assign(CPR,{cod,el,mapa,casa,pts});
+  Object.assign(CPR,{cod,el,mapa,casa:null,pts});
+  cprMarcas(x);
   const b=card.querySelector('.lkrbt'); if(b) b.classList.add('on');
   cprAtualizar(); CPR.timer=setInterval(cprAtualizar,15000);
+}
+function cprMarcas(x){ /* 21/10/2026: ponto já passado fica cinza com ✓ */
+  const pts=CPR.pts||[], ps=compPassou(x);
+  (CPR.casa||[]).forEach(m=>{ try{ m.remove() }catch(e){} });
+  CPR.casa=pts.map((pt,i)=>{ const ok=pts.length>1&&ps[i]&&ps[i].ms;
+    return L.marker([pt.lat,pt.lon],{icon:L.divIcon({className:'lkcasa'+(pts.length>1?' l'+CAM_LET[i].toLowerCase():'')+(ok?' passou':''),html:'<div>'+(pts.length>1?'<b>'+CAM_LET[i]+'</b>':'<svg viewBox="0 0 24 24"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/></svg>')+'</div>'+(ok?'<i class="okv">✓</i>':''),iconSize:[34,34],iconAnchor:[17,34]})}).addTo(CPR.mapa) });
+  CPR.passKey=compPassouChave(x);
 }
 async function cprAtualizar(){
   if(!CPR.cod) return;
   if(!$('cpview').classList.contains('show')){ cprFechar(); return }
   if(document.visibilityState==='hidden') return;
   const x=cpLista.find(y=>y.codigo===CPR.cod); if(!x){ cprFechar(); return }
+  if(CPR.passKey!==compPassouChave(x)){ cprMarcas(x); CPR.rota=null; CPR.rotaMs=0 } /* passou no A: refaz a rota só com o que falta */
+  const ps=compPassou(x);
   const v=veiculos.find(q=>q.id===x.deviceId), p=cprPos(v), pts=CPR.pts||compPontos(x), fim=pts[pts.length-1], dest=[fim.lat,fim.lon], eta=CPR.el.querySelector('.lketa');
+  const falt=pts.map((q,i)=>i).filter(i=>i===pts.length-1||!(ps[i]&&ps[i].ms)); /* índices dos pontos que faltam */
   if(!p){ eta.innerHTML='<b class="min">—</b><span>Sem posição do veículo agora.</span>'; return }
   if(!CPR.carro) CPR.carro=L.marker(p,{zIndexOffset:500,icon:L.divIcon({className:'',html:'<div class="lkveicm"><div class="lknome">'+esc(v.nome||'Veículo')+'</div><div class="lkseta"><svg viewBox="0 0 24 24"><path d="M12 2l7 19-7-4-7 4z"/></svg></div></div>',iconSize:[40,40],iconAnchor:[20,20]})}).addTo(CPR.mapa);
   else CPR.carro.setLatLng(p);
@@ -7360,7 +7395,7 @@ async function cprAtualizar(){
   if(!CPR.busca && (!CPR.rota || Date.now()-CPR.rotaMs>60000 || cprDist(CPR.rotaDe,p)>150) && Date.now()-CPR.rotaMs>20000){
     CPR.busca=true; CPR.rotaMs=Date.now(); const cod=CPR.cod;
     try{
-      const r=await fetch('https://router.project-osrm.org/route/v1/driving/'+[p[1]+','+p[0]].concat(pts.map(q=>q.lon+','+q.lat)).join(';')+'?overview=simplified&geometries=geojson');
+      const r=await fetch('https://router.project-osrm.org/route/v1/driving/'+[p[1]+','+p[0]].concat(falt.map(i=>pts[i].lon+','+pts[i].lat)).join(';')+'?overview=simplified&geometries=geojson');
       const j=await r.json(), rt=j&&j.routes&&j.routes[0];
       if(rt && CPR.cod===cod){
         CPR.rota={m:rt.distance,s:rt.duration,ll:rt.geometry.coordinates.map(c=>[c[1],c[0]]),legs:(rt.legs||[]).map(l=>({s:l.duration}))}; CPR.rotaDe=p;
@@ -7373,7 +7408,8 @@ async function cprAtualizar(){
     const min=Math.max(1,Math.round(CPR.rota.s*1.25/60)); /* +25% por causa do trânsito (estimativa, igual à página do cliente) */
     const chega=new Date(Date.now()+min*60000).toLocaleTimeString('pt-BR',{timeZone:'America/Sao_Paulo',hour:'2-digit',minute:'2-digit'});
     let porPonto='';
-    if(pts.length>1 && CPR.rota.legs && CPR.rota.legs.length===pts.length){ let ac=0; porPonto=' · '+CPR.rota.legs.map((l,i)=>{ ac+=l.s*1.25; return '<b>'+CAM_LET[i]+'</b> '+new Date(Date.now()+Math.max(1,Math.round(ac/60))*60000).toLocaleTimeString('pt-BR',{timeZone:'America/Sao_Paulo',hour:'2-digit',minute:'2-digit'}) }).join(' · ') }
+    if(pts.length>1 && CPR.rota.legs && CPR.rota.legs.length===falt.length){ let ac=0; const hh=ms=>new Date(ms).toLocaleTimeString('pt-BR',{timeZone:'America/Sao_Paulo',hour:'2-digit',minute:'2-digit'});
+      porPonto=' · '+pts.map((q,i)=>{ if(ps[i]&&ps[i].ms) return '<b>'+CAM_LET[i]+'</b> ✓ '+hh(ps[i].ms); const k=falt.indexOf(i); ac=CPR.rota.legs.slice(0,k+1).reduce((t,l)=>t+l.s*1.25,0); return '<b>'+CAM_LET[i]+'</b> '+hh(Date.now()+Math.max(1,Math.round(ac/60))*60000) }).join(' · ') }
     eta.innerHTML='<b class="min">'+(min<60?min+'<small>min</small>':Math.floor(min/60)+'<small>h</small>'+(min%60?' '+(min%60)+'<small>min</small>':''))+'</b><span>Previsão de chegada '+(pts.length>1?'ao ponto '+CAM_LET[pts.length-1]+' ':'')+'<b>'+chega+'</b>'+porPonto+'<br>'+cprKm(CPR.rota.m)+' pelas ruas · estimativa, pode variar com o trânsito</span>';
   } else eta.innerHTML='<b class="min">'+cprKm(reta)+'</b><span>de distância em linha reta até '+(pts.length>1?'o ponto '+CAM_LET[pts.length-1]:'o destino')+'</span>';
 }
@@ -7382,6 +7418,7 @@ async function cpAcessosAtualizar(){ /* 19/10/2026: a cada 1 min troca só a lin
   try{
     const j=await fnAl('compLista',{});
     (j.lista||[]).forEach(n=>{ const x=cpLista.find(y=>y.codigo===n.codigo); if(!x) return; Object.assign(x,{acessos:n.acessos,acessoPrimeiroMs:n.acessoPrimeiroMs,acessoUltimoMs:n.acessoUltimoMs,acessoAparelho:n.acessoAparelho});
+      if(compPassouChave(n)!==compPassouChave(x)){ x.passou=n.passou; document.querySelectorAll('.lkpass[data-pass="'+CSS.escape(n.codigo)+'"]').forEach(el=>{ el.outerHTML=compPassHtml(x) }); if(CPR.cod===n.codigo) cprAtualizar() } /* 21/10/2026 */
       document.querySelectorAll('.lkacesso[data-acc="'+CSS.escape(n.codigo)+'"]').forEach(el=>{ el.outerHTML=compAcessoHtml(x) }) });
   }catch(e){}
 }
@@ -7646,6 +7683,17 @@ async function compClique(e,lista){
   if(rb){ cprAbrir(rb.dataset.cprota); return }
   const ed=e.target.closest('button[data-cped]');
   if(ed){ compEditarAbrir(ed.dataset.cped); return }
+  const pb=e.target.closest('button[data-cppass]');
+  if(pb){ /* 21/10/2026: marcar/desfazer "já passou no A" à mão */
+    const cod=pb.dataset.cppass, desf=pb.dataset.desf==='1'; pb.disabled=true;
+    try{ const j=await fnAl('compPassou',{codigo:cod,i:+pb.dataset.i,desfazer:desf});
+      [shareLista,cpLista].forEach(L=>{ const x=(L||[]).find(y=>y.codigo===cod); if(x) x.passou=j.passou });
+      const x=cpLista.find(y=>y.codigo===cod)||(shareLista||[]).find(y=>y.codigo===cod);
+      if(x) document.querySelectorAll('.lkpass[data-pass="'+CSS.escape(cod)+'"]').forEach(el=>{ el.outerHTML=compPassHtml(x) });
+      if(CPR.cod===cod) cprAtualizar();
+      toast(desf?'Pronto, voltou a esperar a passagem.':'Marcado como passou. A previsão agora vai direto para o próximo ponto.');
+    }catch(err){ toast(err.message||'Não consegui marcar.'); pb.disabled=false }
+    return }
   const vb=e.target.closest('button[data-cpver]');
   if(vb){ const vv=veiculos.find(q=>q.id===+vb.dataset.cpver); if(vv){ irPara('Mapa'); escolherVeiculo(vv,true) } return }
   /* 19/10/2026 (pedido do dono): tocar no cartão (fora dos botões) abre a rota, como o "Ver rota" */
