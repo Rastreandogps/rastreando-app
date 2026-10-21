@@ -2055,6 +2055,9 @@ nav button.on .nemo.txt{color:var(--red2)}
 @media (min-width:560px){#aview .ficha{grid-template-columns:repeat(3,minmax(0,1fr))}}
 #aview .fl{font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--mut)}
 #aview .fv{font-size:13.5px;font-weight:600;color:var(--txt);overflow-wrap:anywhere}
+#aview .cpfcp{width:24px;height:24px;margin-left:6px;vertical-align:middle;border-radius:7px;border:1px solid var(--line);background:var(--card2);color:var(--mut);display:inline-flex;align-items:center;justify-content:center;padding:0;cursor:pointer} /* 21/10/2026 */
+#aview .cpfcp svg{width:13px;height:13px}
+#aview .cpfcp:active{opacity:.6}
 #aview .fmut{color:var(--mut);font-weight:500}
 #aview .pill{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:650;line-height:1.35}
 #aview .pill.bd-ok{background:rgba(26,158,87,.12);color:var(--green)}
@@ -9062,7 +9065,7 @@ function desenharClientes(fundo){
       '<div class="cinfo">'+
         '<div class="ctopo"><span class="cav">'+esc(iniciais)+'</span><div class="cnome"><div class="t">'+esc(u.name)+icoEstrela(u,fm)+(acessosMapa&&usoDados(u).desde?'<span class="cbloqagora">bloqueado</span>':'')+'<span class="cfinmini pill '+(fin.c||'neutro')+'" title="Financeiro">'+esc(fin.t)+'</span>'+(u.disabled?'<span class="cfinmini cdesat" title="Acesso ao app desativado">acesso desativado</span>':'')+'</div><div class="clog">'+esc(loginDe(u).replace(EMAIL_FALSO,''))+' <span class="cdesde">· '+(fmtDesde(u)?'cliente desde '+fmtDesde(u):'sem data de cadastro')+'</span></div><div class="cult">Último acesso: '+valorAcesso(u)+'</div></div></div>'+
         '<div class="ficha">'+
-          '<div class="fi"><span class="fl">CPF</span><span class="fv">'+(cpf?esc(fmtCpf(cpf)):'<span class="fmut">não cadastrado</span>')+'</span></div>'+
+          '<div class="fi"><span class="fl">CPF</span><span class="fv">'+(cpf?esc(fmtCpf(cpf))+'<button type="button" class="cpfcp" data-cpfcp="'+esc(soNum(cpf))+'" title="Copiar o CPF/CNPJ" aria-label="Copiar o CPF/CNPJ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg></button>':'<span class="fmut">não cadastrado</span>')+'</span></div>'+
           '<div class="fi"><span class="fl">WhatsApp</span><span class="fv">'+(temWpp?'<a class="wpplink" href="https://wa.me/'+soNum(normWpp(u.phone))+'" target="_blank" rel="noopener" onclick="event.stopPropagation()" title="Abrir a conversa no WhatsApp">'+esc(fmtWpp(u.phone))+'</a>':'<span class="bd-mal">não cadastrado</span>')+'</span></div>'+ /* 16/10/2026: o número abre o WhatsApp do cliente, sem texto */
           '<div class="fi"><span class="fl">Acesso</span><span class="fv"><button type="button" class="pill pbtn '+(u.disabled?'bd-mal':'bd-ok')+'" data-a="bloq" data-u="'+u.id+'" title="'+(u.disabled?'Toque para reativar o acesso':'Toque para desativar o acesso')+'">'+(u.disabled?'Desativado':'Ativo')+' <span class="ptroca">⇄</span></button>'+(validadeDe(u)?'<span class="fval'+(validadeDe(u)<Date.now()?' venc':'')+'">'+(validadeDe(u)<Date.now()?'venceu em ':'válido até ')+esc(txtValidade(validadeDe(u)))+'</span>':'')+'<button type="button" class="flink" data-a="perm" data-u="'+u.id+'" title="O que este cliente pode usar no app e até quando">'+ICO_ENGR+'Permissões</button></span></div>'+
           '<div class="fi"><span class="fl">Financeiro</span><span class="fv"><span class="pill '+(fin.c||'neutro')+'">'+esc(fin.t)+'</span><button type="button" class="asbtn" data-a="assin" data-u="'+u.id+'" aria-label="Mensalidade no Asaas" title="Mensalidade: somar veículo ou tag na assinatura do Asaas"><svg viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z"/><path d="M14.5 10.5h-3a1.5 1.5 0 000 3h1.5a1.5 1.5 0 010 3H9.5M12 9v1.5M12 16.5V18"/></svg></button>'+(fm&&(fm.confiancaUsada||fm.nivel==='confianca')?'<button type="button" class="flink" data-a="zerar" data-u="'+u.id+'" title="Devolve ao cliente o direito de usar o Já paguei de novo">Zerar confiança</button>':'')+'</span></div>'+
@@ -9100,6 +9103,7 @@ function copiar(txt){
   return Promise.resolve();
 }
 $('aList').addEventListener('click',e=>{
+  const cc=e.target.closest('button[data-cpfcp]'); if(cc){ e.stopPropagation(); copiar(cc.dataset.cpfcp).then(()=>toast('CPF/CNPJ copiado: '+cc.dataset.cpfcp)).catch(()=>toast('Não foi possível copiar')); return } /* 21/10/2026 */
   if(selEq && abaAdmin==='equip'){ const d=e.target.closest('details.eq[data-id]'); if(d){ e.preventDefault(); e.stopPropagation(); const id=+d.dataset.id; if(selEq[id]) delete selEq[id]; else selEq[id]=true; desenharEquip(); return } }
   const b=e.target.closest('[data-a]'); if(!b) return;
   if(b.dataset.a==='chipsel' && !b.closest('details.cli.selmode')) return; // fora do modo seleção, tocar no veículo abre o cartão como antes
