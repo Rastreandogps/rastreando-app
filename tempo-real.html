@@ -336,6 +336,17 @@ body.mapa-google #map .leaflet-top.leaflet-left .leaflet-control-attribution{mar
 #verComo .vctx small{display:block;font-size:11.5px;opacity:.85}
 #verComo #vcSair{flex:none;border:0;border-radius:999px;padding:7px 14px;background:#fff;color:#4c1d95;font:inherit;font-size:12.5px;font-weight:800;cursor:pointer}
 #aview .ico.ver{color:#6d28d9;border-color:rgba(109,40,217,.35);background:rgba(109,40,217,.1)}
+#mChkFoto .almtopo{flex:none;display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}#mChkFoto .almtopo h3{margin:0}
+#mChkFoto .almx{width:38px;height:38px;flex:none;border-radius:50%;background:var(--card2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;cursor:pointer}
+#mChkFoto .almx svg{width:18px;height:18px;fill:none;stroke:var(--txt);stroke-width:2.4;stroke-linecap:round}
+.cfgrande{position:relative;border-radius:14px;overflow:hidden;background:var(--card2);min-height:200px;display:flex;align-items:center;justify-content:center}
+.cfgrande img{display:block;width:100%;max-height:62vh;object-fit:contain;background:#000}
+.cfinfo{position:absolute;left:10px;bottom:10px;background:rgba(15,23,42,.78);color:#fff;font-size:13px;font-weight:700;padding:6px 10px;border-radius:9px}
+.cfmini{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.cfmini button{padding:0;border:2px solid transparent;border-radius:10px;overflow:hidden;cursor:pointer;background:none;text-align:left}
+.cfmini button.on{border-color:var(--cyan)}
+.cfmini img{display:block;width:76px;height:56px;object-fit:cover}
+.cfmini small{display:block;font-size:10.5px;color:var(--mut);padding:2px 4px}
 #mChkLink .almtopo{flex:none;display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}#mChkLink .almtopo h3{margin:0}
 #mChkLink .almx{width:38px;height:38px;flex:none;border-radius:50%;background:var(--card2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;cursor:pointer}
 #mChkLink .almx svg{width:18px;height:18px;fill:none;stroke:var(--txt);stroke-width:2.4;stroke-linecap:round}
@@ -1589,6 +1600,7 @@ body.desenhando .follow,body.desenhando .sheet,body.desenhando .vazio{display:no
 .frchk .frchklk{width:auto;height:28px;margin-left:4px;border-radius:999px;padding:0 10px;background:var(--card2);color:var(--txt);border:1px solid var(--line);font-size:11.5px;font-weight:700}
 .frv .frtop .frtira{margin-left:auto;width:28px;height:28px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--mut);font-size:13px;cursor:pointer;flex:none}
 .frv .frtop .frtira:hover{color:var(--red2);border-color:var(--red2)}
+.frchk .frchkmini{width:30px;height:30px;border-radius:8px;object-fit:cover;margin-left:6px;cursor:zoom-in;border:1px solid var(--line);box-shadow:0 1px 4px rgba(0,0,0,.15)}
 .frchk small{font-size:11px;color:var(--mut);white-space:nowrap}
 .frchk.atras small{color:#b45309;font-weight:700}
 .frv .frodo{font-size:12px;color:var(--mut);white-space:nowrap;background:var(--card2);border-radius:999px;padding:3px 9px}
@@ -3336,6 +3348,15 @@ nav button.on .nemo.txt{color:var(--red2)}
       <div class="ferr" id="asErro" style="margin-top:8px"></div>
     </div>
     <button class="btn btn-out alfechar" id="asFechar" type="button">Fechar</button>
+  </div>
+</div>
+<!-- 20/10/2026: fotos do painel enviadas pelo motorista (as 4 últimas) -->
+<div class="modal alsheet" id="mChkFoto">
+  <div class="box2" style="max-width:640px">
+    <div class="almtopo"><h3 id="cfTit">Foto do painel</h3><button class="almx" data-close type="button" aria-label="Fechar" title="Fechar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <div class="cfgrande"><img id="cfImg" alt="Foto do painel"><div class="cfinfo" id="cfInfo"></div></div>
+    <div class="cfmini" id="cfMini"></div>
+    <p class="asinfo" style="margin-top:8px">Confira se o número da foto é o mesmo que o motorista digitou. Ficam guardadas as 4 últimas fotos de cada veículo.</p>
   </div>
 </div>
 <!-- 20/10/2026 (ideia do dono): link do motorista para o checkout do odômetro -->
@@ -6610,8 +6631,28 @@ function frChkHtml(v){
   const info=c&&c.em?'último '+new Date(c.em).toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo',day:'2-digit',month:'2-digit'})+(c.dif!=null&&Math.abs(c.dif)>=0.1?' ('+(c.dif>0?'+':'')+String(c.dif).replace('.',',')+' km)':''):'nunca feito';
   return '<span class="frchk'+(atras?' atras':'')+'" title="Checkout: digite o km do painel do veículo. A diferença conta como km rodado (combustível e troca de óleo recalculam).">'+
     '<input class="frchkin" data-id="'+v.id+'" name="frchk_'+v.id+'_'+Date.now()%100000+'" type="text" inputmode="numeric" maxlength="9" autocomplete="off" data-lpignore="true" data-1p-ignore data-form-type="other" readonly onfocus="this.removeAttribute(\'readonly\')" placeholder="Checkout km" value="'+esc(FR_CHK[v.id]||'')+'">'+ /* 20/10/2026: readonly até tocar = o navegador não preenche com o login salvo */
-    '<button type="button" class="frchkok" data-chk="'+v.id+'" title="Salvar o km do painel">Salvar</button><button type="button" class="frchklk" data-chklk="'+v.id+'" title="Manda um link para o motorista digitar o km do painel">📲 Pedir valor do odômetro</button><small>'+info+(c&&c.por==='motorista'?' · pelo motorista':'')+'</small></span>';
+    '<button type="button" class="frchkok" data-chk="'+v.id+'" title="Salvar o km do painel">Salvar</button>'+(c&&c.mini&&/^data:image\//.test(c.mini)?'<img class="frchkmini" src="'+c.mini+'" data-chkfoto="'+v.id+'" alt="Foto do painel" title="Ver a foto do painel enviada pelo motorista">':'')+'<button type="button" class="frchklk" data-chklk="'+v.id+'" title="Manda um link para o motorista digitar o km do painel">📲 Pedir valor do odômetro</button><small>'+info+(c&&c.por==='motorista'?' · pelo motorista':'')+'</small></span>';
 }
+/* fotos do painel (servidor chkFotoVer): a grande em cima, as últimas embaixo para comparar */
+let CF={id:null,fotos:[]};
+function cfMostrar(i){ const f=CF.fotos[i]; if(!f) return; $('cfImg').src=f.img; $('cfInfo').textContent='Digitado: '+Number(f.km).toLocaleString('pt-BR')+' km · '+new Date(f.em).toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}).replace(',',' às');
+  document.querySelectorAll('#cfMini button').forEach((b,k)=>b.classList.toggle('on',k===i)) }
+async function chkFotoAbrir(id){
+  const v=veiculos.find(x=>x.id===id); if(!v) return; CF={id,fotos:[]};
+  $('cfTit').textContent='Foto do painel · '+v.nome; $('cfImg').removeAttribute('src'); $('cfInfo').textContent='Carregando…'; $('cfMini').innerHTML='';
+  try{ const m=$('mChkFoto'); m.style.zIndex='1400'; document.body.appendChild(m) }catch(e){}
+  abrir('mChkFoto');
+  try{
+    const r=await fetch(DESB_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',body:JSON.stringify({acao:'chkFotoVer',token:lsGet('rg_token'),deviceId:id})});
+    let j={}; try{ j=await r.json() }catch(e){}
+    if(!r.ok) throw new Error(j.erro||('Não consegui abrir as fotos (erro '+r.status+').'));
+    if(CF.id!==id) return; CF.fotos=j.fotos||[];
+    if(!CF.fotos.length){ $('cfInfo').textContent='Nenhuma foto ainda.'; return }
+    $('cfMini').innerHTML=CF.fotos.length>1?CF.fotos.map((f,i)=>'<button type="button" data-cfi="'+i+'"><img src="'+f.img+'" alt=""><small>'+new Date(f.em).toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo',day:'2-digit',month:'2-digit'})+' · '+Number(f.km).toLocaleString('pt-BR')+' km</small></button>').join(''):'';
+    cfMostrar(0);
+  }catch(e){ $('cfInfo').textContent=e.message }
+}
+$('cfMini').addEventListener('click',e=>{ const b=e.target.closest('[data-cfi]'); if(b) cfMostrar(+b.dataset.cfi) });
 /* link fixo do motorista (página checkout.html): servidor chkLinkCriar; "novo" troca o código e o antigo para de valer */
 const CL={id:null, url:''};
 const CHK_BASE=location.origin+location.pathname.replace(/[^\/]*$/,'')+'checkout.html';
@@ -6660,6 +6701,7 @@ $('frLista').addEventListener('click',e=>{
   if(e.target.closest('.frchkin')) return;
   const ck=e.target.closest('[data-chk]'); if(ck){ frChkSalvar(+ck.dataset.chk); return }
   const lk=e.target.closest('[data-chklk]'); if(lk){ chkLinkAbrir(+lk.dataset.chklk); return }
+  const fo=e.target.closest('[data-chkfoto]'); if(fo){ chkFotoAbrir(+fo.dataset.chkfoto); return }
   const tr=e.target.closest('[data-frtira]'); if(tr){ /* 20/10/2026: atalho para tirar (é o mesmo que desmarcar "Mostrar na aba Frota") */
     const id=+tr.dataset.frtira, vv=veiculos.find(x=>x.id===id); if(!vv) return;
     if(!confirm('Tirar "'+vv.nome+'" da aba Frota? Para voltar, abra o Odômetro do veículo e marque "Mostrar na aba Frota".')) return;
