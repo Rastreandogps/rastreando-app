@@ -37,6 +37,13 @@ h1{margin:0;text-align:center;font-size:21px;line-height:1.25}
 .campo input:focus{outline:none;border-color:var(--cyan)}
 .campo span{position:absolute;right:16px;top:50%;transform:translateY(-50%);font-weight:800;color:var(--mut)}
 .ult{text-align:center;font-size:12.5px;color:var(--mut);margin-top:8px;min-height:18px}
+.foto{display:flex;align-items:center;gap:12px;width:100%;height:auto;margin-top:12px;padding:12px 14px;border-radius:16px;border:2px dashed var(--line);background:var(--card2);color:var(--txt);box-shadow:none;text-align:left;font-size:14px}
+.foto .fic{font-size:26px}
+.foto b{display:block;font-size:15px}.foto small{display:block;color:var(--mut);font-size:12px;font-weight:600;margin-top:2px}
+.foto.falta{border-color:var(--red)}
+.prev{position:relative;margin-top:12px;border-radius:16px;overflow:hidden;border:1px solid var(--line)}
+.prev img{display:block;width:100%;max-height:240px;object-fit:cover}
+.prev button{position:absolute;right:10px;bottom:10px;width:auto;height:34px;padding:0 14px;border-radius:999px;background:rgba(15,23,42,.75);box-shadow:none;font-size:13px}
 .erro{color:var(--red);font-weight:700;font-size:13.5px;text-align:center;min-height:20px;margin:10px 0 4px;line-height:1.4}
 button{width:100%;height:56px;border:0;border-radius:16px;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;font:inherit;font-size:17px;font-weight:800;cursor:pointer;box-shadow:0 8px 20px rgba(22,163,74,.3)}
 button:disabled{opacity:.6}
@@ -77,6 +84,10 @@ button:disabled{opacity:.6}
       <p class="dica">Olhe o <b>odômetro</b> no painel do veículo e digite só os números, sem ponto e sem vírgula.</p>
       <div class="campo"><input id="km" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="9" autocomplete="off" placeholder="000000" aria-label="Km do painel"><span>km</span></div>
       <div class="ult" id="ult"></div>
+      <!-- 20/10/2026 (decisão do dono): foto do painel obrigatória -->
+      <input type="file" id="arq" accept="image/*" capture="environment" style="display:none">
+      <button type="button" class="foto" id="btnFoto"><span class="fic">📷</span><span><b>Tirar foto do painel</b><small>Obrigatório: mostre o odômetro na foto</small></span></button>
+      <div class="prev" id="prev" hidden><img id="prevImg" alt="Foto do painel"><button type="button" id="refazer">Tirar outra</button></div>
       <div class="erro" id="erro"></div>
       <button type="button" id="enviar">Enviar</button>
     </div>
@@ -127,13 +138,34 @@ async function abrir() {
 $('km').addEventListener('input', () => { const v = $('km').value.replace(/\D/g, '').slice(0, 9); if ($('km').value !== v) $('km').value = v; $('erro').textContent = ''; });
 $('km').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); enviar(); } });
 $('enviar').onclick = enviar;
+/* foto: diminui no celular (até 1024 px, ~100 KB) e faz a miniatura (96 px) */
+const FOTO = { img: '', mini: '' };
+function reduzir(im, lado, q) { const k = Math.min(1, lado / Math.max(im.width, im.height)), c = document.createElement('canvas'); c.width = Math.max(1, Math.round(im.width * k)); c.height = Math.max(1, Math.round(im.height * k)); c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); return c.toDataURL('image/jpeg', q); }
+$('btnFoto').onclick = () => { $('arq').value = ''; $('arq').click(); };
+$('refazer').onclick = () => { $('arq').value = ''; $('arq').click(); };
+$('arq').addEventListener('change', () => {
+  const f = $('arq').files && $('arq').files[0]; if (!f) return;
+  if (!/^image\//.test(f.type || 'image/')) { $('erro').textContent = 'Escolha uma foto.'; return; }
+  const url = URL.createObjectURL(f), im = new Image();
+  im.onload = () => {
+    try {
+      let img = reduzir(im, 1024, 0.72); if (img.length > 250000) img = reduzir(im, 800, 0.6);
+      FOTO.img = img; FOTO.mini = reduzir(im, 96, 0.6);
+      $('prevImg').src = img; $('prev').hidden = false; $('btnFoto').hidden = true; $('btnFoto').classList.remove('falta'); $('erro').textContent = '';
+    } catch (e) { $('erro').textContent = 'Não consegui usar essa foto. Tente de novo.'; }
+    URL.revokeObjectURL(url);
+  };
+  im.onerror = () => { $('erro').textContent = 'Não consegui abrir a foto. Tente de novo.'; URL.revokeObjectURL(url); };
+  im.src = url;
+});
 async function enviar() {
   const b = $('enviar'); if (b.disabled) return;
   const km = Number($('km').value.replace(/\D/g, ''));
   if (!(km > 0)) { $('erro').textContent = 'Digite o km que aparece no painel.'; $('km').focus(); return; }
+  if (!FOTO.img) { $('erro').textContent = 'Tire a foto do painel para enviar.'; $('btnFoto').classList.add('falta'); return; }
   b.disabled = true; b.textContent = 'Enviando…'; $('erro').textContent = '';
   try {
-    const r = await chamar('chkLinkEnviar', { km });
+    const r = await chamar('chkLinkEnviar', { km, foto: FOTO.img, mini: FOTO.mini });
     $('form').hidden = true; $('ok').hidden = false;
     $('okTxt').innerHTML = 'Registramos <b>' + num(r.km) + ' km</b> no ' + (r.nome || 'veículo').replace(/[<>&]/g, '') + '.<br>Pode fechar esta página. Da próxima vez, use este mesmo link.';
   } catch (e) {
