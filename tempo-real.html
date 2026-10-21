@@ -16,8 +16,11 @@
   }
   function ehCelular(){ var ua=navigator.userAgent||''; return /Android|iPhone|iPad|iPod|Mobile/i.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints>1) }
   window.waLink=conv;
-  var wo=window.open; window.open=function(u){ var a=Array.prototype.slice.call(arguments); a[0]=conv(u); return wo.apply(window,a) };
-  document.addEventListener('click',function(e){ var a=e.target&&e.target.closest&&e.target.closest('a[href*="wa.me/"]'); if(a) a.href=conv(a.href) },true);
+  /* 21/10/2026 (pedido do dono): no computador, todo envio pelo WhatsApp usa a MESMA aba do WhatsApp Web (aba "rg_whatsapp"),
+     em vez de abrir uma aba nova a cada vez */
+  var ABA='rg_whatsapp', ehWeb=function(x){ return /^https:\/\/web\.whatsapp\.com\//.test(String(x||'')) };
+  var wo=window.open; window.open=function(u){ var a=Array.prototype.slice.call(arguments); a[0]=conv(u); if(ehWeb(a[0])) return wo.call(window,a[0],ABA); return wo.apply(window,a) };
+  document.addEventListener('click',function(e){ var a=e.target&&e.target.closest&&e.target.closest('a[href*="wa.me/"]'); if(!a) return; a.href=conv(a.href); if(ehWeb(a.href)){ a.target=ABA; a.removeAttribute('rel') } },true);
 })();
 </script>
 <meta charset="UTF-8">
