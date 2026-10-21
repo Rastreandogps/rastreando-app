@@ -336,6 +336,19 @@ body.mapa-google #map .leaflet-top.leaflet-left .leaflet-control-attribution{mar
 #verComo .vctx small{display:block;font-size:11.5px;opacity:.85}
 #verComo #vcSair{flex:none;border:0;border-radius:999px;padding:7px 14px;background:#fff;color:#4c1d95;font:inherit;font-size:12.5px;font-weight:800;cursor:pointer}
 #aview .ico.ver{color:#6d28d9;border-color:rgba(109,40,217,.35);background:rgba(109,40,217,.1)}
+#mLogo .almtopo{flex:none;display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}#mLogo .almtopo h3{margin:0}
+#mLogo .almx{width:38px;height:38px;flex:none;border-radius:50%;background:var(--card2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;cursor:pointer}
+#mLogo .almx svg{width:18px;height:18px;fill:none;stroke:var(--txt);stroke-width:2.4;stroke-linecap:round}
+.lgprev{border:1px solid var(--line);border-radius:16px;overflow:hidden;margin:4px 0 12px;background:#dfe9dc}
+.lgtopo{display:flex;align-items:center;gap:10px;padding:10px 12px;background:#fff;color:#0f172a}
+.lgimg{width:42px;height:42px;border-radius:11px;background:#f1f5f9 center/contain no-repeat;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-weight:800;box-shadow:0 2px 8px rgba(0,0,0,.15);flex:none}
+.lgimg.tem{color:transparent;background-color:#fff}
+.lgnm{min-width:0}.lgnm b{display:block;font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.lgnm small{font-size:11px;color:#64748b}
+.lgvivo{margin-left:auto;font-size:10.5px;font-weight:800;color:#16a34a;border:1px solid currentColor;border-radius:999px;padding:3px 8px;white-space:nowrap}
+.lgmapa{height:70px;background-image:linear-gradient(90deg,rgba(255,255,255,.7) 2px,transparent 2px),linear-gradient(rgba(255,255,255,.7) 2px,transparent 2px);background-size:34px 34px}
+.lgrod{background:#fff;color:#94a3b8;font-size:10.5px;text-align:center;padding:6px}
+.maiscard .mic.lg{background:rgba(249,115,22,.14);color:#ea580c}
+#ruaBox .rbmsg .rblogo{position:static;display:block;inset:auto;width:64px;height:64px;border-radius:16px;object-fit:contain;background:#fff;box-shadow:0 2px 10px rgba(0,0,0,.15);margin-bottom:8px}
 #mRuaGiro .almtopo{flex:none;display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}#mRuaGiro .almtopo h3{margin:0}
 #mRuaGiro .almx{width:38px;height:38px;flex:none;border-radius:50%;background:var(--card2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;cursor:pointer}
 #mRuaGiro .almx svg{width:18px;height:18px;fill:none;stroke:var(--txt);stroke-width:2.4;stroke-linecap:round}
@@ -3171,6 +3184,7 @@ nav button.on .nemo.txt{color:var(--red2)}
     <label class="fchk"><input type="checkbox" id="pmEu"> Ver a posição do próprio celular no mapa (botão Minha posição)</label>
     <label class="fchk"><input type="checkbox" id="pmRetirar"> Ver a lista <b>Para retirar</b> (para técnico: veículos marcados para retirada, pelo mais perto, com o nome e o WhatsApp do cliente)</label>
     <label class="fchk"><input type="checkbox" id="pmFichas"> Cobrar fichas no compartilhar localização (1 ficha por link; o cliente compra pacotes por PIX no app)</label>
+    <div class="pmfichas" id="pmLogoBox"><span class="sp">🖼️ Logo do cliente: <b id="pmLogoSt">—</b></span><button type="button" id="pmLogoAbrir">Ver / enviar logo</button></div>
     <div class="pmfichas" id="pmGiroBox"><span class="sp">🔄 Giros extras da vista da rua: <b id="pmGiroSt">—</b></span><input class="fld" id="pmGiroQtd" type="text" inputmode="numeric" maxlength="4" value="10" autocomplete="off" title="Quantos giros dar (negativo tira)"><button type="button" id="pmGiroDar">Liberar giros</button></div>
     <div class="pmfichas" id="pmModBox"><span class="sp">⭐ Premium (odômetro/mapa): <b id="pmModSt">—</b></span><input class="fld" id="pmModDias" type="text" inputmode="numeric" maxlength="3" value="30" autocomplete="off" title="Dias de teste grátis"><button type="button" data-mf="dar">Liberar dias</button><button type="button" data-mf="0" style="background:#64748b">Tirar</button></div>
     <div class="pmfichas" id="pmFichasBox"><span class="sp">Saldo: <b id="pmFichasSaldo">—</b> fichas</span><input class="fld" id="pmFichasQ" type="text" inputmode="numeric" placeholder="+10" autocomplete="off" aria-label="Fichas para lançar"><button type="button" id="pmFichasLancar">Lançar</button></div>
@@ -3298,6 +3312,21 @@ nav button.on .nemo.txt{color:var(--red2)}
       <div class="ferr" id="asErro" style="margin-top:8px"></div>
     </div>
     <button class="btn btn-out alfechar" id="asFechar" type="button">Fechar</button>
+  </div>
+</div>
+<!-- 20/10/2026 (pedido do dono): logo do cliente (frotista Premium) -->
+<div class="modal alsheet" id="mLogo">
+  <div class="box2" style="max-width:460px">
+    <div class="almtopo"><h3 id="lgTit">Sua logo</h3><button class="almx" data-close type="button" aria-label="Fechar" title="Fechar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <p class="asinfo" id="lgSub">Sua logo aparece para quem recebe o link de localização e no quadro ao lado do veículo enquanto ele anda.</p>
+    <div class="lgprev"><div class="lgtopo"><span class="lgimg" id="lgImg">?</span><span class="lgnm"><b id="lgNmPrev">Nome da empresa</b><small>Acompanhamento ao vivo</small></span><span class="lgvivo">● AO VIVO</span></div><div class="lgmapa"></div><div class="lgrod">Rastreado por Rastreando GPS</div></div>
+    <label class="flbl" for="lgNome">Nome da empresa (aparece ao lado da logo)</label>
+    <input class="fld" type="text" id="lgNome" maxlength="40" autocomplete="off" placeholder="Ex.: Guincho Alfa">
+    <input type="file" id="lgArq" accept="image/png,image/jpeg,image/webp" style="display:none">
+    <button class="btn btn-out" id="lgEscolher" type="button" style="width:100%;margin-top:10px">🖼️ Escolher imagem</button>
+    <div class="ferr" id="lgErro" style="margin-top:8px"></div>
+    <button class="btn" id="lgSalvar" type="button" style="width:100%;background:#16a34a;color:#fff">Salvar</button>
+    <button class="btn btn-out" id="lgRemover" type="button" style="width:100%;margin-top:8px;display:none">Remover a logo</button>
   </div>
 </div>
 <!-- 20/10/2026: girar a vista da rua dentro do app (limite diário no servidor) -->
@@ -6012,7 +6041,7 @@ async function carregarPermissoes(){
     if(!r.ok) return;
     const j=await r.json(); permCli=Object.assign({smsBloqueio:false,reset:false,editarNome:false,cercaRapida:false,minhaPosicao:false},j.perm||{},{appBloqueio:permCli.appBloqueio,cercaBloqueio:permCli.cercaBloqueio,semBloqueio:permCli.semBloqueio,frotista:permCli.frotista,modFrotaAteMs:Number(j.modFrotaAteMs||0)}); cobrCli=j.cobranca||null;
     try{ modFrotaAplicar() }catch(e){}
-    mostrarBotoesSms(); fichasAplicar(); try{ retAplicar() }catch(e){}
+    mostrarBotoesSms(); fichasAplicar(); try{ retAplicar() }catch(e){} try{ logoAplicar() }catch(e){}
   }catch(e){}
 }
 function textoCusto(){
@@ -6326,6 +6355,7 @@ function mostrarPerm(j){
   $('pmFichas').checked=!!p.fichas; pmFichasCarregar();
   pmModPintar(j.modFrotaAteMs);
   $('pmGiroSt').textContent=(Number(j.girosExtra||0))+' (além dos 10 grátis por dia)';
+  $('pmLogoSt').textContent='…'; fnAdm('logoVer',{userId:permUserId}).then(r=>{ $('pmLogoSt').textContent=r.img?'enviada'+(r.nome?' ('+r.nome+')':''):'nenhuma' }).catch(()=>{ $('pmLogoSt').textContent='?' });
 }
 async function abrirPermissoes(userId){
   const u=usuarios.find(x=>x.id===userId); if(!u) return;
@@ -6750,6 +6780,70 @@ async function ruaContBuscar(){
   try{ const j=await fnAdm('ruaGiroVer',{}); RUA_CONT.restam=Number(j.restam); RUA_CONT.limite=Number(j.limite)||150; if(j.fotos!=null){ RUA_CONT.fotos=Number(j.fotos); RUA_CONT.fotosLimite=Number(j.fotosLimite)||300 } }catch(e){}
   RUA_CONT.buscando=false; try{ ruaContPintar() }catch(e){}
 }
+/* ===== LOGO DO CLIENTE (20/10/2026, pedido do dono) =====
+   Frotista com Premium sobe a logo em Mais > Sua logo (o administrador também, pelo painel de Permissões do cliente).
+   O app diminui a imagem (quadrado de 256 px) antes de mandar. Aparece no link compartilhado e no quadro da vista da rua. */
+const LG={meu:null, alvo:null, img:'', carregou:false};
+function logoAplicar(){
+  const pode=!ehAdmin && permCli && permCli.frotista===true, grade=document.querySelector('#maisview .maisgrid'); let c=$('maisLogo');
+  if(pode && !c && grade){
+    c=document.createElement('button'); c.className='maiscard'; c.id='maisLogo'; c.type='button';
+    c.innerHTML='<span class="mic lg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="M21 17l-5-5-8 8"/></svg></span><b>Sua logo</b><small id="maisLogoTxt">Sua marca no link de localização</small>';
+    c.onclick=()=>logoAbrir(null); grade.insertBefore(c,$('maisConta'));
+  }
+  if(!pode && c) c.remove();
+  if(pode && modFrota() && !LG.carregou){ LG.carregou=true; fnAdm('logoVer',{}).then(r=>{ LG.meu=r.img?r:null; logoMaisTxt(); try{ ruaRedesenhar() }catch(e){} }).catch(()=>{}) }
+  logoMaisTxt();
+}
+function logoMaisTxt(){ const t=$('maisLogoTxt'); if(t) t.textContent=!modFrota()?'⭐ Recurso Premium':(LG.meu?'Logo ativa'+(LG.meu.nome?' · '+LG.meu.nome:''):'Sua marca no link de localização') }
+function logoPrevPintar(){ const e=$('lgImg'); if(LG.img){ e.style.backgroundImage='url("'+LG.img+'")'; e.classList.add('tem') } else { e.style.backgroundImage=''; e.classList.remove('tem') } $('lgNmPrev').textContent=$('lgNome').value.trim()||'Nome da empresa' }
+async function logoAbrir(alvo){
+  if(!alvo && !modFrota()){ toast('A sua logo é um recurso do Premium. Assine para usar.'); try{ lojaComprarPix('modfrota',$('maisLogo')||document.createElement('button'),1) }catch(e){} return }
+  LG.alvo=alvo; LG.img=''; $('lgNome').value=''; $('lgErro').textContent=''; $('lgRemover').style.display='none';
+  const u=alvo?usuarios.find(x=>x.id===alvo):null;
+  $('lgTit').textContent=alvo?'Logo de '+((u&&u.name)||'cliente'):'Sua logo';
+  logoPrevPintar(); try{ const m=$('mLogo'); m.style.zIndex='1400'; document.body.appendChild(m) }catch(e){} abrir('mLogo'); /* sempre na frente (também por cima das Permissões) */
+  try{ const r=await fnAdm('logoVer',alvo?{userId:alvo}:{}); if(LG.alvo!==alvo) return; LG.img=r.img||''; $('lgNome').value=r.nome||''; $('lgRemover').style.display=r.img?'':'none'; logoPrevPintar() }
+  catch(e){ $('lgErro').textContent=e.message }
+}
+$('lgNome').addEventListener('input',logoPrevPintar);
+$('lgEscolher').onclick=()=>{ $('lgArq').value=''; $('lgArq').click() };
+$('lgArq').addEventListener('change',()=>{
+  const f=$('lgArq').files&&$('lgArq').files[0]; $('lgErro').textContent=''; if(!f) return;
+  if(!/^image\//.test(f.type)){ $('lgErro').textContent='Escolha uma imagem (PNG, JPG ou WEBP).'; return }
+  if(f.size>15*1024*1024){ $('lgErro').textContent='Imagem muito grande (mais de 15 MB).'; return }
+  const url=URL.createObjectURL(f), im=new Image();
+  im.onload=()=>{ /* encaixa a imagem inteira num quadrado de 256 px (fundo transparente) e deixa leve */
+    try{
+      const L=256, cv=document.createElement('canvas'); cv.width=L; cv.height=L; const cx=cv.getContext('2d');
+      const esc=Math.min(L/im.width,L/im.height), w=im.width*esc, h=im.height*esc; cx.drawImage(im,(L-w)/2,(L-h)/2,w,h);
+      let d=cv.toDataURL('image/png');
+      if(d.length>110000){ d=cv.toDataURL('image/webp',0.86); if(!/^data:image\/webp/.test(d)||d.length>110000){ const c2=document.createElement('canvas'); c2.width=L; c2.height=L; const x2=c2.getContext('2d'); x2.fillStyle='#fff'; x2.fillRect(0,0,L,L); x2.drawImage(cv,0,0); d=c2.toDataURL('image/jpeg',0.85) } }
+      LG.img=d; logoPrevPintar();
+    }catch(e){ $('lgErro').textContent='Não consegui ler essa imagem. Tente outra.' }
+    URL.revokeObjectURL(url);
+  };
+  im.onerror=()=>{ $('lgErro').textContent='Não consegui abrir essa imagem. Tente outra (PNG ou JPG).'; URL.revokeObjectURL(url) };
+  im.src=url;
+});
+$('lgSalvar').onclick=async()=>{
+  const b=$('lgSalvar'); if(b.disabled) return;
+  if(!LG.img){ $('lgErro').textContent='Escolha a imagem da logo.'; return }
+  b.disabled=true; b.textContent='Salvando...'; $('lgErro').textContent='';
+  try{
+    const r=await fnAdm('logoSalvar',Object.assign({img:LG.img,nome:$('lgNome').value.trim()},LG.alvo?{userId:LG.alvo}:{}));
+    if(!LG.alvo){ LG.meu={img:r.img,nome:r.nome}; logoMaisTxt(); try{ ruaRedesenhar() }catch(e){} } else { $('pmLogoSt').textContent='enviada'+(r.nome?' ('+r.nome+')':'') }
+    $('mLogo').classList.remove('show'); toast('Logo salva. Ela já aparece nos links de localização.');
+  }catch(e){ $('lgErro').textContent=e.message }
+  b.disabled=false; b.textContent='Salvar';
+};
+$('lgRemover').onclick=async()=>{
+  if(!confirm('Remover a logo? Os links voltam a mostrar a marca da Rastreando GPS.')) return;
+  try{ await fnAdm('logoRemover',LG.alvo?{userId:LG.alvo}:{}); if(!LG.alvo){ LG.meu=null; logoMaisTxt(); try{ ruaRedesenhar() }catch(e){} } else $('pmLogoSt').textContent='nenhuma';
+    $('mLogo').classList.remove('show'); toast('Logo removida.') }catch(e){ $('lgErro').textContent=e.message }
+};
+$('pmLogoAbrir').onclick=()=>logoAbrir(permUserId);
+function ruaComLogo(txt){ const l=LG.meu; return l&&l.img ? '<img class="rblogo" src="'+l.img+'" alt="">'+txt : txt }
 function ruaAdmLigada(){ try{ return localStorage.getItem('rg_rua_adm')==='1' }catch(e){ return false } }
 $('btnRuaVer').addEventListener('pointerdown',e=>e.stopPropagation());
 $('btnRuaVer').onclick=e=>{ e.stopPropagation(); const lig=!ruaAdmLigada(); try{ localStorage.setItem('rg_rua_adm',lig?'1':'0') }catch(_){} ruaRedesenhar(); toast(lig?'Vista da rua ligada (só para você).':'Vista da rua desligada (só para você). Os clientes Premium continuam vendo.') };
@@ -6763,12 +6857,12 @@ function ruaAtualizar(v){
   if(!modFrota()){ RUA.mostrando=''; ruaPintar('trava','🔒 Vista da rua<b>⭐ Premium</b>',null,null,'🔒 Vista da rua<b>⭐ Assinar Premium</b><small>Veja a foto da rua onde o veículo está parado</small>'); return }
   const lat=+v.pos[0], lon=+v.pos[1], andando=v.vel>2 && v.ign!==false, agora=Date.now();
   let pr=RUA.parada[v.id];
-  if(andando){ RUA.parada[v.id]={lat,lon,t:agora,andou:true}; ruaPintar('','🚗 Em movimento'); return }
+  if(andando){ RUA.parada[v.id]={lat,lon,t:agora,andou:true}; ruaPintar('','🚗 Em movimento',null,null,ruaComLogo('🚗 Em movimento')); return }
   if(!pr || ruaDist(pr.lat,pr.lon,lat,lon)>60){ pr=RUA.parada[v.id]={lat,lon,t:agora,andou:!!pr}; }
   /* primeira vez que o app vê o veículo e ele já está parado: mostra na hora (não dá para saber há quanto tempo) */
-  if(pr.andou && agora-pr.t<120000){ ruaPintar('','⏳ Parou agora<br>a foto vem em 2 min'); return }
+  if(pr.andou && agora-pr.t<120000){ ruaPintar('','⏳ Parou agora<br>a foto vem em 2 min',null,null,ruaComLogo('⏳ Parou agora · a foto vem em 2 min')); return }
   const k=ruaPontoPerto(pr.lat,pr.lon), pt=RUA.ponto[k], tag=pr.andou?'Parado aqui desde '+ruaHora(pr.t):'Vista da rua';
-  if(pt==='sem'){ ruaPintar('','Sem vista da rua<br>neste ponto'); return }
+  if(pt==='sem'){ ruaPintar('','Sem vista da rua<br>neste ponto',null,null,ruaComLogo('Sem vista da rua neste ponto')); return }
   if(pt && pt.erro){ if(agora-pt.erro<300000){ ruaPintar('','Vista da rua<br>indisponível agora'); return } delete RUA.ponto[k] } /* tenta de novo depois de 5 min */
   if(pt && pt.url){ ruaPintar('foto','',tag,pt.url); RUA.mostrando=k; return }
   if(pt==='buscando') return;
@@ -10895,7 +10989,7 @@ function sair(msg){
   try{ clearTimeout(lojaPollTimer); lojaPed=null; clearInterval(ljpTempoTimer) }catch(e){}
   try{ alCfg={ign:{},volta:{}}; kmLista=[] }catch(e){}
   cercasReset();
-  permCli={smsBloqueio:false,reset:false,editarNome:false,cercaRapida:false,minhaPosicao:false,appBloqueio:true,cercaBloqueio:true,semBloqueio:false,frotista:false}; cobrCli=null; try{ FCH.saldo=null; FCH.em=0; fichasAplicar() }catch(e){} /* 15/10/2026: fichas do login anterior saem */
+  permCli={smsBloqueio:false,reset:false,editarNome:false,cercaRapida:false,minhaPosicao:false,appBloqueio:true,cercaBloqueio:true,semBloqueio:false,frotista:false}; cobrCli=null; try{ FCH.saldo=null; FCH.em=0; fichasAplicar() }catch(e){} /* 15/10/2026: fichas do login anterior saem */ try{ LG.meu=null; LG.carregou=false; logoAplicar() }catch(e){} /* 20/10/2026: logo do login anterior sai */
   ehAdmin=false; usuarios=[]; $('aview').classList.remove('show'); try{ $('mapCar').classList.remove('show') }catch(e){}
   try{ frAbaAplicar() }catch(e){} /* 19/10/2026: a aba Frota some ao sair */
   document.querySelector('nav button[data-tab="Admin"]').style.display='none'; document.querySelector('nav button[data-tab="Faturas"]').style.display='none'; document.querySelector('nav button[data-tab="Mais"]').style.display='none'; cpfsMapa={}; faturasDados=null; try{ anualInfo=null }catch(e){} aplicarBloqueio(null); euDesligar(); $('btnEu').style.display='none'; try{ meuUsuario=null; mapaAplicar('gratis') }catch(e){} irPara('Mapa');
