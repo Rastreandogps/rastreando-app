@@ -1126,6 +1126,7 @@ body.hist-on #mapCar{display:none!important}
   main #sheet .vname > *:not(.vpick){flex:none}
   main #sheet .vname .vpick{flex:0 1 auto;min-width:0}
   main #sheet .vname #vName{display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  main #sheet .vname .vpick{min-width:min(130px,100%)} /* 21/10/2026: o nome nunca some de todo */
   main #sheet .vname .vign svg{width:14px;height:14px}
   main #sheet #btnRenome{width:26px;height:26px;border:0;background:transparent;margin-left:2px}
   main #sheet .plate{font-size:12px;margin-top:2px}
@@ -1191,6 +1192,11 @@ body.hist-on #mapCar{display:none!important}
   .hpanel{left:calc(var(--lado) + 16px)}
   .vazio{left:calc(var(--lado) + 16px);right:auto;width:360px}
   .vazio .vz-cel{display:none}
+}
+/* 21/10/2026 (notebook): tela de computador menor -> "Navegar" e "Ver a rua" viram só o ícone e sobra espaço para o nome do veículo */
+@media (min-width:900px) and (max-width:1700px){
+  main #sheet .navbtn{padding:0 6px;margin-right:6px}
+  main #sheet .navbtn .navtx{display:none}
 }
 .dragzone{touch-action:none;cursor:grab;user-select:none;-webkit-user-select:none}
 .handlewrap{padding:10px 0 12px}
@@ -1641,6 +1647,16 @@ body.desenhando .follow,body.desenhando .sheet,body.desenhando .vazio{display:no
 .frchk.trava{height:28px;padding:0 12px;border-radius:999px;border:1px dashed #f59e0b;background:rgba(245,158,11,.10);color:#b45309;font:inherit;font-size:12px;font-weight:800;cursor:pointer}
 .frchk small{font-size:11px;color:var(--mut);white-space:nowrap}
 .frchk.atras small{color:#b45309;font-weight:700}
+/* 21/10/2026 (celular): o card da Frota não vaza mais — o ✕ fica no canto de cima, o checkout desce inteiro e o botão do motorista não quebra em 3 linhas */
+@media (max-width:759px){
+  .frv .frtop{position:relative;padding-right:38px}
+  .frv .frtop .frtira{position:absolute;top:0;right:0;margin:0}
+  .frchk{display:flex;flex-wrap:wrap;width:100%;margin-left:0;row-gap:8px}
+  .frchk input{flex:1 1 auto;min-width:0;max-width:170px}
+  .frchk .frchklk{white-space:nowrap;margin-left:0}
+  .frchk small{white-space:normal}
+  .frv .frtop .frchk small{margin-left:4px}
+}
 .frv .frodo{font-size:12px;color:var(--mut);white-space:nowrap;background:var(--card2);border-radius:999px;padding:3px 9px}
 .frv .frodo b{font-size:13px;color:var(--txt);flex:none;overflow:visible;white-space:nowrap}
 .frv .frlin{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
@@ -2609,11 +2625,11 @@ nav button.on .nemo.txt{color:var(--red2)}
     </div>
     <div id="smsCusto" style="display:none"></div>
     <div class="actions dois navrow">
-      <button class="btn navbtn" id="btnNav" type="button">
+      <button class="btn navbtn" id="btnNav" type="button" title="Navegar até o veículo">
         <span class="navic nv"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5 19 20.5l-7-3.8-7 3.8z"/></svg></span>
         <span class="navtx"><b>Navegar</b><small>Traçar rota</small></span>
       </button>
-      <button class="btn navbtn" id="btnRua" type="button">
+      <button class="btn navbtn" id="btnRua" type="button" title="Ver a rua (Street View)">
         <span class="navic st"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21.5s-6.5-5.4-6.5-11a6.5 6.5 0 0 1 13 0c0 5.6-6.5 11-6.5 11z"/><circle cx="12" cy="9" r="1.7"/><path d="M9.4 14.3c.6-1.4 1.5-2 2.6-2s2 .6 2.6 2"/></svg></span>
         <span class="navtx"><b>Ver a rua</b><small>Street View</small></span>
       </button>
