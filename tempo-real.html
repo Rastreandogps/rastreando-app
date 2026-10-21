@@ -3248,7 +3248,7 @@ nav button.on .nemo.txt{color:var(--red2)}
     <label class="fchk"><input type="checkbox" id="pmRetirar"> Ver a lista <b>Para retirar</b> (para técnico: veículos marcados para retirada, pelo mais perto, com o nome e o WhatsApp do cliente)</label>
     <label class="fchk"><input type="checkbox" id="pmFichas"> Cobrar fichas no compartilhar localização (1 ficha por link; o cliente compra pacotes por PIX no app)</label>
     <div class="pmfichas" id="pmLogoBox"><span class="sp">🖼️ Logo do cliente: <b id="pmLogoSt">—</b></span><button type="button" id="pmLogoAbrir">Ver / enviar logo</button></div>
-    <div class="pmfichas" id="pmModBox"><span class="sp">⭐ Premium (odômetro/mapa): <b id="pmModSt">—</b></span><input class="fld" id="pmModDias" type="text" inputmode="numeric" maxlength="3" value="30" autocomplete="off" title="Dias de teste grátis"><button type="button" data-mf="dar">Liberar dias</button><button type="button" data-mf="0" style="background:#64748b">Tirar</button></div>
+    <div class="pmfichas" id="pmModBox"><span class="sp">⭐ Premium (odômetro/mapa): <b id="pmModSt">—</b></span><input class="fld" id="pmModDias" type="text" inputmode="numeric" maxlength="3" value="30" autocomplete="off" title="Dias de teste grátis"><button type="button" data-mf="dar">Liberar dias</button><button type="button" data-mf="boleto" style="background:#7c3aed" title="Premium incluído na mensalidade: fica ativo sem prazo até você tirar">♾️ No boleto</button><button type="button" data-mf="0" style="background:#64748b">Tirar</button></div>
     <div class="pmfichas" id="pmFichasBox"><span class="sp">Saldo: <b id="pmFichasSaldo">—</b> fichas</span><input class="fld" id="pmFichasQ" type="text" inputmode="numeric" placeholder="+10" autocomplete="off" aria-label="Fichas para lançar"><button type="button" id="pmFichasLancar">Lançar</button></div>
     <div class="pmval pmmapa"><span class="pmvl">Mapa do app</span><select class="fld" id="pmMapa"><option value="gratis">Grátis (padrão)</option><option value="google">Google Maps</option></select></div>
     <p class="pmvh">Todo cliente começa com o mapa grátis. Se ele reclamar do mapa, troque para o Google aqui (custa por uso; vale na próxima vez que ele abrir o app).</p>
@@ -6604,7 +6604,7 @@ function modFrotaPintarJanela(){
   const ok=modFrota(), m=$('mComb'); m.classList.toggle('semmod',!ok);
   const ate=Number(permCli&&permCli.modFrotaAteMs||0), dias=Math.ceil((ate-Date.now())/86400000);
   const r=$('mfRenova');
-  if(ok && !ehAdmin && dias<=5){ r.style.display=''; $('mfRenovaTx').textContent='Premium até '+new Date(ate).toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo'})+(dias<=1?' (vence amanhã)':' (faltam '+dias+' dias)'); }
+  if(ok && !ehAdmin && dias<=5 && !premiumSemFim(ate)){ r.style.display=''; $('mfRenovaTx').textContent='Premium até '+new Date(ate).toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo'})+(dias<=1?' (vence amanhã)':' (faltam '+dias+' dias)'); }
   else r.style.display='none';
 }
 $('mfLiberar').onclick=()=>premiumOferecer();
@@ -7086,6 +7086,7 @@ async function premiumOferecer(){
   if(ehAdmin){ toast('Você é o administrador: o Premium já está liberado para você.'); return }
   $('prErro').textContent=''; $('prComprar').disabled=false;
   const ate=Number(permCli&&permCli.modFrotaAteMs||0), ativo=ate>Date.now();
+  if(premiumSemFim(ate)){ toast('O seu Premium já está incluído na mensalidade. Está tudo liberado.'); return }
   $('prNota').textContent=ativo?'Seu Premium vale até '+new Date(ate).toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo'})+'. Renovar soma mais 30 dias ao que falta.':'Pagou, libera na hora. Renovar soma mais 30 dias ao que falta. Sem fidelidade.';
   $('prComprar').textContent=ativo?'Renovar o Premium · gerar PIX':'Quero o Premium · gerar PIX';
   $('prValor').textContent=PR_VAL?brl(PR_VAL):'…';
@@ -11787,11 +11788,18 @@ async function pmFichasCarregar(){
   try{ const j=await chamarPerm('fichasVer'); $('pmFichasSaldo').textContent=j.saldo.toLocaleString('pt-BR') }catch(e){ $('pmFichasSaldo').textContent='?' }
 }
 /* 19/10/2026: Módulo Frota do cliente (cortesia/teste ou tirar) */
-function pmModPintar(ate){ ate=Number(ate||0); $('pmModSt').textContent= ate>Date.now() ? 'ativo até '+new Date(ate).toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo'}) : 'desligado (R$ 5,90 por veículo, PIX no app)' }
+const PREMIUM_SEM_FIM=4102444800000; /* 21/10/2026: "no boleto" = sem prazo */
+const premiumSemFim=ate=>Number(ate||0)>=PREMIUM_SEM_FIM;
+function pmModPintar(ate){ ate=Number(ate||0); $('pmModSt').textContent= premiumSemFim(ate) ? '♾️ ativo sem prazo (incluído no boleto)' : ate>Date.now() ? 'ativo até '+new Date(ate).toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo'}) : 'desligado (R$ 5,90 por veículo, PIX no app)' }
 /* 21/10/2026: a linha "Giros extras da vista da rua" foi retirada das Permissões (pedido do dono); o servidor ainda aceita giros já dados */
 $('pmModBox').addEventListener('click',async e=>{
   const b=e.target.closest('[data-mf]'); if(!b) return;
   let dias=0; $('pmErro').textContent='';
+  if(b.dataset.mf==='boleto'){ /* 21/10/2026: Premium cobrado na mensalidade -> ativo sem prazo */
+    if(!confirm('Deixar o Premium deste cliente ativo SEM PRAZO? Use quando o valor do Premium estiver incluído na mensalidade dele. Para desligar depois, toque em "Tirar".')) return;
+    b.disabled=true;
+    try{ const j=await chamarPerm('modFrotaLancar',{semFim:true}); pmModPintar(j.modFrotaAteMs); toast('Premium ativo sem prazo (no boleto).') }catch(err){ $('pmErro').textContent=err.message }
+    b.disabled=false; return }
   if(b.dataset.mf==='dar'){ /* 19/10/2026: teste grátis — o administrador escolhe quantos dias (somam aos que faltam) */
     dias=parseInt($('pmModDias').value,10);
     if(!(dias>=1 && dias<=365)){ $('pmErro').textContent='Digite de 1 a 365 dias.'; $('pmModDias').focus(); return }
