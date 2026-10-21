@@ -1580,11 +1580,13 @@ body.desenhando .follow,body.desenhando .sheet,body.desenhando .vazio{display:no
 .frv .frtop small+.frx{margin-left:8px}.frv .frtop .frodo+.frx{margin-left:auto}
 .frv .frtop small{font-size:12px;color:var(--mut);white-space:nowrap}
 .frchk{display:inline-flex;align-items:center;gap:4px;margin-left:4px}
-.frchk input{width:104px;height:26px;border:1px solid var(--line);border-radius:999px;padding:0 10px;font:inherit;font-size:12px;background:var(--card);color:var(--txt)}
+.frchk input{width:112px;height:28px;border:1px solid var(--line);border-radius:999px 0 0 999px;border-right:0;padding:0 10px;font:inherit;font-size:12px;background:var(--card);color:var(--txt)}
 .frchk.atras input{border-color:#f59e0b;background:rgba(245,158,11,.10)}
 .frchk input:focus{outline:none;border-color:var(--cyan)}
-.frchk button{width:26px;height:26px;border-radius:50%;border:0;background:#16a34a;color:#fff;font-weight:900;cursor:pointer}
-.frchk .frchklk{width:auto;height:26px;border-radius:999px;padding:0 10px;background:var(--card2);color:var(--txt);border:1px solid var(--line);font-size:11.5px;font-weight:700}
+.frchk button{height:28px;border:0;cursor:pointer;font:inherit}
+.frchk .frchkok{border-radius:0 999px 999px 0;margin-left:-4px;padding:0 12px;background:#16a34a;color:#fff;font-size:12px;font-weight:800}
+.frchk .frchkok:hover{background:#15803d}
+.frchk .frchklk{width:auto;height:28px;margin-left:4px;border-radius:999px;padding:0 10px;background:var(--card2);color:var(--txt);border:1px solid var(--line);font-size:11.5px;font-weight:700}
 .frchk small{font-size:11px;color:var(--mut);white-space:nowrap}
 .frchk.atras small{color:#b45309;font-weight:700}
 .frv .frodo{font-size:12px;color:var(--mut);white-space:nowrap;background:var(--card2);border-radius:999px;padding:3px 9px}
@@ -6602,7 +6604,7 @@ function frChkHtml(v){
   const info=c&&c.em?'último '+new Date(c.em).toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo',day:'2-digit',month:'2-digit'})+(c.dif!=null&&Math.abs(c.dif)>=0.1?' ('+(c.dif>0?'+':'')+String(c.dif).replace('.',',')+' km)':''):'nunca feito';
   return '<span class="frchk'+(atras?' atras':'')+'" title="Checkout: digite o km do painel do veículo. A diferença conta como km rodado (combustível e troca de óleo recalculam).">'+
     '<input class="frchkin" data-id="'+v.id+'" name="frchk_'+v.id+'_'+Date.now()%100000+'" type="text" inputmode="numeric" maxlength="9" autocomplete="off" data-lpignore="true" data-1p-ignore data-form-type="other" readonly onfocus="this.removeAttribute(\'readonly\')" placeholder="Checkout km" value="'+esc(FR_CHK[v.id]||'')+'">'+ /* 20/10/2026: readonly até tocar = o navegador não preenche com o login salvo */
-    '<button type="button" class="frchkok" data-chk="'+v.id+'" aria-label="Salvar checkout">✓</button><button type="button" class="frchklk" data-chklk="'+v.id+'" title="Link para o motorista informar o km">🔗 Motorista</button><small>'+info+(c&&c.por==='motorista'?' · pelo motorista':'')+'</small></span>';
+    '<button type="button" class="frchkok" data-chk="'+v.id+'" title="Salvar o km do painel">Salvar</button><button type="button" class="frchklk" data-chklk="'+v.id+'" title="Manda um link para o motorista digitar o km do painel">📲 Pedir valor do odômetro</button><small>'+info+(c&&c.por==='motorista'?' · pelo motorista':'')+'</small></span>';
 }
 /* link fixo do motorista (página checkout.html): servidor chkLinkCriar; "novo" troca o código e o antigo para de valer */
 const CL={id:null, url:''};
