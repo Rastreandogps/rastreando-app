@@ -6659,7 +6659,11 @@ $('frLista').addEventListener('click',e=>{
   frVoltar=true; escolherVeiculo(v,true); setTimeout(()=>{ abrirComb(b.dataset.fr); if(!$('mComb').classList.contains('show')){ frVoltar=false; irPara('Frota') } },120);
 });
 let frVoltar=false;
-$('frAtualizar').onclick=()=>{ frDesenhar(); vcSincronizar().then(()=>frDesenhar()).catch(()=>{}) };
+$('frAtualizar').onclick=async()=>{ /* 20/10/2026: mostra que está atualizando (antes parecia não fazer nada) */
+  const b=$('frAtualizar'); if(b.dataset.ocupado) return; b.dataset.ocupado='1'; const t=b.textContent; b.textContent='Atualizando…';
+  try{ await vcSincronizar(); try{ await buscarSeguro() }catch(e){} }catch(e){}
+  frDesenhar(); b.textContent=t; delete b.dataset.ocupado; toast('Painel atualizado.');
+};
 setInterval(()=>{ try{ if($('frview').classList.contains('show') && !document.querySelector('.modal.show') && !(document.activeElement&&document.activeElement.classList.contains('frchkin'))) frDesenhar(); frBadgePintar() }catch(e){} },15000); /* não redesenha com o checkout sendo digitado */
 setInterval(()=>{ try{ if($('frview').classList.contains('show') && frUltN!==frChave()) frDesenhar() }catch(e){} },1500); /* os veículos chegaram depois de abrir a aba */
 function abrirComb(modo){
@@ -6817,7 +6821,9 @@ async function vcSincronizar(){
     ids.forEach(id=>{
       if(VC.pend[id]) return;                                   /* mudança deste aparelho ainda indo para o servidor */
       const c=cfg[String(id)], emLocal=+(lsGet('rg_vcfg_em_'+id)||0);
-      if(c){ if((c.em||0)>emLocal){ vcAplicar(id,c); mudou=true } }
+      if(c){ if((c.em||0)>emLocal){ vcAplicar(id,c); mudou=true }
+        /* 20/10/2026: o checkout (do painel ou do link do motorista) não muda o "em" da configuração: confere à parte */
+        if(c.chk && c.chk.em){ const lc=frChkLer(id); if(!lc || (lc.em||0)<c.chk.em){ lsJset('rg_chk_'+id,c.chk); mudou=true } } }
       else if(!lsGet('rg_vcfg_mig_'+id)){                       /* 1ª vez: leva para o servidor o que já estava neste aparelho */
         const l=vcLocal(id);
         if(lsJ('rg_comb_'+id,null) || l.meta || l.combMapa || l.metaMapa || l.frota) vcEnviar(id); else lsSet('rg_vcfg_mig_'+id,'1');
