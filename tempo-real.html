@@ -1042,6 +1042,8 @@ body.hist-on #mapCar{display:none!important}
   #ruaBox .rbgirar{position:absolute;right:10px;bottom:10px;background:#0891b2;color:#fff;font-size:12px;font-weight:800;padding:6px 10px;border-radius:9px;display:none;box-shadow:0 2px 8px rgba(0,0,0,.3)}
   #ruaBox.foto .rbgirar{display:block}
   #ruaBox .rbgirar:hover{background:#0e7490}
+  #ruaBox .rbgirar.mais{background:linear-gradient(135deg,#f59e0b,#d97706)}
+  #ruaBox .rbgirar.mais:hover{background:#b45309}
   #ruaBox.foto::after{content:"⤢";position:absolute;right:10px;top:10px;width:28px;height:28px;border-radius:8px;background:rgba(15,23,42,.6);color:#fff;font-size:16px;display:flex;align-items:center;justify-content:center}
   #ruaBox.trava{background:linear-gradient(135deg,#9cc8ee 0 45%,#b9c2ca 45% 62%,#6b7280 62%)}
   #ruaBox.trava::before{content:"";position:absolute;inset:0;backdrop-filter:blur(4px);background:rgba(15,23,42,.4)}
@@ -3157,6 +3159,7 @@ nav button.on .nemo.txt{color:var(--red2)}
     <label class="fchk"><input type="checkbox" id="pmEu"> Ver a posição do próprio celular no mapa (botão Minha posição)</label>
     <label class="fchk"><input type="checkbox" id="pmRetirar"> Ver a lista <b>Para retirar</b> (para técnico: veículos marcados para retirada, pelo mais perto, com o nome e o WhatsApp do cliente)</label>
     <label class="fchk"><input type="checkbox" id="pmFichas"> Cobrar fichas no compartilhar localização (1 ficha por link; o cliente compra pacotes por PIX no app)</label>
+    <div class="pmfichas" id="pmGiroBox"><span class="sp">🔄 Giros extras da vista da rua: <b id="pmGiroSt">—</b></span><input class="fld" id="pmGiroQtd" type="text" inputmode="numeric" maxlength="4" value="10" autocomplete="off" title="Quantos giros dar (negativo tira)"><button type="button" id="pmGiroDar">Liberar giros</button></div>
     <div class="pmfichas" id="pmModBox"><span class="sp">⭐ Premium (odômetro/mapa): <b id="pmModSt">—</b></span><input class="fld" id="pmModDias" type="text" inputmode="numeric" maxlength="3" value="30" autocomplete="off" title="Dias de teste grátis"><button type="button" data-mf="dar">Liberar dias</button><button type="button" data-mf="0" style="background:#64748b">Tirar</button></div>
     <div class="pmfichas" id="pmFichasBox"><span class="sp">Saldo: <b id="pmFichasSaldo">—</b> fichas</span><input class="fld" id="pmFichasQ" type="text" inputmode="numeric" placeholder="+10" autocomplete="off" aria-label="Fichas para lançar"><button type="button" id="pmFichasLancar">Lançar</button></div>
     <div class="pmval pmmapa"><span class="pmvl">Mapa do app</span><select class="fld" id="pmMapa"><option value="gratis">Grátis (padrão)</option><option value="google">Google Maps</option></select></div>
@@ -6310,6 +6313,7 @@ function mostrarPerm(j){
   $('pmZerar').disabled=!c.pendentes;
   $('pmFichas').checked=!!p.fichas; pmFichasCarregar();
   pmModPintar(j.modFrotaAteMs);
+  $('pmGiroSt').textContent=(Number(j.girosExtra||0))+' (além dos 10 grátis por dia)';
 }
 async function abrirPermissoes(userId){
   const u=usuarios.find(x=>x.id===userId); if(!u) return;
@@ -6749,7 +6753,9 @@ function ruaAtualizar(v){
 }
 function ruaRedesenhar(){ try{ const v=veiculos.find(x=>x.id===selId); if(v) ruaAtualizar(v) }catch(e){} }
 $('ruaBoxImg').addEventListener('error',()=>{ const k=RUA.mostrando; if(k) RUA.ponto[k]={erro:Date.now()}; RUA.mostrando=''; ruaRedesenhar() });
-$('ruaBox').addEventListener('click',e=>{ e.stopPropagation(); if(e.target.closest('#ruaGirar')){ ruaGirar(); return } $('vRua').click() });
+$('ruaBox').addEventListener('click',e=>{ e.stopPropagation(); const g=e.target.closest('#ruaGirar'); if(g){ if(g.classList.contains('mais')) lojaComprarPix('giros10',g,1); else ruaGirar(); return } $('vRua').click() });
+/* 20/10/2026 (pedido do dono): acabaram os giros -> o botão vira "+10 giros · R$ 5,99" (PIX na hora, sem sair do mapa) */
+function ruaSemGiros(sem){ const g=$('ruaGirar'); g.classList.toggle('mais',!!sem); g.textContent=sem?'⭐ +10 giros · R$ 5,99':'🔄 Girar 360°' }
 /* girar 360° dentro do app: o servidor conta e segura o limite do dia (150 no total, 10 por cliente) antes de abrir */
 let ruaGirando=false;
 async function ruaGirar(){
@@ -6757,7 +6763,8 @@ async function ruaGirar(){
   ruaGirando=true;
   try{
     const j=await fnAdm('ruaGiro',{});
-    if(!j.ok){ toast(j.motivo==='cliente'?'Você já usou os giros de hoje. Volta amanhã. A foto e o Google Maps continuam funcionando.':'Os giros de hoje acabaram. Volta amanhã. A foto e o Google Maps continuam funcionando.',6000); return }
+    if(!j.ok){ ruaSemGiros(true); toast('Os giros grátis de hoje acabaram. Toque em "⭐ +10 giros · R$ 5,99" para continuar agora, ou volte amanhã.',6000); return }
+    ruaSemGiros(false);
     await gmCarregarApi();
     const lat=+v.pos[0], lng=+v.pos[1], el=$('rgPano'); el.innerHTML='';
     $('rgTit').textContent='Vista da rua 360° · '+v.nome;
@@ -11145,6 +11152,10 @@ function lojaPagoOk(s){
   if(/premium/i.test(s.nome||'')){ /* 19/10/2026: pagou, mas o servidor não conseguiu liberar na hora (o dono recebe aviso) */
     $('ljpOkTxt').textContent='Pagamento recebido. A liberação do Premium está sendo concluída. Se não aparecer em alguns minutos, fale com a gente.'; $('ljpOkWpp').style.display='none'; return;
   }
+  if(Number(s.giros)>0){ /* 20/10/2026: giros da vista da rua entram na hora */
+    $('ljpOkTxt').textContent=s.giros+' giros liberados!'+(typeof s.girosSaldo==='number'?' Você tem '+s.girosSaldo+' giro'+(s.girosSaldo===1?'':'s')+' extra'+(s.girosSaldo===1?'':'s')+'. Eles não vencem.':'')+' Feche esta janela e toque em "Girar 360°".';
+    $('ljpOkWpp').style.display='none'; try{ ruaSemGiros(false) }catch(e){} return;
+  }
   if(Number(s.fichas)>0){ /* 15/10/2026: fichas entram na hora, sem entrega */
     $('ljpOkTxt').textContent=s.fichas+' fichas já estão na sua conta.'+(typeof s.saldo==='number'?' Saldo agora: '+s.saldo+' fichas.':'');
     $('ljpOkWpp').style.display='none';
@@ -11386,6 +11397,13 @@ async function pmFichasCarregar(){
 }
 /* 19/10/2026: Módulo Frota do cliente (cortesia/teste ou tirar) */
 function pmModPintar(ate){ ate=Number(ate||0); $('pmModSt').textContent= ate>Date.now() ? 'ativo até '+new Date(ate).toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo'}) : 'desligado (R$ 5,90 por veículo, PIX no app)' }
+$('pmGiroDar').onclick=async()=>{ /* 20/10/2026: o administrador dá giros extras (não vencem; número negativo tira) */
+  const q=parseInt($('pmGiroQtd').value,10); $('pmErro').textContent='';
+  if(!q || Math.abs(q)>500){ $('pmErro').textContent='Digite de 1 a 500 giros (negativo tira).'; $('pmGiroQtd').focus(); return }
+  const b=$('pmGiroDar'); b.disabled=true;
+  try{ const j=await chamarPerm('ruaGiroLancar',{qtd:q}); $('pmGiroSt').textContent=j.girosExtra+' (além dos 10 grátis por dia)'; toast(q>0?'+'+q+' giros liberados.':'Giros retirados.') }catch(err){ $('pmErro').textContent=err.message }
+  b.disabled=false;
+};
 $('pmModBox').addEventListener('click',async e=>{
   const b=e.target.closest('[data-mf]'); if(!b) return;
   let dias=0; $('pmErro').textContent='';
