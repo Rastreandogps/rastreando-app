@@ -3338,7 +3338,7 @@ nav button.on .nemo.txt{color:var(--red2)}
 <div class="modal alsheet" id="mChkLink">
   <div class="box2" style="max-width:460px">
     <div class="almtopo"><h3 id="clTit">Link do motorista</h3><button class="almx" data-close type="button" aria-label="Fechar" title="Fechar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
-    <p class="asinfo">Mande este link para o motorista. Ele abre uma página simples, digita o km do painel e envia: vira o checkout do veículo na hora. <b>O link é fixo</b>: ele usa o mesmo toda semana (sugestão: toda sexta).</p>
+    <p class="asinfo">Mande este link para o motorista. Ele abre uma página simples, digita o km do painel e envia: vira o checkout do veículo na hora. <b>O link é fixo</b>: ele usa sempre o mesmo, toda vez que você pedir.</p>
     <div class="cllink" id="clLink">Gerando o link…</div>
     <div class="ferr" id="clErro"></div>
     <button class="btn" id="clWpp" type="button" style="width:100%;background:#16a34a;color:#fff">Enviar no WhatsApp</button>
@@ -6624,7 +6624,7 @@ async function chkLinkAbrir(id,novo){
 $('clCopiar').onclick=()=>{ if(!CL.url) return; copiar(CL.url).then(()=>toast('Link copiado')).catch(()=>toast('Não consegui copiar')) };
 $('clWpp').onclick=()=>{
   if(!CL.url) return; const v=veiculos.find(x=>x.id===CL.id)||{nome:'veículo'}, m=motLer(CL.id), f=String((m&&m.fone)||'').replace(/\D/g,'');
-  const msg='Olá'+(m&&m.nome?', '+m.nome.split(' ')[0]:'')+'! Toda sexta, por favor, abra este link e digite o km do painel do '+v.nome+'. É rapidinho:\n'+CL.url;
+  const msg='Olá'+(m&&m.nome?', '+m.nome.split(' ')[0]:'')+'! Digite aqui o odômetro do veículo '+v.nome+'. É rapidinho:\n'+CL.url; /* 20/10/2026: frase genérica (sem dia fixo), pedido do dono */
   window.open('https://wa.me/'+(f?(f.length<=11?'55'+f:f):'')+'?text='+encodeURIComponent(msg),'_blank','noopener');
 };
 $('clNovo').onclick=()=>{ if(CL.id && confirm('Gerar um link novo? O link que o motorista tem hoje para de funcionar.')) chkLinkAbrir(CL.id,true) };
