@@ -536,6 +536,13 @@ header{display:flex;align-items:center;justify-content:space-between;gap:10px;pa
 .brand .pin{width:34px;height:34px;border-radius:50%;border:2px solid var(--red);display:none;align-items:center;justify-content:center;box-shadow:0 0 10px rgba(227,38,47,.45)}
 .brand .name{font-weight:800;letter-spacing:.06em;font-size:15px;line-height:1}
 .brand .name small{display:block;font-weight:600;letter-spacing:.3em;font-size:10px;color:var(--mut);margin-top:3px}
+/* 20/10/2026 (pedido do dono): o frotista com logo vê a logo DELE no canto do app; a Rastreando fica em "por Rastreando GPS" */
+.brandcli{display:none;align-items:center;gap:10px;min-width:0}
+body.comlogo .brand > img,body.comlogo .brand > .pin,body.comlogo .brand > .name{display:none!important}
+body.comlogo .brandcli{display:flex}
+.brandcli img{width:38px;height:38px;border-radius:10px;object-fit:contain;background:#fff;box-shadow:0 1px 6px rgba(0,0,0,.18);flex:none}
+.brandcli b{display:block;font-weight:800;font-size:15px;line-height:1.1;max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.brandcli small{display:block;font-size:10px;font-weight:600;color:var(--mut);margin-top:2px;letter-spacing:.02em}
 .demo{font-size:10px;font-weight:700;color:var(--amber);border:1px solid rgba(245,184,61,.4);border-radius:20px;padding:4px 8px;white-space:nowrap}
 
 /* Mapa */
@@ -2409,6 +2416,7 @@ nav button.on .nemo.txt{color:var(--red2)}
       <svg width="16" height="20" viewBox="0 0 16 20"><path d="M8 0C3.6 0 0 3.5 0 7.9 0 13.5 8 20 8 20s8-6.5 8-12.1C16 3.5 12.4 0 8 0z" fill="#e3262f"/><circle cx="8" cy="8" r="3" fill="#0f1115"/></svg>
     </div>
     <div class="name">RASTREANDO<small>GPS</small></div>
+    <span class="brandcli" id="brandCli"><img id="brandCliImg" alt=""><span><b id="brandCliNome"></b><small>por Rastreando GPS</small></span></span><!-- 20/10/2026: logo do cliente (frotista Premium) -->
   </div>
   <div class="hdir">
     <span class="demo" id="live">ENTRAR</span>
@@ -6795,7 +6803,12 @@ function logoAplicar(){
   if(pode && modFrota() && !LG.carregou){ LG.carregou=true; fnAdm('logoVer',{}).then(r=>{ LG.meu=r.img?r:null; logoMaisTxt(); try{ ruaRedesenhar() }catch(e){} }).catch(()=>{}) }
   logoMaisTxt();
 }
-function logoMaisTxt(){ const t=$('maisLogoTxt'); if(t) t.textContent=!modFrota()?'⭐ Recurso Premium':(LG.meu?'Logo ativa'+(LG.meu.nome?' · '+LG.meu.nome:''):'Sua marca no link de localização') }
+function brandAplicar(){ /* canto superior esquerdo: logo do cliente quando ele tem (e o Premium está ativo) */
+  const l=LG.meu, liga=!!(l && l.img && !ehAdmin && modFrota());
+  document.body.classList.toggle('comlogo',liga);
+  if(liga){ const im=$('brandCliImg'); if(im.getAttribute('src')!==l.img) im.src=l.img; $('brandCliNome').textContent=l.nome||''; $('brandCliNome').style.display=l.nome?'':'none' }
+}
+function logoMaisTxt(){ try{ brandAplicar() }catch(e){}  const t=$('maisLogoTxt'); if(t) t.textContent=!modFrota()?'⭐ Recurso Premium':(LG.meu?'Logo ativa'+(LG.meu.nome?' · '+LG.meu.nome:''):'Sua marca no link de localização') }
 function logoPrevPintar(){ const e=$('lgImg'); if(LG.img){ e.style.backgroundImage='url("'+LG.img+'")'; e.classList.add('tem') } else { e.style.backgroundImage=''; e.classList.remove('tem') } $('lgNmPrev').textContent=$('lgNome').value.trim()||'Nome da empresa' }
 async function logoAbrir(alvo){
   if(!alvo && !modFrota()){ toast('A sua logo é um recurso do Premium. Assine para usar.'); try{ lojaComprarPix('modfrota',$('maisLogo')||document.createElement('button'),1) }catch(e){} return }
