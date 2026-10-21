@@ -6767,7 +6767,7 @@ function ruaAtualizar(v){
   if(!pr || ruaDist(pr.lat,pr.lon,lat,lon)>60){ pr=RUA.parada[v.id]={lat,lon,t:agora,andou:!!pr}; }
   /* primeira vez que o app vê o veículo e ele já está parado: mostra na hora (não dá para saber há quanto tempo) */
   if(pr.andou && agora-pr.t<120000){ ruaPintar('','⏳ Parou agora<br>a foto vem em 2 min'); return }
-  const k=pr.lat.toFixed(4)+','+pr.lon.toFixed(4), pt=RUA.ponto[k], tag=pr.andou?'Parado aqui desde '+ruaHora(pr.t):'Vista da rua';
+  const k=ruaPontoPerto(pr.lat,pr.lon), pt=RUA.ponto[k], tag=pr.andou?'Parado aqui desde '+ruaHora(pr.t):'Vista da rua';
   if(pt==='sem'){ ruaPintar('','Sem vista da rua<br>neste ponto'); return }
   if(pt && pt.erro){ if(agora-pt.erro<300000){ ruaPintar('','Vista da rua<br>indisponível agora'); return } delete RUA.ponto[k] } /* tenta de novo depois de 5 min */
   if(pt && pt.url){ ruaPintar('foto','',tag,pt.url); RUA.mostrando=k; return }
@@ -6779,8 +6779,19 @@ function ruaAtualizar(v){
     .then(r=>r.json()).then(j=>{
       if(!j || j.status!=='OK'){ RUA.ponto[k]=(j&&(j.status==='ZERO_RESULTS'||j.status==='NOT_FOUND'))?'sem':{erro:Date.now()}; ruaRedesenhar(); return }
       const h=j.location?ruaRumo(j.location.lat,j.location.lng,pr.lat,pr.lon):null; /* câmera virada para o veículo */
-      RUA.ponto[k]={url:foto(h)}; ruaFotoContar(); ruaRedesenhar();
-    }).catch(()=>{ RUA.ponto[k]={url:foto(null)}; ruaFotoContar(); ruaRedesenhar() }); /* sem resposta da conferência: tenta a foto direto */
+      RUA.ponto[k]={url:foto(h)}; ruaGuardar(k); ruaFotoContar(); ruaRedesenhar();
+    }).catch(()=>{ RUA.ponto[k]={url:foto(null)}; ruaGuardar(k); ruaFotoContar(); ruaRedesenhar() }); /* sem resposta da conferência: tenta a foto direto */
+}
+/* 20/10/2026 (o dono viu o contador subir abrindo o mesmo carro): o endereço de cada foto fica guardado neste aparelho
+   por 3 dias e vale para qualquer parada a até 40 m. Abrir de novo (outra aba, "Ver como", F5) não pede nem conta outra foto. */
+const RUA_GUARDA='rg_rua_pontos', RUA_VALE=3*86400000;
+(function(){ try{ const a=JSON.parse(localStorage.getItem(RUA_GUARDA)||'{}'), ag=Date.now(); Object.keys(a).forEach(k=>{ if(a[k] && a[k].url && ag-a[k].em<RUA_VALE) RUA.ponto[k]={url:a[k].url} }) }catch(e){} })();
+function ruaGuardar(k){ try{ const a=JSON.parse(localStorage.getItem(RUA_GUARDA)||'{}'), ag=Date.now(); a[k]={url:RUA.ponto[k].url,em:ag};
+  const ks=Object.keys(a).filter(x=>a[x]&&ag-a[x].em<RUA_VALE).sort((x,y)=>a[y].em-a[x].em).slice(0,300), b={}; ks.forEach(x=>b[x]=a[x]);
+  localStorage.setItem(RUA_GUARDA,JSON.stringify(b)) }catch(e){} }
+function ruaPontoPerto(lat,lon){ /* reaproveita uma foto já pedida a até 40 m daqui */
+  for(const k in RUA.ponto){ const p=RUA.ponto[k]; if(!p||!p.url) continue; const c=k.split(','); if(ruaDist(+c[0],+c[1],lat,lon)<=40) return k }
+  return lat.toFixed(5)+','+lon.toFixed(5);
 }
 function ruaFotoContar(){ try{ fnAdm('ruaFoto',{}).catch(()=>{}) }catch(e){} if(ehAdmin){ RUA_CONT.em=0 } } /* 20/10/2026: conta a foto nova no servidor */
 function ruaRedesenhar(){ try{ const v=veiculos.find(x=>x.id===selId); if(v) ruaAtualizar(v) }catch(e){} }
