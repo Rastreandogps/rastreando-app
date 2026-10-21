@@ -135,7 +135,7 @@ async function enviar() {
   try {
     const r = await chamar('chkLinkEnviar', { km });
     $('form').hidden = true; $('ok').hidden = false;
-    $('okTxt').innerHTML = 'Registramos <b>' + num(r.km) + ' km</b> no ' + (r.nome || 'veículo').replace(/[<>&]/g, '') + '.<br>Pode fechar esta página. Na próxima semana, use este mesmo link.';
+    $('okTxt').innerHTML = 'Registramos <b>' + num(r.km) + ' km</b> no ' + (r.nome || 'veículo').replace(/[<>&]/g, '') + '.<br>Pode fechar esta página. Da próxima vez, use este mesmo link.';
   } catch (e) {
     $('erro').textContent = e.message; b.disabled = false; b.textContent = 'Enviar';
   }
