@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+<script>/* 21/10/2026: quem já está logado não vê a tela de login piscando enquanto a página carrega */
+try{ if(localStorage.getItem('rg_token')||sessionStorage.getItem('rgv_rg_token')||sessionStorage.getItem('rg_basic')) document.documentElement.classList.add('rglogado') }catch(e){}
+</script>
 <script>/* 15/10/2026: emojis viravam "?" no WhatsApp do computador quando o link era wa.me.
    Troca sozinho todo link wa.me (botões e window.open) pelo api.whatsapp.com/send, que mantém os emojis. */
 (function(){
@@ -86,6 +89,7 @@ body.mapa-google #map .leaflet-top.leaflet-left .leaflet-control-attribution{mar
 }
 .login{display:none;position:fixed;inset:0;z-index:2000;background:var(--bg);align-items:center;justify-content:center;padding:24px}
 .login.show{display:flex}
+.rglogado .login.show{display:none} /* 21/10/2026: sem piscar o login (sai quando o app precisa mesmo do login) */
 /* trava com digital / Face ID */
 .biolock{display:none;position:fixed;top:0;right:0;bottom:0;left:0;z-index:3000;background:var(--bg);align-items:center;justify-content:center;padding:24px}
 .biolock.show{display:flex}
@@ -11292,6 +11296,7 @@ document.addEventListener('visibilitychange',()=>{
 
 /* ===== ENTRAR / SAIR ===== */
 function mostrarLogin(msg){
+  document.documentElement.classList.remove('rglogado');
   $('login').classList.add('show');
   $('lErr').textContent = msg||'';
 }
