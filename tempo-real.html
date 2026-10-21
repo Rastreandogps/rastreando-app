@@ -1647,6 +1647,9 @@ body.desenhando .follow,body.desenhando .sheet,body.desenhando .vazio{display:no
 .frchk.trava{height:28px;padding:0 12px;border-radius:999px;border:1px dashed #f59e0b;background:rgba(245,158,11,.10);color:#b45309;font:inherit;font-size:12px;font-weight:800;cursor:pointer}
 .frchk small{font-size:11px;color:var(--mut);white-space:nowrap}
 .frchk.atras small{color:#b45309;font-weight:700}
+.frchk .frchkwa{display:inline-flex;align-items:center;gap:5px;height:28px;margin-left:4px;padding:0 10px 0 8px;border-radius:999px;border:1px solid rgba(22,163,74,.5);background:rgba(22,163,74,.12);color:#16a34a;font-size:12px;font-weight:800;white-space:nowrap;cursor:pointer} /* 21/10/2026 */
+.frchk .frchkwa svg{width:16px;height:16px;flex:none}
+.frchk .frchkwa:hover{background:rgba(22,163,74,.18)}
 /* 21/10/2026 (celular): o card da Frota não vaza mais — o ✕ fica no canto de cima, o checkout desce inteiro e o botão do motorista não quebra em 3 linhas */
 @media (max-width:759px){
   .frv .frtop{position:relative;padding-right:38px}
@@ -6745,6 +6748,33 @@ let frUltN=-1;
    de óleo recalculam juntos. Depois o campo fica vazio de novo. Fica um aviso amarelo quando passa de 7 dias. */
 const FR_CHK={}; /* o que foi digitado (o painel redesenha a cada 15 s) */
 function frChkLer(id){ try{ return JSON.parse(lsGet('rg_chk_'+id)||'null') }catch(e){ return null } }
+/* 21/10/2026 (pedido do dono): botão do WhatsApp no card da Frota — com motorista cadastrado, manda o link do odômetro
+   DIRETO para ele (sem escolher o contato no WhatsApp). Cliente: link único da empresa já com este veículo; administrador: link do veículo. */
+const FR_WA_SVG='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.2-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.6.8-.8 1-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.3-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.8 12 12 0 0 0 4.6 4c.6.3 1.1.4 1.5.5a3.6 3.6 0 0 0 1.6.1 2.6 2.6 0 0 0 1.7-1.2 2.1 2.1 0 0 0 .2-1.2c-.1-.1-.3-.2-.5-.3z"/></svg>';
+function frChkWaHtml(v){
+  const m=motLer(v.id), f=String((m&&m.fone)||'').replace(/\D/g,''); if(f.length<10) return '';
+  const quem=(m.nome||'motorista').split(' ')[0];
+  const k=ehAdmin?String(v.id):'u'; if(!CHK_COD[k] && !CHK_COD['p'+k]){ CHK_COD['p'+k]=1; chkCodigo(v.id).catch(()=>{ delete CHK_COD['p'+k] }) } /* já busca o link: o toque abre o WhatsApp na hora */
+  return '<button type="button" class="frchkwa" data-chkwa="'+v.id+'" title="Mandar o link do odômetro para '+esc(quem)+' no WhatsApp" aria-label="Mandar o link do odômetro para '+esc(quem)+' no WhatsApp">'+FR_WA_SVG+'<span>'+esc(quem)+'</span></button>';
+}
+const CHK_COD={}; /* código do link (cliente: "u" = link único; administrador: por veículo), guardado para abrir o WhatsApp na hora */
+async function chkCodigo(id){
+  const k=ehAdmin?String(id):'u'; if(CHK_COD[k]) return CHK_COD[k];
+  const r=await fetch(DESB_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',body:JSON.stringify(Object.assign({acao:'chkLinkCriar',token:lsGet('rg_token'),novo:false},ehAdmin?{deviceId:id}:{universal:true}))});
+  let j={}; try{ j=await r.json() }catch(e){} if(!r.ok) throw new Error(j.erro||('Não consegui gerar o link (erro '+r.status+').'));
+  CHK_COD[k]=j.codigo; return j.codigo;
+}
+async function frChkWa(id){
+  const v=veiculos.find(x=>x.id===id), m=motLer(id), f=String((m&&m.fone)||'').replace(/\D/g,''); if(!v||f.length<10) return;
+  const k=ehAdmin?String(id):'u';
+  const montar=cod=>{ const url=CHK_BASE+'?c='+encodeURIComponent(cod)+(ehAdmin?'':'&v='+id);
+    const msg='Olá'+(m.nome?', '+m.nome.split(' ')[0]:'')+'! Digite aqui o odômetro do veículo '+v.nome+'. É rapidinho:\n'+url;
+    return 'https://wa.me/'+(f.length<=11?'55'+f:f)+'?text='+encodeURIComponent(msg) };
+  if(CHK_COD[k]){ window.open(montar(CHK_COD[k]),'_blank','noopener'); return }
+  const w=window.open('about:blank','rg_whatsapp'); /* abre já (senão o navegador bloqueia) e depois vai para a conversa */
+  try{ const cod=await chkCodigo(id); const u=window.waLink?window.waLink(montar(cod)):montar(cod); if(w) w.location.href=u; else window.open(u,'_blank','noopener') }
+  catch(e){ try{ if(w) w.close() }catch(_){} toast(e.message) }
+}
 function frChkHtml(v){
   if(v.tag || v.odo==null) return '';
   if(!ehAdmin && !modFrota()) return '<button type="button" class="frchk trava" data-chktrava="1" title="Checkout do odômetro: recurso Premium">🔒 Checkout · ⭐ Premium</button>'; /* 21/10/2026: sem Premium, sem checkout nem foto */
@@ -6752,7 +6782,7 @@ function frChkHtml(v){
   const info=c&&c.em?'último '+new Date(c.em).toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo',day:'2-digit',month:'2-digit'})+(c.dif!=null&&Math.abs(c.dif)>=0.1?' ('+(c.dif>0?'+':'')+String(c.dif).replace('.',',')+' km)':''):'nunca feito';
   return '<span class="frchk'+(atras?' atras':'')+'" title="Checkout: digite o km do painel do veículo. A diferença conta como km rodado (combustível e troca de óleo recalculam).">'+
     '<input class="frchkin" data-id="'+v.id+'" name="frchk_'+v.id+'_'+Date.now()%100000+'" type="text" inputmode="numeric" maxlength="9" autocomplete="off" data-lpignore="true" data-1p-ignore data-form-type="other" readonly onfocus="this.removeAttribute(\'readonly\')" placeholder="Checkout km" value="'+esc(FR_CHK[v.id]||'')+'">'+ /* 20/10/2026: readonly até tocar = o navegador não preenche com o login salvo */
-    '<button type="button" class="frchkok" data-chk="'+v.id+'" title="Salvar o km do painel">Salvar</button>'+(c&&c.mini&&/^data:image\//.test(c.mini)?'<img class="frchkmini" src="'+c.mini+'" data-chkfoto="'+v.id+'" alt="Foto do painel" title="Ver a foto do painel enviada pelo motorista">':'')+''+(ehAdmin?'<button type="button" class="frchklk" data-chklk="'+v.id+'" title="Manda um link para o motorista digitar o km do painel">📲 Pedir valor do odômetro</button>':'')+'<small>'+info+(c&&c.por==='motorista'?' · pelo motorista':'')+'</small></span>';
+    '<button type="button" class="frchkok" data-chk="'+v.id+'" title="Salvar o km do painel">Salvar</button>'+(c&&c.mini&&/^data:image\//.test(c.mini)?'<img class="frchkmini" src="'+c.mini+'" data-chkfoto="'+v.id+'" alt="Foto do painel" title="Ver a foto do painel enviada pelo motorista">':'')+''+(ehAdmin?'<button type="button" class="frchklk" data-chklk="'+v.id+'" title="Manda um link para o motorista digitar o km do painel">📲 Pedir valor do odômetro</button>':'')+frChkWaHtml(v)+'<small>'+info+(c&&c.por==='motorista'?' · pelo motorista':'')+'</small></span>';
 }
 /* fotos do painel (servidor chkFotoVer): a grande em cima, as últimas embaixo para comparar */
 let CF={id:null,fotos:[]};
@@ -6836,6 +6866,7 @@ async function frChkSalvar(id){
 $('frLista').addEventListener('input',e=>{ const i=e.target.closest('.frchkin'); if(i) FR_CHK[+i.dataset.id]=i.value.replace(/[^\d.,]/g,'') });
 $('frLista').addEventListener('keydown',e=>{ const i=e.target.closest('.frchkin'); if(i && e.key==='Enter'){ e.preventDefault(); frChkSalvar(+i.dataset.id) } });
 $('frLista').addEventListener('click',e=>{
+  const wa=e.target.closest('[data-chkwa]'); if(wa){ frChkWa(+wa.dataset.chkwa); return } /* 21/10/2026 */
   if(e.target.closest('[data-pedirtodos]')||e.target.closest('[data-chktrava]')){ if(!ehAdmin && !modFrota()){ premiumOferecer(); return } chkLinkAbrir(0); return }
   const o=e.target.closest('#frOrd button'); if(o){ frOrdem=o.dataset.o; frDesenhar(); return }
   if(e.target.closest('.frchkin')) return;
