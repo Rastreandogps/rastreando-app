@@ -336,6 +336,10 @@ body.mapa-google #map .leaflet-top.leaflet-left .leaflet-control-attribution{mar
 #verComo .vctx small{display:block;font-size:11.5px;opacity:.85}
 #verComo #vcSair{flex:none;border:0;border-radius:999px;padding:7px 14px;background:#fff;color:#4c1d95;font:inherit;font-size:12.5px;font-weight:800;cursor:pointer}
 #aview .ico.ver{color:#6d28d9;border-color:rgba(109,40,217,.35);background:rgba(109,40,217,.1)}
+#mChkLink .almtopo{flex:none;display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}#mChkLink .almtopo h3{margin:0}
+#mChkLink .almx{width:38px;height:38px;flex:none;border-radius:50%;background:var(--card2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;cursor:pointer}
+#mChkLink .almx svg{width:18px;height:18px;fill:none;stroke:var(--txt);stroke-width:2.4;stroke-linecap:round}
+.cllink{border:1px dashed var(--line);border-radius:12px;padding:10px 12px;font-size:12.5px;word-break:break-all;background:var(--card2);margin:4px 0 6px;user-select:all}
 #mLogo .almtopo{flex:none;display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}#mLogo .almtopo h3{margin:0}
 #mLogo .almx{width:38px;height:38px;flex:none;border-radius:50%;background:var(--card2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;cursor:pointer}
 #mLogo .almx svg{width:18px;height:18px;fill:none;stroke:var(--txt);stroke-width:2.4;stroke-linecap:round}
@@ -1580,6 +1584,7 @@ body.desenhando .follow,body.desenhando .sheet,body.desenhando .vazio{display:no
 .frchk.atras input{border-color:#f59e0b;background:rgba(245,158,11,.10)}
 .frchk input:focus{outline:none;border-color:var(--cyan)}
 .frchk button{width:26px;height:26px;border-radius:50%;border:0;background:#16a34a;color:#fff;font-weight:900;cursor:pointer}
+.frchk .frchklk{width:auto;height:26px;border-radius:999px;padding:0 10px;background:var(--card2);color:var(--txt);border:1px solid var(--line);font-size:11.5px;font-weight:700}
 .frchk small{font-size:11px;color:var(--mut);white-space:nowrap}
 .frchk.atras small{color:#b45309;font-weight:700}
 .frv .frodo{font-size:12px;color:var(--mut);white-space:nowrap;background:var(--card2);border-radius:999px;padding:3px 9px}
@@ -3327,6 +3332,18 @@ nav button.on .nemo.txt{color:var(--red2)}
       <div class="ferr" id="asErro" style="margin-top:8px"></div>
     </div>
     <button class="btn btn-out alfechar" id="asFechar" type="button">Fechar</button>
+  </div>
+</div>
+<!-- 20/10/2026 (ideia do dono): link do motorista para o checkout do odômetro -->
+<div class="modal alsheet" id="mChkLink">
+  <div class="box2" style="max-width:460px">
+    <div class="almtopo"><h3 id="clTit">Link do motorista</h3><button class="almx" data-close type="button" aria-label="Fechar" title="Fechar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <p class="asinfo">Mande este link para o motorista. Ele abre uma página simples, digita o km do painel e envia: vira o checkout do veículo na hora. <b>O link é fixo</b>: ele usa o mesmo toda semana (sugestão: toda sexta).</p>
+    <div class="cllink" id="clLink">Gerando o link…</div>
+    <div class="ferr" id="clErro"></div>
+    <button class="btn" id="clWpp" type="button" style="width:100%;background:#16a34a;color:#fff">Enviar no WhatsApp</button>
+    <button class="btn btn-out" id="clCopiar" type="button" style="width:100%;margin-top:8px">Copiar link</button>
+    <button class="btn-link" id="clNovo" type="button" style="display:block;margin:12px auto 0;background:none;border:0;color:var(--mut);font:inherit;font-size:12.5px;text-decoration:underline;cursor:pointer">Gerar um link novo (o antigo para de funcionar)</button>
   </div>
 </div>
 <!-- 20/10/2026 (pedido do dono): logo do cliente (frotista Premium) -->
@@ -6585,8 +6602,32 @@ function frChkHtml(v){
   const info=c&&c.em?'último '+new Date(c.em).toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo',day:'2-digit',month:'2-digit'})+(c.dif!=null&&Math.abs(c.dif)>=0.1?' ('+(c.dif>0?'+':'')+String(c.dif).replace('.',',')+' km)':''):'nunca feito';
   return '<span class="frchk'+(atras?' atras':'')+'" title="Checkout: digite o km do painel do veículo. A diferença conta como km rodado (combustível e troca de óleo recalculam).">'+
     '<input class="frchkin" data-id="'+v.id+'" type="text" inputmode="numeric" maxlength="9" autocomplete="off" placeholder="Checkout km" value="'+esc(FR_CHK[v.id]||'')+'">'+
-    '<button type="button" class="frchkok" data-chk="'+v.id+'" aria-label="Salvar checkout">✓</button><small>'+info+'</small></span>';
+    '<button type="button" class="frchkok" data-chk="'+v.id+'" aria-label="Salvar checkout">✓</button><button type="button" class="frchklk" data-chklk="'+v.id+'" title="Link para o motorista informar o km">🔗 Motorista</button><small>'+info+(c&&c.por==='motorista'?' · pelo motorista':'')+'</small></span>';
 }
+/* link fixo do motorista (página checkout.html): servidor chkLinkCriar; "novo" troca o código e o antigo para de valer */
+const CL={id:null, url:''};
+const CHK_BASE=location.origin+location.pathname.replace(/[^\/]*$/,'')+'checkout.html';
+async function chkLinkAbrir(id,novo){
+  const v=veiculos.find(x=>x.id===id); if(!v) return;
+  CL.id=id; CL.url=''; $('clTit').textContent='Link do motorista · '+v.nome; $('clLink').textContent='Gerando o link…'; $('clErro').textContent='';
+  try{ const m=$('mChkLink'); m.style.zIndex='1400'; document.body.appendChild(m) }catch(e){}
+  abrir('mChkLink');
+  try{
+    const r=await fetch(DESB_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',body:JSON.stringify({acao:'chkLinkCriar',token:lsGet('rg_token'),deviceId:id,novo:!!novo})});
+    let j={}; try{ j=await r.json() }catch(e){}
+    if(!r.ok) throw new Error(j.erro||('Não consegui gerar o link (erro '+r.status+').'));
+    if(CL.id!==id) return;
+    CL.url=CHK_BASE+'?c='+encodeURIComponent(j.codigo); $('clLink').textContent=CL.url;
+    if(novo) toast('Link novo gerado. O antigo não funciona mais.');
+  }catch(e){ $('clLink').textContent='—'; $('clErro').textContent=e.message }
+}
+$('clCopiar').onclick=()=>{ if(!CL.url) return; copiar(CL.url).then(()=>toast('Link copiado')).catch(()=>toast('Não consegui copiar')) };
+$('clWpp').onclick=()=>{
+  if(!CL.url) return; const v=veiculos.find(x=>x.id===CL.id)||{nome:'veículo'}, m=motLer(CL.id), f=String((m&&m.fone)||'').replace(/\D/g,'');
+  const msg='Olá'+(m&&m.nome?', '+m.nome.split(' ')[0]:'')+'! Toda sexta, por favor, abra este link e digite o km do painel do '+v.nome+'. É rapidinho:\n'+CL.url;
+  window.open('https://wa.me/'+(f?(f.length<=11?'55'+f:f):'')+'?text='+encodeURIComponent(msg),'_blank','noopener');
+};
+$('clNovo').onclick=()=>{ if(CL.id && confirm('Gerar um link novo? O link que o motorista tem hoje para de funcionar.')) chkLinkAbrir(CL.id,true) };
 async function frChkSalvar(id){
   const v=veiculos.find(x=>x.id===id); if(!v) return;
   const km=Math.round(cbNum(FR_CHK[id]||''));
@@ -6610,6 +6651,7 @@ $('frLista').addEventListener('click',e=>{
   const o=e.target.closest('#frOrd button'); if(o){ frOrdem=o.dataset.o; frDesenhar(); return }
   if(e.target.closest('.frchkin')) return;
   const ck=e.target.closest('[data-chk]'); if(ck){ frChkSalvar(+ck.dataset.chk); return }
+  const lk=e.target.closest('[data-chklk]'); if(lk){ chkLinkAbrir(+lk.dataset.chklk); return }
   const b=e.target.closest('button[data-fr]'); if(!b) return;
   const v=veiculos.find(x=>String(x.id)===b.dataset.id); if(!v) return;
   frVoltar=true; escolherVeiculo(v,true); setTimeout(()=>{ abrirComb(b.dataset.fr); if(!$('mComb').classList.contains('show')){ frVoltar=false; irPara('Frota') } },120);
