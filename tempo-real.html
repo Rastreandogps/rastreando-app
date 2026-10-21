@@ -690,6 +690,14 @@ body.hist-on #follow,body.hist-on #btnEu,body.hist-on #btnTodos,body.hist-on #bt
 #pontoBtn b:empty{display:none}
 body.hist-on #pontoBtn{display:none!important}
 @media (min-width:900px){ #pontoBtn{left:calc(var(--lado,0px) + 12px);z-index:460} }
+/* 21/10/2026: botões + e − do zoom no computador (para quem tem dificuldade com a rodinha do mouse ou usa touchpad) */
+#zoomBox{display:none}
+@media (min-width:900px){
+  #zoomBox{display:flex;flex-direction:column;position:absolute;top:96px;left:calc(var(--lado,0px) + 12px);z-index:460;border-radius:12px;overflow:hidden;border:1px solid var(--line);background:var(--card);box-shadow:0 2px 8px rgba(0,0,0,.18)}
+  #zoomBox button{width:38px;height:38px;border:0;background:none;color:var(--txt);font:700 22px/1 system-ui,sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center}
+  #zoomBox button+button{border-top:1px solid var(--line)}
+  #zoomBox button:hover{background:var(--card2)}
+}
 #mPonto .box2{display:flex;flex-direction:column;max-height:86vh;overflow:hidden}
 #mPonto .almtopo{flex:none;display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}
 #mPonto .almtopo h3{margin:0}
@@ -2579,6 +2587,7 @@ nav button.on .nemo.txt{color:var(--red2)}
   </button>
   <!-- 18/10/2026 (pedido do dono): atalho da lista Para retirar no mapa (só para quem tem a permissão). Pisca vermelho com veículo novo na lista -->
   <button class="follow" id="btnRet" type="button" style="display:none" title="Para retirar" aria-label="Para retirar"><span class="rletra">R</span><span class="lbl">Para retirar</span></button>
+  <div id="zoomBox"><button type="button" id="zoomMais" title="Aproximar o mapa" aria-label="Aproximar o mapa">+</button><button type="button" id="zoomMenos" title="Afastar o mapa" aria-label="Afastar o mapa">−</button></div>
   <!-- 19/10/2026 (pedido do dono): lupa para marcar um ponto no mapa (endereço ou latitude/longitude), só administrador -->
   <button id="pontoBtn" type="button" style="display:none" title="Marcar um ponto no mapa (endereço ou coordenadas)" aria-label="Marcar um ponto no mapa"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><b id="pontoN"></b></button>
   <button id="retChip" type="button" style="display:none" title="Tirar do mapa os veículos para retirar">📍 Para retirar no mapa <span aria-hidden="true">✕</span></button>
@@ -4529,6 +4538,9 @@ function euLigar(){
     const agora=Date.now(); if(!eu.avisou || agora-eu.avisou>30000){ eu.avisou=agora; toast('Sem sinal de localização do celular agora. Continuo tentando.') }
   },{enableHighAccuracy:true,maximumAge:5000,timeout:25000});
 }
+$('zoomMais').onclick=()=>map.zoomIn(); $('zoomMenos').onclick=()=>map.zoomOut(); /* 21/10/2026 */
+function zoomPos(){ try{ const p=$('pontoBtn'), d=$('deslizeBtn'), tem=x=>x&&getComputedStyle(x).display!=='none'; $('zoomBox').style.top=tem(p)?'96px':tem(d)?'54px':'12px' }catch(e){} } /* administrador tem a lupa e o deslize em cima; cliente não */
+[1500,4000,9000].forEach(t=>setTimeout(zoomPos,t));
 $('btnEu').onclick=()=>{ if(eu.on) euDesligar(); else euLigar() };
 setInterval(()=>{ if(eu.on) euAtualizarTela() },2000);
 
