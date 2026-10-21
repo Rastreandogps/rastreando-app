@@ -44,6 +44,12 @@ h1{margin:0;text-align:center;font-size:21px;line-height:1.25}
 .prev{position:relative;margin-top:12px;border-radius:16px;overflow:hidden;border:1px solid var(--line)}
 .prev img{display:block;width:100%;max-height:240px;object-fit:cover}
 .prev button{position:absolute;right:10px;bottom:10px;width:auto;height:34px;padding:0 14px;border-radius:999px;background:rgba(15,23,42,.75);box-shadow:none;font-size:13px}
+.busca{width:100%;height:46px;border-radius:14px;border:1px solid var(--line);background:var(--card2);color:var(--txt);font:inherit;font-size:15px;padding:0 14px;margin-bottom:10px}
+.lista{display:flex;flex-direction:column;gap:8px;max-height:56vh;overflow:auto}
+.lista .it{display:flex;align-items:center;gap:12px;width:100%;height:auto;padding:12px 14px;border-radius:14px;border:1px solid var(--line);background:var(--card2);color:var(--txt);box-shadow:none;text-align:left;font-size:14px}
+.lista .it .pl{font-family:ui-monospace,Menlo,Consolas,monospace;font-weight:800;font-size:16px;letter-spacing:.08em;background:#fff;color:#0f172a;border:2px solid #1e3a8a;border-radius:6px;padding:3px 8px;flex:none;min-width:96px;text-align:center}
+.lista .it b{display:block;font-size:14px}.lista .it small{display:block;color:var(--mut);font-size:12px;margin-top:2px}
+.trocar{width:auto;height:32px;margin:0 0 6px;padding:0 12px;border-radius:999px;background:var(--card2);color:var(--txt);box-shadow:none;font-size:13px;border:1px solid var(--line)}
 .erro{color:var(--red);font-weight:700;font-size:13.5px;text-align:center;min-height:20px;margin:10px 0 4px;line-height:1.4}
 button{width:100%;height:56px;border:0;border-radius:16px;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;font:inherit;font-size:17px;font-weight:800;cursor:pointer;box-shadow:0 8px 20px rgba(22,163,74,.3)}
 button:disabled{opacity:.6}
@@ -64,7 +70,15 @@ button:disabled{opacity:.6}
   <div class="topo" id="topo"><img id="topoImg" src="logo.jpeg" alt="" onerror="this.style.display='none'"><div><b id="topoNome">RASTREANDO GPS</b><small id="topoSub">Odômetro do veículo</small></div></div>
   <div class="card">
     <div class="carrega" id="carrega">Carregando…</div>
+    <!-- 20/10/2026 (ideia do dono): link único da empresa — o motorista escolhe a placa primeiro -->
+    <div id="escolha" hidden>
+      <h1>Qual veículo você está usando?</h1>
+      <p class="dica">Toque na placa do veículo para informar o km do painel.</p>
+      <input class="busca" id="busca" type="search" placeholder="Buscar placa ou nome" autocomplete="off" hidden>
+      <div class="lista" id="lista"></div>
+    </div>
     <div id="form" hidden>
+      <button type="button" class="trocar" id="trocar" hidden>‹ Trocar de veículo</button>
       <div class="ico" aria-hidden="true">
         <!-- desenho próprio de um painel com odômetro -->
         <svg viewBox="0 0 200 120">
@@ -95,6 +109,7 @@ button:disabled{opacity:.6}
       <div class="bola"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
       <h2>Obrigado!</h2>
       <p id="okTxt"></p>
+      <button type="button" class="trocar" id="outro" hidden style="margin-top:16px">Informar outro veículo</button>
     </div>
     <div class="ok" id="falha" hidden>
       <h2 id="falhaTit">Link indisponível</h2>
@@ -115,22 +130,44 @@ async function chamar(acao, extra) {
   return j;
 }
 function falhar(tit, txt) { $('carrega').hidden = true; $('form').hidden = true; $('falha').hidden = false; $('falhaTit').textContent = tit; $('falhaTxt').textContent = txt; }
+let VEIC = null, LISTA = [], LOGO_OK = false; /* VEIC = id escolhido no link único */
+const plTxt = p => p ? String(p).replace(/^([A-Z]{3})(\d)/, '$1-$2') : '';
+function aplicarLogo(lg) {
+  if (LOGO_OK || !lg || !/^data:image\//.test(lg.img || '')) return; LOGO_OK = true; /* logo do cliente (frotista Premium) */
+  $('topo').classList.add('comlogo'); $('topoImg').style.display = ''; $('topoImg').src = lg.img;
+  $('topoNome').textContent = lg.nome || ''; if (!lg.nome) $('topoNome').style.display = 'none';
+  $('rod').hidden = false;
+}
+function pintarLista() {
+  const q = ($('busca').value || '').toLowerCase().replace(/[^a-z0-9 ]/g, '');
+  const l = LISTA.filter(x => !q || (x.placa + ' ' + x.nome).toLowerCase().replace(/[^a-z0-9 ]/g, '').includes(q));
+  $('lista').innerHTML = l.map(x => '<button type="button" class="it" data-v="' + x.id + '">' + (x.placa ? '<span class="pl">' + plTxt(x.placa) + '</span>' : '') + '<span><b>' + String(x.nome).replace(/[<>&]/g, '') + '</b><small>' + (x.ultimo && x.ultimo.km ? 'Último: ' + num(x.ultimo.km) + ' km em ' + new Date(x.ultimo.em).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' }) : 'Ainda sem registro') + '</small></span></button>').join('') || '<p class="dica">Nenhum veículo com essa busca.</p>';
+}
+$('busca').addEventListener('input', pintarLista);
+$('lista').addEventListener('click', e => { const b = e.target.closest('[data-v]'); if (!b) return; VEIC = +b.dataset.v; try { history.replaceState(null, '', '?c=' + encodeURIComponent(codigo) + '&v=' + VEIC); } catch (x) {} abrir(); });
+$('outro').onclick = () => { $('ok').hidden = true; $('trocar').onclick(); };
+$('trocar').onclick = () => { VEIC = null; $('enviar').disabled = false; $('enviar').textContent = 'Enviar'; FOTO.img = ''; FOTO.mini = ''; $('prev').hidden = true; $('btnFoto').hidden = false; $('km').value = ''; $('erro').textContent = ''; try { history.replaceState(null, '', '?c=' + encodeURIComponent(codigo)); } catch (x) {} abrir(); };
 async function abrir() {
   if (!/^[A-Za-z0-9]{12,20}$/.test(codigo)) { falhar('Link inválido', 'Confira se o link foi copiado inteiro, ou peça um novo para a empresa.'); return; }
+  if (VEIC === null) { const v0 = Number(new URLSearchParams(location.search).get('v')); if (v0 > 0) VEIC = v0; }
+  $('carrega').hidden = false; $('form').hidden = true; $('escolha').hidden = true;
   try {
-    const d = await chamar('chkLinkVer');
+    const d = await chamar('chkLinkVer', VEIC ? { deviceId: VEIC } : {});
+    aplicarLogo(d.logo);
+    if (d.universal && d.lista) { /* link único: primeiro a placa */
+      LISTA = d.lista || []; $('busca').hidden = LISTA.length < 7; pintarLista();
+      document.title = 'Odômetro do veículo';
+      $('carrega').hidden = true; $('escolha').hidden = false; return;
+    }
+    $('trocar').hidden = !d.universal;
     $('veic').textContent = d.nome || 'Veículo';
     $('placa').textContent = d.placa ? String(d.placa).replace(/^([A-Z]{3})(\d)/, '$1-$2') : '';
     $('ult').textContent = d.ultimo && d.ultimo.km ? 'Último registro: ' + num(d.ultimo.km) + ' km em ' + new Date(d.ultimo.em).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' }) : '';
-    if (d.logo && /^data:image\//.test(d.logo.img || '')) { /* logo do cliente (frotista Premium) */
-      $('topo').classList.add('comlogo'); $('topoImg').style.display = ''; $('topoImg').src = d.logo.img;
-      $('topoNome').textContent = d.logo.nome || ''; if (!d.logo.nome) $('topoNome').style.display = 'none';
-      $('rod').hidden = false;
-    }
     document.title = 'Odômetro · ' + (d.nome || 'Veículo');
     $('carrega').hidden = true; $('form').hidden = false;
     setTimeout(() => { try { $('km').focus(); } catch (e) {} }, 200);
   } catch (e) {
+    if (e.status === 404 && VEIC) { VEIC = null; try { history.replaceState(null, '', '?c=' + encodeURIComponent(codigo)); } catch (x) {} abrir(); return; } /* veículo saiu da lista: volta para as placas */
     if (e.status === 404 || e.status === 410) falhar('Link indisponível', e.message);
     else falhar('Sem conexão', 'Não consegui abrir. Confira a internet e abra o link de novo.');
   }
@@ -165,8 +202,8 @@ async function enviar() {
   if (!FOTO.img) { $('erro').textContent = 'Tire a foto do painel para enviar.'; $('btnFoto').classList.add('falta'); return; }
   b.disabled = true; b.textContent = 'Enviando…'; $('erro').textContent = '';
   try {
-    const r = await chamar('chkLinkEnviar', { km, foto: FOTO.img, mini: FOTO.mini });
-    $('form').hidden = true; $('ok').hidden = false;
+    const r = await chamar('chkLinkEnviar', Object.assign({ km, foto: FOTO.img, mini: FOTO.mini }, VEIC ? { deviceId: VEIC } : {}));
+    $('form').hidden = true; $('ok').hidden = false; $('outro').hidden = $('trocar').hidden;
     $('okTxt').innerHTML = 'Registramos <b>' + num(r.km) + ' km</b> no ' + (r.nome || 'veículo').replace(/[<>&]/g, '') + '.<br>Pode fechar esta página. Da próxima vez, use este mesmo link.';
   } catch (e) {
     $('erro').textContent = e.message; b.disabled = false; b.textContent = 'Enviar';
