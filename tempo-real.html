@@ -3399,6 +3399,7 @@ nav button.on .nemo.txt{color:var(--red2)}
     <div class="almtopo"><h3 id="clTit">Link do motorista</h3><button class="almx" data-close type="button" aria-label="Fechar" title="Fechar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
     <p class="asinfo" id="clTxt">Mande este link para o motorista. Ele abre uma página simples, digita o km do painel e envia: vira o checkout do veículo na hora. <b>O link é fixo</b>: ele usa sempre o mesmo, toda vez que você pedir.</p>
     <div class="cllink" id="clLink">Gerando o link…</div>
+    <div id="clPara" style="margin:8px 2px 0;font-size:13px;color:var(--mut)"></div>
     <div class="ferr" id="clErro"></div>
     <button class="btn" id="clWpp" type="button" style="width:100%;background:#16a34a;color:#fff">Enviar no WhatsApp</button>
     <button class="btn btn-out" id="clCopiar" type="button" style="width:100%;margin-top:8px">Copiar link</button>
@@ -6385,7 +6386,7 @@ function salvarMotorista(v){
   const novo=(nome||fone)?{nome:nome,fone:fone||''}:null, antes=motLer(v.id);
   if(JSON.stringify(novo)===JSON.stringify(antes)) return false;
   lsJset('rg_mot_'+v.id,novo); if(!novo) lsSet('rg_mot_'+v.id,'null');
-  vcEnviar(v.id); motLinha(v); return true;
+  lsSet('rg_mot_sujo_'+v.id,'1'); vcEnviar(v.id); motLinha(v); return true;
 }
 $('rnOk').onclick=async()=>{
   const v=cartao(); if(!v) return;
@@ -6726,7 +6727,7 @@ async function chkLinkAbrir(id,novo){
   const univ=!ehAdmin; /* 20/10/2026: cliente usa o LINK ÚNICO da empresa (id = veículo já escolhido, ou 0 = todos) */
   const v=id?veiculos.find(x=>x.id===id):null; if(id && !v) return;
   $('clTxt').innerHTML=univ?'<b>Um link só para todos os motoristas.</b> Cada um abre, escolhe a placa do veículo que está usando, digita o km do painel e tira a foto: vira o checkout do veículo na hora. O link é fixo.'+(v?' Este já abre direto no '+esc(v.nome)+'.':''):'Mande este link para o motorista. Ele abre uma página simples, digita o km do painel e envia: vira o checkout do veículo na hora. <b>O link é fixo</b>: ele usa sempre o mesmo, toda vez que você pedir.';
-  CL.id=id; CL.univ=univ; CL.url=''; $('clTit').textContent=univ?(v?'Pedir odômetro · '+v.nome:'Pedir odômetro aos motoristas'):'Link do motorista · '+v.nome; $('clLink').textContent='Gerando o link…'; $('clErro').textContent='';
+  CL.id=id; CL.univ=univ; CL.url=''; clParaPintar(); if(id) clMotAtualizar(id); $('clTit').textContent=univ?(v?'Pedir odômetro · '+v.nome:'Pedir odômetro aos motoristas'):'Link do motorista · '+v.nome; $('clLink').textContent='Gerando o link…'; $('clErro').textContent='';
   try{ const m=$('mChkLink'); m.style.zIndex='1400'; document.body.appendChild(m) }catch(e){}
   abrir('mChkLink');
   try{
@@ -6737,6 +6738,21 @@ async function chkLinkAbrir(id,novo){
     CL.url=CHK_BASE+'?c='+encodeURIComponent(j.codigo)+(univ&&id?'&v='+id:''); $('clLink').textContent=CL.url;
     if(novo) toast('Link novo gerado. O antigo não funciona mais.');
   }catch(e){ $('clLink').textContent='—'; $('clErro').textContent=e.message }
+}
+/* 21/10/2026: o WhatsApp do motorista vem sempre do servidor (o número trocado em outro login/aparelho já vale aqui) */
+function clParaPintar(){
+  const el=$('clPara'); if(!el) return;
+  const m=CL.id?motLer(CL.id):null, f=String((m&&m.fone)||'').replace(/\D/g,'');
+  el.innerHTML=CL.id?(f?'Vai para: <b>'+esc(m.nome||'motorista')+'</b> · '+esc(fmtWpp(m.fone)):'Sem WhatsApp do motorista cadastrado: o WhatsApp abre para você escolher o contato.'):'';
+}
+async function clMotAtualizar(id){
+  try{
+    if(VC.pend[id] || lsGet('rg_mot_sujo_'+id)) return; /* mudança deste aparelho ainda indo para o servidor: vale a daqui */
+    const r=await fetch(DESB_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',body:JSON.stringify({acao:'vcfgLer',token:lsGet('rg_token'),ids:[id]})});
+    if(!r.ok) return; const j=await r.json(), c=(j.cfg||{})[String(id)]; if(!c || CL.id!==id) return;
+    lsJset('rg_mot_'+id,c.mot&&(c.mot.nome||c.mot.fone)?{nome:c.mot.nome||'',fone:c.mot.fone||''}:null); if(!c.mot) lsSet('rg_mot_'+id,'null');
+    clParaPintar(); try{ const v=cartao(); if(v&&v.id===id) motLinha(v) }catch(e){}
+  }catch(e){}
 }
 $('clCopiar').onclick=()=>{ if(!CL.url) return; copiar(CL.url).then(()=>toast('Link copiado')).catch(()=>toast('Não consegui copiar')) };
 $('clWpp').onclick=()=>{
@@ -6908,7 +6924,7 @@ const VC={pend:{}, rodando:false};
 function vcLocal(id){
   const m=metaLer(id);
   const c={comb:lsJ('rg_comb_'+id,null), meta:m&&m.km>0?{km:m.km,odo0:Number(m.odo0)||0,nome:m.nome||''}:null, combMapa:cbMapaLigado(id), metaMapa:metaMapaLigado(id), frota:lsFlag('rg_frota_'+id)}; /* a marcação do administrador não vai para o cliente */
-  if(lsGet('rg_mot_'+id)!=null) c.mot=motLer(id); /* só manda o motorista se este aparelho já tem a cópia dele (não apaga o que outro salvou) */
+  if(lsGet('rg_mot_sujo_'+id)) c.mot=motLer(id); /* 21/10/2026: só manda o motorista quando ELE foi mudado neste aparelho (cópia velha não apaga o número novo que outro login salvou) */
   return c;
 }
 function vcEnviar(id){
@@ -6920,7 +6936,7 @@ function vcEnviar(id){
     try{
       const r=await fetch(DESB_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',body:JSON.stringify({acao:'vcfgSalvar',token:tok,deviceId:id,cfg:vcLocal(id)})});
       let j={}; try{ j=await r.json() }catch(e){}
-      if(r.ok){ lsSet('rg_vcfg_em_'+id,String(j.em||Date.now())); lsSet('rg_vcfg_mig_'+id,'1') }
+      if(r.ok){ lsSet('rg_vcfg_em_'+id,String(j.em||Date.now())); lsSet('rg_vcfg_mig_'+id,'1'); try{ localStorage.removeItem('rg_mot_sujo_'+id) }catch(e){} }
     }catch(e){}
   },700);
 }
