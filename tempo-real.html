@@ -1346,6 +1346,10 @@ main #sheet #btnIcone{width:26px;height:26px;border:0;background:transparent;mar
 #btnRuaVer{display:none}
 main #sheet #btnRuaVer.adm{width:26px;height:26px;border:0;background:transparent;margin-left:0;border-radius:8px;color:var(--mut);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;vertical-align:middle;position:relative}
 main #sheet #btnRuaVer svg{width:15px;height:15px}
+#ruaGiroCont{display:none}
+main #sheet #ruaGiroCont.adm{display:inline-flex;align-items:center;gap:3px;margin-left:2px;padding:2px 7px;border-radius:999px;background:rgba(56,225,230,.14);color:#0891b2;font-size:11.5px;font-weight:800;vertical-align:middle;white-space:nowrap}
+main #sheet #ruaGiroCont.pouco{background:rgba(245,158,11,.16);color:#b45309}
+main #sheet #ruaGiroCont.zero{background:rgba(220,38,38,.12);color:#dc2626}
 main #sheet #btnRuaVer.on{color:#0891b2;background:rgba(56,225,230,.14)}
 main #sheet #btnRuaVer:not(.on)::after{content:"";position:absolute;width:18px;height:1.8px;background:currentColor;transform:rotate(-40deg);border-radius:2px}
 #btnAncora{display:none;top:118px}
@@ -2470,7 +2474,7 @@ nav button.on .nemo.txt{color:var(--red2)}
       <div class="row">
         <button type="button" class="vrua" id="vRua" aria-label="Vista da rua"><img id="vRuaImg" alt=""><span class="vrmsg" id="vRuaMsg"></span><span class="vrtag" id="vRuaTag"></span></button>
         <div>
-          <div class="vname"><button id="vPick" class="vpick" type="button" aria-label="Trocar de veículo" title="Trocar de veículo"><span id="vName"></span><svg class="pickseta" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button><span class="vign" id="vIgn" title="Ignição" aria-label="Ignição"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="4"/><path d="M10.4 12.6 20 3"/><path d="M16 7l3 3"/><path d="M14 9l2 2"/></svg></span><button id="btnRenome" aria-label="Editar nome do veículo" title="Editar nome"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></button><button id="btnIcone" type="button" aria-label="Trocar o ícone do veículo no mapa" title="Trocar o ícone no mapa"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/></svg></button><button id="btnRuaVer" type="button" aria-label="Mostrar a vista da rua" title="Vista da rua: ligar/desligar (só para você)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></button></div>
+          <div class="vname"><button id="vPick" class="vpick" type="button" aria-label="Trocar de veículo" title="Trocar de veículo"><span id="vName"></span><svg class="pickseta" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button><span class="vign" id="vIgn" title="Ignição" aria-label="Ignição"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="4"/><path d="M10.4 12.6 20 3"/><path d="M16 7l3 3"/><path d="M14 9l2 2"/></svg></span><button id="btnRenome" aria-label="Editar nome do veículo" title="Editar nome"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></button><button id="btnIcone" type="button" aria-label="Trocar o ícone do veículo no mapa" title="Trocar o ícone no mapa"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/></svg></button><button id="btnRuaVer" type="button" aria-label="Mostrar a vista da rua" title="Vista da rua: ligar/desligar (só para você)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></button><span id="ruaGiroCont" title="Giros 360° grátis que ainda restam hoje, somando todos os clientes"></span></div>
           <div class="plate" id="vPlate"></div><div class="plate vimei" id="vImei" style="display:none"></div>
           <div class="vmot" id="vMot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><b id="vMotNome"></b><a id="vMotWpp" href="#" target="_blank" rel="noopener" aria-label="WhatsApp do motorista" title="WhatsApp do motorista" style="display:none"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.2-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.6.8-.8 1-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.3-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.8 12 12 0 0 0 4.6 4c.6.3 1.1.4 1.5.5a3.6 3.6 0 0 0 1.6.1 2.6 2.6 0 0 0 1.7-1.2 2.1 2.1 0 0 0 .2-1.2c-.1-.1-.3-.2-.5-.3z"/></svg></a></div>
           <div class="chiprow" id="chipRow"><span>Chip</span><b id="vChip"></b><button type="button" id="btnCopiaChip" aria-label="Copiar número do chip" title="Copiar número do chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg></button><button type="button" id="btnWppCli" aria-label="Abrir WhatsApp do cliente" title="Abrir WhatsApp do cliente"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2a9.9 9.9 0 0 0-8.47 15.03L2 22l5.1-1.34A9.9 9.9 0 1 0 12.04 2zm0 1.8a8.1 8.1 0 1 1-4.13 15.07l-.3-.18-3.02.8.81-2.95-.2-.31A8.1 8.1 0 0 1 12.04 3.8zM8.6 7.4c-.17 0-.45.06-.69.32-.24.26-.9.88-.9 2.14s.92 2.48 1.05 2.65c.13.17 1.8 2.86 4.45 3.9 2.2.87 2.65.7 3.12.65.48-.04 1.55-.63 1.77-1.24.22-.6.22-1.13.15-1.24-.06-.1-.24-.17-.5-.3-.27-.13-1.55-.77-1.79-.86-.24-.09-.41-.13-.59.13-.17.26-.68.86-.83 1.03-.15.18-.3.2-.56.07-.27-.13-1.1-.4-2.1-1.3-.78-.69-1.3-1.55-1.45-1.8-.15-.27-.02-.4.11-.53.12-.12.27-.3.4-.45.13-.15.17-.26.26-.43.09-.18.04-.33-.02-.46-.07-.13-.6-1.44-.82-1.97-.22-.52-.44-.45-.6-.46h-.5z"/></svg></button><b id="vWppNum" class="wppnum" style="display:none"></b></div>
@@ -6728,6 +6732,21 @@ function ruaPintar(cls,msg,tag,img,msgGrande){
   $('main').classList.add('comrua');
   try{ const h=sheet.offsetHeight; if(h>60) $('main').style.setProperty('--ruah',Math.max(h,170)+'px') }catch(e){} /* acompanha a altura do cartão */
 }
+/* 20/10/2026 (pedido do dono): ao lado do 📷, quantos giros grátis ainda restam hoje somando todos (só o administrador) */
+const RUA_CONT={restam:null, limite:150, em:0, buscando:false};
+function ruaContPintar(){
+  const el=$('ruaGiroCont'), mostra=ehAdmin && telaLarga(); el.classList.toggle('adm',mostra);
+  if(!mostra) return;
+  if(!RUA_CONT.buscando && Date.now()-RUA_CONT.em>120000) ruaContBuscar(); /* confere a cada 2 min com o cartão aberto */
+  const r=RUA_CONT.restam;
+  el.textContent= r==null ? '🔄 …' : '🔄 '+r+'/'+RUA_CONT.limite;
+  el.classList.toggle('pouco', r!=null && r>0 && r<=30); el.classList.toggle('zero', r===0);
+}
+async function ruaContBuscar(){
+  RUA_CONT.buscando=true; RUA_CONT.em=Date.now();
+  try{ const j=await fnAdm('ruaGiroVer',{}); RUA_CONT.restam=Number(j.restam); RUA_CONT.limite=Number(j.limite)||150 }catch(e){}
+  RUA_CONT.buscando=false; try{ ruaContPintar() }catch(e){}
+}
 function ruaAdmLigada(){ try{ return localStorage.getItem('rg_rua_adm')==='1' }catch(e){ return false } }
 $('btnRuaVer').addEventListener('pointerdown',e=>e.stopPropagation());
 $('btnRuaVer').onclick=e=>{ e.stopPropagation(); const lig=!ruaAdmLigada(); try{ localStorage.setItem('rg_rua_adm',lig?'1':'0') }catch(_){} ruaRedesenhar(); toast(lig?'Vista da rua ligada (só para você).':'Vista da rua desligada (só para você). Os clientes Premium continuam vendo.') };
@@ -6735,6 +6754,7 @@ function ruaEsconder(){ $('vRua').className='vrua'; $('ruaBox').className='ruabo
 function ruaAtualizar(v){
   const b=$('vRua');
   const bt=$('btnRuaVer'); bt.classList.toggle('adm',ehAdmin && telaLarga()); bt.classList.toggle('on',ruaAdmLigada());
+  ruaContPintar();
   /* 20/10/2026: só no computador (no celular foi tirado a pedido do dono); o administrador liga/desliga no 📷 */
   if(!v || !v.pos || !ehPrime() || sheet.style.display==='none' || !telaLarga() || (ehAdmin && !ruaAdmLigada())){ ruaEsconder(); return }
   if(!modFrota()){ RUA.mostrando=''; ruaPintar('trava','🔒 Vista da rua<b>⭐ Premium</b>',null,null,'🔒 Vista da rua<b>⭐ Assinar Premium</b><small>Veja a foto da rua onde o veículo está parado</small>'); return }
@@ -6770,6 +6790,7 @@ async function ruaGirar(){
   try{
     const j=await fnAdm('ruaGiro',{});
     if(!j.ok){ toast('Os giros de hoje acabaram. Volta amanhã. Tocando na foto, abre no Google Maps e dá para girar lá.',6000); return } /* 20/10/2026: compra de giros retirada a pedido do dono */
+    if(ehAdmin){ RUA_CONT.em=0; try{ ruaContPintar() }catch(e){} } /* atualiza o contador do administrador */
     await gmCarregarApi();
     const lat=+v.pos[0], lng=+v.pos[1], el=$('rgPano'); el.innerHTML='';
     $('rgTit').textContent='Vista da rua 360° · '+v.nome;
