@@ -6753,9 +6753,7 @@ function ruaAtualizar(v){
 }
 function ruaRedesenhar(){ try{ const v=veiculos.find(x=>x.id===selId); if(v) ruaAtualizar(v) }catch(e){} }
 $('ruaBoxImg').addEventListener('error',()=>{ const k=RUA.mostrando; if(k) RUA.ponto[k]={erro:Date.now()}; RUA.mostrando=''; ruaRedesenhar() });
-$('ruaBox').addEventListener('click',e=>{ e.stopPropagation(); const g=e.target.closest('#ruaGirar'); if(g){ if(g.classList.contains('mais')) lojaComprarPix('giros10',g,1); else ruaGirar(); return } $('vRua').click() });
-/* 20/10/2026 (pedido do dono): acabaram os giros -> o botão vira "+10 giros · R$ 5,99" (PIX na hora, sem sair do mapa) */
-function ruaSemGiros(sem){ const g=$('ruaGirar'); g.classList.toggle('mais',!!sem); g.textContent=sem?'⭐ +10 giros · R$ 5,99':'🔄 Girar 360°' }
+$('ruaBox').addEventListener('click',e=>{ e.stopPropagation(); if(e.target.closest('#ruaGirar')){ ruaGirar(); return } $('vRua').click() });
 /* girar 360° dentro do app: o servidor conta e segura o limite do dia (150 no total, 10 por cliente) antes de abrir */
 let ruaGirando=false;
 async function ruaGirar(){
@@ -6763,8 +6761,7 @@ async function ruaGirar(){
   ruaGirando=true;
   try{
     const j=await fnAdm('ruaGiro',{});
-    if(!j.ok){ ruaSemGiros(true); toast('Os giros grátis de hoje acabaram. Toque em "⭐ +10 giros · R$ 5,99" para continuar agora, ou volte amanhã.',6000); return }
-    ruaSemGiros(false);
+    if(!j.ok){ toast('Os giros de hoje acabaram. Volta amanhã. Tocando na foto, abre no Google Maps e dá para girar lá.',6000); return } /* 20/10/2026: compra de giros retirada a pedido do dono */
     await gmCarregarApi();
     const lat=+v.pos[0], lng=+v.pos[1], el=$('rgPano'); el.innerHTML='';
     $('rgTit').textContent='Vista da rua 360° · '+v.nome;
@@ -11154,7 +11151,7 @@ function lojaPagoOk(s){
   }
   if(Number(s.giros)>0){ /* 20/10/2026: giros da vista da rua entram na hora */
     $('ljpOkTxt').textContent=s.giros+' giros liberados!'+(typeof s.girosSaldo==='number'?' Você tem '+s.girosSaldo+' giro'+(s.girosSaldo===1?'':'s')+' extra'+(s.girosSaldo===1?'':'s')+'. Eles não vencem.':'')+' Feche esta janela e toque em "Girar 360°".';
-    $('ljpOkWpp').style.display='none'; try{ ruaSemGiros(false) }catch(e){} return;
+    $('ljpOkWpp').style.display='none'; return;
   }
   if(Number(s.fichas)>0){ /* 15/10/2026: fichas entram na hora, sem entrega */
     $('ljpOkTxt').textContent=s.fichas+' fichas já estão na sua conta.'+(typeof s.saldo==='number'?' Saldo agora: '+s.saldo+' fichas.':'');
