@@ -6914,6 +6914,7 @@ async function vcSincronizar(){
 }
 setTimeout(vcSincronizar,3500);
 setInterval(vcSincronizar,120000);
+setInterval(()=>{ try{ if($('frview').classList.contains('show')) vcSincronizar() }catch(e){} },20000); /* 21/10/2026: com o Painel da Frota aberto, o checkout do motorista (e a foto) aparece em até 20 s */
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') setTimeout(vcSincronizar,1500) });
 /* chamado a cada atualização: troca o rótulo do mapa só se mudou; com a janela aberta, atualiza os valores */
 function cbMapaAtualizar(){
