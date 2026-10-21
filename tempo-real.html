@@ -1601,6 +1601,9 @@ body.desenhando .follow,body.desenhando .sheet,body.desenhando .vazio{display:no
 .frv .frtop .frtira{margin-left:auto;width:28px;height:28px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--mut);font-size:13px;cursor:pointer;flex:none}
 .frv .frtop .frtira:hover{color:var(--red2);border-color:var(--red2)}
 .frchk .frchkmini{width:30px;height:30px;border-radius:8px;object-fit:cover;margin-left:6px;cursor:zoom-in;border:1px solid var(--line);box-shadow:0 1px 4px rgba(0,0,0,.15)}
+.frtopbts{display:flex;align-items:center;gap:12px}
+.frpedir{height:32px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--txt);font:inherit;font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap}
+.frpedir:hover{border-color:var(--cyan)}
 .frchk small{font-size:11px;color:var(--mut);white-space:nowrap}
 .frchk.atras small{color:#b45309;font-weight:700}
 .frv .frodo{font-size:12px;color:var(--mut);white-space:nowrap;background:var(--card2);border-radius:999px;padding:3px 9px}
@@ -2715,7 +2718,7 @@ nav button.on .nemo.txt{color:var(--red2)}
   <!-- 19/10/2026 (pedido do dono): painel da frota, só para frotista -->
   <section class="alview" id="frview">
     <div class="vtop">
-      <div class="vtitle"><h2>Painel da Frota</h2><button class="linkbtn" id="frAtualizar">Atualizar</button></div>
+      <div class="vtitle"><h2>Painel da Frota</h2><span class="frtopbts"><button type="button" class="frpedir" id="frPedirTodos" style="display:none" title="Um link só para todos os motoristas: cada um escolhe a placa">📲 Pedir odômetro aos motoristas</button><button class="linkbtn" id="frAtualizar">Atualizar</button></span></div>
       <div class="vcount" id="frSub">Combustível e troca de óleo de cada veículo</div>
     </div>
     <div class="vlist" id="frLista"></div>
@@ -3363,7 +3366,7 @@ nav button.on .nemo.txt{color:var(--red2)}
 <div class="modal alsheet" id="mChkLink">
   <div class="box2" style="max-width:460px">
     <div class="almtopo"><h3 id="clTit">Link do motorista</h3><button class="almx" data-close type="button" aria-label="Fechar" title="Fechar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
-    <p class="asinfo">Mande este link para o motorista. Ele abre uma página simples, digita o km do painel e envia: vira o checkout do veículo na hora. <b>O link é fixo</b>: ele usa sempre o mesmo, toda vez que você pedir.</p>
+    <p class="asinfo" id="clTxt">Mande este link para o motorista. Ele abre uma página simples, digita o km do painel e envia: vira o checkout do veículo na hora. <b>O link é fixo</b>: ele usa sempre o mesmo, toda vez que você pedir.</p>
     <div class="cllink" id="clLink">Gerando o link…</div>
     <div class="ferr" id="clErro"></div>
     <button class="btn" id="clWpp" type="button" style="width:100%;background:#16a34a;color:#fff">Enviar no WhatsApp</button>
@@ -6585,6 +6588,7 @@ function frDesenhar(){
   const L=$('frLista'); if(!L) return;
   const premium=modFrota(), d=frDados(), VS=frVeics();
   $('frSub').textContent=VS.length+(VS.length===1?' veículo':' veículos')+' na aba Frota'+' · combustível e troca de óleo';
+  $('frPedirTodos').style.display=(!ehAdmin && VS.length)?'':'none'; /* link único: só o cliente (o administrador usa o link por veículo) */
   if(!VS.length){
     L.innerHTML='<p class="frnota">'+(veiculos.length?'Nenhum veículo na aba Frota ainda. No mapa, toque no Odômetro ou no Combustível do veículo e marque <b>"Mostrar na aba Frota"</b>.':'Nenhum veículo na sua conta.')+'</p>';
     frUltN=frChave(); return }
@@ -6657,26 +6661,29 @@ $('cfMini').addEventListener('click',e=>{ const b=e.target.closest('[data-cfi]')
 const CL={id:null, url:''};
 const CHK_BASE=location.origin+location.pathname.replace(/[^\/]*$/,'')+'checkout.html';
 async function chkLinkAbrir(id,novo){
-  const v=veiculos.find(x=>x.id===id); if(!v) return;
-  CL.id=id; CL.url=''; $('clTit').textContent='Link do motorista · '+v.nome; $('clLink').textContent='Gerando o link…'; $('clErro').textContent='';
+  const univ=!ehAdmin; /* 20/10/2026: cliente usa o LINK ÚNICO da empresa (id = veículo já escolhido, ou 0 = todos) */
+  const v=id?veiculos.find(x=>x.id===id):null; if(id && !v) return;
+  $('clTxt').innerHTML=univ?'<b>Um link só para todos os motoristas.</b> Cada um abre, escolhe a placa do veículo que está usando, digita o km do painel e tira a foto: vira o checkout do veículo na hora. O link é fixo.'+(v?' Este já abre direto no '+esc(v.nome)+'.':''):'Mande este link para o motorista. Ele abre uma página simples, digita o km do painel e envia: vira o checkout do veículo na hora. <b>O link é fixo</b>: ele usa sempre o mesmo, toda vez que você pedir.';
+  CL.id=id; CL.univ=univ; CL.url=''; $('clTit').textContent=univ?(v?'Pedir odômetro · '+v.nome:'Pedir odômetro aos motoristas'):'Link do motorista · '+v.nome; $('clLink').textContent='Gerando o link…'; $('clErro').textContent='';
   try{ const m=$('mChkLink'); m.style.zIndex='1400'; document.body.appendChild(m) }catch(e){}
   abrir('mChkLink');
   try{
-    const r=await fetch(DESB_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',body:JSON.stringify({acao:'chkLinkCriar',token:lsGet('rg_token'),deviceId:id,novo:!!novo})});
+    const r=await fetch(DESB_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',body:JSON.stringify(Object.assign({acao:'chkLinkCriar',token:lsGet('rg_token'),novo:!!novo},univ?{universal:true}:{deviceId:id}))});
     let j={}; try{ j=await r.json() }catch(e){}
     if(!r.ok) throw new Error(j.erro||('Não consegui gerar o link (erro '+r.status+').'));
     if(CL.id!==id) return;
-    CL.url=CHK_BASE+'?c='+encodeURIComponent(j.codigo); $('clLink').textContent=CL.url;
+    CL.url=CHK_BASE+'?c='+encodeURIComponent(j.codigo)+(univ&&id?'&v='+id:''); $('clLink').textContent=CL.url;
     if(novo) toast('Link novo gerado. O antigo não funciona mais.');
   }catch(e){ $('clLink').textContent='—'; $('clErro').textContent=e.message }
 }
 $('clCopiar').onclick=()=>{ if(!CL.url) return; copiar(CL.url).then(()=>toast('Link copiado')).catch(()=>toast('Não consegui copiar')) };
 $('clWpp').onclick=()=>{
-  if(!CL.url) return; const v=veiculos.find(x=>x.id===CL.id)||{nome:'veículo'}, m=motLer(CL.id), f=String((m&&m.fone)||'').replace(/\D/g,'');
-  const msg='Olá'+(m&&m.nome?', '+m.nome.split(' ')[0]:'')+'! Digite aqui o odômetro do veículo '+v.nome+'. É rapidinho:\n'+CL.url; /* 20/10/2026: frase genérica (sem dia fixo), pedido do dono */
+  if(!CL.url) return; const v=CL.id?veiculos.find(x=>x.id===CL.id):null, m=CL.id?motLer(CL.id):null, f=String((m&&m.fone)||'').replace(/\D/g,'');
+  const msg='Olá'+(m&&m.nome?', '+m.nome.split(' ')[0]:'')+'! '+(v?'Digite aqui o odômetro do veículo '+v.nome:'Digite aqui o odômetro do veículo que você está usando')+'. É rapidinho:\n'+CL.url; /* 20/10/2026: frase genérica (sem dia fixo), pedido do dono */
   window.open('https://wa.me/'+(f?(f.length<=11?'55'+f:f):'')+'?text='+encodeURIComponent(msg),'_blank','noopener');
 };
-$('clNovo').onclick=()=>{ if(CL.id && confirm('Gerar um link novo? O link que o motorista tem hoje para de funcionar.')) chkLinkAbrir(CL.id,true) };
+$('clNovo').onclick=()=>{ if((CL.id||CL.univ) && confirm(CL.univ?'Gerar um link novo? O link que os motoristas têm hoje para de funcionar (para todos).':'Gerar um link novo? O link que o motorista tem hoje para de funcionar.')) chkLinkAbrir(CL.id,true) };
+$('frPedirTodos').onclick=()=>chkLinkAbrir(0);
 async function frChkSalvar(id){
   const v=veiculos.find(x=>x.id===id); if(!v) return;
   const km=Math.round(cbNum(FR_CHK[id]||''));
