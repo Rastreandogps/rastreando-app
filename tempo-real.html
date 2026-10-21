@@ -6733,18 +6733,21 @@ function ruaPintar(cls,msg,tag,img,msgGrande){
   try{ const h=sheet.offsetHeight; if(h>60) $('main').style.setProperty('--ruah',Math.max(h,170)+'px') }catch(e){} /* acompanha a altura do cartão */
 }
 /* 20/10/2026 (pedido do dono): ao lado do 📷, quantos giros grátis ainda restam hoje somando todos (só o administrador) */
-const RUA_CONT={restam:null, limite:150, em:0, buscando:false};
+const RUA_CONT={restam:null, limite:150, fotos:null, fotosLimite:300, em:0, buscando:false};
+/* 20/10/2026 (pedido do dono): o número fica NO PRÓPRIO botão "Girar 360°" do administrador: giros que restam e fotos do dia */
 function ruaContPintar(){
-  const el=$('ruaGiroCont'), mostra=ehAdmin && telaLarga(); el.classList.toggle('adm',mostra);
-  if(!mostra) return;
+  const g=$('ruaGirar'), mostra=ehAdmin && telaLarga();
+  if(!mostra){ if(g.textContent!=='🔄 Girar 360°') g.textContent='🔄 Girar 360°'; g.removeAttribute('title'); return }
   if(!RUA_CONT.buscando && Date.now()-RUA_CONT.em>120000) ruaContBuscar(); /* confere a cada 2 min com o cartão aberto */
-  const r=RUA_CONT.restam;
-  el.textContent= r==null ? '🔄 …' : '🔄 '+r+'/'+RUA_CONT.limite;
-  el.classList.toggle('pouco', r!=null && r>0 && r<=30); el.classList.toggle('zero', r===0);
+  const r=RUA_CONT.restam, f=RUA_CONT.fotos;
+  const t= r==null ? '🔄 …' : '🔄 '+r+'/'+RUA_CONT.limite+(f!=null?' · 📷 '+f+'/'+RUA_CONT.fotosLimite:'');
+  if(g.textContent!==t) g.textContent=t;
+  g.title='Toque para girar 360°. 🔄 giros grátis que ainda restam hoje (todos os clientes). 📷 fotos da vista da rua abertas hoje (conta do app; limite do Google: '+RUA_CONT.fotosLimite+').';
+  g.style.background = r===0 ? '#dc2626' : (r!=null && r<=30) || (f!=null && f>=RUA_CONT.fotosLimite-30) ? '#d97706' : '';
 }
 async function ruaContBuscar(){
   RUA_CONT.buscando=true; RUA_CONT.em=Date.now();
-  try{ const j=await fnAdm('ruaGiroVer',{}); RUA_CONT.restam=Number(j.restam); RUA_CONT.limite=Number(j.limite)||150 }catch(e){}
+  try{ const j=await fnAdm('ruaGiroVer',{}); RUA_CONT.restam=Number(j.restam); RUA_CONT.limite=Number(j.limite)||150; if(j.fotos!=null){ RUA_CONT.fotos=Number(j.fotos); RUA_CONT.fotosLimite=Number(j.fotosLimite)||300 } }catch(e){}
   RUA_CONT.buscando=false; try{ ruaContPintar() }catch(e){}
 }
 function ruaAdmLigada(){ try{ return localStorage.getItem('rg_rua_adm')==='1' }catch(e){ return false } }
@@ -6776,9 +6779,10 @@ function ruaAtualizar(v){
     .then(r=>r.json()).then(j=>{
       if(!j || j.status!=='OK'){ RUA.ponto[k]=(j&&(j.status==='ZERO_RESULTS'||j.status==='NOT_FOUND'))?'sem':{erro:Date.now()}; ruaRedesenhar(); return }
       const h=j.location?ruaRumo(j.location.lat,j.location.lng,pr.lat,pr.lon):null; /* câmera virada para o veículo */
-      RUA.ponto[k]={url:foto(h)}; ruaRedesenhar();
-    }).catch(()=>{ RUA.ponto[k]={url:foto(null)}; ruaRedesenhar() }); /* sem resposta da conferência: tenta a foto direto */
+      RUA.ponto[k]={url:foto(h)}; ruaFotoContar(); ruaRedesenhar();
+    }).catch(()=>{ RUA.ponto[k]={url:foto(null)}; ruaFotoContar(); ruaRedesenhar() }); /* sem resposta da conferência: tenta a foto direto */
 }
+function ruaFotoContar(){ try{ fnAdm('ruaFoto',{}).catch(()=>{}) }catch(e){} if(ehAdmin){ RUA_CONT.em=0 } } /* 20/10/2026: conta a foto nova no servidor */
 function ruaRedesenhar(){ try{ const v=veiculos.find(x=>x.id===selId); if(v) ruaAtualizar(v) }catch(e){} }
 $('ruaBoxImg').addEventListener('error',()=>{ const k=RUA.mostrando; if(k) RUA.ponto[k]={erro:Date.now()}; RUA.mostrando=''; ruaRedesenhar() });
 $('ruaBox').addEventListener('click',e=>{ e.stopPropagation(); if(e.target.closest('#ruaGirar')){ ruaGirar(); return } $('vRua').click() });
