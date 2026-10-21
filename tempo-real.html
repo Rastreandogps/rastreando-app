@@ -409,6 +409,14 @@ nav button.trav{opacity:.35}
 .fanual .fav i{font-style:normal;font-size:12px;font-weight:800;color:#fff;background:#16a34a;border-radius:999px;padding:2px 8px}
 .fanual button{width:100%;height:42px;border-radius:12px;border:0;background:#16a34a;color:#fff;font-weight:800;font-size:14.5px;cursor:pointer}
 .fanual.ativo{background:var(--card);border-color:var(--line)}
+/* 20/10/2026 (pedido do dono): no computador o botão do plano anual era gigante. Fica à direita, do tamanho do texto */
+@media (min-width:760px){
+  .fanual:not(.ativo){display:grid;grid-template-columns:1fr auto;column-gap:20px;align-items:center}
+  .fanual:not(.ativo) .fat{grid-column:1;margin-bottom:6px!important}
+  .fanual:not(.ativo) .fav{grid-column:1;margin-bottom:0}
+  .fanual:not(.ativo) button{grid-column:2;grid-row:1 / span 2;width:auto;padding:0 26px;height:44px;white-space:nowrap}
+  .fanual:not(.ativo) button:hover{background:#15803d}
+}
 .fanual.ativo .fat{font-size:14px}
 .fcard .ft{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
 .fcard .fv{font-size:18px;font-weight:700}
