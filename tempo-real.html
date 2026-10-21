@@ -6405,7 +6405,7 @@ function motLinha(v){
 /* o botão do WhatsApp do motorista fica dentro da área de arrastar o cartão: sem isto o toque vira "arrastar" e não abre */
 $('vMotWpp').addEventListener('pointerdown',e=>e.stopPropagation());
 $('vMotWpp').addEventListener('touchstart',e=>e.stopPropagation(),{passive:true});
-$('vMotWpp').addEventListener('click',e=>{ e.stopPropagation(); e.preventDefault(); const h=$('vMotWpp').href; if(h && h.indexOf('wa.me')>=0) window.open(h,'_blank','noopener') });
+$('vMotWpp').addEventListener('click',e=>{ e.stopPropagation(); e.preventDefault(); const h=$('vMotWpp').href; if(h && /wa\.me\/|whatsapp\.com\//.test(h)) window.open(h,'_blank','noopener') /* 21/10/2026: o link já vem trocado para whatsapp.com (por isso não abria) */ });
 function salvarMotorista(v){
   if(!(ehAdmin||permCli.frotista) || $('rnMotBox').style.display==='none') return false;
   const nome=$('rnMotNome').value.trim(), fone=normWpp($('rnMotFone').value);
