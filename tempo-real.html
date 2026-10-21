@@ -2133,6 +2133,13 @@ nav button.on .nemo.txt{color:var(--red2)}
 #mImport .imdica{font-size:12.5px;color:var(--mut);margin-bottom:6px}
 #mImport .imcli{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:12px;min-height:200px}
 #mImport .imclilin{display:flex;gap:8px;align-items:center}
+#mImport .imclibusca{width:100%;height:42px;border:1px solid var(--line);border-radius:10px;padding:0 12px;background:var(--card);color:var(--txt);font:inherit;font-size:15px;margin-bottom:6px}
+#mImport .imclibusca:focus{outline:none;border-color:var(--cyan)}
+#mImport .imclibn{font-size:12px;color:var(--mut);margin:0 2px 8px;min-height:14px;display:flex;flex-direction:column;gap:6px}
+#mImport .imclibn .imres{text-align:left;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--txt);font:inherit;font-size:14.5px;font-weight:600;cursor:pointer}
+#mImport .imclibn .imres small{font-weight:500;color:var(--mut)}
+#mImport .imclibn .imres.on{border-color:var(--cyan);background:rgba(56,225,230,.10)}
+#mImport .imclibn .imresmais{font-size:12px;color:var(--mut);padding:0 4px}
 .imclimais{margin-top:10px;display:flex;flex-direction:column;gap:6px}
 .imclimais .imcm{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:6px 6px 6px 12px;font-size:14px}
 .imclimais .imcm span{flex:1;min-width:0}
@@ -3082,6 +3089,8 @@ nav button.on .nemo.txt{color:var(--red2)}
         <div class="imdica" id="imDica"></div>
         <textarea id="imTexto" spellcheck="false" autocomplete="off" autocapitalize="none"></textarea>
         <div class="imcli" id="imCliBox" style="display:none">
+          <input type="search" id="imCliBusca" class="imclibusca" placeholder="🔍 Buscar cliente (nome, login ou telefone)" autocomplete="off" autocapitalize="none" spellcheck="false" aria-label="Buscar cliente"><!-- 21/10/2026: lista de clientes enorme -->
+          <div class="imclibn" id="imCliBn"></div>
           <div class="imclilin"><select id="imCli" aria-label="Cliente para todos"></select><button type="button" id="imCliX" aria-label="Não vincular a ninguém" title="Não vincular a ninguém">✕</button></div>
           <label class="imclipref"><input type="checkbox" id="imCliPref"> Deixar como preferido (já vem escolhido nas próximas importações)</label>
           <div class="imclimais" id="imCliMais"></div><!-- 20/10/2026: mais clientes vendo os mesmos equipamentos (ex.: frota com 3 logins) -->
@@ -9724,9 +9733,24 @@ function imPrefLer(){ try{ return localStorage.getItem(IM_PREF)||'' }catch(e){ r
 function imPrefGravar(id){ try{ id ? localStorage.setItem(IM_PREF,String(id)) : localStorage.removeItem(IM_PREF) }catch(e){} }
 function imClientes(){ return usuarios.filter(u=>!u.administrator).slice().sort((a,b)=>String(a.name||loginDe(a)).localeCompare(String(b.name||loginDe(b)),'pt-BR',{sensitivity:'base'})) }
 function imCliUser(){ return imCliId ? (imClientes().find(u=>String(u.id)===String(imCliId))||null) : null }
+/* 21/10/2026 (pedido do dono): buscador de cliente na importação em massa (a lista era enorme, sem busca) */
+let imBusca='';
+const imNorm=t=>String(t||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+function imCasa(u){
+  if(!imBusca) return true;
+  const q=imNorm(imBusca), qd=q.replace(/\D/g,'');
+  const txt=imNorm((u.name||'')+' '+loginDe(u)), fone=String(u.phone||'').replace(/\D/g,'');
+  return q.split(/\s+/).filter(Boolean).every(p=>txt.includes(p)) || (qd.length>=4 && fone.includes(qd));
+}
 function imCliPreencher(){
-  const cs=imClientes();
-  if(imCliId && !cs.some(u=>String(u.id)===String(imCliId))) imCliId='';
+  const todos=imClientes();
+  if(imCliId && !todos.some(u=>String(u.id)===String(imCliId))) imCliId='';
+  const cs=todos.filter(u=>imCasa(u)||String(u.id)===String(imCliId));
+  /* resultado da busca: até 8 nomes para tocar direto (no celular é bem mais fácil que a lista) */
+  const nmL=u=>{ const nm=u.name||loginDe(u), lg=loginDe(u).replace(EMAIL_FALSO,''); return esc(nm)+(lg && lg.toLowerCase()!==String(nm).toLowerCase()?' <small>('+esc(lg)+')</small>':'') };
+  const res=imBusca?todos.filter(imCasa):[];
+  $('imCliBn').innerHTML=!imBusca?esc(todos.length+' clientes · digite acima para achar mais rápido'):!res.length?'Nenhum cliente com esse nome.':
+    res.slice(0,8).map(u=>'<button type="button" class="imres'+(String(u.id)===String(imCliId)?' on':'')+'" data-imsel="'+esc(String(u.id))+'">'+nmL(u)+'</button>').join('')+(res.length>8?'<div class="imresmais">+ '+(res.length-8)+' · continue digitando para achar</div>':'');
   $('imCli').innerHTML='<option value="">Ninguém (não vincular)</option>'+cs.map(u=>{ const nm=u.name||loginDe(u), lg=loginDe(u).replace(EMAIL_FALSO,''); return '<option value="'+esc(String(u.id))+'">'+esc(nm)+(lg && lg.toLowerCase()!==String(nm).toLowerCase()?' ('+esc(lg)+')':'')+'</option>' }).join('');
   $('imCli').value=imCliId; imCliMostrar();
 }
@@ -9737,7 +9761,7 @@ function imCliMostrar(){
   const box=$('imCliMais'), mais=imCliMaisUsers(), nm=x=>x.name||loginDe(x);
   if(!u){ box.innerHTML=''; imCliMaisIds=[] }
   else box.innerHTML = mais.map(x=>'<div class="imcm"><span>+ '+esc(nm(x))+'</span><button type="button" data-imcmx="'+esc(String(x.id))+'" aria-label="Tirar '+esc(nm(x))+'">✕</button></div>').join('') +
-    '<select id="imCliAdd" aria-label="Adicionar outro cliente"><option value="">+ Adicionar outro cliente (também vai ver estes equipamentos)</option>'+imClientes().filter(x=>String(x.id)!==String(imCliId)&&!imCliMaisIds.includes(String(x.id))).map(x=>'<option value="'+esc(String(x.id))+'">'+esc(nm(x))+'</option>').join('')+'</select>';
+    '<select id="imCliAdd" aria-label="Adicionar outro cliente"><option value="">+ Adicionar outro cliente (também vai ver estes equipamentos)</option>'+imClientes().filter(x=>String(x.id)!==String(imCliId)&&!imCliMaisIds.includes(String(x.id))&&imCasa(x)).map(x=>'<option value="'+esc(String(x.id))+'">'+esc(nm(x))+'</option>').join('')+'</select>';
   $('imCliX').disabled=!u;
   $('imCliPref').checked=!!u && imPrefLer()===String(u.id);
   $('imCliPref').disabled=!u;
@@ -9745,6 +9769,8 @@ function imCliMostrar(){
   $('imCliInfo').innerHTML = u ? 'Os '+(ni||'')+(ni===1?' equipamento':' equipamentos')+' desta importação vão para '+(nomes.length>1?nomes.slice(0,-1).join(', ')+' e '+nomes[nomes.length-1]:nomes[0])+'.' : 'Nenhum cliente: os equipamentos são cadastrados sem vínculo (dá para vincular depois).';
 }
 $('imCli').addEventListener('change',()=>{ imCliId=$('imCli').value; imCliMostrar(); imAbas() });
+$('imCliBusca').addEventListener('input',()=>{ imBusca=$('imCliBusca').value.trim(); imCliPreencher() });
+$('imCliBn').addEventListener('click',e=>{ const b=e.target.closest('button[data-imsel]'); if(!b) return; imCliId=b.dataset.imsel; imBusca=''; $('imCliBusca').value=''; imCliPreencher(); imAbas() });
 $('imCliX').onclick=()=>{ imCliId=''; $('imCli').value=''; imCliMostrar(); imAbas() };
 $('imCliMais').addEventListener('change',e=>{ if(e.target.id!=='imCliAdd'||!e.target.value) return; imCliMaisIds.push(String(e.target.value)); imCliMostrar(); imRascGravar() });
 $('imCliMais').addEventListener('click',e=>{ const b=e.target.closest('button[data-imcmx]'); if(!b) return; imCliMaisIds=imCliMaisIds.filter(id=>id!==b.dataset.imcmx); imCliMostrar(); imRascGravar() });
@@ -9856,7 +9882,7 @@ function imAbrirLote(id){
 function imNova(){
   imPrepararModal();
   imLinhas=[]; imCriados=[]; imFase='colar'; imLoteAtual=null; imReaberto=false; imForaSms=new Set();
-  imListas={imei:'',chip:'',placa:'',cliente:'',nome:''}; imCol='nome'; imCliId=imPrefLer(); imCliMaisIds=[];
+  imListas={imei:'',chip:'',placa:'',cliente:'',nome:''}; imCol='nome'; imCliId=imPrefLer(); imCliMaisIds=[]; imBusca=''; $('imCliBusca').value='';
   const r=imRascLer();
   if(r){ Object.keys(imListas).forEach(k=>{ imListas[k]=String(r.listas[k]||'') }); imCliId=r.cliId||''; imCliMaisIds=Array.isArray(r.cliMais)?r.cliMais.map(String):[] }
   $('imTexto').value=imListas[imCol];
