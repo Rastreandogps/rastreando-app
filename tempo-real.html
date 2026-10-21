@@ -4040,8 +4040,19 @@ function gmFalhou(motivo){
   document.body.classList.remove('mapa-google'); gmEstado='osm'; mapaPe(); mapaBotoes();
   if(ehAdmin && motivo) toast('Mapa do Google não carregou ('+motivo+'). Usando o mapa grátis.',6000);
 }
+/* 21/10/2026 (pedido do dono): ao recarregar, o app volta na MESMA aba (guardada nesta aba do navegador) e o mapa do
+   Google (cobrado por abertura) só carrega quando a aba Mapa for aberta. */
+let ABA_SALVA=null, GM_PENDENTE=false;
+try{ const a=sessionStorage.getItem('rg_aba'); if(a && a!=='Mapa') ABA_SALVA=a }catch(e){}
+function abaAgora(){ if(ABA_SALVA) return ABA_SALVA; const b=document.querySelector('nav button.on'); return (b&&b.dataset.tab)||'Mapa' }
+function abaRestaurar(){ /* chamado depois de saber se é administrador */
+  const a=ABA_SALVA; ABA_SALVA=null; if(!a) return;
+  const b=document.querySelector('nav button[data-tab="'+a+'"]'), pode=!!b && (a!=='Admin'||ehAdmin) && (a!=='Frota'||ehAdmin||(permCli&&permCli.frotista===true)||lsFlag('rg_aba_frota_ok'));
+  if(pode){ try{ irPara(a) }catch(e){ irPara('Mapa') } } else if(GM_PENDENTE){ GM_PENDENTE=false; mapaGoogleLigar() }
+}
 async function mapaGoogleLigar(){
   if(gmPref!=='google') return;
+  if(abaAgora()!=='Mapa'){ GM_PENDENTE=true; return } /* fora do Mapa: liga quando a aba Mapa abrir */
   if(!GOOGLE_MAPS_CHAVE || GOOGLE_MAPS_CHAVE==='COLE_A_CHAVE_AQUI'){ gmFalhou(ehAdmin?'a chave ainda não foi colocada no app':''); return }
   try{
     await gmCarregarApi();
@@ -6572,7 +6583,7 @@ let mfUlt=null; setInterval(()=>{ try{ const ok=modFrota(); if(!ehAdmin && mfUlt
 let frOrdem='oleo';
 function frAbaAplicar(){
   const b=document.querySelector('nav button[data-tab="Frota"]'); if(!b) return;
-  const ok=ehPrime(); b.style.display=ok?'':'none';
+  const ok=ehPrime(); b.style.display=ok?'':'none'; lsFlagSet('rg_aba_frota_ok',ok);
   if(!ok && $('frview').classList.contains('show')) irPara('Mapa');
   frBadgePintar();
 }
@@ -7606,6 +7617,8 @@ $('cpLista').addEventListener('click',e=>compClique(e));
 /* ===== ABAS ===== */
 function irPara(tab){
   if(bloqueioNivel==='bloqueado' && !ehAdmin && tab!=='Faturas') tab='Faturas';
+  ABA_SALVA=null; try{ sessionStorage.setItem('rg_aba',tab) }catch(e){}
+  if(tab==='Mapa' && GM_PENDENTE){ GM_PENDENTE=false; setTimeout(()=>{ try{ mapaGoogleLigar() }catch(e){} },0) }
   document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.tab===tab));
   $('vview').classList.toggle('show',tab==='Veículos');
   $('aview').classList.toggle('show',tab==='Admin');
@@ -12100,7 +12113,8 @@ $('emLista').addEventListener('click',async e=>{
     verificarBloqueio();
     registrarAcesso();
     await buscarSeguro();
-  } else { mostrarLogin(''); bioChecar() }
+    try{ abaRestaurar() }catch(e){} /* 21/10/2026: volta na aba em que estava */
+  } else { ABA_SALVA=null; mostrarLogin(''); bioChecar() }
 })();
 
 </script>
