@@ -6542,6 +6542,33 @@ const metaMapaLigado=id=>lsFlag('rg_meta_mapa_'+id);
    e o que o administrador marca não vai para o cliente (pedido do dono). */
 (function(){ try{ if(!localStorage.getItem('rg_frota_adm_mig')){ Object.keys(localStorage).forEach(k=>{ const m=/^rg_frota_(\d+)$/.exec(k); if(m && localStorage.getItem(k)==='1') localStorage.setItem('rg_frota_adm_'+m[1],'1') }); localStorage.setItem('rg_frota_adm_mig','1') } }catch(e){} })();
 const frotaLigado=id=>ehAdmin?lsFlag('rg_frota_adm_'+id):lsFlag('rg_frota_'+id);
+/* 21/10/2026 (pedido do dono): a aba Frota do administrador fica no servidor (igual no computador e no celular).
+   O aparelho guarda uma cópia; marcar/tirar vai na hora para o servidor; a cada sincronização a lista do servidor vale. */
+const AF={pend:{}, rodando:false};
+async function admFrotaFn(corpo){
+  const r=await fetch(DESB_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',body:JSON.stringify(Object.assign({token:lsGet('rg_token')},corpo))});
+  let j={}; try{ j=await r.json() }catch(e){} if(!r.ok) throw new Error(j.erro||('erro '+r.status)); return j;
+}
+function admFrotaAplicar(ids){
+  const set=new Set((ids||[]).map(Number)); let mudou=false;
+  veiculos.forEach(v=>{ if(AF.pend[v.id]) return; const on=set.has(v.id); if(lsFlag('rg_frota_adm_'+v.id)!==on){ lsFlagSet('rg_frota_adm_'+v.id,on); mudou=true } });
+  if(mudou){ try{ frBadgePintar() }catch(e){} try{ if($('frview').classList.contains('show')) frDesenhar() }catch(e){} }
+}
+function admFrotaMarcar(id,on){
+  lsFlagSet('rg_frota_adm_'+id,on); AF.pend[id]=(AF.pend[id]||0)+1;
+  admFrotaFn({acao:'admFrotaSalvar',deviceId:id,on}).catch(()=>toast('Não consegui salvar no servidor. Confira a internet; no outro aparelho pode não aparecer.'))
+    .finally(()=>{ AF.pend[id]--; if(!AF.pend[id]) delete AF.pend[id] });
+}
+async function admFrotaSync(){
+  if(!ehAdmin || AF.rodando || !lsGet('rg_token') || !veiculos.length || VER.on) return; AF.rodando=true;
+  try{
+    const j=await admFrotaFn({acao:'admFrotaVer'});
+    if(!j.existe){ /* 1ª vez: leva para o servidor o que já estava marcado neste aparelho */
+      const loc=veiculos.filter(v=>lsFlag('rg_frota_adm_'+v.id)).map(v=>v.id);
+      const k=await admFrotaFn({acao:'admFrotaSalvar',ids:loc}); admFrotaAplicar(k.ids); /* vazio também grava: vale a lista do 1º aparelho que abrir */
+    } else admFrotaAplicar(j.ids);
+  }catch(e){} finally{ AF.rodando=false }
+}
 const semNomeLigado=id=>lsFlag('rg_semnome_'+id);
 const odoKm=v=>(v&&v.odo!=null)?Math.max(0,v.odo/1000):null;
 /* ⛽ */
@@ -6798,7 +6825,7 @@ $('frLista').addEventListener('click',e=>{
   const tr=e.target.closest('[data-frtira]'); if(tr){ /* 20/10/2026: atalho para tirar (é o mesmo que desmarcar "Mostrar na aba Frota") */
     const id=+tr.dataset.frtira, vv=veiculos.find(x=>x.id===id); if(!vv) return;
     if(!confirm('Tirar "'+vv.nome+'" da aba Frota? Para voltar, abra o Odômetro do veículo e marque "Mostrar na aba Frota".')) return;
-    if(ehAdmin) lsFlagSet('rg_frota_adm_'+id,false); else { lsFlagSet('rg_frota_'+id,false); vcEnviar(id) }
+    if(ehAdmin) admFrotaMarcar(id,false); else { lsFlagSet('rg_frota_'+id,false); vcEnviar(id) }
     frDesenhar(); try{ frBadgePintar() }catch(_){} toast('"'+vv.nome+'" saiu da aba Frota.'); return }
   const b=e.target.closest('button[data-fr]'); if(!b) return;
   const v=veiculos.find(x=>String(x.id)===b.dataset.id); if(!v) return;
@@ -6918,7 +6945,7 @@ $('mtComecar').onclick=()=>{
 }));
 ['cbFrota','mtFrota'].forEach(k=>$(k).addEventListener('change',()=>{
   if(!cbVeic) return; const on=$(k).checked;
-  if(ehAdmin) lsFlagSet('rg_frota_adm_'+cbVeic.id,on); else { lsFlagSet('rg_frota_'+cbVeic.id,on); vcEnviar(cbVeic.id) }
+  if(ehAdmin) admFrotaMarcar(cbVeic.id,on); else { lsFlagSet('rg_frota_'+cbVeic.id,on); vcEnviar(cbVeic.id) }
   $('cbFrota').checked=on; $('mtFrota').checked=on;
   toast(on?(ehAdmin?'Este veículo agora aparece na SUA aba Frota (só para você).':'Este veículo agora aparece na aba Frota.'):'Este veículo saiu da aba Frota.'); try{ frBadgePintar() }catch(e){} try{ if($('frview').classList.contains('show')) frDesenhar() }catch(e){}
 }));
@@ -6958,6 +6985,7 @@ function vcAplicar(id,c){
 }
 async function vcSincronizar(soFrota){
   if(VC.rodando || document.visibilityState!=='visible' || !veiculos.length) return;
+  admFrotaSync(); /* 21/10/2026: aba Frota do administrador */
   const tok=lsGet('rg_token'); if(!tok) return;
   VC.rodando=true;
   try{
@@ -12244,6 +12272,7 @@ $('emLista').addEventListener('click',async e=>{
     bioChecar().then(ok=>{ if(!ok){ $('bioLock').classList.remove('show'); return } if(bioAtivo()) bioTravar(); else setTimeout(bioOferecer,2500) });
     }
     await descobrirAdmin();
+    setTimeout(()=>{ try{ admFrotaSync() }catch(e){} },6000); /* 21/10/2026: aba Frota do administrador vem do servidor */
     carregarPermissoes();
     mapaDecidir();
     verificarBloqueio();
