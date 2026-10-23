@@ -1483,6 +1483,9 @@ h3.comdica .dica:hover~.dicatx,h3.comdica .dica:focus~.dicatx,h3.comdica .dica.o
 #btnUnblock{background:rgba(26,158,87,.12);color:var(--green);border:1px solid rgba(26,158,87,.28)}
 #btnUnblock::before{--ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='4.5' y='10.5' width='15' height='10' rx='2.5'/%3E%3Cpath d='M8 10.5V7.5a4 4 0 017.6-1.7'/%3E%3C/svg%3E");display:block!important}
 #btnShare{background:var(--card2);border:1px solid var(--line);color:var(--txt);padding:0}
+#btnNavMini{display:none;background:var(--card2);border:1px solid var(--line);color:var(--txt);padding:0;align-items:center;justify-content:center}
+#sheet.comruacel #btnNavMini{display:flex}
+#sheet.comruacel .navrow{display:none!important} /* 23/10/2026: com a vista da rua no celular, "Navegar" vai para a linha de cima e "Ver a rua" sai (a foto já abre a rua) */
 #admSmsRow{display:none;margin-top:8px;gap:8px}
 .stat .spdic{display:flex;justify-content:center;color:var(--mut)}
 .stat .spdic svg{width:22px;height:22px}
@@ -2742,6 +2745,7 @@ nav button.on .nemo.txt{color:var(--red2)}
       <button class="btn btn-out" id="btnShare" aria-label="Compartilhar">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>
       </button>
+      <button class="btn btn-out" id="btnNavMini" type="button" aria-label="Navegar até o veículo" title="Navegar até o veículo (traçar rota)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5 19 20.5l-7-3.8-7 3.8z"/></svg></button><!-- 23/10/2026: com a vista da rua no celular, o Navegar sobe para cá e o "Ver a rua" sai -->
     </div>
     <div class="actions dois" id="admSmsRow" style="display:none">
       <button class="btn" id="btnBlockSms">Bloquear SMS</button>
@@ -5365,7 +5369,7 @@ function atualizar(){
     $('btnBlock').disabled=cmdAndamento||sp;
     mostrarBotoesSms();
     $('btnUnblock').disabled=cmdAndamento||sp;
-    $('btnNav').disabled=sp; $('btnRua').disabled=sp;
+    $('btnNav').disabled=sp; $('btnRua').disabled=sp; $('btnNavMini').disabled=sp;
     try{ ruaAtualizar(v) }catch(e){}
     aplicarSheet();
   }
@@ -6428,7 +6432,7 @@ function mostrarBotoesSms(){
   const podeApp=ehAdmin||(permCli.appBloqueio!==false && !semBloq);
   $('btnBlock').style.display=podeApp?'':'none'; $('btnUnblock').style.display=podeApp?'':'none';
   $('chaveBloq').classList.toggle('nao',!podeApp); /* 14/10/2026: a chave segue a mesma permissão dos botões */
-  const acts=$('btnBlock').parentElement; if(acts) acts.style.gridTemplateColumns=(podeApp?'minmax(0,1fr) ':'')+(n?'52px ':'')+(podeApp?'44px':'52px'); /* chave ocupa o lugar dos 2 botões */
+  const acts=$('btnBlock').parentElement; if(acts) acts.style.gridTemplateColumns=(podeApp?'minmax(0,1fr) ':'')+(n?'52px ':'')+(podeApp?'44px':'52px')+(sheet.classList.contains('comruacel')?(podeApp?' 44px':' 52px'):''); /* chave ocupa o lugar dos 2 botões; 23/10/2026: + Navegar com a vista da rua no celular */
   const semSinal=(()=>{ const c=cartao(); return !!(c && !c.pos) })();
   $('btnAncora').style.display=(!semSinal && (ehAdmin||permCli.cercaRapida))?'flex':'none';
   try{ mapaColuna() }catch(e){}
@@ -7562,7 +7566,7 @@ $('btnRuaVer').onclick=e=>{ e.stopPropagation(); const lig=!ruaAdmLigada(); try{
 function ruaEsconder(){ $('vRua').className='vrua'; $('ruaBox').className='ruabox'; $('main').classList.remove('comrua'); RUA.mostrando=''; ruaCelLigar(false) }
 /* 23/10/2026: vista da rua no celular -> só para cliente com a permissão "Vista da rua no celular" (dada pelo administrador) */
 const ruaCelPode=()=>!telaLarga() && !ehAdmin && !!(permCli && permCli.ruaCelular===true);
-function ruaCelLigar(on){ try{ sheet.classList.toggle('comruacel',!!on); if(!on){ $('ruaCel').className='ruacel' } }catch(e){} }
+function ruaCelLigar(on){ try{ const antes=sheet.classList.contains('comruacel'); sheet.classList.toggle('comruacel',!!on); if(!on){ $('ruaCel').className='ruacel' } if(antes!==!!on) mostrarBotoesSms() }catch(e){} } /* refaz as colunas da linha dos botões (entra/sai o Navegar) */
 function ruaAtualizar(v){
   const b=$('vRua');
   const bt=$('btnRuaVer'); bt.classList.toggle('adm',ehAdmin && telaLarga()); bt.classList.toggle('on',ruaAdmLigada());
@@ -7641,6 +7645,7 @@ $('vRua').addEventListener('click',e=>{
   const v=veiculos.find(x=>x.id===selId); if(!v||!v.pos) return;
   window.open('https://www.google.com/maps/@?api=1&map_action=pano&viewpoint='+v.pos[0].toFixed(6)+','+v.pos[1].toFixed(6),'_blank','noopener');
 });
+$('btnNavMini').onclick=()=>$('btnNav').onclick();
 $('btnRua').onclick=()=>{
   const v=ativo(); if(!v) return;
   window.open('https://www.google.com/maps/@?api=1&map_action=pano&viewpoint='+v.pos[0].toFixed(6)+','+v.pos[1].toFixed(6),'_blank','noopener');
