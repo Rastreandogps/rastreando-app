@@ -1269,6 +1269,23 @@ body.hist-on #mapCar{display:none!important}
 .handle{display:block;width:44px;height:5px;border-radius:3px;background:var(--line);margin:0 auto}
 .row{display:flex;align-items:center;justify-content:space-between;gap:10px}
 /* 20/10/2026 (pedido do dono): Vista da rua no lugar do ícone do carrinho — só frotista Premium, só com o veículo parado */
+/* 23/10/2026 (pedido do dono): vista da rua no CELULAR para clientes escolhidos (permissão "Vista da rua no celular").
+   A foto ocupa o lugar de odômetro, combustível e faturas/loja; velocidade e bateria continuam. */
+.ruacel{display:none}
+#sheet.comruacel .vrua{display:none!important} /* no celular a foto fica só no quadro grande */
+#sheet.comruacel #sOdoBtn,#sheet.comruacel #sCombBtn,#sheet.comruacel #sLojaBtn,#sheet.comruacel #sFatBtn{display:none!important}
+#sheet.comruacel .grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,3fr)}
+#sheet.comruacel .ruacel{display:block;position:relative;grid-column:3;grid-row:1;min-height:112px;padding:0;border:1px solid var(--line);border-radius:14px;overflow:hidden;cursor:pointer;
+  background:linear-gradient(135deg,rgba(56,225,230,.16),rgba(154,163,178,.22)),var(--card2);color:var(--mut);box-shadow:0 4px 12px rgba(0,0,0,.12)}
+#sheet.comruacel .grid > .stat{min-height:112px}
+.ruacel img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:none}
+.ruacel.foto img{display:block}
+.ruacel .rcmsg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:8px;font-size:12.5px;font-weight:700;line-height:1.3}
+.ruacel.foto .rcmsg{display:none}
+.ruacel .rctag{position:absolute;left:6px;bottom:6px;max-width:calc(100% - 12px);background:rgba(15,23,42,.72);color:#fff;font-size:10.5px;font-weight:700;padding:3px 7px;border-radius:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:none}
+.ruacel.foto .rctag{display:block}
+.ruacel.foto::after{content:"↗";position:absolute;right:6px;top:6px;width:22px;height:22px;border-radius:50%;background:rgba(15,23,42,.6);color:#fff;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center}
+@media (min-width:900px){ #sheet.comruacel .ruacel{display:none!important} }
 .vrua{display:none;position:relative;flex:none;width:92px;height:58px;padding:0;border:1px solid var(--line);border-radius:12px;overflow:hidden;cursor:pointer;
   background:linear-gradient(135deg,rgba(56,225,230,.16),rgba(154,163,178,.18));color:var(--mut)}
 .vrua.on{display:block}
@@ -2706,6 +2723,7 @@ nav button.on .nemo.txt{color:var(--red2)}
       <button type="button" class="stat statbtn comb" id="sCombBtn" aria-label="Combustível" title="Toque para calcular o combustível"><span>Combustível</span><b id="sComb">—</b></button>
       <button type="button" class="stat statbtn loja" id="sLojaBtn" aria-label="Loja" title="Loja: tag de emergência, rastreador portátil e mais"><span>Loja</span><b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6h15l-1.5 9h-12z"/><path d="M6 6L5 3H2"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/></svg></b><em class="lojabadge" id="sLojaN" hidden></em></button>
       <!-- 15/10/2026 (pedido do dono): para o cliente, Faturas fica na frente no lugar da Loja (a Loja foi para o Mais) -->
+      <button type="button" class="ruacel" id="ruaCel" aria-label="Vista da rua"><img id="ruaCelImg" alt=""><span class="rcmsg" id="ruaCelMsg"></span><span class="rctag" id="ruaCelTag"></span></button><!-- 23/10/2026: vista da rua no celular (permissão por cliente) -->
       <button type="button" class="stat statbtn loja fatatalho" id="sFatBtn" aria-label="Faturas" title="Faturas: mensalidades, PIX e segunda via" style="display:none"><span>Faturas</span><b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6M9 13h8M9 17h8"/></svg></b><em class="lojabadge" id="sFatN" hidden>!</em></button>
     </div>
     <div class="addr" id="addrRow"><strong id="vAddr"></strong><span id="vAgo"></span></div>
@@ -3405,6 +3423,7 @@ nav button.on .nemo.txt{color:var(--red2)}
     <label class="fchk"><input type="checkbox" id="pmEu"> Ver a posição do próprio celular no mapa (botão Minha posição)</label>
     <label class="fchk"><input type="checkbox" id="pmRetirar"> Ver a lista <b>Para retirar</b> (para técnico: veículos marcados para retirada, pelo mais perto, com o nome e o WhatsApp do cliente)</label>
     <label class="fchk"><input type="checkbox" id="pmPlacas"> <b>Leitor de placas</b> (abre o leitor pela câmera do celular, na aba Mais; só com o login deste cliente)</label><!-- 23/10/2026 -->
+    <label class="fchk"><input type="checkbox" id="pmRuaCel"> <b>Vista da rua no celular</b> (no cartão do veículo, a foto da rua toma o lugar de odômetro, combustível e faturas)</label><!-- 23/10/2026 -->
     <label class="fchk"><input type="checkbox" id="pmFichas"> Cobrar fichas no compartilhar localização (1 ficha por link; o cliente compra pacotes por PIX no app)</label>
     <div class="pmfichas" id="pmLogoBox"><span class="sp">🖼️ Logo do cliente: <b id="pmLogoSt">—</b></span><button type="button" id="pmLogoAbrir">Ver / enviar logo</button></div>
     <div class="pmfichas" id="pmModBox"><span class="sp">⭐ Premium (odômetro/mapa): <b id="pmModSt">—</b></span><input class="fld" id="pmModDias" type="text" inputmode="numeric" maxlength="3" value="30" autocomplete="off" title="Dias de teste grátis"><button type="button" data-mf="dar">Liberar dias</button><button type="button" data-mf="boleto" style="background:#7c3aed" title="Premium incluído na mensalidade: fica ativo sem prazo até você tirar">♾️ No boleto</button><button type="button" data-mf="0" style="background:#64748b">Tirar</button></div>
@@ -6367,7 +6386,7 @@ async function carregarPermissoes(){
     if(!r.ok) return;
     const j=await r.json(); permCli=Object.assign({smsBloqueio:false,reset:false,editarNome:false,cercaRapida:false,minhaPosicao:false},j.perm||{},{appBloqueio:permCli.appBloqueio,cercaBloqueio:permCli.cercaBloqueio,semBloqueio:permCli.semBloqueio,frotista:permCli.frotista,modFrotaAteMs:Number(j.modFrotaAteMs||0)}); cobrCli=j.cobranca||null;
     try{ modFrotaAplicar() }catch(e){}
-    mostrarBotoesSms(); fichasAplicar(); try{ retAplicar() }catch(e){} try{ leitorAplicar() }catch(e){} try{ logoAplicar() }catch(e){}
+    mostrarBotoesSms(); fichasAplicar(); try{ retAplicar() }catch(e){} try{ leitorAplicar() }catch(e){} try{ logoAplicar() }catch(e){} try{ ruaRedesenhar() }catch(e){}
   }catch(e){}
 }
 function textoCusto(){
@@ -6683,7 +6702,7 @@ async function salvarPermTraccar(u){
 }
 function mostrarPerm(j){
   const p=j.perm||{}, c=j.cobranca||{pendentes:0,valor:0};
-  $('pmSms').checked=!!p.smsBloqueio; $('pmReset').checked=!!p.reset; $('pmNome').checked=!!p.editarNome; $('pmAncora').checked=!!p.cercaRapida; $('pmEu').checked=!!p.minhaPosicao; $('pmIcone').checked=p.trocarIcone!==false; $('pmRetirar').checked=!!p.verRetirar; $('pmPlacas').checked=!!p.leitorPlacas;
+  $('pmSms').checked=!!p.smsBloqueio; $('pmReset').checked=!!p.reset; $('pmNome').checked=!!p.editarNome; $('pmAncora').checked=!!p.cercaRapida; $('pmEu').checked=!!p.minhaPosicao; $('pmIcone').checked=p.trocarIcone!==false; $('pmRetirar').checked=!!p.verRetirar; $('pmPlacas').checked=!!p.leitorPlacas; $('pmRuaCel').checked=!!p.ruaCelular;
   $('pmCob').innerHTML='SMS pela plataforma a cobrar: <b>'+c.pendentes+'</b> = <b>'+brl2(c.valor)+'</b>'+
     (c.faturadoEm?'<br><span style="color:var(--mut);font-size:12px">Último zerado em '+fmtHora(c.faturadoEm)+' · total já faturado: '+(c.totalFaturado||0)+' SMS</span>':'');
   $('pmZerar').disabled=!c.pendentes;
@@ -6702,7 +6721,7 @@ $('pmSalvar').onclick=async()=>{
   try{
     const u=usuarios.find(x=>x.id===permUserId); if(!u) throw new Error('Cliente não encontrado. Feche e abra de novo.');
     await salvarPermTraccar(u);
-    mostrarPerm(await chamarPerm('permSalvar',{perm:{smsBloqueio:$('pmSms').checked,reset:$('pmReset').checked,editarNome:$('pmNome').checked,cercaRapida:$('pmAncora').checked,minhaPosicao:$('pmEu').checked,fichas:$('pmFichas').checked,trocarIcone:$('pmIcone').checked,verRetirar:$('pmRetirar').checked,leitorPlacas:$('pmPlacas').checked}}));
+    mostrarPerm(await chamarPerm('permSalvar',{perm:{smsBloqueio:$('pmSms').checked,reset:$('pmReset').checked,editarNome:$('pmNome').checked,cercaRapida:$('pmAncora').checked,minhaPosicao:$('pmEu').checked,fichas:$('pmFichas').checked,trocarIcone:$('pmIcone').checked,verRetirar:$('pmRetirar').checked,leitorPlacas:$('pmPlacas').checked,ruaCelular:$('pmRuaCel').checked}}));
     await carregarUsuarios(); const u2=usuarios.find(x=>x.id===permUserId); if(u2) mostrarPermTraccar(u2);
     desenharAdmin(); toast('Permissões salvas.')
   }
@@ -7415,7 +7434,8 @@ function ruaPintar(cls,msg,tag,img,msgGrande){
   b.className='vrua on'+(cls?' '+cls:''); g.className='ruabox'+(cls?' '+cls:'');
   $('vRuaMsg').innerHTML=msg||''; $('vRuaTag').textContent=tag||'';
   $('ruaBoxMsg').innerHTML=msgGrande||msg||''; $('ruaBoxTag').textContent=tag||'';
-  [$('vRuaImg'),$('ruaBoxImg')].forEach(im=>{ if(img){ if(im.getAttribute('src')!==img) im.src=img } else if(im.getAttribute('src')) im.removeAttribute('src') });
+  try{ $('ruaCel').className='ruacel'+(cls?' '+cls:''); $('ruaCelMsg').innerHTML=msg||''; $('ruaCelTag').textContent=tag||'' }catch(e){} /* 23/10/2026: celular */
+  [$('vRuaImg'),$('ruaBoxImg'),$('ruaCelImg')].forEach(im=>{ if(img){ if(im.getAttribute('src')!==img) im.src=img } else if(im.getAttribute('src')) im.removeAttribute('src') });
   $('main').classList.add('comrua');
   try{ const h=sheet.offsetHeight; if(h>60) $('main').style.setProperty('--ruah',Math.max(h,170)+'px') }catch(e){} /* acompanha a altura do cartão */
 }
@@ -7536,14 +7556,20 @@ $('prComprar').onclick=()=>{ lojaComprarPix('modfrota',$('prComprar'),1) }; /* 2
 function ruaAdmLigada(){ try{ return localStorage.getItem('rg_rua_adm')==='1' }catch(e){ return false } }
 $('btnRuaVer').addEventListener('pointerdown',e=>e.stopPropagation());
 $('btnRuaVer').onclick=e=>{ e.stopPropagation(); const lig=!ruaAdmLigada(); try{ localStorage.setItem('rg_rua_adm',lig?'1':'0') }catch(_){} ruaRedesenhar(); toast(lig?'Vista da rua ligada (só para você).':'Vista da rua desligada (só para você). Os clientes Premium continuam vendo.') };
-function ruaEsconder(){ $('vRua').className='vrua'; $('ruaBox').className='ruabox'; $('main').classList.remove('comrua'); RUA.mostrando='' }
+function ruaEsconder(){ $('vRua').className='vrua'; $('ruaBox').className='ruabox'; $('main').classList.remove('comrua'); RUA.mostrando=''; ruaCelLigar(false) }
+/* 23/10/2026: vista da rua no celular -> só para cliente com a permissão "Vista da rua no celular" (dada pelo administrador) */
+const ruaCelPode=()=>!telaLarga() && !ehAdmin && !!(permCli && permCli.ruaCelular===true);
+function ruaCelLigar(on){ try{ sheet.classList.toggle('comruacel',!!on); if(!on){ $('ruaCel').className='ruacel' } }catch(e){} }
 function ruaAtualizar(v){
   const b=$('vRua');
   const bt=$('btnRuaVer'); bt.classList.toggle('adm',ehAdmin && telaLarga()); bt.classList.toggle('on',ruaAdmLigada());
   ruaContPintar();
   /* 20/10/2026: só no computador (no celular foi tirado a pedido do dono); o administrador liga/desliga no 📷 */
-  if(!v || !v.pos || !ehPrime() || sheet.style.display==='none' || !telaLarga() || (ehAdmin && !ruaAdmLigada())){ ruaEsconder(); return }
-  if(!modFrota()){ RUA.mostrando=''; ruaPintar('trava','🔒 Vista da rua<b>⭐ Premium</b>',null,null,'🔒 Vista da rua<b>⭐ Assinar Premium</b><small>Veja a foto da rua onde o veículo está parado</small>'); return }
+  /* 23/10/2026: exceção pedida pelo dono — no celular, só para clientes com a permissão "Vista da rua no celular" (sem exigir Premium) */
+  const cel=ruaCelPode();
+  if(!v || !v.pos || (!cel && (!ehPrime() || !telaLarga() || (ehAdmin && !ruaAdmLigada()))) || sheet.style.display==='none'){ ruaEsconder(); return }
+  ruaCelLigar(cel);
+  if(!cel && !modFrota()){ RUA.mostrando=''; ruaPintar('trava','🔒 Vista da rua<b>⭐ Premium</b>',null,null,'🔒 Vista da rua<b>⭐ Assinar Premium</b><small>Veja a foto da rua onde o veículo está parado</small>'); return }
   const lat=+v.pos[0], lon=+v.pos[1], andando=v.vel>2 && v.ign!==false, agora=Date.now();
   let pr=RUA.parada[v.id];
   if(andando){ RUA.parada[v.id]={lat,lon,t:agora,andou:true}; ruaPintar('','🚗 Em movimento',null,null,ruaComLogo('🚗 Em movimento')); return }
@@ -7600,6 +7626,9 @@ async function ruaGirar(){
   }catch(e){ toast(e.message||'Não consegui abrir a vista 360° agora.') }
   finally{ ruaGirando=false }
 }
+$('ruaCel').addEventListener('click',e=>{ e.stopPropagation(); const v=veiculos.find(x=>x.id===selId); if(!v||!v.pos) return;
+  window.open('https://www.google.com/maps/@?api=1&map_action=pano&viewpoint='+v.pos[0].toFixed(6)+','+v.pos[1].toFixed(6),'_blank','noopener') });
+$('ruaCelImg').addEventListener('error',()=>{ const k=RUA.mostrando; if(k) RUA.ponto[k]={erro:Date.now()}; RUA.mostrando=''; ruaRedesenhar() });
 $('vRuaImg').addEventListener('error',()=>{ /* sem foto no ponto ou limite do dia atingido: não tenta de novo nesta abertura */
   const k=RUA.mostrando; if(k) RUA.ponto[k]={erro:Date.now()}; RUA.mostrando=''; ruaRedesenhar();
 });
