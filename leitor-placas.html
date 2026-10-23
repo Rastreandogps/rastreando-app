@@ -1,0 +1,1290 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0d1117">
+<title>Leitor de Placas · Local</title>
+<style>
+  :root{
+    --bg:#0d1117; --card:#161b22; --border:#30363d; --txt:#e6edf3; --muted:#8b949e;
+    --ok:#2ea043; --warn:#d29922; --danger:#f85149; --azul:#1f6feb;
+  }
+  *{box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent;}
+  body{background:var(--bg); color:var(--txt); font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; min-height:100vh; padding-bottom:24px;}
+  body.alerta{animation:flash .35s infinite alternate;}
+  @keyframes flash{from{background:var(--bg);}to{background:#6b0f0f;}}
+
+  header{padding:12px 16px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--border);}
+  header h1{font-size:17px; font-weight:700;}
+  header h1 span{color:#58a6ff;}
+  .status-dot{width:10px;height:10px;border-radius:50%;background:var(--muted);display:inline-block;margin-right:6px;}
+  .status-dot.on{background:var(--ok); box-shadow:0 0 8px var(--ok);}
+  .status-dot.err{background:var(--danger);}
+  #statusTxt{font-size:12px;color:var(--muted);}
+
+  .wrap{padding:12px; max-width:560px; margin:0 auto;}
+
+  .video-box{position:sticky; top:8px; z-index:20; width:100%; aspect-ratio:16/9; border-radius:12px; overflow:hidden; background:#000; border:1px solid var(--border); box-shadow:0 4px 16px rgba(0,0,0,.6);}
+  video{display:block; width:100%; height:100%; object-fit:cover;}
+  #overlay{position:absolute; inset:0; width:100%; height:100%; pointer-events:none;}
+  .chip{position:absolute; background:rgba(0,0,0,.65); color:#fff; font-size:11px; padding:3px 8px; border-radius:6px;}
+  #fps{right:8px; top:8px;}
+  #motor{right:8px; bottom:8px;}
+  video{transform-origin:center center; transition:transform .2s;}
+  .zbtn{background:rgba(0,0,0,.6); color:#fff; border:1px solid rgba(255,255,255,.3); border-radius:6px; padding:4px 8px; font-size:12px; font-weight:700;}
+  .zbtn.ativo{background:#1f6feb; border-color:#58a6ff;}
+  #maskLayer{position:absolute; inset:0; display:none; touch-action:none; cursor:crosshair; z-index:6;}
+  #btnMask, #btnLanterna, #btnPos, #zoomBox{z-index:8;} /* botões sempre acima da camada de desenho */
+  body.editMask #maskLayer{display:block;}
+  #maskAviso{position:absolute; left:8px; right:8px; bottom:46px; display:none; background:rgba(240,183,47,.92); color:#000; font-size:12px; font-weight:700; padding:6px 8px; border-radius:8px; text-align:center; pointer-events:none; z-index:7;}
+  body.editMask #maskAviso{display:block;}
+  body.editMask #btnMask, body.editMask #hudMask{background:#f0b72f; color:#000; border-color:#f0b72f;}
+  body.cheia #btnMask{display:none !important;}
+  /* ----- Tela cheia (celular deitado) ----- */
+  body.cheia{overflow:hidden;}
+  body.cheia .video-box{position:fixed; inset:0; width:100vw; height:100vh; height:100dvh; aspect-ratio:auto; border-radius:0; border:none; z-index:40; box-shadow:none;}
+  body.cheia .video-box .chip, body.cheia #btnLanterna, body.cheia #btnPos, body.cheia #zoomBox{display:none !important;}
+  #hud{display:none; position:fixed; z-index:45; pointer-events:none; transform-origin:center center;}
+  body.cheia #hud{display:block;}
+  #hud button, #hud .zb{pointer-events:auto;}
+  #hud .hud-top{position:absolute; top:12px; left:12px; right:12px; display:flex; justify-content:space-between; align-items:center; gap:8px;}
+  #hud .hud-chip{background:rgba(0,0,0,.6); color:#fff; font-size:13px; padding:5px 10px; border-radius:8px;}
+  #hud .hud-btn{background:rgba(0,0,0,.6); color:#fff; border:1px solid rgba(255,255,255,.35); border-radius:10px; padding:9px 14px; font-size:15px; font-weight:700;}
+  #hud .hud-bottom{position:absolute; bottom:12px; left:12px; right:12px; display:flex; justify-content:space-between; align-items:flex-end; gap:8px;}
+  #hud .zb{display:flex; gap:6px;}
+  #hud .hud-parar{background:var(--danger); border:none; color:#fff; border-radius:12px; padding:12px 20px; font-size:16px; font-weight:800;}
+  #hudPlaca{position:absolute; top:58px; left:50%; transform:translateX(-50%); font-family:monospace; font-size:30px; font-weight:900; letter-spacing:3px; color:#fff; background:rgba(46,160,67,.85); padding:4px 16px; border-radius:10px; border:2px solid #fff; display:none;}
+  #btnLanterna{position:absolute; left:8px; top:8px; background:rgba(0,0,0,.65); border:1px solid rgba(255,255,255,.3); color:#fff; border-radius:8px; padding:5px 10px; font-size:14px; display:none;}
+
+  .carregando{margin-top:12px; background:var(--card); border:1px solid var(--border); border-radius:12px; padding:14px; font-size:13px;}
+  .barra{height:8px; background:#21262d; border-radius:4px; overflow:hidden; margin-top:8px;}
+  .barra div{height:100%; width:0; background:var(--azul); transition:width .2s;}
+
+  .painel{background:var(--card); border:1px solid var(--border); border-radius:12px; padding:14px; margin-top:12px;}
+  .titulo-sec{font-size:13px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;}
+
+  .btn{padding:14px; border:none; border-radius:10px; font-size:15px; font-weight:700; color:#fff; cursor:pointer; width:100%;}
+  .btn:active{opacity:.7;}
+  .btn:disabled{opacity:.4;}
+  .btn-start{background:var(--ok); font-size:17px; padding:16px; margin-top:12px;}
+  .btn-start.parar{background:var(--danger);}
+  .btn-sec{background:#21262d; border:1px solid var(--border); color:var(--txt); font-size:13px; padding:10px;}
+
+  .add-row{display:flex; gap:8px;}
+  .add-row input{flex:1; padding:12px; border-radius:10px; border:1px solid var(--border); background:#0d1117; color:var(--txt); font-size:18px; font-family:monospace; font-weight:700; letter-spacing:2px; text-transform:uppercase;}
+  .add-row button{width:auto; padding:0 18px;}
+
+  .lista-alvos{display:flex; flex-wrap:wrap; gap:8px; margin-top:12px;}
+  .alvo{display:flex; align-items:center; gap:8px; background:#0d1117; border:2px solid #f0b72f; border-radius:8px; padding:6px 6px 6px 12px; font-family:monospace; font-size:17px; font-weight:800; letter-spacing:2px;}
+  .alvo button{background:#30363d; border:none; color:var(--txt); width:26px; height:26px; border-radius:6px; font-size:14px; cursor:pointer;}
+  .vazio{font-size:13px; color:var(--muted);}
+
+  .cfg-row{display:flex; align-items:center; gap:10px; margin-top:10px; font-size:14px;}
+  .cfg-row input[type=text]{flex:1; padding:10px; border-radius:8px; border:1px solid var(--border); background:#0d1117; color:var(--txt); font-size:14px;}
+  .cfg-row select{flex:1; padding:10px; border-radius:8px; border:1px solid var(--border); background:#0d1117; color:var(--txt); font-size:14px;}
+  .cfg-row label{white-space:nowrap;}
+
+  #lidas{max-height:260px; overflow-y:auto;}
+  .lida{display:flex; justify-content:space-between; align-items:center; padding:7px 4px; border-bottom:1px solid #21262d; font-size:13px;}
+  .lida .pl{font-family:monospace; font-size:17px; font-weight:800; letter-spacing:2px;}
+  .lida .hr{color:var(--muted); font-size:12px;}
+  .lida.match .pl{color:#ff6b6b;}
+  .lida.parecida .pl{color:var(--warn);}
+
+  .achado{display:flex; gap:10px; align-items:center; padding:8px 0; border-bottom:1px solid #21262d;}
+  .achado img{width:110px; border-radius:6px; border:1px solid var(--border);}
+  .achado .pl{font-family:monospace; font-size:18px; font-weight:800; letter-spacing:2px; color:#ff6b6b;}
+  .achado .info{font-size:12px; color:var(--muted); margin-top:2px;}
+  .achado .acoes{display:flex; gap:6px; margin-top:6px; flex-wrap:wrap;}
+  .achado .acoes a, .achado .acoes button{font-size:12px; padding:5px 9px; border-radius:6px; background:#21262d; border:1px solid var(--border); color:var(--txt); text-decoration:none; cursor:pointer;}
+
+  .dg{display:flex; gap:8px; align-items:center; padding:6px 0; border-bottom:1px solid #21262d; font-size:12px;}
+  .dg img{width:90px; height:45px; object-fit:cover; border-radius:4px; border:1px solid var(--border); background:#000;}
+  .dg .m{font-weight:700;}
+  .dg .d{color:var(--muted);}
+  .erro{background:#3d1214; border:1px solid var(--danger); color:#ffb3b3; padding:10px; border-radius:8px; font-size:13px; margin-top:10px; display:none;}
+
+  .alerta-banner{display:none; position:fixed; inset:0; background:rgba(200,20,20,.94); z-index:50; flex-direction:column; align-items:center; justify-content:center; gap:14px; text-align:center; padding:20px;}
+  .alerta-banner.show{display:flex;}
+  .alerta-banner.parecida{background:rgba(160,110,0,.95);}
+  .alerta-banner h2{font-size:30px; color:#fff;}
+  .alerta-banner .pl{font-family:monospace; font-size:46px; font-weight:900; letter-spacing:4px; color:#fff; background:rgba(0,0,0,.35); padding:6px 18px; border-radius:10px; border:3px solid #fff;}
+  .alerta-banner img{max-width:90vw; max-height:35vh; border-radius:10px; border:3px solid #fff;}
+  .alerta-banner p{color:#ffe0e0; font-size:14px;}
+  .alerta-banner button{padding:16px 40px; border-radius:12px; border:none; background:#fff; color:#b71c1c; font-size:17px; font-weight:800; cursor:pointer;}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🚘 Leitor de <span>Placas</span> <small style="font-size:11px;color:var(--muted);font-weight:400;">local</small></h1>
+  <div><span class="status-dot" id="dot"></span><span id="statusTxt">carregando</span></div>
+</header>
+
+<div class="wrap">
+
+  <div class="video-box">
+    <video id="video" autoplay playsinline muted></video>
+    <canvas id="overlay"></canvas>
+    <div id="maskLayer"></div>
+    <button id="btnMask" class="zbtn" style="position:absolute; left:60px; top:8px; padding:5px 10px; font-size:13px;">⬛ Ocultar</button>
+    <div id="maskAviso">Arraste para cobrir uma área · toque numa placa para cobri-la · toque numa área cinza para apagar</div>
+    <div class="chip" id="fps">— fps</div>
+    <div class="chip" id="motor">motor: —</div>
+    <button id="btnLanterna" title="Lanterna">🔦</button>
+    <div id="zoomBox" style="position:absolute; left:8px; bottom:8px; display:flex; gap:4px;">
+      <button class="zbtn ativo" data-z="1">1x</button>
+      <button class="zbtn" data-z="1.5">1,5x</button>
+      <button class="zbtn" data-z="2">2x</button>
+      <button class="zbtn" data-z="3">3x</button>
+    </div>
+  </div>
+
+  <div class="carregando" id="carregando">
+    <div id="carregandoTxt">Baixando modelos de reconhecimento (só na primeira vez)…</div>
+    <div class="barra"><div id="barra"></div></div>
+  </div>
+
+  <button class="btn btn-start" id="btnStart" disabled>▶ Iniciar leitura</button>
+  <div class="erro" id="erro"></div>
+
+  <div class="painel">
+    <div class="titulo-sec">Placas procuradas</div>
+    <div class="add-row">
+      <input type="text" id="novaPlaca" maxlength="8" placeholder="ABC1D23" autocomplete="off" autocapitalize="characters">
+      <button class="btn btn-sec" id="btnAdd" style="width:auto;">+ Adicionar</button>
+    </div>
+    <div class="lista-alvos" id="alvos"></div>
+  </div>
+
+  <div class="painel" id="diagPainel" style="display:none; border-color:#8957e5;">
+    <div class="titulo-sec"><span>🔬 Diagnóstico</span><span id="diagResumoCurto" style="text-transform:none;"></span></div>
+    <button class="btn" id="btnPassou" style="background:#8957e5; font-size:17px; padding:16px;">🚗 Passou um carro agora</button>
+    <div style="font-size:12px; color:var(--muted); margin-top:6px;">Toque sempre que um carro passar com a placa visível. O app confere se ele detectou e leu aquele carro.</div>
+    <div id="diagResumo" style="margin-top:12px; font-size:13px; line-height:1.7;"></div>
+    <div class="titulo-sec" style="margin-top:12px;"><span>Últimos objetos detectados</span></div>
+    <div id="diagLista" style="max-height:320px; overflow-y:auto;"></div>
+    <div style="display:flex; gap:8px; margin-top:12px;">
+      <button class="btn btn-sec" id="diagCopiar">📋 Copiar relatório</button>
+      <button class="btn btn-sec" id="diagWpp">💬 WhatsApp</button>
+      <button class="btn btn-sec" id="diagZerar" style="width:auto;">Zerar</button>
+    </div>
+  </div>
+
+  <div class="painel">
+    <div class="titulo-sec"><span>🚨 Encontradas</span></div>
+    <div id="achados"><div class="vazio">Nenhuma placa procurada encontrada ainda.</div></div>
+  </div>
+
+  <div class="painel">
+    <div class="titulo-sec"><span>Placas lidas</span><span id="totLidas" style="text-transform:none;">0</span></div>
+    <div id="lidas"><div class="vazio">As placas lidas aparecem aqui.</div></div>
+  </div>
+
+  <div class="painel">
+    <div class="titulo-sec">Configurações</div>
+    <div class="cfg-row">
+      <label>Leitura</label>
+      <select id="modoLeitura">
+        <option value="nuvem">Nuvem (mais precisa, 1 consulta por carro)</option>
+        <option value="local">Local (grátis, funciona sem internet)</option>
+      </select>
+    </div>
+    <div class="cfg-row" id="cotaRow" style="justify-content:space-between;">
+      <span>Consultas hoje neste celular: <b id="consultasTxt">0</b></span>
+    </div>
+    <div class="cfg-row" id="limiteRow">
+      <label>Limite</label>
+      <select id="limiteMin">
+        <option value="5">no máximo 5 consultas por minuto</option>
+        <option value="10">no máximo 10 consultas por minuto</option>
+        <option value="20" selected>no máximo 20 consultas por minuto</option>
+        <option value="40">no máximo 40 consultas por minuto</option>
+      </select>
+    </div>
+    <div class="cfg-row">
+      <label>Detector</label>
+      <select id="detSel">
+        <option value="256">Rápido (256)</option>
+        <option value="384" selected>Equilibrado (384)</option>
+      </select>
+    </div>
+    <div class="cfg-row">
+      <label>Confirmar após</label>
+      <select id="votos">
+        <option value="2">2 leituras (mais rápido)</option>
+        <option value="3" selected>3 leituras (equilibrado)</option>
+        <option value="4">4 leituras (mais seguro)</option>
+      </select>
+    </div>
+    <div class="cfg-row">
+      <label>Confiança mínima</label>
+      <select id="confMin">
+        <option value="0.6">60%</option>
+        <option value="0.75" selected>75%</option>
+        <option value="0.9">90%</option>
+      </select>
+    </div>
+    <div class="cfg-row">
+      <label style="display:flex;align-items:center;gap:8px;">
+        <input type="checkbox" id="chkParecida" checked style="width:20px;height:20px;accent-color:var(--warn);">
+        Avisar placas parecidas (1 caractere diferente)
+      </label>
+    </div>
+    <div class="cfg-row" style="font-size:12px;color:var(--muted);" id="avisoModo">
+      Tudo roda no celular. Nenhuma foto é enviada para a internet.
+    </div>
+    <div class="cfg-row" style="font-size:12px;color:#f0b72f;">
+      💡 Dica: com a rotação automática do Android ligada, segure o celular deitado (na horizontal). A câmera ganha o dobro de detalhe na largura e lê placas mais longe.
+    </div>
+    <div class="cfg-row">
+      <label style="display:flex;align-items:center;gap:8px;">
+        <input type="checkbox" id="chkObt" style="width:20px;height:20px;accent-color:var(--azul);">
+        📸 Obturador rápido (menos borrão; use de dia)
+      </label>
+    </div>
+    <div class="cfg-row" id="obtMsg" style="font-size:12px;color:var(--muted);"></div>
+    <div class="cfg-row">
+      <label style="display:flex;align-items:center;gap:8px;">
+        <input type="checkbox" id="chkDiag" style="width:20px;height:20px;accent-color:#8957e5;">
+        🔬 Modo diagnóstico (mostra onde cada placa se perdeu)
+      </label>
+    </div>
+    <button class="btn btn-sec" id="btnLimpar" style="margin-top:12px;">Limpar histórico de leituras</button>
+    <button class="btn btn-sec" id="btnLimparMask" style="margin-top:8px;">⬛ Apagar todas as áreas ocultas</button>
+    <button class="btn btn-sec" id="btnRestaurar" style="margin-top:8px;">Restaurar configurações padrão</button>
+  </div>
+
+</div>
+
+<div id="hud">
+  <div class="hud-top">
+    <span class="hud-chip" id="hudFps">— fps</span>
+    <div style="display:flex; gap:8px;">
+      <button class="hud-btn" id="hudMask">⬛ Ocultar</button>
+      <button class="hud-btn" id="hudLanterna">🔦</button>
+      <button class="hud-btn" id="hudSair">✕ Sair da tela cheia</button>
+    </div>
+  </div>
+  <div id="hudPlaca"></div>
+  <div class="hud-bottom">
+    <div class="zb">
+      <button class="zbtn" data-z="1">1x</button>
+      <button class="zbtn" data-z="1.5">1,5x</button>
+      <button class="zbtn" data-z="2">2x</button>
+      <button class="zbtn" data-z="3">3x</button>
+    </div>
+    <button class="hud-btn" id="hudPassou" style="display:none; background:#8957e5; border:none;">🚗 Passou</button>
+    <button class="hud-parar" id="hudParar">⏹ Parar</button>
+  </div>
+</div>
+
+<div class="alerta-banner" id="banner">
+  <h2 id="bannerTit">🚨 PLACA ENCONTRADA!</h2>
+  <div class="pl" id="bannerPlaca"></div>
+  <img id="bannerImg" alt="">
+  <p id="bannerInfo"></p>
+  <button id="btnOk">OK, vi</button>
+</div>
+
+<!-- 23/10/2026: tela de acesso (login do app + permissão) -->
+<div id="portao" style="display:flex;position:fixed;inset:0;z-index:99999;background:var(--bg);align-items:center;justify-content:center;padding:24px;text-align:center">
+  <div style="max-width:380px">
+    <svg viewBox="0 0 200 72" width="190" height="68" style="display:block;margin:0 auto 16px" role="img" aria-label="Placa de veículo"><rect x="2" y="2" width="196" height="68" rx="9" fill="#fff" stroke="#1a1a1a" stroke-width="3"/><path d="M2 11a9 9 0 0 1 9-9h178a9 9 0 0 1 9 9v9H2z" fill="#1d4ed8"/><text x="100" y="16.5" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="11" font-weight="700" fill="#fff" letter-spacing="2">BRASIL</text><text x="100" y="58" text-anchor="middle" font-family="'Arial Narrow',Arial,Helvetica,sans-serif" font-size="36" font-weight="700" fill="#1a1a1a" letter-spacing="3">ABC1D23</text></svg>
+    <h2 id="portaoTit" style="font-size:20px;margin-bottom:10px">Conferindo o seu acesso…</h2>
+    <p id="portaoTxt" style="color:var(--muted);line-height:1.5;margin-bottom:18px">Um instante.</p>
+    <a id="portaoApp" href="tempo-real.html" style="display:none;background:#2f6bff;color:#fff;text-decoration:none;font-weight:700;padding:12px 18px;border-radius:12px">Abrir o app de rastreamento</a>
+    <button id="portaoDeNovo" type="button" onclick="location.reload()" style="display:none;background:#2f6bff;color:#fff;border:0;font-weight:700;padding:12px 18px;border-radius:12px;font-size:15px">Tentar de novo</button>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.1/dist/ort.webgpu.min.js"></script>
+<script>
+(async function(){
+  const $=id=>document.getElementById(id);
+  const video=$('video'), ov=$('overlay'), octx=ov.getContext('2d');
+
+  // ---------- Onde estão os modelos ----------
+  // 1º tenta a pasta "modelos" do próprio site; se não existir, baixa do GitHub do autor dos modelos.
+  // 1º: pasta "modelos" do próprio site · 2º: mesmos arquivos via CDN do jsDelivr (lê direto do seu repositório)
+  const CDN='https://cdn.jsdelivr.net/gh/rastreandogps/rastreando-scanner@main/modelos/';
+  const SITE='https://rastreandogps.github.io/rastreando-scanner/modelos/'; // 23/10/2026: a página mora no endereço do app; os modelos continuam no rastreando-scanner
+  const MODELOS={
+    det256:[SITE+'det256.onnx', CDN+'det256.onnx'],
+    det384:[SITE+'det384.onnx', CDN+'det384.onnx'],
+    ocr:   [SITE+'ocr.onnx',    CDN+'ocr.onnx']
+  };
+  const ALFABETO='0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_';
+
+  let rodando=false, wakeLock=null, detSess=null, ocrSess=null, detTam=384;
+  let alvos=[], lidas=[], ultimoAlerta={};
+  const COOLDOWN=60000;
+
+  // ---------- Armazenamento ----------
+  const ls={
+    get(k,d){ try{ const v=localStorage.getItem(k); return v===null?d:JSON.parse(v);}catch(e){return d;} },
+    set(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
+  };
+  alvos=ls.get('lp_alvos',[]);
+  $('detSel').value=ls.get('lpl_det','384');
+  $('votos').value=ls.get('lpl_votos','3');
+  $('confMin').value=ls.get('lpl_conf','0.75');
+  $('detSel').addEventListener('change',()=>{ ls.set('lpl_det',$('detSel').value); alert('Recarregue a página para trocar o detector.'); });
+  $('votos').addEventListener('change',()=>ls.set('lpl_votos',$('votos').value));
+  $('confMin').addEventListener('change',()=>ls.set('lpl_conf',$('confMin').value));
+  $('modoLeitura').value=ls.get('lpl_modo','nuvem');
+  $('limiteMin').value=ls.get('lpl_limite','20');
+  $('limiteMin').addEventListener('change',()=>ls.set('lpl_limite',$('limiteMin').value));
+  function atualizaModo(){
+    const n=$('modoLeitura').value==='nuvem';
+    $('cotaRow').style.display=n?'flex':'none'; $('limiteRow').style.display=n?'flex':'none';
+    $('avisoModo').textContent = n
+      ? 'O detector roda no celular e só envia o recorte da placa para leitura quando um carro aparece.'
+      : 'Tudo roda no celular. Nenhuma foto é enviada para a internet.';
+  }
+  $('modoLeitura').addEventListener('change',()=>{ ls.set('lpl_modo',$('modoLeitura').value); atualizaModo(); tracks=[]; });
+
+  // ---------- Leitura na nuvem (Plate Recognizer) só do recorte, 1 vez por carro ----------
+  /* 23/10/2026: a leitura passa pelo servidor da Rastreando GPS (rastreamentoPlacas), que confere o login do app
+     e a permissão "Leitor de placas". A chave do serviço de leitura fica só no servidor (não aparece mais aqui). */
+  const FN_PLACAS='https://southamerica-east1-rastreando-assinaturas.cloudfunctions.net/rastreamentoPlacas';
+  const hoje=()=>new Date().toISOString().slice(0,10);
+  let nuvemOcupada=false, ultimoEnvio=0;
+  function contarConsulta(){
+    const c=ls.get('lpl_consultas',{dia:hoje(),n:0});
+    if(c.dia!==hoje()){ c.dia=hoje(); c.n=0; }
+    c.n++; ls.set('lpl_consultas',c); $('consultasTxt').textContent=c.n;
+  }
+  (function(){ const c=ls.get('lpl_consultas',{dia:hoje(),n:0}); $('consultasTxt').textContent = c.dia===hoje()?c.n:0; })();
+
+  function recorteCarro(b){
+    // região em volta da placa (o carro), em resolução real da câmera
+    const w=b.x2-b.x1, cx=(b.x1+b.x2)/2, cy=(b.y1+b.y2)/2;
+    let cw=Math.max(w*5, 360), ch=cw*0.7;
+    cw=Math.min(cw,fcv.width); ch=Math.min(ch,fcv.height);
+    const sx=Math.max(0,Math.min(fcv.width-cw, cx-cw/2)), sy=Math.max(0,Math.min(fcv.height-ch, cy-ch/2));
+    const esc=Math.min(1, 1280/cw);
+    const c=document.createElement('canvas'); c.width=Math.round(cw*esc); c.height=Math.round(ch*esc);
+    c.getContext('2d').drawImage(fcv,sx,sy,cw,ch,0,0,c.width,c.height);
+    return c;
+  }
+  // ---------- Memória de carros PARADOS já lidos ----------
+  // Placa que reaparece no mesmo lugar da imagem, sem se mexer, reaproveita a leitura (sem consulta).
+  // Carro passando pelo mesmo ponto está em movimento: é consultado normalmente.
+  let parados=[]; // {box, placa, tipo, t, rot, zoom}
+  function deslocamento(t){ // quanto a placa andou desde que apareceu, em larguras de placa
+    const a=t.boxIni, b=t.box, w=Math.max(1,b.x2-b.x1);
+    return Math.hypot(((a.x1+a.x2)-(b.x1+b.x2))/2, ((a.y1+a.y2)-(b.y1+b.y2))/2)/w;
+  }
+  function lembrarParado(t){
+    if(deslocamento(t)>0.3) return; // estava se movendo: não é carro parado
+    const agora=Date.now();
+    const m=parados.find(m=>iou(m.box,t.box)>0.4 && m.rot===rot && m.zoom===zoom);
+    if(m){ m.box={...t.box}; m.placa=t.placa; m.tipo=t.tipo; m.t=agora; }
+    else parados.push({box:{...t.box}, placa:t.placa, tipo:t.tipo, t:agora, rot, zoom});
+  }
+  function reaproveitarParado(t){
+    const agora=Date.now();
+    parados=parados.filter(m=>agora-m.t<120000 && m.rot===rot && m.zoom===zoom); // esquece após 2 min sem rever
+    if(t.placa || (t.quadros||0)<2 || deslocamento(t)>0.3) return false;
+    const m=parados.find(m=>iou(m.box,t.box)>0.4);
+    if(!m) return false;
+    t.placa=m.placa; t.tipo=m.tipo; t.herdada=true; m.t=agora; m.box={...t.box};
+    const ja=lidas.find(l=>l.placa===m.placa); if(ja){ ja.vezes=(ja.vezes||1)+1; renderLidas(); } // só soma "2x, 3x..." no histórico
+    return true;
+  }
+
+  // Travas contra consulta desperdiçada
+  function pareceePlaca(t){
+    const w=t.box.x2-t.box.x1, h=t.box.y2-t.box.y1, prop=w/h;
+    // Ajustado pelo diagnóstico de 22/10: placas reais perdidas vinham com 45-52% de certeza e 1-2 quadros
+    return w>=28                                          // tamanho mínimo
+        && ((t.detMax>=0.4 && t.quadros>=2)               // certeza razoável em 2 quadros seguidos
+            || t.detMax>=0.7)                             // ou certeza alta: basta 1 quadro (carro rápido)
+        && prop>=1.0 && prop<=6;                          // formato de placa (carro ou moto)
+  }
+  let enviosRecentes=[];
+  function dentroDoLimite(){
+    const agora=Date.now(), max=parseInt($('limiteMin').value);
+    enviosRecentes=enviosRecentes.filter(t=>agora-t<60000);
+    return enviosRecentes.length<max;
+  }
+  async function enviarNuvem(t, foto){
+    enviosRecentes.push(Date.now());
+    nuvemOcupada=true; ultimoEnvio=Date.now(); t.pendente=true;
+    t.envios=(t.envios||0)+1; t.ultimoEnvioT=Date.now();
+    const caixa = foto ? foto.caixa : {...t.box};
+    t.largEnvio=caixa.x2-caixa.x1;
+    try{
+      const c = foto ? foto.canvas : recorteCarro(caixa);
+      const img=c.toDataURL('image/jpeg',0.9);
+      const resp=await fetch(FN_PLACAS,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',body:JSON.stringify({acao:'placaLer',token:rgToken(),img})});
+      let data={}; try{ data=await resp.json(); }catch(_){}
+      if(resp.status===429||data.ocupado){ t.envios--; if(foto) fila.unshift({t,foto}); return; } // limite por segundo: tenta de novo
+      if(resp.status===401){ portaoMostrar('login', data.erro); throw new Error(data.erro||'Entre no app de rastreamento.'); }
+      if(resp.status===403){ portaoMostrar('sem', data.erro); throw new Error(data.erro||'Leitor não liberado.'); }
+      contarConsulta();
+      if(resp.status===402) throw new Error(data.erro||'A cota de leituras acabou. Mude a Leitura para Local.');
+      if(!resp.ok) throw new Error(data.erro||('Erro do servidor ('+resp.status+').'));
+      const confMin=parseFloat($('confMin').value);
+      const r=(data.results||[]).sort((a,b)=>(b.score||0)-(a.score||0))[0];
+      if(!r){
+        t.resps.push('nuvem não achou placa no recorte');
+        if((t.detMax||0)<0.7 || t.envios>=3){ t.envios=99; t.naoPlaca=true; } // desiste só se o detector também duvidava
+        else t.tentarDeNovo=true;                                            // provável borrão: tenta outro quadro
+        return;
+      }
+      if(t.placa) return;
+      const opcoes=[r.plate,...(r.candidates||[]).map(c=>c.plate)].map(limpa).map(corrigeFormato).filter(valida);
+      if(!opcoes.length){ t.resps.push('nuvem leu "'+limpa(r.plate)+'" (fora do formato)'); t.tentarDeNovo=true; return; }
+      if((r.score||0)<confMin){ t.resps.push('nuvem leu '+limpa(r.plate)+' com só '+Math.round(r.score*100)+'% de certeza'); t.tentarDeNovo=true; return; }
+      let p=opcoes[0], res=null;
+      for(const o of opcoes){ const x=confere(o); if(x){ res=x; p=o; if(x.tipo==='match') break; } }
+      t.placa=p; t.tipo=res?res.tipo:'';
+      lembrarParado(t);
+      registrarLida(p, r.score, res);
+      if(res) alarme(res, p, caixa, r.score, c.toDataURL('image/jpeg',0.6));
+      $('erro').style.display='none';
+    }catch(e){
+      t.resps.push('erro: '+e.message);
+      mostraErro(e.message.includes('Failed to fetch')?'Sem conexão com o servidor de leitura. Verifique a internet.':e.message);
+    }finally{
+      nuvemOcupada=false; t.pendente=false;
+      pendentes=pendentes.filter(x=>x!==t);
+      if(t.encerrarDepois) diagEncerrar(t); // saiu da tela enquanto esperava a resposta
+    }
+  }
+
+  // ---------- Fila: guarda a FOTO do carro na hora certa, envia quando a nuvem liberar ----------
+  // Resolve moto/carro rápido que aparece em 1 quadro enquanto a nuvem ainda lê o carro anterior.
+  let fila=[], pendentes=[];
+  // ---------- Melhor foto: mede a nitidez da placa em cada quadro e guarda a mais nítida ----------
+  // A primeira aparição costuma ser a pior (carro entrando, borrado, cortado).
+  const ncv=document.createElement('canvas'); ncv.width=96; ncv.height=32;
+  const nctx=ncv.getContext('2d',{willReadFrequently:true});
+  function nitidez(b){
+    nctx.drawImage(fcv, b.x1, b.y1, Math.max(1,b.x2-b.x1), Math.max(1,b.y2-b.y1), 0,0,96,32);
+    const d=nctx.getImageData(0,0,96,32).data, W=96, H=32, g=new Float32Array(W*H);
+    for(let i=0,j=0;i<d.length;i+=4,j++) g[j]=d[i]*0.3+d[i+1]*0.59+d[i+2]*0.11;
+    let soma=0;
+    for(let y=1;y<H-1;y++) for(let x=1;x<W-1;x++){ const k=y*W+x; soma+=Math.abs(4*g[k]-g[k-1]-g[k+1]-g[k-W]-g[k+W]); }
+    return soma/((W-2)*(H-2));
+  }
+  function atualizarMelhor(t){
+    if(t.placa || t.pendente) return;
+    const n=nitidez(t.box);
+    if(!t.melhor || n>t.melhor.n*1.05) t.melhor={n, canvas:recorteCarro({...t.box}), caixa:{...t.box}};
+  }
+  function enfileirar(t){
+    if(t.naFila || t.pendente) return;
+    t.naFila=true; t.pendente=true; pendentes.push(t);
+    fila.push({t, foto: t.melhor || {canvas:recorteCarro({...t.box}), caixa:{...t.box}}});
+    t.melhor=null;
+    if(fila.length>4){ const x=fila.shift(); x.t.naFila=false; x.t.pendente=false; pendentes=pendentes.filter(p=>p!==x.t); }
+  }
+
+  // ---------- Placas: formato e comparação ----------
+  const limpa=s=>(s||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
+  const FORMATO=/^[A-Z]{3}[0-9][A-Z0-9][0-9]{2}$/;
+  const P_LETRA={'0':'O','1':'I','2':'Z','5':'S','6':'G','8':'B','7':'T'};
+  const P_NUM={O:'0',Q:'0',D:'0',I:'1',L:'1',Z:'2',S:'5',G:'6',B:'8',T:'7'};
+  function corrigeFormato(p){
+    if(p.length!==7) return p;
+    const c=p.split('');
+    for(const i of [0,1,2]) if(P_LETRA[c[i]]) c[i]=P_LETRA[c[i]];
+    for(const i of [3,5,6]) if(P_NUM[c[i]]) c[i]=P_NUM[c[i]];
+    return c.join('');
+  }
+  const valida=p=>FORMATO.test(p);
+  const MAPA={O:'0',Q:'0',D:'0',I:'1',L:'1',B:'8',S:'5',Z:'2',G:'6',T:'7'};
+  const canon=s=>limpa(s).split('').map(c=>MAPA[c]||c).join('');
+  function diferenca(a,b){ if(a.length!==b.length) return 99; let d=0; for(let i=0;i<a.length;i++) if(a[i]!==b[i]) d++; return d; }
+  function confere(p){
+    const c=canon(p);
+    for(const a of alvos) if(canon(a)===c) return {tipo:'match', alvo:a};
+    if($('chkParecida').checked) for(const a of alvos) if(diferenca(canon(a),c)===1) return {tipo:'parecida', alvo:a};
+    return null;
+  }
+
+  // ---------- Lista de placas procuradas ----------
+  function renderAlvos(){
+    const el=$('alvos');
+    if(!alvos.length){ el.innerHTML='<div class="vazio">Nenhuma placa cadastrada. Adicione acima.</div>'; return; }
+    el.innerHTML='';
+    alvos.forEach((p,i)=>{
+      const d=document.createElement('div'); d.className='alvo';
+      d.innerHTML=`<span>${p}</span><button title="Remover">✕</button>`;
+      d.querySelector('button').onclick=()=>{ alvos.splice(i,1); ls.set('lp_alvos',alvos); renderAlvos(); };
+      el.appendChild(d);
+    });
+  }
+  function addPlaca(){
+    const p=corrigeFormato(limpa($('novaPlaca').value));
+    if(!valida(p)){ alert('Placa inválida. Use o formato ABC1D23 (Mercosul) ou ABC1234 (antiga).'); return; }
+    if(!alvos.includes(p)){ alvos.push(p); ls.set('lp_alvos',alvos); }
+    $('novaPlaca').value=''; renderAlvos();
+  }
+  $('btnAdd').onclick=addPlaca;
+  $('novaPlaca').addEventListener('keydown',e=>{ if(e.key==='Enter') addPlaca(); });
+  renderAlvos();
+
+  // ---------- Download dos modelos (com cache no aparelho) ----------
+  async function baixar(nome, urls, pesoIni, pesoFim){
+    const cache = 'caches' in window ? await caches.open('lp-modelos-v1') : null;
+    const falhas=[];
+    for(const url of urls){
+      try{
+        $('carregandoTxt').textContent='Baixando '+nome+(url.startsWith('http')?' (servidor reserva)':'')+'…';
+        if(cache){ const hit=await cache.match(url); if(hit){ progresso(pesoFim); return await hit.arrayBuffer(); } }
+        const resp=await fetch(url);
+        if(!resp.ok) throw new Error(resp.status);
+        const total=+resp.headers.get('content-length')||0;
+        const reader=resp.body.getReader(); const chunks=[]; let got=0;
+        while(true){ const {done,value}=await reader.read(); if(done) break; chunks.push(value); got+=value.length; if(total) progresso(pesoIni+(pesoFim-pesoIni)*got/total); }
+        const blob=new Blob(chunks);
+        if(cache){ try{ await cache.put(url,new Response(blob)); }catch(e){} }
+        progresso(pesoFim);
+        return await blob.arrayBuffer();
+      }catch(e){ console.warn('falhou',url,e.message); falhas.push((url.startsWith('http')?'reserva':'site')+': '+(e.message==='Failed to fetch'?'sem acesso':'erro '+e.message)); }
+    }
+    throw new Error('Não consegui baixar o "'+nome+'" ('+falhas.join(' · ')+'). Se acabou de publicar, aguarde 2 minutos e recarregue.');
+  }
+  function progresso(p){ $('barra').style.width=Math.round(p*100)+'%'; }
+
+  async function carregarModelos(){
+    detTam=parseInt($('detSel').value);
+    ort.env.wasm.wasmPaths='https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.1/dist/';
+    ort.env.wasm.numThreads=1;
+    const detBuf=await baixar('detector', MODELOS['det'+detTam], 0, 0.75);
+    const ocrBuf=await baixar('leitor',   MODELOS.ocr,          0.75, 0.95);
+    $('carregandoTxt').textContent='Preparando o motor…';
+    let backend='wasm';
+    try{
+      if(navigator.gpu){ detSess=await ort.InferenceSession.create(detBuf,{executionProviders:['webgpu']}); backend='webgpu'; }
+    }catch(e){ console.warn('webgpu indisponível',e.message); detSess=null; }
+    if(!detSess) detSess=await ort.InferenceSession.create(detBuf,{executionProviders:['wasm']});
+    ocrSess=await ort.InferenceSession.create(ocrBuf,{executionProviders:['wasm']});
+    $('motor').textContent='motor: '+(backend==='webgpu'?'GPU':'CPU')+' · '+detTam;
+    progresso(1);
+    $('carregando').style.display='none';
+    $('btnStart').disabled=false;
+    setStatus('pronto');
+  }
+
+  // ---------- Obturador rápido: menos borrão em carro/moto passando (precisa de boa luz) ----------
+  let camTrack=null;
+  async function aplicaObturador(){
+    const on=$('chkObt').checked; ls.set('lpl_obt',on);
+    if(!camTrack) return;
+    const caps=camTrack.getCapabilities ? camTrack.getCapabilities() : {};
+    const msg=$('obtMsg');
+    if(!caps.exposureTime || !caps.exposureMode || !caps.exposureMode.includes('manual')){
+      msg.textContent = on ? 'Seu celular não permite controlar o obturador pelo navegador.' : '';
+      return;
+    }
+    try{
+      if(on){
+        const t=Math.max(caps.exposureTime.min, Math.min(caps.exposureTime.max, 20)); // ~1/500 s
+        await camTrack.applyConstraints({advanced:[{exposureMode:'manual', exposureTime:t}]});
+        msg.textContent='Ativo: imagem fica mais escura, mas a placa sai mais nítida em movimento.';
+      }else{
+        await camTrack.applyConstraints({advanced:[{exposureMode:'continuous'}]});
+        msg.textContent='';
+      }
+    }catch(e){ msg.textContent='Não foi possível ajustar o obturador neste celular.'; }
+  }
+
+  // ---------- Câmera ----------
+  async function abrirCamera(){
+    try{
+      const stream=await navigator.mediaDevices.getUserMedia({ video:{ facingMode:{ideal:'environment'}, width:{ideal:1920}, height:{ideal:1080} }, audio:false });
+      video.srcObject=stream;
+      const track=stream.getVideoTracks()[0]; camTrack=track;
+      const caps=track.getCapabilities ? track.getCapabilities() : {};
+      try{ if(caps.focusMode && caps.focusMode.includes('continuous')) await track.applyConstraints({advanced:[{focusMode:'continuous'}]}); }catch(e){}
+      if($('chkObt').checked) aplicaObturador();
+      if(caps.torch){
+        const b=$('btnLanterna'); b.style.display='block'; let on=false;
+        b.onclick=async()=>{ on=!on; try{ await track.applyConstraints({advanced:[{torch:on}]}); b.style.background=on?'#d29922':'rgba(0,0,0,.65)'; }catch(e){} };
+      }
+    }catch(e){
+      setStatus('erro na câmera','err');
+      mostraErro('Não foi possível acessar a câmera. Permita o acesso e recarregue a página. ('+e.message+')');
+    }
+  }
+
+  // ---------- Áreas ocultas: o que aparecer dentro delas é ignorado (carros estacionados etc.) ----------
+  // Guardadas em coordenadas da câmera (não da tela): ficam no lugar certo com zoom e tela cheia.
+  let mascaras=[]; // {u1,v1,u2,v2}
+  let editMask=false, arrasto=null;
+  function telaParaCamera(clientX, clientY){
+    const r=video.parentElement.getBoundingClientRect(), roi=calcROI();
+    return { u: roi.x + (clientX-r.left)/r.width*roi.w, v: roi.y + (clientY-r.top)/r.height*roi.h };
+  }
+  const dentroMascara=(u,v)=>mascaras.findIndex(m=>u>=m.u1&&u<=m.u2&&v>=m.v1&&v<=m.v2);
+  function setEditMask(on){
+    editMask=on; document.body.classList.toggle('editMask',on);
+    $('btnMask').textContent = on ? '✔ Concluir' : '⬛ Ocultar'+(mascaras.length?' ('+mascaras.length+')':'');
+    $('hudMask').textContent = on ? '✔ Concluir' : '⬛ Ocultar'+(mascaras.length?' ('+mascaras.length+')':'');
+  }
+  $('btnMask').onclick=()=>setEditMask(!editMask);
+  $('hudMask').onclick=()=>setEditMask(!editMask);
+  $('btnLimparMask').onclick=()=>{ mascaras=[]; setEditMask(false); };
+  (function(){
+    const L=$('maskLayer');
+    L.addEventListener('pointerdown',e=>{ if(!video.videoWidth) return; arrasto={a:telaParaCamera(e.clientX,e.clientY), b:null, x0:e.clientX, y0:e.clientY}; L.setPointerCapture(e.pointerId); e.preventDefault(); });
+    L.addEventListener('pointermove',e=>{ if(arrasto){ arrasto.b=telaParaCamera(e.clientX,e.clientY); e.preventDefault(); } });
+    L.addEventListener('pointerup',e=>{
+      if(!arrasto) return;
+      const toque = Math.hypot(e.clientX-arrasto.x0, e.clientY-arrasto.y0) < 15;
+      const p=telaParaCamera(e.clientX,e.clientY);
+      if(toque){
+        const i=dentroMascara(p.u,p.v);
+        if(i>=0) mascaras.splice(i,1);                       // tocou numa área: apaga
+        else{                                                // tocou numa placa: cobre ela (com folga)
+          const t=tracks.find(t=>{ const b=retGirado(t.box,deGirado); return p.u>=b.x1&&p.u<=b.x2&&p.v>=b.y1&&p.v<=b.y2; });
+          if(t){ const b=retGirado(t.box,deGirado), mw=(b.x2-b.x1)*0.4, mh=(b.y2-b.y1)*0.8;
+                 mascaras.push({u1:b.x1-mw, v1:b.y1-mh, u2:b.x2+mw, v2:b.y2+mh}); }
+        }
+      }else{
+        const a=arrasto.a;
+        mascaras.push({u1:Math.min(a.u,p.u), v1:Math.min(a.v,p.v), u2:Math.max(a.u,p.u), v2:Math.max(a.v,p.v)});
+      }
+      arrasto=null; setEditMask(true);
+    });
+  })();
+  function desenharMascaras(){
+    if(!video.videoWidth || (!mascaras.length && !arrasto)) return;
+    const roi=calcROI(), k=ov.width/roi.w;
+    const caixa=(m,temp)=>{
+      const x=(m.u1-roi.x)*k, y=(m.v1-roi.y)*k, w=(m.u2-m.u1)*k, h=(m.v2-m.v1)*k;
+      octx.fillStyle = temp ? 'rgba(240,183,47,.25)' : 'rgba(30,30,30,.6)'; octx.fillRect(x,y,w,h);
+      octx.setLineDash([6,4]); octx.lineWidth=2; octx.strokeStyle='#f0b72f'; octx.strokeRect(x,y,w,h); octx.setLineDash([]);
+      if(!temp && w>50 && h>16){ octx.font='bold 11px sans-serif'; octx.fillStyle='#f0b72f'; octx.fillText('ignorado', x+4, y+13); }
+    };
+    for(const m of mascaras) caixa(m,false);
+    if(arrasto && arrasto.b){ const a=arrasto.a, b=arrasto.b; caixa({u1:Math.min(a.u,b.u),v1:Math.min(a.v,b.v),u2:Math.max(a.u,b.u),v2:Math.max(a.v,b.v)},true); }
+  }
+
+  // ---------- Pré-processamento ----------
+  const fcv=document.createElement('canvas'), fctx=fcv.getContext('2d',{willReadFrequently:true}); // quadro completo
+  const lcv=document.createElement('canvas'), lctx=lcv.getContext('2d',{willReadFrequently:true}); // letterbox p/ detector
+  const pcv=document.createElement('canvas'), pctx=pcv.getContext('2d',{willReadFrequently:true}); // recorte da placa p/ OCR
+  pcv.width=128; pcv.height=64;
+
+  // Área analisada = só o que aparece na prévia (e o zoom escolhido).
+  // Assim o detector não desperdiça resolução com céu e chão que ficam fora da tela.
+  let zoom=1;
+  function calcROI(){
+    const vw=video.videoWidth, vh=video.videoHeight;
+    const r=video.parentElement.getBoundingClientRect();
+    const esc=Math.max(r.width/vw, r.height/vh);
+    const w=r.width/esc/zoom, h=r.height/esc/zoom;
+    return {x:(vw-w)/2, y:(vh-h)/2, w, h};
+  }
+
+  // ---------- Posição do celular: quem gira é o próprio Android ----------
+  // Com a rotação automática do Android ligada, a página e a câmera já viram juntas.
+  // O app não gira mais nada por conta própria (rot fica sempre 0).
+  let rot=0, modoPos='android';
+  const deitado=()=> window.innerWidth > window.innerHeight;
+  function atualizaPos(){ /* mantido por compatibilidade: a posição vem do Android */ if(typeof atualizaTelaCheia==='function') atualizaTelaCheia(); }
+
+  // ---------- Tela cheia quando o celular está deitado e lendo ----------
+  var saiuManual=false; // var: pode ser lido antes desta linha
+  function atualizaTelaCheia(){
+    if(!deitado()) saiuManual=false;
+    const cheia = deitado() && rodando && !saiuManual;
+    document.body.classList.toggle('cheia', cheia);
+    const hud=$('hud');
+    if(cheia){ hud.style.inset='0'; hud.style.width=''; hud.style.height=''; hud.style.transform='none'; }
+  }
+  let ultimaOrient=deitado();
+  function aoGirar(){
+    if(deitado()!==ultimaOrient){ ultimaOrient=deitado(); tracks=[]; parados=[]; mascaras=[]; if(typeof setEditMask==='function') setEditMask(false); } // cena mudou: recomeça
+    atualizaTelaCheia();
+  }
+  window.addEventListener('resize', aoGirar);
+  if(screen.orientation) screen.orientation.addEventListener('change', aoGirar);
+  $('hudSair').onclick=()=>{ saiuManual=true; atualizaTelaCheia(); };
+  $('hudLanterna').onclick=()=>$('btnLanterna').click();
+  $('hudParar').onclick=()=>$('btnStart').click();
+
+  // ponto da câmera (u,v) -> ponto na imagem girada (x,y), e o inverso
+  function paraGirado(u,v){
+    const vw=video.videoWidth, vh=video.videoHeight;
+    if(rot===90) return {x:vh-v, y:u};
+    if(rot===-90) return {x:v, y:vw-u};
+    return {x:u, y:v};
+  }
+  function deGirado(x,y){
+    const vw=video.videoWidth, vh=video.videoHeight;
+    if(rot===90) return {u:y, v:vh-x};
+    if(rot===-90) return {u:vw-y, v:x};
+    return {u:x, v:y};
+  }
+  function retGirado(r, conv){ // converte um retângulo e devolve os limites
+    const a=conv(r.x1,r.y1), b=conv(r.x2,r.y2);
+    const xs=[a.x??a.u, b.x??b.u], ys=[a.y??a.v, b.y??b.v];
+    return {x1:Math.min(...xs), y1:Math.min(...ys), x2:Math.max(...xs), y2:Math.max(...ys)};
+  }
+  function desenharQuadroGirado(){
+    const vw=video.videoWidth, vh=video.videoHeight;
+    fcv.width = rot ? vh : vw; fcv.height = rot ? vw : vh;
+    fctx.setTransform(1,0,0,1,0,0);
+    if(rot===90){ fctx.translate(vh,0); fctx.rotate(Math.PI/2); }
+    else if(rot===-90){ fctx.translate(0,vw); fctx.rotate(-Math.PI/2); }
+    fctx.drawImage(video,0,0);
+    fctx.setTransform(1,0,0,1,0,0);
+  }
+
+  function prepararDetector(){
+    const s=detTam;
+    desenharQuadroGirado();
+    const r0=calcROI();
+    const rr=retGirado({x1:r0.x, y1:r0.y, x2:r0.x+r0.w, y2:r0.y+r0.h}, paraGirado);
+    const roi={x:rr.x1, y:rr.y1, w:rr.x2-rr.x1, h:rr.y2-rr.y1};
+    const r=Math.min(s/roi.w,s/roi.h), nw=Math.round(roi.w*r), nh=Math.round(roi.h*r), dw=(s-nw)/2, dh=(s-nh)/2;
+    lcv.width=s; lcv.height=s;
+    lctx.fillStyle='rgb(114,114,114)'; lctx.fillRect(0,0,s,s);
+    lctx.drawImage(fcv,roi.x,roi.y,roi.w,roi.h, Math.round(dw-0.1),Math.round(dh-0.1),nw,nh);
+    const d=lctx.getImageData(0,0,s,s).data, n=s*s;
+    const f=new Float32Array(3*n);
+    for(let i=0,j=0;i<n;i++,j+=4){ f[i]=d[j]/255; f[n+i]=d[j+1]/255; f[2*n+i]=d[j+2]/255; }
+    return {tensor:new ort.Tensor('float32',f,[1,3,s,s]), r, dw, dh, roi};
+  }
+
+  async function detectar(){
+    const p=prepararDetector();
+    const out=await detSess.run({images:p.tensor});
+    const o=out[Object.keys(out)[0]];
+    const data=o.data, n=data.length/7, boxes=[];
+    for(let i=0;i<n;i++){
+      const sc=data[i*7+6]; if(sc<0.35) continue;
+      const x1=(data[i*7+1]-p.dw)/p.r+p.roi.x, y1=(data[i*7+2]-p.dh)/p.r+p.roi.y;
+      const x2=(data[i*7+3]-p.dw)/p.r+p.roi.x, y2=(data[i*7+4]-p.dh)/p.r+p.roi.y;
+      if(x2-x1<12||y2-y1<5) continue;
+      boxes.push({x1,y1,x2,y2,score:sc});
+    }
+    // mesma placa detectada duas vezes, ou um pedaço dela dentro da caixa maior: fica só a melhor
+    boxes.sort((a,b)=>b.score-a.score);
+    const final=[];
+    for(const b of boxes){
+      const repetida=final.some(k=>{
+        const ix=Math.max(0,Math.min(k.x2,b.x2)-Math.max(k.x1,b.x1)), iy=Math.max(0,Math.min(k.y2,b.y2)-Math.max(k.y1,b.y1));
+        const menor=Math.min((k.x2-k.x1)*(k.y2-k.y1),(b.x2-b.x1)*(b.y2-b.y1));
+        return menor>0 && ix*iy/menor>0.5;
+      });
+      if(!repetida) final.push(b);
+    }
+    if(!mascaras.length) return final;
+    return final.filter(b=>{ const c=deGirado((b.x1+b.x2)/2,(b.y1+b.y2)/2); return dentroMascara(c.u,c.v)<0; });
+  }
+  const PLACA_MIN=50; // largura mínima (pixels reais) para tentar ler os caracteres no modo local
+
+  function setZoom(z){
+    z=parseFloat(z); if(![1,1.5,2,3].includes(z)) z=1;
+    zoom=z; ls.set('lpl_zoom',z);
+    video.style.transform='scale('+z+')';
+    document.querySelectorAll('.zbtn[data-z]').forEach(b=>b.classList.toggle('ativo', parseFloat(b.dataset.z)===z));
+    tracks=[];
+  }
+  document.querySelectorAll('.zbtn[data-z]').forEach(b=>b.onclick=()=>setZoom(parseFloat(b.dataset.z)));
+
+  async function lerPlaca(b){
+    // pequena margem em volta da placa ajuda o OCR
+    const mw=(b.x2-b.x1)*0.06, mh=(b.y2-b.y1)*0.12;
+    const sx=Math.max(0,b.x1-mw), sy=Math.max(0,b.y1-mh);
+    const sw=Math.min(fcv.width-sx,(b.x2-b.x1)+2*mw), sh=Math.min(fcv.height-sy,(b.y2-b.y1)+2*mh);
+    pctx.drawImage(fcv,sx,sy,sw,sh,0,0,128,64);
+    const d=pctx.getImageData(0,0,128,64).data;
+    const u=new Uint8Array(128*64*3);
+    for(let i=0,j=0;i<d.length;i+=4,j+=3){ u[j]=d[i]; u[j+1]=d[i+1]; u[j+2]=d[i+2]; }
+    const out=await ocrSess.run({input:new ort.Tensor('uint8',u,[1,64,128,3])});
+    const p=out[Object.keys(out)[0]].data; // 9 x 37
+    let txt='', confs=[];
+    for(let s=0;s<9;s++){
+      let bi=0,bv=-1; for(let k=0;k<37;k++){ const v=p[s*37+k]; if(v>bv){bv=v;bi=k;} }
+      const ch=ALFABETO[bi]; if(ch!=='_'){ txt+=ch; confs.push(bv); }
+    }
+    const conf=confs.length?Math.min(...confs):0;
+    return {txt, conf, confs};
+  }
+
+  // ---------- Rastreamento simples + votação ----------
+  let tracks=[]; // {id, box, votos:{placa:n}, ultima, placa, tipo, visto}
+  let nextId=1;
+  function iou(a,b){
+    const ix=Math.max(0,Math.min(a.x2,b.x2)-Math.max(a.x1,b.x1)), iy=Math.max(0,Math.min(a.y2,b.y2)-Math.max(a.y1,b.y1));
+    const inter=ix*iy, ua=(a.x2-a.x1)*(a.y2-a.y1)+(b.x2-b.x1)*(b.y2-b.y1)-inter;
+    return ua>0?inter/ua:0;
+  }
+  const centro=b=>({x:(b.x1+b.x2)/2, y:(b.y1+b.y2)/2, w:b.x2-b.x1});
+  // Casa cada placa do quadro atual com a do quadro anterior.
+  // Além da sobreposição, aceita deslocamento grande (carro passando perto anda muito na imagem).
+  function casar(boxes){
+    const agora=Date.now();
+    const usados=new Set();
+    for(const t of tracks){
+      let best=null, bestScore=0;
+      const ct=centro(t.box);
+      boxes.forEach((b,i)=>{
+        if(usados.has(i)) return;
+        const v=iou(t.box,b);
+        const cb=centro(b), dist=Math.hypot(cb.x-ct.x, cb.y-ct.y), ref=Math.max(ct.w,cb.w);
+        const proporcao=cb.w/ct.w;
+        let score=v;
+        if(v<0.3 && dist<ref*2.2 && proporcao>0.5 && proporcao<2) score=0.3*(1-dist/(ref*2.2))+0.01;
+        if(score>bestScore){ bestScore=score; best=i; }
+      });
+      if(best!==null){ t.box=boxes[best]; t.visto=agora; usados.add(best); t.quadros=(t.quadros||1)+1; t.detMax=Math.max(t.detMax||0, boxes[best].score); diagMedir(t); }
+    }
+    boxes.forEach((b,i)=>{ if(!usados.has(i)) tracks.push(novoTrack(b,agora)); });
+    // placa que saiu da imagem: se juntou leituras boas, confirma com o que tem
+    for(const t of tracks) if(agora-t.visto>=1500 && !t.placa) finalizar(t, true);
+    for(const t of tracks) if(agora-t.visto>=1500){ if(t.pendente) t.encerrarDepois=true; else diagEncerrar(t); }
+    tracks=tracks.filter(t=>agora-t.visto<1500);
+  }
+  function novoTrack(b,agora){
+    const t={id:nextId++, box:b, boxIni:{...b}, visto:agora, criado:agora, placa:null, tipo:'', slots:[{},{},{},{},{},{},{}], leituras:0, somaConf:0, melhorConf:0, quadros:1, detMax:b.score, resps:[], esperas:{}};
+    diagMedir(t);
+    return t;
+  }
+
+  // ================= MODO DIAGNÓSTICO =================
+  let diagObjs=[], diagMarcas=[], diagFps=[];
+  const diagLigado=()=>$('chkDiag').checked;
+  function diagMedir(t){
+    if(!diagLigado()) return;
+    const w=t.box.x2-t.box.x1, h=t.box.y2-t.box.y1;
+    if(!t.largMax || w>t.largMax*1.15){
+      t.largMax=Math.max(t.largMax||0,w); t.propMax=w/h;
+      try{ // miniatura do maior tamanho em que a placa apareceu
+        const mw=w*0.6, mh=h*0.8, c=document.createElement('canvas'); c.width=160; c.height=80;
+        c.getContext('2d').drawImage(fcv, Math.max(0,t.box.x1-mw), Math.max(0,t.box.y1-mh), w+2*mw, h+2*mh, 0,0,160,80);
+        t.thumb=c.toDataURL('image/jpeg',0.5);
+      }catch(e){}
+    }
+  }
+  const MOTIVOS={
+    lida:            {txt:'✅ Lida',                                   cor:'#3fb950'},
+    parado:          {txt:'↺ Carro parado já lido (sem consulta)',     cor:'#8b949e'},
+    pequena:         {txt:'Placa pequena demais (longe)',             cor:'#d29922'},
+    certeza:         {txt:'Detector sem certeza de ser placa',        cor:'#d29922'},
+    quadros:         {txt:'Apareceu muito rápido (poucos quadros)',   cor:'#d29922'},
+    formato:         {txt:'Formato não parece placa',                 cor:'#d29922'},
+    fila:            {txt:'Esperou na fila (1 consulta por segundo)', cor:'#f85149'},
+    limite:          {txt:'Barrado pelo limite por minuto',           cor:'#f85149'},
+    nao_enviado:     {txt:'Não chegou a ser enviado',                 cor:'#f85149'},
+    nuvem_falhou:    {txt:'Enviado, mas a leitura falhou',            cor:'#f85149'},
+    local_longe:     {txt:'Local: pequena demais para ler',           cor:'#d29922'},
+    local_inconcl:   {txt:'Local: leituras não bateram',              cor:'#f85149'},
+    local_nada:      {txt:'Local: não chegou a ler',                  cor:'#f85149'}
+  };
+  function diagMotivo(t){
+    if(t.placa) return t.herdada ? 'parado' : 'lida';
+    if($('modoLeitura').value==='nuvem'){
+      if(t.resps.length) return 'nuvem_falhou';
+      if((t.largMax||0)<28) return 'pequena';
+      if((t.detMax||0)<0.4) return 'certeza';
+      if((t.detMax||0)<0.7 && (t.quadros||0)<2) return 'quadros';
+      if(t.propMax && (t.propMax<1 || t.propMax>6)) return 'formato';
+      if(t.esperas.limite) return 'limite';
+      if(t.esperas.fila) return 'fila';
+      return 'nao_enviado';
+    }
+    if(t.leituras) return 'local_inconcl';
+    if(t.longe) return 'local_longe';
+    return 'local_nada';
+  }
+  function diagEncerrar(t){
+    if(!diagLigado() || t.diagFeito) return;
+    t.diagFeito=true;
+    diagObjs.unshift({id:t.id, criado:t.criado, visto:t.visto, motivo:diagMotivo(t), placa:t.placa, larg:Math.round(t.largMax||0),
+      det:Math.round((t.detMax||0)*100), quadros:t.quadros, envios:Math.min(t.envios||0,3), resps:t.resps.slice(), thumb:t.thumb, dur:t.visto-t.criado});
+    if(diagObjs.length>300) diagObjs.pop();
+    diagRender();
+  }
+  // Botão "passou um carro": 3 s depois confere o que o app fez com os objetos daquele momento
+  function diagMarcar(){
+    const tMarca=Date.now();
+    const m={t:tMarca, res:'aguardando'}; diagMarcas.unshift(m); diagRender();
+    const b=$('btnPassou'); b.textContent='🚗 Registrado! Conferindo…'; setTimeout(()=>b.textContent='🚗 Passou um carro agora',1500);
+    setTimeout(()=>{
+      const janela=o=> o.visto>=tMarca-4000 && o.criado<=tMarca+3000;
+      const vivos=[...tracks, ...pendentes.filter(t=>!tracks.includes(t))];
+      const objs=[...diagObjs.filter(janela), ...vivos.filter(janela).map(t=>({motivo:diagMotivo(t), placa:t.placa}))];
+      if(!objs.length) m.res='nao_detectado';
+      else if(objs.some(o=>o.motivo==='lida'||o.motivo==='parado')){ m.res='lido'; m.placa=(objs.find(o=>o.motivo==='lida'||o.motivo==='parado')||{}).placa; }
+      else { m.res='detectado_nao_lido'; m.motivos=[...new Set(objs.map(o=>o.motivo))]; }
+      diagRender();
+    },3000);
+  }
+  function diagConfig(){
+    const fpsMed=diagFps.length?(diagFps.reduce((a,b)=>a+b,0)/diagFps.length).toFixed(1):'—';
+    return `Leitura: ${$('modoLeitura').value} · Detector: ${detTam} · Zoom: ${zoom}x · Posição: ${deitado()?'deitado':'em pé'}\n`+
+           `Câmera: ${video.videoWidth}×${video.videoHeight} · fps médio: ${fpsMed} · Confirmar: ${$('votos').value} · Confiança: ${Math.round($('confMin').value*100)}% · Limite: ${$('limiteMin').value}/min`;
+  }
+  function diagContagem(){
+    const c={}; for(const o of diagObjs) c[o.motivo]=(c[o.motivo]||0)+1; return c;
+  }
+  function diagRender(){
+    if(!diagLigado()) return;
+    const marcas=diagMarcas.filter(m=>m.res!=='aguardando');
+    const lidos=marcas.filter(m=>m.res==='lido').length, nd=marcas.filter(m=>m.res==='nao_detectado').length, dnl=marcas.filter(m=>m.res==='detectado_nao_lido').length;
+    const c=diagContagem();
+    let h='';
+    if(diagMarcas.length) h+=`<b>Carros marcados: ${diagMarcas.length}</b> → <span style="color:#3fb950">lidos ${lidos}</span> · <span style="color:#f85149">nem detectados ${nd}</span> · <span style="color:#d29922">detectados mas não lidos ${dnl}</span><br>`;
+    h+=`<b>Objetos detectados: ${diagObjs.length}</b><br>`;
+    for(const k of Object.keys(MOTIVOS)) if(c[k]) h+=`<span style="color:${MOTIVOS[k].cor}">● ${MOTIVOS[k].txt}: ${c[k]}</span><br>`;
+    $('diagResumo').innerHTML=h;
+    $('diagResumoCurto').textContent = diagMarcas.length ? `${lidos}/${marcas.length} lidos` : '';
+    $('diagLista').innerHTML=diagObjs.slice(0,40).map(o=>{
+      const M=MOTIVOS[o.motivo];
+      return `<div class="dg">${o.thumb?`<img src="${o.thumb}">`:'<img>'}<div>
+        <div class="m" style="color:${M.cor}">${o.placa?o.placa+' · ':''}${M.txt}</div>
+        <div class="d">${new Date(o.criado).toLocaleTimeString('pt-BR')} · ${(o.dur/1000).toFixed(1)}s na tela · ${o.quadros} quadros · placa ${o.larg}px · detector ${o.det}%${o.envios?` · ${o.envios} envio(s)`:''}</div>
+        ${o.resps.length?`<div class="d">${o.resps.join(' · ')}</div>`:''}
+      </div></div>`;
+    }).join('') || '<div class="vazio">Nenhum objeto ainda. Inicie a leitura e aponte para os carros.</div>';
+  }
+  function diagTexto(){
+    const marcas=diagMarcas.filter(m=>m.res!=='aguardando'), c=diagContagem();
+    let t=`🔬 DIAGNÓSTICO LEITOR DE PLACAS — ${new Date().toLocaleString('pt-BR')}\n${diagConfig()}\n\n`;
+    t+=`CARROS MARCADOS: ${marcas.length}\n`;
+    t+=`- lidos: ${marcas.filter(m=>m.res==='lido').length}\n- nem detectados: ${marcas.filter(m=>m.res==='nao_detectado').length}\n- detectados mas não lidos: ${marcas.filter(m=>m.res==='detectado_nao_lido').length}\n`;
+    for(const m of marcas.filter(m=>m.res==='detectado_nao_lido')) t+=`  · ${new Date(m.t).toLocaleTimeString('pt-BR')}: ${m.motivos.map(k=>MOTIVOS[k].txt).join(' / ')}\n`;
+    t+=`\nOBJETOS DETECTADOS: ${diagObjs.length}\n`;
+    for(const k of Object.keys(MOTIVOS)) if(c[k]) t+=`- ${MOTIVOS[k].txt}: ${c[k]}\n`;
+    t+=`\nDETALHE (últimos 25):\n`;
+    for(const o of diagObjs.slice(0,25)) t+=`${new Date(o.criado).toLocaleTimeString('pt-BR')} | ${MOTIVOS[o.motivo].txt}${o.placa?' '+o.placa:''} | ${(o.dur/1000).toFixed(1)}s, ${o.quadros}q, ${o.larg}px, det ${o.det}%${o.envios?', '+o.envios+' envio':''}${o.resps.length?' | '+o.resps.join('; '):''}\n`;
+    return t;
+  }
+  $('chkObt').checked=ls.get('lpl_obt',false);
+  $('chkObt').addEventListener('change',aplicaObturador);
+  $('chkDiag').checked=ls.get('lpl_diag',false);
+  function aplicaDiag(){
+    const on=diagLigado();
+    $('diagPainel').style.display=on?'block':'none';
+    $('hudPassou').style.display=on?'inline-block':'none';
+    if(on) diagRender();
+  }
+  $('chkDiag').addEventListener('change',()=>{ ls.set('lpl_diag',$('chkDiag').checked); aplicaDiag(); });
+  $('btnPassou').onclick=diagMarcar;
+  $('hudPassou').onclick=diagMarcar;
+  $('diagZerar').onclick=()=>{ diagObjs=[]; diagMarcas=[]; diagFps=[]; diagRender(); };
+  $('diagCopiar').onclick=async()=>{
+    const txt=diagTexto();
+    try{ await navigator.clipboard.writeText(txt); alert('Relatório copiado. Cole na conversa.'); }
+    catch(e){ prompt('Copie o relatório:', txt); }
+  };
+  $('diagWpp').onclick=()=>window.open('https://wa.me/?text='+encodeURIComponent(diagTexto()),'_blank');
+
+  // Votação letra a letra: cada leitura vota em cada posição, com peso = certeza daquela letra.
+  // Assim, se cada quadro borrado errar uma letra diferente, a maioria ainda acerta a placa.
+  function votar(t, p, confs){
+    for(let i=0;i<7;i++){ const s=t.slots[i]; s[p[i]]=(s[p[i]]||0)+confs[i]; }
+    t.leituras++; const m=Math.min(...confs); t.somaConf+=m; t.melhorConf=Math.max(t.melhorConf,m);
+  }
+  function consenso(t){
+    let txt='', apoio=1;
+    for(const s of t.slots){
+      let bc='', bv=0, tot=0;
+      for(const c in s){ tot+=s[c]; if(s[c]>bv){bv=s[c]; bc=c;} }
+      if(!bc) return null;
+      txt+=bc; apoio=Math.min(apoio, bv/tot);
+    }
+    return {txt, apoio};
+  }
+  function finalizar(t, saindo){
+    if(t.placa || !t.leituras) return;
+    const c=consenso(t); if(!c) return;
+    const p=corrigeFormato(c.txt); if(!valida(p)) return;
+    const precisa=parseInt($('votos').value), media=t.somaConf/t.leituras;
+    const ok = (t.leituras>=precisa && c.apoio>=0.6)            // várias leituras concordando
+            || (saindo && t.leituras>=2 && c.apoio>=0.7 && media>=0.85) // carro saiu: 2 leituras boas bastam
+            || (saindo && t.melhorConf>=0.97);                  // carro saiu: 1 leitura muito nítida
+    if(!ok) return;
+    t.placa=p;
+    const res=confere(p);
+    t.tipo=res?res.tipo:'';
+    registrarLida(p, media, res);
+    if(res) alarme(res, p, t.box, media);
+  }
+
+  // ---------- Loop principal ----------
+  let fpsN=0, fpsT=performance.now();
+  async function loop(){
+    if(!rodando) return;
+    try{
+      if(video.videoWidth){
+        const boxes=await detectar();
+        casar(boxes);
+        const confMin=parseFloat($('confMin').value), agora=Date.now();
+        // lê no máximo as 4 maiores placas visíveis (as mais próximas)
+        const alvosLeitura=tracks.filter(t=>!t.placa && t.visto===agora).sort((a,b)=>(b.box.x2-b.box.x1)-(a.box.x2-a.box.x1)).slice(0,4);
+        if($('modoLeitura').value==='nuvem'){
+          for(const t of alvosLeitura) reaproveitarParado(t);
+          for(let i=alvosLeitura.length-1;i>=0;i--) if(alvosLeitura[i].placa) alvosLeitura.splice(i,1);
+          // envia 1 recorte por carro; reenvia (máx. 3) só se a placa cresceu bastante (carro chegou mais perto)
+          if(diagLigado()){
+            const motivoEspera = nuvemOcupada||agora-ultimoEnvio<1050 ? 'fila' : (!dentroDoLimite() ? 'limite' : null);
+            if(motivoEspera) for(const t of alvosLeitura) if(pareceePlaca(t) && !(t.envios>0)) t.esperas[motivoEspera]=(t.esperas[motivoEspera]||0)+1;
+          }
+          const sobreParado = t => (t.quadros||0)<2 && parados.some(m=>iou(m.box,t.box)>0.4);
+          for(const t of alvosLeitura) if(pareceePlaca(t) || (t.detMax||0)>=0.4) atualizarMelhor(t);
+          const querEnviar = t => pareceePlaca(t) && (t.envios||0)<3 && !t.pendente && !sobreParado(t) &&
+              ((!t.envios && ((t.quadros||0)>=3 || agora-t.criado>=350))                        // 3 quadros: já dá para escolher a melhor foto
+                         || (t.tentarDeNovo && agora-t.ultimoEnvioT>400)                       // leitura falhou: tenta outro quadro
+                         || ((t.box.x2-t.box.x1)>=t.largEnvio*1.35 && agora-t.ultimoEnvioT>600)); // chegou bem mais perto
+          const podeAgora = !nuvemOcupada && agora-ultimoEnvio>=1050 && dentroDoLimite();
+          const candidatos = alvosLeitura.filter(querEnviar);
+          if(podeAgora){
+            if(fila.length){ const x=fila.shift(); x.t.naFila=false; if(!x.t.placa) enviarNuvem(x.t, x.foto); else { x.t.pendente=false; pendentes=pendentes.filter(p=>p!==x.t); } }
+            else if(candidatos.length){ const t=candidatos[0]; t.tentarDeNovo=false; const f=t.melhor; t.melhor=null; enviarNuvem(t, f); } // envia a foto mais nítida
+          }else{
+            // nuvem ocupada: guarda a foto dos carros novos para não perder quem passa rápido
+            for(const t of candidatos) if(!t.envios) enfileirar(t);
+          }
+          // carro que saiu da tela antes de ser enviado (ou de ter a 2ª tentativa): manda a melhor foto que juntou
+          for(const t of tracks){
+            if(t.placa || t.pendente || !t.melhor || agora-t.visto<250 || (t.envios||0)>=3) continue;
+            if(!(pareceePlaca(t) || (t.detMax||0)>=0.55)) continue;
+            if(!t.envios || t.tentarDeNovo){ t.tentarDeNovo=false; enfileirar(t); }
+          }
+          alvosLeitura.length=0;
+        }
+        for(const t of alvosLeitura){
+          if(t.box.x2-t.box.x1 < PLACA_MIN){ t.longe=true; continue; } // pequena demais: nem tenta ler
+          t.longe=false;
+          const r=await lerPlaca(t.box);
+          const p=corrigeFormato(limpa(r.txt));
+          t.ultima=p;
+          if(p.length!==7 || r.conf<confMin*0.8) continue; // leitura ruim não vota
+          votar(t, p, r.confs);
+          finalizar(t, false);
+        }
+      }
+      fpsN++; const now=performance.now();
+      if(now-fpsT>1000){
+        diagFps.push(fpsN*1000/(now-fpsT)); if(diagFps.length>120) diagFps.shift();
+        $('fps').textContent=(fpsN*1000/(now-fpsT)).toFixed(1)+' fps · '+video.videoWidth+'×'+video.videoHeight;
+        $('hudFps').textContent=(fpsN*1000/(now-fpsT)).toFixed(1)+' fps · '+($('modoLeitura').value==='nuvem'?'nuvem':'local');
+        fpsN=0; fpsT=now;
+      }
+    }catch(e){ console.error(e); mostraErro('Erro no motor: '+e.message); }
+    requestAnimationFrame(loop);
+  }
+
+  // ---------- Desenho das caixas (todo quadro) ----------
+  function desenhar(){
+    const r=video.getBoundingClientRect();
+    if(ov.width!==Math.round(r.width)||ov.height!==Math.round(r.height)){ ov.width=Math.round(r.width); ov.height=Math.round(r.height); }
+    octx.clearRect(0,0,ov.width,ov.height);
+    desenharMascaras();
+    if(!rodando || !video.videoWidth){ requestAnimationFrame(desenhar); return; }
+    const roi=calcROI(), k=ov.width/roi.w;
+    for(const t of tracks){
+      const b=retGirado(t.box, deGirado), x=(b.x1-roi.x)*k, y=(b.y1-roi.y)*k, w=(b.x2-b.x1)*k, h=(b.y2-b.y1)*k;
+      const cor = t.tipo==='match' ? '#ff4d4d' : t.tipo==='parecida' ? '#f0b72f' : t.placa ? '#3fb950' : '#ffffff';
+      const nuvem=$('modoLeitura').value==='nuvem';
+      if(t.naoPlaca) continue; // a nuvem já disse que não é placa: nem desenha
+      octx.globalAlpha = (!t.placa && (nuvem ? !t.envios : (t.longe || !t.leituras))) ? 0.35 : 1; // aguardando: caixa apagadinha
+      octx.lineWidth=3; octx.strokeStyle=cor; octx.shadowColor='rgba(0,0,0,.8)'; octx.shadowBlur=4;
+      octx.strokeRect(x,y,w,h);
+      const L=Math.min(14,w/3,h/3); octx.lineWidth=5; octx.beginPath();
+      octx.moveTo(x,y+L); octx.lineTo(x,y); octx.lineTo(x+L,y);
+      octx.moveTo(x+w-L,y); octx.lineTo(x+w,y); octx.lineTo(x+w,y+L);
+      octx.moveTo(x,y+h-L); octx.lineTo(x,y+h); octx.lineTo(x+L,y+h);
+      octx.moveTo(x+w-L,y+h); octx.lineTo(x+w,y+h); octx.lineTo(x+w,y+h-L);
+      octx.stroke();
+      octx.shadowBlur=0;
+      if(t.placa){
+        // placa confirmada: etiqueta cheia na cor do estado
+        octx.font='bold 15px monospace';
+        const tw=octx.measureText(t.placa).width+12;
+        octx.fillStyle=cor; octx.fillRect(x, Math.max(0,y-22), tw, 20);
+        octx.fillStyle = t.tipo==='parecida' ? '#000' : '#fff'; octx.fillText(t.placa, x+6, Math.max(15,y-7));
+      }else if(nuvem ? t.envios : (!t.longe && t.leituras)){
+        // lendo: mostra o andamento (sem chutes na tela)
+        const label = nuvem ? 'consultando…' : 'lendo '+'•'.repeat(Math.min(t.leituras,5));
+        octx.font='bold 11px monospace';
+        const tw=octx.measureText(label).width+8;
+        octx.fillStyle='rgba(0,0,0,.6)'; octx.fillRect(x, Math.max(0,y-16), tw, 14);
+        octx.fillStyle='#fff'; octx.fillText(label, x+4, Math.max(11,y-5));
+      }
+      octx.globalAlpha=1;
+    }
+    requestAnimationFrame(desenhar);
+  }
+  desenhar();
+
+  // ---------- Histórico ----------
+  let hudT=null;
+  function registrarLida(placa, score, res){
+    const hp=$('hudPlaca'); hp.textContent=placa; hp.style.display='block';
+    hp.style.background = res ? (res.tipo==='match'?'rgba(220,40,40,.9)':'rgba(200,140,0,.9)') : 'rgba(46,160,67,.85)';
+    clearTimeout(hudT); hudT=setTimeout(()=>hp.style.display='none', 4000);
+    const rep=lidas.find(l=>l.placa===placa);
+    if(rep){ rep.vezes=(rep.vezes||1)+1; renderLidas(); return; }
+    lidas.unshift({placa, t:Date.now(), score, tipo:res?res.tipo:'', vezes:1});
+    if(lidas.length>200) lidas.pop();
+    renderLidas();
+  }
+  function renderLidas(){
+    const el=$('lidas'); $('totLidas').textContent=lidas.length;
+    if(!lidas.length){ el.innerHTML='<div class="vazio">As placas lidas aparecem aqui.</div>'; return; }
+    el.innerHTML=lidas.slice(0,80).map(l=>
+      `<div class="lida ${l.tipo}"><span class="pl">${l.placa}</span><span class="hr">${l.vezes>1?'<b style="color:#e6edf3;">'+l.vezes+'x</b> · ':''}${new Date(l.t).toLocaleTimeString('pt-BR')} · ${Math.round((l.score||0)*100)}%</span></div>`
+    ).join('');
+  }
+  $('btnLimpar').onclick=()=>{ lidas=[]; renderLidas(); };
+  // apaga só as configurações deste leitor (mantém placas procuradas e achados)
+  $('btnRestaurar').onclick=()=>{
+    if(!confirm('Voltar todas as configurações ao padrão? As placas procuradas e as encontradas continuam salvas.')) return;
+    ['lpl_zoom','lpl_pos','lpl_det','lpl_votos','lpl_conf','lpl_modo','lpl_limite'].forEach(k=>{ try{ localStorage.removeItem(k); }catch(e){} });
+    location.reload();
+  };
+
+  // ---------- GPS ----------
+  let posAtual=null;
+  if(navigator.geolocation) navigator.geolocation.watchPosition(p=>{ posAtual={lat:p.coords.latitude, lng:p.coords.longitude}; }, ()=>{}, {enableHighAccuracy:true, maximumAge:10000});
+
+  // ---------- Achados ----------
+  let achados=ls.get('lp_achados',[]);
+  function fotoDoQuadro(b){
+    const c=document.createElement('canvas'); c.width=480; c.height=Math.round(480*fcv.height/fcv.width);
+    const g=c.getContext('2d'); g.drawImage(fcv,0,0,c.width,c.height);
+    const k=c.width/fcv.width; g.lineWidth=3; g.strokeStyle='#ff4d4d'; g.strokeRect(b.x1*k,b.y1*k,(b.x2-b.x1)*k,(b.y2-b.y1)*k);
+    return c.toDataURL('image/jpeg',0.6);
+  }
+  function textoAchado(a){
+    let txt=`🚨 Placa ${a.tipo==='match'?'ENCONTRADA':'PARECIDA'}: ${a.placa}\n`;
+    if(a.tipo!=='match') txt+=`Procurada: ${a.alvo}\n`;
+    txt+=`Quando: ${new Date(a.t).toLocaleString('pt-BR')}\n`;
+    if(a.lat) txt+=`Local: https://maps.google.com/?q=${a.lat},${a.lng}`;
+    return txt;
+  }
+  function renderAchados(){
+    const el=$('achados');
+    if(!achados.length){ el.innerHTML='<div class="vazio">Nenhuma placa procurada encontrada ainda.</div>'; return; }
+    el.innerHTML='';
+    achados.forEach((a,i)=>{
+      const d=document.createElement('div'); d.className='achado';
+      d.innerHTML=`<img src="${a.foto}"><div style="flex:1;"><div class="pl">${a.placa}</div>
+        <div class="info">${a.tipo==='match'?'Placa procurada':'Parecida com '+a.alvo} · ${new Date(a.t).toLocaleString('pt-BR')} · ${Math.round((a.score||0)*100)}%</div>
+        <div class="acoes">
+          ${a.lat?`<a href="https://maps.google.com/?q=${a.lat},${a.lng}" target="_blank">📍 Mapa</a>`:''}
+          <a href="https://wa.me/?text=${encodeURIComponent(textoAchado(a))}" target="_blank">💬 WhatsApp</a>
+          <button class="rm">✕</button>
+        </div></div>`;
+      d.querySelector('.rm').onclick=()=>{ achados.splice(i,1); ls.set('lp_achados',achados); renderAchados(); };
+      el.appendChild(d);
+    });
+  }
+  renderAchados();
+
+  // ---------- Alarme ----------
+  let audioCtx=null;
+  function som(forte){
+    try{
+      audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)();
+      let t=audioCtx.currentTime; const n=forte?12:4;
+      for(let i=0;i<n;i++){
+        const o=audioCtx.createOscillator(), g=audioCtx.createGain();
+        o.connect(g); g.connect(audioCtx.destination);
+        o.type='square'; o.frequency.value = forte ? (i%2?900:1400) : 700;
+        g.gain.setValueAtTime(0.5,t); g.gain.exponentialRampToValueAtTime(0.001,t+0.2);
+        o.start(t); o.stop(t+0.22); t+=0.25;
+      }
+    }catch(e){}
+  }
+  function alarme(res, lida, box, score, fotoPronta){
+    const chave=res.alvo+res.tipo, agora=Date.now();
+    if(ultimoAlerta[chave] && agora-ultimoAlerta[chave]<COOLDOWN) return;
+    ultimoAlerta[chave]=agora;
+    const forte=res.tipo==='match';
+    const foto=fotoPronta||fotoDoQuadro(box);
+    achados.unshift({placa:lida, alvo:res.alvo, tipo:res.tipo, t:agora, score, foto, lat:posAtual&&posAtual.lat, lng:posAtual&&posAtual.lng});
+    if(achados.length>30) achados.pop();
+    ls.set('lp_achados',achados); renderAchados();
+    const b=$('banner');
+    b.classList.toggle('parecida', !forte);
+    $('bannerTit').textContent = forte ? '🚨 PLACA ENCONTRADA!' : '⚠️ PLACA PARECIDA';
+    $('bannerPlaca').textContent = lida;
+    $('bannerImg').src = foto;
+    $('bannerInfo').textContent = forte ? `Procurada: ${res.alvo}` : `Lida: ${lida} · Procurada: ${res.alvo} — confira visualmente`;
+    b.classList.add('show');
+    if(forte) document.body.classList.add('alerta');
+    som(forte);
+    if(navigator.vibrate) navigator.vibrate(forte?[600,200,600,200,1000]:[300,150,300]);
+  }
+  $('btnOk').onclick=()=>{ $('banner').classList.remove('show'); document.body.classList.remove('alerta'); };
+
+  // ---------- Controles ----------
+  async function iniciar(){
+    if(!alvos.length && !confirm('Nenhuma placa procurada cadastrada. Iniciar mesmo assim (só leitura)?')) return;
+    rodando=true; tracks=[];
+    $('btnStart').textContent='⏹ Parar leitura'; $('btnStart').classList.add('parar');
+    setStatus('lendo placas','on');
+    try{ audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)(); if(audioCtx.state==='suspended') audioCtx.resume(); }catch(e){}
+    try{ wakeLock=await navigator.wakeLock.request('screen'); }catch(e){}
+    loop();
+    atualizaTelaCheia();
+  }
+  function parar(){
+    for(const t of tracks) diagEncerrar(t);
+    for(const x of fila){ x.t.pendente=false; diagEncerrar(x.t); } fila=[]; pendentes=[];
+    rodando=false; tracks=[];
+    $('btnStart').textContent='▶ Iniciar leitura'; $('btnStart').classList.remove('parar');
+    setStatus('pronto');
+    if(wakeLock){ wakeLock.release(); wakeLock=null; }
+    atualizaTelaCheia();
+  }
+  $('btnStart').onclick=()=> rodando ? parar() : iniciar();
+  document.addEventListener('visibilitychange', async ()=>{ if(!document.hidden && rodando){ try{ wakeLock=await navigator.wakeLock.request('screen'); }catch(e){} } });
+
+  function setStatus(t,cls){ $('statusTxt').textContent=t; const d=$('dot'); d.className='status-dot'+(cls?' '+cls:''); }
+  function mostraErro(m){ const e=$('erro'); e.textContent=m; e.style.display='block'; }
+
+  /* ---------- 23/10/2026: acesso só com o login do app de rastreamento + permissão "Leitor de placas" ---------- */
+  function rgToken(){ try{ if(sessionStorage.getItem('rgv_on')){ const t=sessionStorage.getItem('rgv_rg_token'); if(t) return t; } return localStorage.getItem('rg_token')||''; }catch(e){ return ''; } }
+  window.rgToken=rgToken;
+  function portaoMostrar(tipo, msg){
+    const p=$('portao'); p.style.display='flex';
+    const txt={ login:['Entre no app de rastreamento','Para usar o leitor de placas, entre com o seu login e senha no app da Rastreando GPS e abra o leitor pela aba Mais.'],
+                sem:['Leitor não liberado','O leitor de placas não está liberado para este acesso. Fale com a Rastreando GPS para liberar.'],
+                rede:['Sem conexão','Não consegui conferir o seu acesso. Confira a internet e tente de novo.'] }[tipo];
+    $('portaoTit').textContent=txt[0]; $('portaoTxt').textContent=msg||txt[1];
+    $('portaoApp').style.display=tipo==='rede'?'none':''; $('portaoDeNovo').style.display=tipo==='rede'?'':'none';
+    try{ if(rodando && typeof parar==='function') parar(); }catch(e){}
+  }
+  window.portaoMostrar=portaoMostrar;
+  async function portao(){
+    const tok=rgToken();
+    if(!tok){ portaoMostrar('login'); return false; }
+    try{
+      const r=await fetch(FN_PLACAS,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',body:JSON.stringify({acao:'placaAcesso',token:tok})});
+      let j={}; try{ j=await r.json(); }catch(_){}
+      if(r.status===401){ portaoMostrar('login', j.erro); return false; }
+      if(!r.ok){ portaoMostrar('rede', j.erro); return false; }
+      if(!j.ok){ portaoMostrar('sem'); return false; }
+      $('portao').style.display='none'; return true;
+    }catch(e){ portaoMostrar('rede'); return false; }
+  }
+
+  // ---------- Início ----------
+  if(!(await portao())) return; // 23/10/2026: sem login/permissão, nem abre a câmera
+  aplicaDiag();
+  atualizaModo();
+  setZoom(ls.get('lpl_zoom',1));
+  abrirCamera();
+  try{ await carregarModelos(); }
+  catch(e){
+    $('carregandoTxt').innerHTML='❌ '+e.message+'<br><button class="btn btn-sec" style="margin-top:10px;" onclick="location.reload()">Tentar de novo</button>';
+    setStatus('erro','err');
+  }
+})();
+</script>
+</body>
+</html>
