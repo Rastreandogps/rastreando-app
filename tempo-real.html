@@ -644,6 +644,12 @@ main{position:relative;flex:1;min-height:0;overflow:hidden}
 .vfil{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
 .vfil button{border:1px solid var(--line);background:var(--card2);color:var(--txt);border-radius:999px;padding:7px 14px;font:inherit;font-size:13px;font-weight:700;cursor:pointer}
 .vfil button.on{background:#0b5fff;border-color:#0b5fff;color:#fff}
+/* 23/10/2026: placa no lápis + caixinha "Mostrar no mapa" */
+.rnplrow{display:flex;gap:8px;align-items:center;margin-bottom:10px}
+.rnplrow .fld{flex:1;min-width:0;margin-bottom:0}
+.rnplck{flex:none;display:flex;align-items:center;gap:6px;height:46px;padding:0 12px;border-radius:12px;border:1px solid var(--line);background:var(--card2);font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap}
+.rnplck input{width:18px;height:18px;margin:0;accent-color:#2563eb}
+.carlabel .lbplaca{display:block;text-align:center;font-size:10.5px;font-weight:700;letter-spacing:.6px;opacity:.82;line-height:1.2;margin-top:1px}
 /* 23/10/2026: subabas do frotista */
 .vabas{display:flex;gap:6px;margin-top:10px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
 .vabas::-webkit-scrollbar{display:none}
@@ -3414,7 +3420,10 @@ nav button.on .nemo.txt{color:var(--red2)}
   <div class="box2">
     <h3 id="rnTitulo">Nome do veículo</h3>
     <input class="fld" id="rnNome" maxlength="40" autocomplete="off">
-    <input class="fld" id="rnPlaca" maxlength="10" autocomplete="off" autocapitalize="characters" placeholder="Placa (ex.: ABC1D23)" style="text-transform:uppercase;letter-spacing:.5px"><!-- 23/10/2026 (pedido do dono): quem edita o nome também edita a placa -->
+    <div id="rnPlacaBox"><!-- 23/10/2026 (pedido do dono): quem edita o nome também edita a placa; caixinha para mostrar a placa no mapa -->
+      <label class="flbl" for="rnPlaca">Placa</label>
+      <div class="rnplrow"><input class="fld" id="rnPlaca" maxlength="10" autocomplete="off" autocapitalize="characters" placeholder="Ex.: ABC1D23" style="text-transform:uppercase;letter-spacing:.5px"><label class="rnplck" title="Mostrar a placa no mapa, embaixo do nome"><input type="checkbox" id="rnPlacaMapa"><span>Mostrar no mapa</span></label></div>
+    </div>
     <!-- 16/10/2026 (pedido do dono): IMEI do aparelho, só para o administrador e só nesta janela do lápis -->
     <div id="rnImeiBox" style="display:none;margin-top:8px;align-items:center;gap:8px;font-size:14px;color:var(--mut)">IMEI <b id="rnImei" style="color:var(--txt);font-size:15px;letter-spacing:.3px;user-select:all"></b><button type="button" id="rnImeiCopia" aria-label="Copiar o IMEI" title="Copiar o IMEI" style="width:30px;height:30px;border-radius:8px;border:1px solid var(--line);background:var(--card2);color:var(--mut);display:inline-flex;align-items:center;justify-content:center;cursor:pointer"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg></button></div>
     <div id="rnMotBox" style="display:none;margin-top:6px">
@@ -4495,7 +4504,8 @@ function rotuloHtml(v){
     const m=metaMapaInfo(v); if(m) chips+='<span class="lbchip meta'+(m.alerta?' alerta':m.atencao?' atencao':'')+'"><svg class="lbic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 3.5 4 20.5"/><path d="M15.5 3.5 20 20.5"/><path d="M12 4.5v2.5M12 10.5v3M12 17v3"/></svg>'+esc(m.txt)+'</span>';
   }catch(e){}
   const semNome=chips && semNomeLigado(v.id);
-  return (semNome?'':'<span class="lbnome">'+esc(v.nome)+'</span>')+chips;
+  const pl=(v.placaMapa && v.placa)?'<span class="lbplaca">'+esc(v.placa)+'</span>':''; /* 23/10/2026: placa embaixo do nome (caixinha no lápis) */
+  return (semNome?'':'<span class="lbnome">'+esc(v.nome)+pl+'</span>')+chips;
 }
 function rotuloClasse(v){ const h=rotuloHtml(v); return h.indexOf('lbnome')<0 ? 'carlabel sochips' : (h.indexOf('lbchip')>=0?'carlabel comchips':'carlabel') }
 function rotularMarcador(v){
@@ -4517,7 +4527,7 @@ function criarMarcador(v){
     className:'',iconSize:[44,44],iconAnchor:[22,22],
     html:carHtml(v)+'<div class="'+rotuloClasse(v)+'">'+rotuloHtml(v)+'</div>'
   })});
-  v.rotuloNome=v.nome; v.icoChave=(v.tag?'tag':(v.icone||''))+'|'+(v.iconeCor||'');
+  v.rotuloNome=v.nome+'|'+(v.placaMapa?v.placa:''); v.icoChave=(v.tag?'tag':(v.icone||''))+'|'+(v.iconeCor||'');
   v.marker.on('click',()=>{ selId = v.id; recolhido = false; atualizar(); });
   if(v.visivel && abaMostra(v)) v.marker.addTo(map);
 }
@@ -4998,8 +5008,9 @@ function mesclar(ds,ps){
       veiculos.push(v);
     }
     v.nome = d.name || ('Aparelho '+d.id);
-    if(v.marker && v.rotuloNome!==v.nome){ v.rotuloNome=v.nome; rotularMarcador(v) }
     v.placa = (d.attributes&&d.attributes.placa) || d.model || '';
+    v.placaMapa = !!(d.attributes && (d.attributes.placaMapa===true || d.attributes.placaMapa==='true')); /* 23/10/2026 */
+    { const rk=v.nome+'|'+(v.placaMapa?v.placa:''); if(v.marker && v.rotuloNome!==rk){ v.rotuloNome=rk; rotularMarcador(v) } }
     v.online = d.status==='online';
     v.imei = d.uniqueId || ''; v.fone = d.phone || ''; v.contato = d.contact || ''; v.raw = d;
     v.tag = ehTag(d) || (String((d.attributes&&d.attributes.tipoAparelho)||'')!=='rastreador' && !!v.tagSinal && !soDigitos(d.phone)); /* 16/10/2026 */
@@ -6522,7 +6533,8 @@ $('btnRenome').onclick=e=>{
   $('rnNome').value=v.nome; $('rnErro').textContent=''; $('rnOk').disabled=false;
   const podeNome=ehAdmin||permCli.editarNome, podeMot=ehAdmin||permCli.frotista;
   $('rnNome').style.display=podeNome?'':'none'; $('rnTitulo').textContent=podeNome?'Nome do veículo':v.nome;
-  $('rnPlaca').style.display=podeNome?'':'none'; $('rnPlaca').value=v.placa||''; $('rnPlaca').dataset.ini=$('rnPlaca').value; /* 23/10/2026 */
+  $('rnPlacaBox').style.display=podeNome?'':'none'; $('rnPlaca').value=v.placa||''; $('rnPlaca').dataset.ini=$('rnPlaca').value; /* 23/10/2026 */
+  $('rnPlacaMapa').checked=!!v.placaMapa; $('rnPlacaMapa').dataset.ini=v.placaMapa?'1':'';
   $('rnMotBox').style.display=podeMot?'':'none';
   const m=motLer(v.id)||{}; $('rnMotNome').value=m.nome||''; $('rnMotFone').value=fmtWpp(m.fone||'');
   $('rnImeiBox').style.display=(ehAdmin&&v.imei)?'flex':'none'; $('rnImei').textContent=ehAdmin?(v.imei||''):''; /* 16/10/2026 */
@@ -6584,8 +6596,9 @@ $('rnOk').onclick=async()=>{
   if(!nome) { $('rnErro').textContent='Digite o nome.'; return }
   const placa=podeNome?$('rnPlaca').value.toUpperCase().replace(/[^A-Z0-9-]/g,''):null, mudouPlaca=placa!==null && placa!==($('rnPlaca').dataset.ini||'');
   if(mudouPlaca && placa && placa.replace(/-/g,'').length<4){ $('rnErro').textContent='Placa inválida.'; return }
+  const placaMapa=podeNome?$('rnPlacaMapa').checked:null, mudouPlMapa=placaMapa!==null && placaMapa!==!!$('rnPlacaMapa').dataset.ini;
   $('rnOk').disabled=true;
-  if(nome===v.nome && !mudouPlaca){
+  if(nome===v.nome && !mudouPlaca && !mudouPlMapa){
     try{ const mudouMot=salvarMotorista(v); const mudouW=await salvarWppVeic(v); const mudou=await salvarOdometro(v); fechar(); toast(mudou?'Odômetro ajustado.':(mudouW?'WhatsApp salvo.':(mudouMot?'Motorista salvo.':'Nada mudou.'))); atualizar() }
     catch(e){ if(!e.sessao){ $('rnErro').textContent=e.message||'Não consegui salvar.'; $('rnOk').disabled=false } }
     return;
@@ -6595,10 +6608,10 @@ $('rnOk').onclick=async()=>{
     await salvarWppVeic(v);
     await salvarOdometro(v);
     const r=await fetch(DESB_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',
-      body:JSON.stringify(Object.assign({acao:'renomear',nome:nome,token:lsGet('rg_token'),deviceId:v.id},mudouPlaca?{placa}:{}))});
+      body:JSON.stringify(Object.assign({acao:'renomear',nome:nome,token:lsGet('rg_token'),deviceId:v.id},mudouPlaca?{placa}:{},mudouPlMapa?{placaMapa}:{}))});
     let j={}; try{ j=await r.json() }catch(e){}
     if(!r.ok) throw new Error(j.erro||('Erro '+r.status));
-    const mudouNome=nome!==v.nome; v.nome=j.nome||nome; if(mudouPlaca) v.placa=j.placa||''; fechar(); toast(mudouNome&&mudouPlaca?'Nome e placa salvos.':(mudouPlaca?'Placa salva.':'Nome salvo.')); atualizar(); buscando=false; buscarSeguro();
+    const mudouNome=nome!==v.nome; v.nome=j.nome||nome; if(mudouPlaca) v.placa=j.placa||''; if(mudouPlMapa) v.placaMapa=placaMapa; try{ rotularMarcador(v) }catch(_){} fechar(); toast(mudouNome&&(mudouPlaca||mudouPlMapa)?'Salvo.':(mudouPlaca?'Placa salva.':(mudouPlMapa?(placaMapa?'A placa vai aparecer no mapa.':'A placa saiu do mapa.'):'Nome salvo.'))); atualizar(); buscando=false; buscarSeguro();
   }catch(e){ $('rnErro').textContent=e.message||'Não consegui salvar.'; $('rnOk').disabled=false }
 };
 /* Administrador: permissões de um cliente */
