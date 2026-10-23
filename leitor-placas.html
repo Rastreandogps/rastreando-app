@@ -1252,7 +1252,19 @@
     if(wakeLock){ wakeLock.release(); wakeLock=null; }
     atualizaTelaCheia();
   }
-  $('btnStart').onclick=()=> rodando ? parar() : iniciar();
+  /* 23/10/2026: aberto de dentro do app, o celular ficava preso em pé (1080 de largura = metade do detalhe).
+     Ao tocar em "Iniciar leitura", entra em tela cheia e libera o giro: deitando o celular, a câmera vai para 1920 de largura.
+     (O iPhone não tem tela cheia de página: lá isso é ignorado.) */
+  function telaCheiaGiro(){
+    try{
+      const el=document.documentElement;
+      if(el.requestFullscreen && !document.fullscreenElement){
+        el.requestFullscreen({navigationUI:'hide'}).then(()=>{ try{ if(screen.orientation&&screen.orientation.lock) screen.orientation.lock('any').catch(()=>{}); }catch(e){} }).catch(()=>{});
+      }
+    }catch(e){}
+  }
+  function sairTelaCheia(){ try{ if(document.fullscreenElement) document.exitFullscreen().catch(()=>{}); }catch(e){} }
+  $('btnStart').onclick=()=>{ if(rodando){ parar(); sairTelaCheia(); } else { telaCheiaGiro(); iniciar().then(()=>{ if(!rodando) sairTelaCheia(); }); } };
   document.addEventListener('visibilitychange', async ()=>{ if(!document.hidden && rodando){ try{ wakeLock=await navigator.wakeLock.request('screen'); }catch(e){} } });
 
   function setStatus(t,cls){ $('statusTxt').textContent=t; const d=$('dot'); d.className='status-dot'+(cls?' '+cls:''); }
