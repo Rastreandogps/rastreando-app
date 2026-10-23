@@ -126,6 +126,7 @@
 
   <div class="video-box">
     <video id="video" autoplay playsinline muted></video>
+    <canvas id="prevCv" style="display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform-origin:center center;pointer-events:none"></canvas><!-- 23/10/2026: prévia pelo quadro analisado (iPhone) -->
     <canvas id="overlay"></canvas>
     <div id="maskLayer"></div>
     <button id="btnMask" class="zbtn" style="position:absolute; left:60px; top:8px; padding:5px 10px; font-size:13px;">⬛ Ocultar</button>
@@ -208,6 +209,21 @@
       <select id="detSel">
         <option value="256">Rápido (256)</option>
         <option value="384" selected>Equilibrado (384)</option>
+      </select>
+    </div>
+    <!-- 23/10/2026: opções para o iPhone (a prévia da câmera congelava ao iniciar a leitura) -->
+    <div class="cfg-row">
+      <label>Motor</label>
+      <select id="motorSel">
+        <option value="auto">Automático (GPU se tiver)</option>
+        <option value="cpu">CPU (mais lento; teste no iPhone)</option>
+      </select>
+    </div>
+    <div class="cfg-row">
+      <label>Imagem na tela</label>
+      <select id="prevSel">
+        <option value="camera">Câmera ao vivo</option>
+        <option value="quadro">Quadro analisado</option>
       </select>
     </div>
     <div class="cfg-row">
@@ -325,7 +341,12 @@
     get(k,d){ try{ const v=localStorage.getItem(k); return v===null?d:JSON.parse(v);}catch(e){return d;} },
     set(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
   };
+  const EH_IOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform==='MacIntel' && navigator.maxTouchPoints>1);
   alvos=ls.get('lp_alvos',[]);
+  $('motorSel').value=ls.get('lpl_motor','auto');
+  $('motorSel').addEventListener('change',()=>{ ls.set('lpl_motor',$('motorSel').value); alert('Recarregue a página para trocar o motor.'); });
+  $('prevSel').value=ls.get('lpl_prev', EH_IOS ? 'quadro' : 'camera');
+  $('prevSel').addEventListener('change',()=>{ ls.set('lpl_prev',$('prevSel').value); prevAplicar(); });
   $('detSel').value=ls.get('lpl_det','384');
   $('votos').value=ls.get('lpl_votos','3');
   $('confMin').value=ls.get('lpl_conf','0.75');
@@ -560,7 +581,7 @@
     $('carregandoTxt').textContent='Preparando o motor…';
     let backend='wasm';
     try{
-      if(navigator.gpu){ detSess=await ort.InferenceSession.create(detBuf,{executionProviders:['webgpu']}); backend='webgpu'; }
+      if(navigator.gpu && ls.get('lpl_motor','auto')!=='cpu'){ detSess=await ort.InferenceSession.create(detBuf,{executionProviders:['webgpu']}); backend='webgpu'; }
     }catch(e){ console.warn('webgpu indisponível',e.message); detSess=null; }
     if(!detSess) detSess=await ort.InferenceSession.create(detBuf,{executionProviders:['wasm']});
     ocrSess=await ort.InferenceSession.create(ocrBuf,{executionProviders:['wasm']});
@@ -671,7 +692,6 @@
      No iPhone, copiar o quadro inteiro da câmera para um quadro "de leitura rápida" (willReadFrequently) a cada imagem
      trava a prévia da câmera no Safari. No iPhone o quadro completo fica no modo normal (o pequeno do detector continua igual)
      e o laço dá uma folga para a tela se atualizar. No Android nada muda. */
-  const EH_IOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform==='MacIntel' && navigator.maxTouchPoints>1);
   const fcv=document.createElement('canvas'), fctx=fcv.getContext('2d', EH_IOS ? {} : {willReadFrequently:true}); // quadro completo
   const lcv=document.createElement('canvas'), lctx=lcv.getContext('2d',{willReadFrequently:true}); // letterbox p/ detector
   const pcv=document.createElement('canvas'), pctx=pcv.getContext('2d',{willReadFrequently:true}); // recorte da placa p/ OCR
@@ -799,10 +819,12 @@
     return crescendo && larg < LARG_NUVEM && agora-t.criado < 1600;
   }
 
+  var prevQuadro=false;
+  function prevAplicar(){ prevQuadro = rodando && $('prevSel').value==='quadro'; $('prevCv').style.display=prevQuadro?'block':'none'; }
   function setZoom(z){
     z=parseFloat(z); if(![1,1.5,2,3].includes(z)) z=1;
     zoom=z; ls.set('lpl_zoom',z);
-    video.style.transform='scale('+z+')';
+    video.style.transform='scale('+z+')'; try{ $('prevCv').style.transform='scale('+z+')'; }catch(e){}
     document.querySelectorAll('.zbtn[data-z]').forEach(b=>b.classList.toggle('ativo', parseFloat(b.dataset.z)===z));
     tracks=[];
   }
@@ -1036,6 +1058,7 @@
     try{
       if(video.videoWidth){
         const boxes=await detectar();
+        if(prevQuadro){ const pc=$('prevCv'); if(pc.width!==fcv.width||pc.height!==fcv.height){ pc.width=fcv.width; pc.height=fcv.height; } pc.getContext('2d').drawImage(fcv,0,0); }
         casar(boxes);
         const confMin=parseFloat($('confMin').value), agora=Date.now();
         // lê no máximo as 4 maiores placas visíveis (as mais próximas)
@@ -1242,7 +1265,7 @@
   // ---------- Controles ----------
   async function iniciar(){
     if(!alvos.length && !confirm('Nenhuma placa procurada cadastrada. Iniciar mesmo assim (só leitura)?')) return;
-    rodando=true; tracks=[];
+    rodando=true; tracks=[]; prevAplicar();
     $('btnStart').textContent='⏹ Parar leitura'; $('btnStart').classList.add('parar');
     setStatus('lendo placas','on');
     try{ audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)(); if(audioCtx.state==='suspended') audioCtx.resume(); }catch(e){}
@@ -1253,7 +1276,7 @@
   function parar(){
     for(const t of tracks) diagEncerrar(t);
     for(const x of fila){ x.t.pendente=false; diagEncerrar(x.t); } fila=[]; pendentes=[];
-    rodando=false; tracks=[];
+    rodando=false; tracks=[]; prevAplicar();
     $('btnStart').textContent='▶ Iniciar leitura'; $('btnStart').classList.remove('parar');
     setStatus('pronto');
     if(wakeLock){ wakeLock.release(); wakeLock=null; }
