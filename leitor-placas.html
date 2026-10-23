@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#0d1117">
-<title>Leitor de Placas · Local</title>
+<title>Leitor de Placas · Rastreando GPS</title>
 <style>
   :root{
     --bg:#0d1117; --card:#161b22; --border:#30363d; --txt:#e6edf3; --muted:#8b949e;
@@ -84,6 +84,8 @@
   .cfg-row input[type=text]{flex:1; padding:10px; border-radius:8px; border:1px solid var(--border); background:#0d1117; color:var(--txt); font-size:14px;}
   .cfg-row select{flex:1; padding:10px; border-radius:8px; border:1px solid var(--border); background:#0d1117; color:var(--txt); font-size:14px;}
   .cfg-row label{white-space:nowrap;}
+  .cfg-row select{min-width:0; max-width:100%; text-overflow:ellipsis;}
+  .cfg-row label:has(input[type=checkbox]){white-space:normal;} /* 23/10/2026: textos longos quebram linha em vez de vazar */
 
   #lidas{max-height:260px; overflow-y:auto;}
   .lida{display:flex; justify-content:space-between; align-items:center; padding:7px 4px; border-bottom:1px solid #21262d; font-size:13px;}
@@ -118,7 +120,7 @@
 <body>
 
 <header>
-  <h1>🚘 Leitor de <span>Placas</span> <small style="font-size:11px;color:var(--muted);font-weight:400;">local</small></h1>
+  <h1>🚘 Leitor de <span>Placas</span></h1>
   <div><span class="status-dot" id="dot"></span><span id="statusTxt">carregando</span></div>
 </header>
 
@@ -186,6 +188,20 @@
   <div class="painel">
     <div class="titulo-sec">Configurações</div>
     <div class="cfg-row">
+      <label style="display:flex;align-items:center;gap:8px;">
+        <input type="checkbox" id="chkParecida" checked style="width:20px;height:20px;accent-color:var(--warn);">
+        Avisar placas parecidas (1 caractere diferente)
+      </label>
+    </div>
+    <div class="cfg-row" style="font-size:12px;color:#f0b72f;">
+      💡 Dica: segure o celular deitado (na horizontal), com a rotação automática ligada. A câmera ganha o dobro de detalhe na largura e lê placas mais longe. Para ficar muito tempo, use carregador e deixe o celular na sombra.
+    </div>
+    <button class="btn btn-sec" id="btnLimpar" style="margin-top:12px;">Limpar histórico de leituras</button>
+    <button class="btn btn-sec" id="btnLimparMask" style="margin-top:8px;">⬛ Apagar todas as áreas ocultas</button>
+    <!-- 23/10/2026 (limpeza pedida pelo dono): o que é técnico fica fechado em "Ajustes avançados" -->
+    <details id="avancados" style="margin-top:14px;border-top:1px solid var(--border);padding-top:10px;">
+      <summary style="cursor:pointer;font-weight:700;color:var(--muted);padding:6px 0;">⚙️ Ajustes avançados</summary>
+    <div class="cfg-row">
       <label>Leitura</label>
       <select id="modoLeitura">
         <option value="nuvem">Nuvem (mais precisa, 1 consulta por carro)</option>
@@ -211,21 +227,6 @@
         <option value="384" selected>Equilibrado (384)</option>
       </select>
     </div>
-    <!-- 23/10/2026: opções para o iPhone (a prévia da câmera congelava ao iniciar a leitura) -->
-    <div class="cfg-row">
-      <label>Motor</label>
-      <select id="motorSel">
-        <option value="auto">Automático (GPU se tiver)</option>
-        <option value="cpu">CPU (mais lento; teste no iPhone)</option>
-      </select>
-    </div>
-    <div class="cfg-row">
-      <label>Imagem na tela</label>
-      <select id="prevSel">
-        <option value="camera">Câmera ao vivo</option>
-        <option value="quadro">Quadro analisado</option>
-      </select>
-    </div>
     <div class="cfg-row">
       <label>Confirmar após</label>
       <select id="votos">
@@ -242,17 +243,8 @@
         <option value="0.9">90%</option>
       </select>
     </div>
-    <div class="cfg-row">
-      <label style="display:flex;align-items:center;gap:8px;">
-        <input type="checkbox" id="chkParecida" checked style="width:20px;height:20px;accent-color:var(--warn);">
-        Avisar placas parecidas (1 caractere diferente)
-      </label>
-    </div>
     <div class="cfg-row" style="font-size:12px;color:var(--muted);" id="avisoModo">
       Tudo roda no celular. Nenhuma foto é enviada para a internet.
-    </div>
-    <div class="cfg-row" style="font-size:12px;color:#f0b72f;">
-      💡 Dica: com a rotação automática do Android ligada, segure o celular deitado (na horizontal). A câmera ganha o dobro de detalhe na largura e lê placas mais longe.
     </div>
     <div class="cfg-row">
       <label style="display:flex;align-items:center;gap:8px;">
@@ -267,9 +259,8 @@
         🔬 Modo diagnóstico (mostra onde cada placa se perdeu)
       </label>
     </div>
-    <button class="btn btn-sec" id="btnLimpar" style="margin-top:12px;">Limpar histórico de leituras</button>
-    <button class="btn btn-sec" id="btnLimparMask" style="margin-top:8px;">⬛ Apagar todas as áreas ocultas</button>
-    <button class="btn btn-sec" id="btnRestaurar" style="margin-top:8px;">Restaurar configurações padrão</button>
+      <button class="btn btn-sec" id="btnRestaurar" style="margin-top:8px;">Restaurar configurações padrão</button>
+    </details>
   </div>
 
 </div>
@@ -343,10 +334,6 @@
   };
   const EH_IOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform==='MacIntel' && navigator.maxTouchPoints>1);
   alvos=ls.get('lp_alvos',[]);
-  $('motorSel').value=ls.get('lpl_motor','auto');
-  $('motorSel').addEventListener('change',()=>{ ls.set('lpl_motor',$('motorSel').value); alert('Recarregue a página para trocar o motor.'); });
-  $('prevSel').value=ls.get('lpl_prev2','camera'); // 23/10/2026: a câmera do iPhone congelava por causa do som (resolvido); "Quadro analisado" deixava a imagem aos trancos
-  $('prevSel').addEventListener('change',()=>{ ls.set('lpl_prev2',$('prevSel').value); prevAplicar(); });
   $('detSel').value=ls.get('lpl_det','384');
   $('votos').value=ls.get('lpl_votos','3');
   $('confMin').value=ls.get('lpl_conf','0.75');
@@ -581,7 +568,7 @@
     $('carregandoTxt').textContent='Preparando o motor…';
     let backend='wasm';
     try{
-      if(navigator.gpu && ls.get('lpl_motor','auto')!=='cpu'){ detSess=await ort.InferenceSession.create(detBuf,{executionProviders:['webgpu']}); backend='webgpu'; }
+      if(navigator.gpu){ detSess=await ort.InferenceSession.create(detBuf,{executionProviders:['webgpu']}); backend='webgpu'; }
     }catch(e){ console.warn('webgpu indisponível',e.message); detSess=null; }
     if(!detSess) detSess=await ort.InferenceSession.create(detBuf,{executionProviders:['wasm']});
     ocrSess=await ort.InferenceSession.create(ocrBuf,{executionProviders:['wasm']});
@@ -837,7 +824,7 @@
   }
 
   var prevQuadro=false;
-  function prevAplicar(){ prevQuadro = rodando && $('prevSel').value==='quadro'; $('prevCv').style.display=prevQuadro?'block':'none'; }
+  function prevAplicar(){ prevQuadro=false; } // 23/10/2026: sempre a câmera ao vivo (a opção de teste saiu)
   function setZoom(z){
     z=parseFloat(z); if(![1,1.5,2,3].includes(z)) z=1;
     zoom=z; ls.set('lpl_zoom',z);
