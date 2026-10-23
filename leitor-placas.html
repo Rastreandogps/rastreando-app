@@ -345,8 +345,8 @@
   alvos=ls.get('lp_alvos',[]);
   $('motorSel').value=ls.get('lpl_motor','auto');
   $('motorSel').addEventListener('change',()=>{ ls.set('lpl_motor',$('motorSel').value); alert('Recarregue a página para trocar o motor.'); });
-  $('prevSel').value=ls.get('lpl_prev', EH_IOS ? 'quadro' : 'camera');
-  $('prevSel').addEventListener('change',()=>{ ls.set('lpl_prev',$('prevSel').value); prevAplicar(); });
+  $('prevSel').value=ls.get('lpl_prev2','camera'); // 23/10/2026: a câmera do iPhone congelava por causa do som (resolvido); "Quadro analisado" deixava a imagem aos trancos
+  $('prevSel').addEventListener('change',()=>{ ls.set('lpl_prev2',$('prevSel').value); prevAplicar(); });
   $('detSel').value=ls.get('lpl_det','384');
   $('votos').value=ls.get('lpl_votos','3');
   $('confMin').value=ls.get('lpl_conf','0.75');
@@ -1130,7 +1130,7 @@
         fpsN=0; fpsT=now;
       }
     }catch(e){ console.error(e); mostraErro('Erro no motor: '+e.message); }
-    if(EH_IOS) setTimeout(()=>requestAnimationFrame(loop), 35); // iPhone: folga para a prévia da câmera atualizar
+    if(EH_IOS) setTimeout(()=>requestAnimationFrame(loop), 10); // iPhone: pequena folga para a prévia da câmera atualizar
     else requestAnimationFrame(loop);
   }
 
