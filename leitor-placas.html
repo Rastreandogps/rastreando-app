@@ -667,7 +667,12 @@
   }
 
   // ---------- Pré-processamento ----------
-  const fcv=document.createElement('canvas'), fctx=fcv.getContext('2d',{willReadFrequently:true}); // quadro completo
+  /* 23/10/2026 (teste no iPhone: a imagem da câmera congelava ao iniciar a leitura, mas o fps continuava contando).
+     No iPhone, copiar o quadro inteiro da câmera para um quadro "de leitura rápida" (willReadFrequently) a cada imagem
+     trava a prévia da câmera no Safari. No iPhone o quadro completo fica no modo normal (o pequeno do detector continua igual)
+     e o laço dá uma folga para a tela se atualizar. No Android nada muda. */
+  const EH_IOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform==='MacIntel' && navigator.maxTouchPoints>1);
+  const fcv=document.createElement('canvas'), fctx=fcv.getContext('2d', EH_IOS ? {} : {willReadFrequently:true}); // quadro completo
   const lcv=document.createElement('canvas'), lctx=lcv.getContext('2d',{willReadFrequently:true}); // letterbox p/ detector
   const pcv=document.createElement('canvas'), pctx=pcv.getContext('2d',{willReadFrequently:true}); // recorte da placa p/ OCR
   pcv.width=128; pcv.height=64;
@@ -730,7 +735,8 @@
   }
   function desenharQuadroGirado(){
     const vw=video.videoWidth, vh=video.videoHeight;
-    fcv.width = rot ? vh : vw; fcv.height = rot ? vw : vh;
+    const qw = rot ? vh : vw, qh = rot ? vw : vh;
+    if(fcv.width!==qw || fcv.height!==qh){ fcv.width=qw; fcv.height=qh; } // só muda o tamanho quando precisa (antes recriava o quadro toda vez)
     fctx.setTransform(1,0,0,1,0,0);
     if(rot===90){ fctx.translate(vh,0); fctx.rotate(Math.PI/2); }
     else if(rot===-90){ fctx.translate(0,vw); fctx.rotate(-Math.PI/2); }
@@ -745,7 +751,7 @@
     const rr=retGirado({x1:r0.x, y1:r0.y, x2:r0.x+r0.w, y2:r0.y+r0.h}, paraGirado);
     const roi={x:rr.x1, y:rr.y1, w:rr.x2-rr.x1, h:rr.y2-rr.y1};
     const r=Math.min(s/roi.w,s/roi.h), nw=Math.round(roi.w*r), nh=Math.round(roi.h*r), dw=(s-nw)/2, dh=(s-nh)/2;
-    lcv.width=s; lcv.height=s;
+    if(lcv.width!==s || lcv.height!==s){ lcv.width=s; lcv.height=s; }
     lctx.fillStyle='rgb(114,114,114)'; lctx.fillRect(0,0,s,s);
     lctx.drawImage(fcv,roi.x,roi.y,roi.w,roi.h, Math.round(dw-0.1),Math.round(dh-0.1),nw,nh);
     const d=lctx.getImageData(0,0,s,s).data, n=s*s;
@@ -1084,7 +1090,8 @@
         fpsN=0; fpsT=now;
       }
     }catch(e){ console.error(e); mostraErro('Erro no motor: '+e.message); }
-    requestAnimationFrame(loop);
+    if(EH_IOS) setTimeout(()=>requestAnimationFrame(loop), 35); // iPhone: folga para a prévia da câmera atualizar
+    else requestAnimationFrame(loop);
   }
 
   // ---------- Desenho das caixas (todo quadro) ----------
