@@ -5203,7 +5203,7 @@ function atualizar(){
     sheet.classList.toggle('ehtag',!!v.tag); /* 16/10/2026: cartão da tag (sem bloqueio, SMS, velocidade, odômetro e combustível) */
     $('vName').textContent=v.nome; $('vName').title=v.nome; $('vPick').classList.toggle('multi',veiculos.length>1);
     $('vPlate').textContent=v.placa;
-    { const ie=$('vImei'), im=ehAdmin?String(v.imei||'').trim():''; $('vImeiTxt').textContent=im?'IMEI '+im:''; ie.style.display=im?'':'none' } /* 20/10/2026: IMEI embaixo da placa, só o administrador */
+    { const ie=$('vImei'), im=(ehAdmin||(permCli&&permCli.frotista===true))?String(v.imei||'').trim():''; $('vImeiTxt').textContent=im?'IMEI '+im:''; ie.style.display=im?'':'none' } /* 20/10/2026: IMEI embaixo da placa, só o administrador. 23/10/2026 (pedido do dono): o frotista também vê, igual */
     motLinha(v);
     /* número do chip: só o administrador vê (o cliente nunca vê) */
     const cr=$('chipRow');
