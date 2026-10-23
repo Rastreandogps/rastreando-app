@@ -1481,6 +1481,14 @@ h3.comdica .dica:hover~.dicatx,h3.comdica .dica:focus~.dicatx,h3.comdica .dica.o
 #btnIcone{margin-left:4px;width:28px;height:28px;border-radius:8px;border:1px solid var(--line);background:var(--card2);color:var(--mut);display:none;align-items:center;justify-content:center;vertical-align:middle;cursor:pointer}
 #btnIcone svg{width:15px;height:15px}
 main #sheet #btnIcone{width:26px;height:26px;border:0;background:transparent;margin-left:0}
+/* 23/10/2026 (pedido do dono): no celular, lápis e carrinho como botões de verdade (fundo, borda e sombra), iguais */
+@media (max-width:899px){
+  main #sheet #btnRenome,main #sheet #btnIcone{width:32px;height:32px;margin-left:6px;border-radius:9px;border:1px solid var(--line);background:var(--card2);color:var(--txt);box-shadow:0 2px 6px rgba(0,0,0,.14),inset 0 1px 0 rgba(255,255,255,.5);transition:transform .08s,box-shadow .08s}
+  main #sheet #btnRenome:active,main #sheet #btnIcone:active{transform:translateY(1px);box-shadow:0 1px 2px rgba(0,0,0,.14)}
+  main #sheet #btnRenome svg{width:15px;height:15px}
+  main #sheet #btnIcone svg{width:17px;height:17px}
+  :root:not([data-tema="claro"]) main #sheet #btnRenome,:root:not([data-tema="claro"]) main #sheet #btnIcone{box-shadow:0 2px 6px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.06)}
+}
 /* 20/10/2026: liga/desliga a vista da rua (só o administrador, só no computador) */
 #btnRuaVer{display:none}
 main #sheet #btnRuaVer.adm{width:26px;height:26px;border:0;background:transparent;margin-left:0;border-radius:8px;color:var(--mut);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;vertical-align:middle;position:relative}
