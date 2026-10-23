@@ -781,6 +781,17 @@
     return final.filter(b=>{ const c=deGirado((b.x1+b.x2)/2,(b.y1+b.y2)/2); return dentroMascara(c.u,c.v)<0; });
   }
   const PLACA_MIN=50; // largura mínima (pixels reais) para tentar ler os caracteres no modo local
+  /* 23/10/2026 (teste do dono: carro vindo de FRENTE só lia no fim da tela): carro que está se aproximando aparece
+     primeiro longe, com a placa pequena; a 1ª foto ia pequena, a leitura falhava e as tentativas acabavam.
+     Agora, se a placa está crescendo e ainda é pequena, espera ela chegar a LARG_NUVEM px (ou no máximo 1,6 s).
+     Carro indo embora (de costas) aparece grande logo de cara: segue igual. Se o carro sair da tela antes, a melhor
+     foto que juntou é enviada do mesmo jeito. */
+  const LARG_NUVEM=72;
+  function esperaChegar(t, agora){
+    const larg=t.box.x2-t.box.x1, ini=(t.boxIni.x2-t.boxIni.x1)||larg;
+    const crescendo = larg > ini*1.12;
+    return crescendo && larg < LARG_NUVEM && agora-t.criado < 1600;
+  }
 
   function setZoom(z){
     z=parseFloat(z); if(![1,1.5,2,3].includes(z)) z=1;
@@ -1034,7 +1045,7 @@
           const sobreParado = t => (t.quadros||0)<2 && parados.some(m=>iou(m.box,t.box)>0.4);
           for(const t of alvosLeitura) if(pareceePlaca(t) || (t.detMax||0)>=0.4) atualizarMelhor(t);
           const querEnviar = t => pareceePlaca(t) && (t.envios||0)<3 && !t.pendente && !sobreParado(t) &&
-              ((!t.envios && ((t.quadros||0)>=3 || agora-t.criado>=350))                        // 3 quadros: já dá para escolher a melhor foto
+              ((!t.envios && ((t.quadros||0)>=3 || agora-t.criado>=350) && !esperaChegar(t, agora)) // 3 quadros: já dá para escolher a melhor foto
                          || (t.tentarDeNovo && agora-t.ultimoEnvioT>400)                       // leitura falhou: tenta outro quadro
                          || ((t.box.x2-t.box.x1)>=t.largEnvio*1.35 && agora-t.ultimoEnvioT>600)); // chegou bem mais perto
           const podeAgora = !nuvemOcupada && agora-ultimoEnvio>=1050 && dentroDoLimite();
@@ -1275,6 +1286,9 @@
 
   // ---------- Início ----------
   if(!(await portao())) return; // 23/10/2026: sem login/permissão, nem abre a câmera
+  /* 23/10/2026: aberto de dentro do app instalado, a tela ficava presa em pé (o app de rastreamento é só em pé).
+     Aqui libera girar, para a tela cheia deitada funcionar. No navegador comum isso não é preciso (e é ignorado). */
+  try{ if(screen.orientation && screen.orientation.lock) screen.orientation.lock('any').catch(()=>{}); }catch(e){}
   aplicaDiag();
   atualizaModo();
   setZoom(ls.get('lpl_zoom',1));
