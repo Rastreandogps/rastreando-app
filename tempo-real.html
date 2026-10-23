@@ -2601,6 +2601,16 @@ nav button.on .nemo.txt{color:var(--red2)}
 .fchinfo{font-size:13px;color:var(--mut);margin:0 0 14px;line-height:1.45}
 #mFichas h4{font-size:14px;margin:4px 0 8px}
 .fchpacs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+/* 23/10/2026: giros da vista da rua 360° — saldo na janela do giro e pacotes na Loja */
+.rgsaldo{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:0 0 10px;padding:9px 12px;border-radius:12px;background:rgba(8,145,178,.10);border:1px solid rgba(8,145,178,.28)}
+#rgSub{font-size:14px;font-weight:700;color:var(--txt)}
+#rgSub b{color:#0891b2}
+.rgmais{border:0;background:none;padding:2px 0;font:inherit;font-size:12.5px;font-weight:700;color:#0891b2;text-decoration:underline;text-underline-offset:2px;cursor:pointer}
+.ljgiros{margin:4px 0 14px;padding:12px;border-radius:16px;border:1px solid rgba(8,145,178,.3);background:linear-gradient(180deg,rgba(8,145,178,.08),transparent)}
+.ljgiros h4{margin:0 0 4px;font-size:15px}
+.ljgiros p{margin:0 0 12px;font-size:12.5px;color:var(--mut);line-height:1.4}
+.ljgiros .fchpacs{grid-template-columns:repeat(2,1fr);margin-bottom:0}
+.ljgiros .fchpac button{background:linear-gradient(135deg,#22b8d6,#0891b2)}
 .fchpac{position:relative;display:flex;flex-direction:column;align-items:center;gap:3px;text-align:center;background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:14px 6px 10px;color:var(--txt)}
 .fchpac.top{border-color:rgba(245,184,61,.8)}
 .fchpac .tag{position:absolute;top:-9px;left:50%;transform:translateX(-50%);white-space:nowrap;background:#d97706;color:#fff;font-size:10px;font-weight:800;border-radius:8px;padding:2px 7px}
@@ -3576,6 +3586,7 @@ nav button.on .nemo.txt{color:var(--red2)}
     <div id="lojaRola">
       <div id="lojaPedidos"></div>
       <p style="margin-bottom:12px">Pague com PIX aqui mesmo ou peça pelo WhatsApp. Depois do pagamento, a entrega é combinada com você pelo WhatsApp.</p>
+      <div id="lojaGiros"></div><!-- 23/10/2026: pacotes de giros da vista da rua (só para quem pode girar) -->
       <div id="lojaLista"></div>
     </div>
     <button class="btn btn-out alfechar" data-close type="button">Fechar</button>
@@ -3664,7 +3675,7 @@ nav button.on .nemo.txt{color:var(--red2)}
 <div class="modal alsheet" id="mRuaGiro">
   <div class="box2" style="max-width:920px;width:100%">
     <div class="almtopo"><h3 id="rgTit">Vista da rua 360°</h3><button class="almx" data-close type="button" aria-label="Fechar" title="Fechar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
-    <p class="asinfo" id="rgSub">Arraste para olhar em volta. Use a rodinha do mouse para aproximar.</p>
+    <div class="rgsaldo"><span id="rgSub">Você tem giros diários</span><button type="button" class="rgmais" id="rgMais">Gostaria de obter mais giros?</button></div><!-- 23/10/2026 (pedido do dono): saldo de giros em destaque leve + atalho para a Loja -->
     <div id="rgPano" style="width:100%;height:min(62vh,560px);border-radius:14px;overflow:hidden;background:var(--card2)"></div>
   </div>
 </div>
@@ -7630,12 +7641,14 @@ async function ruaGirar(){
   ruaGirando=true;
   try{
     const j=await fnAdm('ruaGiro',{});
-    if(!j.ok){ toast('Os giros de hoje acabaram. Volta amanhã. Tocando na foto, abre no Google Maps e dá para girar lá.',6000); return } /* 20/10/2026: compra de giros retirada a pedido do dono */
+    if(!j.ok){ if(girosPodeComprar()){ toast('Os giros de hoje acabaram. Para girar agora, escolha um pacote de giros.',5000); lojaGirosAbrir() } else toast('Os giros de hoje acabaram. Volta amanhã. Tocando na foto, abre no Google Maps e dá para girar lá.',6000); return } /* 23/10/2026: volta a compra de giros (pacotes na Loja) */
     if(ehAdmin){ RUA_CONT.em=0; try{ ruaContPintar() }catch(e){} } /* atualiza o contador do administrador */
     await gmCarregarApi();
     const lat=+v.pos[0], lng=+v.pos[1], el=$('rgPano'); el.innerHTML='';
     $('rgTit').textContent='Vista da rua 360° · '+v.nome;
-    $('rgSub').textContent=(telaLarga()?'Arraste para olhar em volta. Use a rodinha do mouse para aproximar.':'Arraste com o dedo para olhar em volta. Use dois dedos para aproximar.')+(j.restam!=null?' Restam '+j.restam+' giro'+(j.restam===1?'':'s')+' hoje.':'');
+    { const ex=Math.max(0,Number(j.extra||0)), di=j.pago?0:Math.max(0,Number(j.restam||0)-ex), pl=n=>n===1?'':'s'; /* 23/10/2026: saldo em destaque leve */
+      $('rgSub').innerHTML=j.restam==null?'Vista da rua 360°':'Você tem <b>'+di+'</b> giro'+pl(di)+' diário'+pl(di)+(ex>0?' + <b>'+ex+'</b> comprado'+pl(ex):'');
+      $('rgMais').style.display=girosPodeComprar()?'':'none' }
     abrir('mRuaGiro');
     const pano=new google.maps.StreetViewPanorama(el,{position:{lat,lng},pov:{heading:0,pitch:0},zoom:0,
       linksControl:false,clickToGo:false,addressControl:false,fullscreenControl:true,motionTracking:false,motionTrackingControl:false,showRoadLabels:false,enableCloseButton:false});
@@ -7658,6 +7671,7 @@ $('vRua').addEventListener('click',e=>{
   window.open('https://www.google.com/maps/@?api=1&map_action=pano&viewpoint='+v.pos[0].toFixed(6)+','+v.pos[1].toFixed(6),'_blank','noopener');
 });
 $('btnNavMini').onclick=()=>$('btnNav').onclick();
+$('rgMais').onclick=()=>{ fechar(); lojaGirosAbrir() };
 $('btnRua').onclick=()=>{
   const v=ativo(); if(!v) return;
   window.open('https://www.google.com/maps/@?api=1&map_action=pano&viewpoint='+v.pos[0].toFixed(6)+','+v.pos[1].toFixed(6),'_blank','noopener');
@@ -12029,6 +12043,18 @@ function maisAtualizar(){
 }
 const LOJA_SVG_WPP='<svg viewBox="0 0 24 24"><path d="M17.5 14.4c-.3-.1-1.8-.9-2-1-.3-.1-.5-.1-.7.1-.2.3-.8 1-.9 1.2-.2.2-.3.2-.6.1-.3-.1-1.3-.5-2.4-1.5-.9-.8-1.5-1.8-1.7-2.1-.2-.3 0-.5.1-.6l.4-.5c.1-.2.2-.3.3-.5.1-.2 0-.4 0-.5l-.9-2.2c-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.1c.1.2 2.1 3.2 5.1 4.5 1.9.8 2.6.7 3.1.6.6-.1 1.8-.7 2-1.4.2-.7.2-1.3.2-1.4-.1-.1-.3-.2-.6-.3zM12 2a10 10 0 00-8.6 15.1L2 22l5-1.3A10 10 0 1012 2z"/></svg>';
 function lojaLogin(){ return (lsGet('rg_email')||'').split('@')[0] }
+/* 23/10/2026 (decisão do dono): pacotes de giros da vista da rua 360°. Os valores que valem são os do servidor (LOJA_PRODUTOS). */
+const GIRO_PACS=[{k:'giros25',g:25,v:25.90},{k:'giros50',g:50,v:45.90},{k:'giros75',g:75,v:63.90},{k:'giros100',g:100,v:79.90}];
+const girosPodeComprar=()=>!ehAdmin && !!(permCli && (permCli.ruaCelular===true || permCli.frotista===true));
+function lojaGirosDesenhar(){
+  const el=$('lojaGiros'); if(!el) return;
+  if(!girosPodeComprar()){ el.innerHTML=''; return }
+  const melhor=GIRO_PACS[GIRO_PACS.length-1];
+  el.innerHTML='<div class="ljgiros" id="ljGirosBox"><h4>🔄 Giros da vista da rua 360°</h4><p>Para girar a vista da rua dentro do app quando os giros grátis do dia acabarem. Os giros comprados não vencem.</p><div class="fchpacs">'+
+    GIRO_PACS.map(p=>'<div class="fchpac'+(p===melhor?' top':'')+'">'+(p===melhor?'<span class="tag">Mais vantajoso</span>':'')+'<b>'+p.g+'</b><span class="q">giros</span><span class="v">'+brl(p.v)+'</span><span class="c">'+brl(p.v/p.g)+' cada</span><button type="button" data-gk="'+p.k+'">Comprar</button></div>').join('')+'</div></div>';
+  el.onclick=e=>{ const b=e.target.closest('button[data-gk]'); if(b){ e.stopPropagation(); lojaComprarPix(b.dataset.gk,b,1) } };
+}
+function lojaGirosAbrir(){ lojaDesenhar(); abrir('mLoja'); setTimeout(()=>{ try{ $('ljGirosBox').scrollIntoView({block:'start',behavior:'smooth'}) }catch(e){} },120) }
 function lojaDesenhar(){
   $('lojaLista').innerHTML=LOJA_ITENS.map((it,i)=>'<div class="ljitem">'+
     '<button class="ljwpp" type="button" data-lw="'+i+'" aria-label="Perguntar pelo WhatsApp" title="Perguntar pelo WhatsApp">'+LOJA_SVG_WPP+'</button>'+
@@ -12038,6 +12064,7 @@ function lojaDesenhar(){
     (it.mensal?'<span class="ljmes">+ '+brl(it.mensal)+'/mês na mensalidade</span>':'')+
     '<button class="ljcomprar" type="button" data-compra="'+i+'">Comprar</button></div></div>').join('');
   $('lojaPedidos').innerHTML='';
+  try{ lojaGirosDesenhar() }catch(e){}
   lojaPedidosDesenhar();
   $('lojaRola').onclick=e=>{
     const bz=e.target.closest('[data-zoom]');
