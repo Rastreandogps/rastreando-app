@@ -616,6 +616,23 @@
   }
 
   // ---------- Câmera ----------
+  /* 23/10/2026: vigia da câmera — se a imagem parar de chegar por 2 s durante a leitura (o iPhone interrompe a câmera
+     quando toca som, por exemplo), fecha e abre a câmera de novo sozinho. */
+  let camVigia=null, camUltT=-1, camParadoDesde=0, camReabrindo=false;
+  function camVigiar(){
+    clearInterval(camVigia); camUltT=-1; camParadoDesde=0;
+    camVigia=setInterval(async()=>{
+      if(!rodando){ clearInterval(camVigia); camVigia=null; return; }
+      const t=video.currentTime, agora=Date.now();
+      if(t!==camUltT){ camUltT=t; camParadoDesde=agora; return; }
+      if(!camReabrindo && agora-camParadoDesde>2000){
+        camReabrindo=true;
+        try{ const st=video.srcObject; if(st) st.getTracks().forEach(x=>x.stop()); }catch(e){}
+        await abrirCamera(); try{ await video.play(); }catch(e){}
+        camParadoDesde=Date.now(); camReabrindo=false;
+      }
+    },700);
+  }
   async function abrirCamera(){
     try{
       const stream=await navigator.mediaDevices.getUserMedia({ video:{ facingMode:{ideal:'environment'}, width:{ideal:1920}, height:{ideal:1080} }, audio:false });
@@ -1268,7 +1285,10 @@
     rodando=true; tracks=[]; prevAplicar();
     $('btnStart').textContent='⏹ Parar leitura'; $('btnStart').classList.add('parar');
     setStatus('lendo placas','on');
-    try{ audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)(); if(audioCtx.state==='suspended') audioCtx.resume(); }catch(e){}
+    /* 23/10/2026: no iPhone, ligar o som (AudioContext) com a câmera aberta interrompe a câmera — a imagem congelava
+       exatamente ao tocar em "Iniciar leitura". No iPhone o som só é preparado na hora de um alarme. */
+    if(!EH_IOS){ try{ audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)(); if(audioCtx.state==='suspended') audioCtx.resume(); }catch(e){} }
+    camVigiar();
     try{ wakeLock=await navigator.wakeLock.request('screen'); }catch(e){}
     loop();
     atualizaTelaCheia();
