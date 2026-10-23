@@ -857,6 +857,25 @@ body.hist-on #mapCar{display:none!important}
 .hpanel .hpdf:disabled{opacity:.6}
 .hpanel .hwpp{background:#1faa53;border-color:#1faa53;color:#fff}
 .hpanel .hwpp span{display:flex}.hpanel .hwpp svg{width:19px;height:19px}
+/* 23/10/2026: Onde o veículo dorme */
+.hpanel .hdorme{margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+.hpanel .hdormeop{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px}
+.hpanel .hdormeop label{display:flex;flex-direction:column;gap:3px;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--mut)}
+.hpanel .hdormeop select{width:100%;height:38px}
+.hpanel .hdormebtn{width:100%;height:44px;border-radius:13px;border:1px solid #7c3aed;background:rgba(124,58,237,.14);color:var(--txt);font:inherit;font-size:15px;font-weight:700;cursor:pointer}
+.hpanel .hdormebtn:disabled{opacity:.6}
+.hpanel.achou .hdorme,.hpanel.dorme .hparf2{display:none!important}
+.hpanel .hdorres{display:none;margin-top:12px}
+.hpanel .hdorres.show{display:block}
+.hpanel .hdorcab{font-size:12.5px;color:var(--mut);margin-bottom:8px;line-height:1.4}
+.hpanel .hdoritem{display:flex;gap:10px;align-items:flex-start;padding:10px;border-radius:12px;background:var(--card2);margin-bottom:6px;cursor:pointer;font-size:13px;line-height:1.4}
+.hpanel .hdoritem.top{border:1px solid #f59e0b;background:rgba(245,158,11,.10)}
+.hpanel .hdoritem .n{flex:none;width:26px;height:26px;border-radius:50%;background:#7c3aed;color:#fff;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.hpanel .hdoritem.top .n{background:#f59e0b;color:#111}
+.hpanel .hdoritem b{display:block;font-size:14px}
+.hpanel .hdoritem small{color:var(--mut)}
+.hpin.dor{background:#7c3aed;width:28px;height:28px;font-size:13px}
+.hpin.dor.top{background:#f59e0b;color:#111;width:40px;height:40px;font-size:17px;border-width:3px;box-shadow:0 0 0 6px rgba(245,158,11,.30),0 2px 8px rgba(0,0,0,.5)}
 .hpanel .hend{display:block;font-style:normal;font-size:11.5px;color:var(--mut);line-height:1.3;margin-top:1px}
 .hpanel .hend:empty{display:none}
 .hpop .hpopb{display:block;text-align:center;padding:9px 10px;border-radius:10px;background:#2563eb;color:#fff!important;font-size:13px;font-weight:700;text-decoration:none;margin-top:6px}
@@ -2711,6 +2730,14 @@ nav button.on .nemo.txt{color:var(--red2)}
       </select>
     </label>
     <button type="button" class="hbuscar" id="hBuscar">Ver trajeto</button>
+    <!-- 23/10/2026: ONDE O VEÍCULO DORME (PRD 4.86) -->
+    <div class="hdorme">
+      <div class="hdormeop">
+        <label>Período<select id="hDorDias"><option value="3">últimos 3 dias</option><option value="7" selected>últimos 7 dias</option><option value="15">últimos 15 dias</option></select></label>
+        <label>Parado por<select id="hDorHoras"><option value="3">3 h ou mais</option><option value="5" selected>5 h ou mais</option><option value="8">8 h ou mais</option></select></label>
+      </div>
+      <button type="button" class="hdormebtn" id="hDorme">🛏️ Onde o veículo dorme</button>
+    </div>
     <div class="hperres"><span id="hPerTxt"></span><button type="button" id="hAlterar">Alterar</button></div>
     <div class="hmsg" id="hMsg">Guardamos os últimos 90 dias.</div>
     <div class="hres" id="hRes">
@@ -2733,6 +2760,7 @@ nav button.on .nemo.txt{color:var(--red2)}
       <button type="button" class="hpdf" id="hPdf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M12 12v6M9 15l3 3 3-3"/></svg>Baixar PDF das paradas</button>
       <button type="button" class="hpdf hwpp" id="hPdfWpp" style="display:none"><span id="hPdfWppIco"></span>Enviar o PDF pelo WhatsApp</button>
     </div>
+    <div class="hdorres" id="hDorRes"><div class="hdorcab" id="hDorCab"></div><div id="hDorLista"></div></div>
   </section>
 
   <section class="vview" id="vview">
@@ -7973,6 +8001,7 @@ function histEntrar(){
   setTimeout(()=>{ try{ map.invalidateSize() }catch(e){} },50);
 }
 function histLimpar(){
+  dormeLimpar();
   histParar(); geoFilaGer++; hist.pdf=null; $('hPdfWpp').style.display='none';
   if(hist.camada){ map.removeLayer(hist.camada); hist.camada=null }
   hist.marc=null; hist.pts=[]; hist.tv=[]; hist.total=0; hist.t=0;
@@ -7991,7 +8020,7 @@ $('hFechar').onclick=()=>irPara('Mapa');
 $('hBusca').addEventListener('input',()=>{ if(histVeiculos() && $('hVeic').value) $('hVeic').dispatchEvent(new Event('change')) });
 $('hBusca').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); if($('hVeic').value) $('hBuscar').click() } });
 $('hAlterar').onclick=()=>{ histLimpar(); $('hMsg').textContent='Guardamos os últimos 90 dias.' };
-$('hVeic').addEventListener('change',()=>{ if(hist.pts.length||$('hpanel').classList.contains('achou')) $('hBuscar').click() });
+$('hVeic').addEventListener('change',()=>{ if(hist.modo==='dorme'){ $('hDorme').click(); return } if(hist.pts.length||$('hpanel').classList.contains('achou')) $('hBuscar').click() });
 document.querySelectorAll('.hdia').forEach(b=>b.onclick=()=>{
   const d=+b.dataset.d;
   if(d===7){ $('hData').value=diaMenos(6); $('hData2').value=hojeSP() } else { $('hData').value=diaMenos(d); $('hData2').value=diaMenos(d) }
@@ -8082,6 +8111,121 @@ function histFocar(ll,z){
   else { const livre=Math.max(120,sz.y-(p.offsetHeight||0)); dy=sz.y/2-livre*0.72 }
   map.setView(map.unproject(alvo.add([dx,dy]),z),z,{animate:true});
 }
+/* ===== ONDE O VEÍCULO DORME (23/10/2026, PRD 4.86, regras do dono) =====
+   Não usa horário fixo. Lê o trajeto dos últimos 3, 7 ou 15 dias e acha cada vez que o veículo ficou parado
+   no mesmo lugar por X horas ou mais (a qualquer hora). Paradas a até 200 m uma da outra = o mesmo lugar.
+   Só aparece o lugar onde ele ficou parado em pelo menos 2 DIAS DIFERENTES. Cada lugar vira 1 ponto só, com o resumo.
+   Parada longa sem sair (ex.: sexta à noite até segunda) conta 1 dia a cada 24 h parado.
+   Rastreador que manda posição de tempos em tempos (portátil): duas posições seguidas no mesmo lugar contam como parado no intervalo. */
+const DOR_RAIO=150, DOR_JUNTA=200, DOR_DIA=86400000;
+let dorGer=0, dorAtivo=0;
+const dorDiaDe=t=>Math.floor((t-3*3600000)/DOR_DIA);   /* dia do calendário em São Paulo */
+const dorDataHora=ms=>hhData(ms)+' '+hhmm(ms);
+function dormeLimpar(){
+  dorGer++;
+  if(hist.camDor){ try{ map.removeLayer(hist.camDor) }catch(e){} hist.camDor=null }
+  hist.modo=''; hist.dor=null; hist.mkDor=null;
+  const r=$('hDorRes'); if(r) r.classList.remove('show');
+  const hp=$('hpanel'); if(hp) hp.classList.remove('dorme');
+  if(dorAtivo){ dorAtivo=0; const b=$('hDorme'); if(b){ b.disabled=false; b.textContent='🛏️ Onde o veículo dorme' } }
+}
+/* períodos em que ficou parado (raio de 150 m; um ponto solto fora do lugar, que volta logo, é pulo de GPS) */
+function dormeEstadias(pts){
+  const out=[]; let c=null;
+  const fecha=()=>{ if(c) out.push({ll:[c.la,c.lo],ini:c.ini,fim:c.fim,dur:c.fim-c.ini}); c=null };
+  for(let i=0;i<pts.length;i++){
+    const p=pts[i];
+    if(!c){ c={la:p.ll[0],lo:p.ll[1],n:1,ini:p.t,fim:p.fim}; continue }
+    if(distHist([c.la,c.lo],p.ll)<=DOR_RAIO){ c.la=(c.la*c.n+p.ll[0])/(c.n+1); c.lo=(c.lo*c.n+p.ll[1])/(c.n+1); c.n=Math.min(c.n+1,50); c.fim=Math.max(c.fim,p.fim); continue }
+    const q=pts[i+1];
+    if(q && distHist([c.la,c.lo],q.ll)<=DOR_RAIO && q.t-p.t<=20*60000 && p.t-c.fim<=20*60000) continue;
+    fecha(); c={la:p.ll[0],lo:p.ll[1],n:1,ini:p.t,fim:p.fim};
+  }
+  fecha();
+  return out;
+}
+/* junta as paradas longas por lugar e conta os dias diferentes */
+function dormeLugares(est,minMs){
+  const grupos=[];
+  est.filter(s=>s.dur>=minMs).sort((a,b)=>b.dur-a.dur).forEach(s=>{
+    let g=null, gd=1e9;
+    grupos.forEach(x=>{ const d=distHist(x.ll,s.ll); if(d<=DOR_JUNTA && d<gd){ g=x; gd=d } });
+    if(!g){ g={ll:s.ll.slice(),peso:0,lst:[]}; grupos.push(g) }
+    const w=g.peso+s.dur; g.ll=[(g.ll[0]*g.peso+s.ll[0]*s.dur)/w,(g.ll[1]*g.peso+s.ll[1]*s.dur)/w]; g.peso=w; g.lst.push(s);
+  });
+  grupos.forEach(g=>{
+    const dias=new Set();
+    g.lst.forEach(s=>{ for(let k=0;k*DOR_DIA<=s.dur;k++) dias.add(dorDiaDe(s.ini+k*DOR_DIA)) });
+    g.dias=dias.size; g.vezes=g.lst.length; g.total=g.lst.reduce((a,s)=>a+s.dur,0);
+    g.ult=g.lst.reduce((a,s)=>s.fim>a.fim?s:a,g.lst[0]);
+  });
+  return grupos.filter(g=>g.dias>=2).sort((a,b)=>b.dias-a.dias||b.total-a.total);
+}
+function popDorme(g,i,n){
+  const la=g.ll[0].toFixed(6), lo=g.ll[1].toFixed(6);
+  const gm='https://www.google.com/maps/search/?api=1&query='+la+','+lo, am='https://maps.apple.com/?q='+encodeURIComponent('Lugar '+(i+1))+'&ll='+la+','+lo;
+  const end=enderecoGuardado(g.ll);
+  return '<div class="hpopt">'+(i===0?'🛏️ Lugar 1 · principal':'Lugar '+(i+1))+'</div>'+
+    '<div class="hpopd"><b>Parado aqui em '+g.dias+' dos últimos '+n+' dias</b><br>'+g.vezes+(g.vezes===1?' vez':' vezes')+' · em média '+durCurta(g.total/g.vezes)+' por vez<br>Última: '+dorDataHora(g.ult.ini)+' até '+dorDataHora(g.ult.fim)+'</div>'+
+    '<div class="hpope" data-pe="'+i+'">'+(end?esc(end):'Buscando endereço...')+'</div>'+
+    '<a class="hpopb" href="'+gm+'" target="_blank" rel="noopener">Abrir no Google Maps</a>'+
+    (ehIphone()?'<a class="hpopb ap" href="'+am+'" target="_blank" rel="noopener">Abrir no Mapas (Apple)</a>':'');
+}
+$('hDorme').onclick=async()=>{
+  const id=+$('hVeic').value, n=+$('hDorDias').value||7, horas=+$('hDorHoras').value||5;
+  if(!id){ toast('Escolha um veículo.'); return }
+  histLimpar();
+  const ger=++dorGer; hist.modo='dorme'; dorAtivo=ger; $('hpanel').classList.add('dorme');
+  const b=$('hDorme'); b.disabled=true; $('hMsg').textContent='';
+  const fim=Date.now(), ini=fim-n*DOR_DIA, PASSO=3*DOR_DIA, pos=[];
+  try{
+    for(let t=ini, k=1, tot=Math.ceil((fim-ini)/PASSO); t<fim; t+=PASSO, k++){
+      b.textContent='Lendo o histórico... '+k+' de '+tot;
+      const q='deviceId='+id+'&from='+encodeURIComponent(new Date(t).toISOString())+'&to='+encodeURIComponent(new Date(Math.min(t+PASSO,fim)).toISOString());
+      const r=await api('/api/reports/route?'+q);
+      if(ger!==dorGer || !hist.on) return;
+      if(!r.ok) throw new Error('O servidor respondeu erro '+r.status+' ao ler o histórico.');
+      (await r.json()).forEach(p=>pos.push(p));
+    }
+    const pts=[];
+    pos.filter(p=>p.valid!==false && !posZero(p)).sort((a,b)=>Date.parse(a.fixTime)-Date.parse(b.fixTime)).forEach(p=>{
+      const ll=[p.latitude,p.longitude], t=Date.parse(p.fixTime), u=pts[pts.length-1];
+      if(u && t<=u.t) return;
+      if(u && u.ll[0]===ll[0] && u.ll[1]===ll[1]){ u.fim=t; return }
+      pts.push({ll,t,fim:t});
+    });
+    if(!pts.length){ $('hMsg').textContent='Sem posições nesse período (o rastreador pode ter ficado desligado ou sem GPS).'; hist.modo=''; return }
+    const lug=dormeLugares(dormeEstadias(pts),horas*3600000);
+    hist.dor=lug;
+    $('hPerTxt').textContent='🛏️ Onde dorme · últimos '+n+' dias · '+horas+' h ou mais'; $('hpanel').classList.add('achou');
+    $('hDorCab').innerHTML=lug.length?'Lugares onde ficou parado '+horas+' h ou mais em pelo menos 2 dias diferentes. O <b>principal</b> está em destaque.':'';
+    if(!lug.length){
+      $('hDorLista').innerHTML='<div class="hdoritem"><small>Nenhum lugar onde ele ficou parado '+horas+' h ou mais em 2 dias diferentes nesse período.</small></div>';
+      $('hDorRes').classList.add('show'); map.setView(pts[pts.length-1].ll,15); return;
+    }
+    const g=L.layerGroup();
+    L.circle(lug[0].ll,{radius:DOR_RAIO,color:'#f59e0b',weight:1.5,fillColor:'#f59e0b',fillOpacity:.12,interactive:false}).addTo(g);
+    hist.mkDor=lug.map((x,i)=>{
+      const tam=i===0?52:44;
+      return L.marker(x.ll,{icon:L.divIcon({className:'hmk',html:'<div class="hpinarea" style="width:'+tam+'px;height:'+tam+'px"><div class="hpin dor'+(i===0?' top':'')+'">'+(i+1)+'</div></div>',iconSize:[tam,tam],iconAnchor:[tam/2,tam/2]}),zIndexOffset:i===0?900:600,bubblingMouseEvents:false})
+        .on('click',function(){ const pp=this.getPopup(); if(!pp) return; pp.options.autoPanPaddingBottomRight=[20,telaLarga()?40:($('hpanel').offsetHeight||0)+40]; pp.options.autoPanPaddingTopLeft=[telaLarga()?($('hpanel').offsetWidth||0)+40:20,20] })
+        .bindPopup(popDorme(x,i,n),{className:'hpop',closeButton:true,autoPanPaddingTopLeft:[20,20],autoPanPaddingBottomRight:[20,40]}).addTo(g);
+    });
+    g.addTo(map); hist.camDor=g;
+    $('hDorLista').innerHTML=lug.map((x,i)=>'<div class="hdoritem'+(i===0?' top':'')+'" data-di="'+i+'"><span class="n">'+(i+1)+'</span><span><b>'+(i===0?'Principal · ':'')+'parado aqui em '+x.dias+' dos últimos '+n+' dias</b>'+
+      '<small>'+x.vezes+(x.vezes===1?' vez':' vezes')+' · em média '+durCurta(x.total/x.vezes)+' por vez · última: '+dorDataHora(x.ult.ini)+' até '+dorDataHora(x.ult.fim)+'</small>'+
+      '<em class="hend" data-de="'+i+'">'+esc(enderecoGuardado(x.ll)||'')+'</em></span></div>').join('');
+    $('hDorLista').onclick=e=>{ const r=e.target.closest('[data-di]'); if(r){ const i=+r.dataset.di; histFocar(lug[i].ll,17); setTimeout(()=>{ try{ hist.mkDor[i].openPopup() }catch(er){} },350) } };
+    $('hDorRes').classList.add('show');
+    enderecosParadas(lug,(i,t)=>{
+      if(ger!==dorGer) return;
+      const e=$('hDorLista').querySelector('[data-de="'+i+'"]'); if(e) e.textContent=t;
+      const mk=hist.mkDor&&hist.mkDor[i]; if(mk) mk.setPopupContent(popDorme(lug[i],i,n));
+    });
+    setTimeout(()=>{ try{ if(lug.length===1) histFocar(lug[0].ll,16); else map.fitBounds(L.latLngBounds(lug.map(x=>x.ll)),Object.assign({maxZoom:16},histPadding())) }catch(e){} },60);
+  }catch(e){ if(ger===dorGer && !e.sessao) $('hMsg').textContent=e.message||'Não consegui ler o histórico.'; if(ger===dorGer) hist.modo='' }
+  finally{ if(dorAtivo===ger){ dorAtivo=0; b.disabled=false; b.textContent='🛏️ Onde o veículo dorme' } }
+};
 /* ===== PDF das paradas (10/10/2026) =====
    Montado no próprio aparelho (bibliotecas jsPDF e AutoTable, carregadas só quando o botão é tocado). Respeita o filtro de paradas. */
 function carregarScript(urls){
