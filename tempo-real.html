@@ -3414,6 +3414,7 @@ nav button.on .nemo.txt{color:var(--red2)}
   <div class="box2">
     <h3 id="rnTitulo">Nome do veículo</h3>
     <input class="fld" id="rnNome" maxlength="40" autocomplete="off">
+    <input class="fld" id="rnPlaca" maxlength="10" autocomplete="off" autocapitalize="characters" placeholder="Placa (ex.: ABC1D23)" style="text-transform:uppercase;letter-spacing:.5px"><!-- 23/10/2026 (pedido do dono): quem edita o nome também edita a placa -->
     <!-- 16/10/2026 (pedido do dono): IMEI do aparelho, só para o administrador e só nesta janela do lápis -->
     <div id="rnImeiBox" style="display:none;margin-top:8px;align-items:center;gap:8px;font-size:14px;color:var(--mut)">IMEI <b id="rnImei" style="color:var(--txt);font-size:15px;letter-spacing:.3px;user-select:all"></b><button type="button" id="rnImeiCopia" aria-label="Copiar o IMEI" title="Copiar o IMEI" style="width:30px;height:30px;border-radius:8px;border:1px solid var(--line);background:var(--card2);color:var(--mut);display:inline-flex;align-items:center;justify-content:center;cursor:pointer"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg></button></div>
     <div id="rnMotBox" style="display:none;margin-top:6px">
@@ -6521,6 +6522,7 @@ $('btnRenome').onclick=e=>{
   $('rnNome').value=v.nome; $('rnErro').textContent=''; $('rnOk').disabled=false;
   const podeNome=ehAdmin||permCli.editarNome, podeMot=ehAdmin||permCli.frotista;
   $('rnNome').style.display=podeNome?'':'none'; $('rnTitulo').textContent=podeNome?'Nome do veículo':v.nome;
+  $('rnPlaca').style.display=podeNome?'':'none'; $('rnPlaca').value=v.placa||''; $('rnPlaca').dataset.ini=$('rnPlaca').value; /* 23/10/2026 */
   $('rnMotBox').style.display=podeMot?'':'none';
   const m=motLer(v.id)||{}; $('rnMotNome').value=m.nome||''; $('rnMotFone').value=fmtWpp(m.fone||'');
   $('rnImeiBox').style.display=(ehAdmin&&v.imei)?'flex':'none'; $('rnImei').textContent=ehAdmin?(v.imei||''):''; /* 16/10/2026 */
@@ -6580,8 +6582,10 @@ $('rnOk').onclick=async()=>{
   const podeNome=$('rnNome').style.display!=='none';
   const nome=podeNome?$('rnNome').value.trim():v.nome;
   if(!nome) { $('rnErro').textContent='Digite o nome.'; return }
+  const placa=podeNome?$('rnPlaca').value.toUpperCase().replace(/[^A-Z0-9-]/g,''):null, mudouPlaca=placa!==null && placa!==($('rnPlaca').dataset.ini||'');
+  if(mudouPlaca && placa && placa.replace(/-/g,'').length<4){ $('rnErro').textContent='Placa inválida.'; return }
   $('rnOk').disabled=true;
-  if(nome===v.nome){
+  if(nome===v.nome && !mudouPlaca){
     try{ const mudouMot=salvarMotorista(v); const mudouW=await salvarWppVeic(v); const mudou=await salvarOdometro(v); fechar(); toast(mudou?'Odômetro ajustado.':(mudouW?'WhatsApp salvo.':(mudouMot?'Motorista salvo.':'Nada mudou.'))); atualizar() }
     catch(e){ if(!e.sessao){ $('rnErro').textContent=e.message||'Não consegui salvar.'; $('rnOk').disabled=false } }
     return;
@@ -6591,10 +6595,10 @@ $('rnOk').onclick=async()=>{
     await salvarWppVeic(v);
     await salvarOdometro(v);
     const r=await fetch(DESB_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',
-      body:JSON.stringify({acao:'renomear',nome:nome,token:lsGet('rg_token'),deviceId:v.id})});
+      body:JSON.stringify(Object.assign({acao:'renomear',nome:nome,token:lsGet('rg_token'),deviceId:v.id},mudouPlaca?{placa}:{}))});
     let j={}; try{ j=await r.json() }catch(e){}
     if(!r.ok) throw new Error(j.erro||('Erro '+r.status));
-    v.nome=j.nome||nome; fechar(); toast('Nome salvo.'); atualizar(); buscando=false; buscarSeguro();
+    const mudouNome=nome!==v.nome; v.nome=j.nome||nome; if(mudouPlaca) v.placa=j.placa||''; fechar(); toast(mudouNome&&mudouPlaca?'Nome e placa salvos.':(mudouPlaca?'Placa salva.':'Nome salvo.')); atualizar(); buscando=false; buscarSeguro();
   }catch(e){ $('rnErro').textContent=e.message||'Não consegui salvar.'; $('rnOk').disabled=false }
 };
 /* Administrador: permissões de um cliente */
