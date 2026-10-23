@@ -817,10 +817,13 @@
      Carro indo embora (de costas) aparece grande logo de cara: segue igual. Se o carro sair da tela antes, a melhor
      foto que juntou é enviada do mesmo jeito. */
   const LARG_NUVEM=72;
+  /* 23/10/2026 (dono: "lê bem, mas demorou um pouco mais"): a espera caiu de 1,6 s para 0,8 s. Se a 1ª foto sair
+     pequena, a 2ª tentativa (quando a placa cresce) continua valendo. */
+  const ESPERA_MAX=800;
   function esperaChegar(t, agora){
     const larg=t.box.x2-t.box.x1, ini=(t.boxIni.x2-t.boxIni.x1)||larg;
     const crescendo = larg > ini*1.12;
-    return crescendo && larg < LARG_NUVEM && agora-t.criado < 1600;
+    return crescendo && larg < LARG_NUVEM && agora-t.criado < ESPERA_MAX;
   }
 
   var prevQuadro=false;
@@ -1117,8 +1120,10 @@
         fpsN=0; fpsT=now;
       }
     }catch(e){ console.error(e); mostraErro('Erro no motor: '+e.message); }
-    if(EH_IOS) setTimeout(()=>requestAnimationFrame(loop), 10); // iPhone: pequena folga para a prévia da câmera atualizar
-    else requestAnimationFrame(loop);
+    /* 23/10/2026 (dono: "é câmera de rastreio de placas, não precisa ser estético"): a leitura tem prioridade.
+       O próximo quadro é analisado logo em seguida, sem esperar a tela se redesenhar (antes: no iPhone, folga de 10 ms
+       + espera da tela; no Android, espera da tela). A imagem pode ficar um pouco menos fluida. O vigia da câmera continua. */
+    setTimeout(loop, 0);
   }
 
   // ---------- Desenho das caixas (todo quadro) ----------
