@@ -1285,8 +1285,11 @@ body.hist-on #mapCar{display:none!important}
 .ruacel .rctag{position:absolute;left:6px;bottom:6px;max-width:calc(100% - 12px);background:rgba(15,23,42,.72);color:#fff;font-size:10.5px;font-weight:700;padding:3px 7px;border-radius:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:none}
 .ruacel.foto .rctag{display:block}
 .ruacel.foto::after{content:"↗";position:absolute;right:6px;top:6px;width:22px;height:22px;border-radius:50%;background:rgba(15,23,42,.6);color:#fff;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center}
-.ruacel .rcgirar{position:absolute;right:6px;bottom:6px;background:#0891b2;color:#fff;font-size:11.5px;font-weight:800;padding:6px 9px;border-radius:9px;display:none;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+.ruacel .rcgirar{position:absolute;right:7px;bottom:8px;z-index:2;border:0;border-radius:11px;padding:8px 11px;font:inherit;font-size:12px;font-weight:800;color:#fff;cursor:pointer;display:none;
+  background:linear-gradient(180deg,#22b8d6,#0891b2);box-shadow:0 4px 0 #066a80,0 6px 14px rgba(0,0,0,.35);-webkit-tap-highlight-color:transparent;transition:transform .08s,box-shadow .08s}
+.ruacel .rcgirar:active{transform:translateY(3px);box-shadow:0 1px 0 #066a80,0 2px 6px rgba(0,0,0,.3)}
 .ruacel.foto .rcgirar{display:block}
+.ruacel.foto .rctag{bottom:10px}
 .ruacel.foto .rctag{max-width:calc(100% - 110px)}
 @media (min-width:900px){ #sheet.comruacel .ruacel{display:none!important} }
 .vrua{display:none;position:relative;flex:none;width:92px;height:58px;padding:0;border:1px solid var(--line);border-radius:12px;overflow:hidden;cursor:pointer;
@@ -1485,6 +1488,13 @@ h3.comdica .dica:hover~.dicatx,h3.comdica .dica:focus~.dicatx,h3.comdica .dica.o
 #btnShare{background:var(--card2);border:1px solid var(--line);color:var(--txt);padding:0}
 #btnNavMini{display:none;background:var(--card2);border:1px solid var(--line);color:var(--txt);padding:0;align-items:center;justify-content:center}
 #sheet.comruacel #btnNavMini{display:flex}
+/* 23/10/2026 (pedido do dono): no celular, SMS, Compartilhar e Navegar com cara de botão 3D */
+@media (max-width:899px){
+  #sheet #btnSmsMenu,#sheet #btnShare,#sheet #btnNavMini{border:1px solid var(--line);background:linear-gradient(180deg,#fff,var(--card2));
+    box-shadow:0 3px 0 rgba(15,23,42,.14),0 6px 12px rgba(15,23,42,.12);transition:transform .08s,box-shadow .08s;-webkit-tap-highlight-color:transparent}
+  #sheet #btnSmsMenu:active,#sheet #btnShare:active,#sheet #btnNavMini:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(15,23,42,.14),0 2px 5px rgba(15,23,42,.12)}
+  :root:not([data-tema="claro"]) #sheet #btnSmsMenu,:root:not([data-tema="claro"]) #sheet #btnShare,:root:not([data-tema="claro"]) #sheet #btnNavMini{background:linear-gradient(180deg,rgba(255,255,255,.08),var(--card2));box-shadow:0 3px 0 rgba(0,0,0,.55),0 6px 12px rgba(0,0,0,.35)}
+}
 #sheet.comruacel .navrow{display:none!important} /* 23/10/2026: com a vista da rua no celular, "Navegar" vai para a linha de cima e "Ver a rua" sai (a foto já abre a rua) */
 #admSmsRow{display:none;margin-top:8px;gap:8px}
 .stat .spdic{display:flex;justify-content:center;color:var(--mut)}
@@ -2729,7 +2739,7 @@ nav button.on .nemo.txt{color:var(--red2)}
       <button type="button" class="stat statbtn comb" id="sCombBtn" aria-label="Combustível" title="Toque para calcular o combustível"><span>Combustível</span><b id="sComb">—</b></button>
       <button type="button" class="stat statbtn loja" id="sLojaBtn" aria-label="Loja" title="Loja: tag de emergência, rastreador portátil e mais"><span>Loja</span><b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6h15l-1.5 9h-12z"/><path d="M6 6L5 3H2"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/></svg></b><em class="lojabadge" id="sLojaN" hidden></em></button>
       <!-- 15/10/2026 (pedido do dono): para o cliente, Faturas fica na frente no lugar da Loja (a Loja foi para o Mais) -->
-      <button type="button" class="ruacel" id="ruaCel" aria-label="Vista da rua"><img id="ruaCelImg" alt=""><span class="rcmsg" id="ruaCelMsg"></span><span class="rctag" id="ruaCelTag"></span><span class="rcgirar" id="ruaCelGirar">🔄 Girar 360°</span></button><!-- 23/10/2026: vista da rua no celular (permissão por cliente) -->
+      <div class="ruacel" id="ruaCel" role="button" tabindex="0" aria-label="Vista da rua"><img id="ruaCelImg" alt=""><span class="rcmsg" id="ruaCelMsg"></span><span class="rctag" id="ruaCelTag"></span><button type="button" class="rcgirar" id="ruaCelGirar">🔄 Girar 360°</button></div><!-- 23/10/2026: o Girar é um botão próprio (no iPhone o toque dentro do quadro abria o Google Maps) --><!-- 23/10/2026: vista da rua no celular (permissão por cliente) -->
       <button type="button" class="stat statbtn loja fatatalho" id="sFatBtn" aria-label="Faturas" title="Faturas: mensalidades, PIX e segunda via" style="display:none"><span>Faturas</span><b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6M9 13h8M9 17h8"/></svg></b><em class="lojabadge" id="sFatN" hidden>!</em></button>
     </div>
     <div class="addr" id="addrRow"><strong id="vAddr"></strong><span id="vAgo"></span></div>
@@ -7633,7 +7643,9 @@ async function ruaGirar(){
   }catch(e){ toast(e.message||'Não consegui abrir a vista 360° agora.') }
   finally{ ruaGirando=false }
 }
-$('ruaCel').addEventListener('click',e=>{ e.stopPropagation(); if(e.target.closest('#ruaCelGirar')){ ruaGirar(); return } const v=veiculos.find(x=>x.id===selId); if(!v||!v.pos) return;
+['pointerdown','touchstart'].forEach(t=>$('ruaCelGirar').addEventListener(t,e=>e.stopPropagation(),{passive:true}));
+$('ruaCelGirar').addEventListener('click',e=>{ e.preventDefault(); e.stopPropagation(); ruaGirar() });
+$('ruaCel').addEventListener('click',e=>{ e.stopPropagation(); if(e.target.closest('#ruaCelGirar')) return; const v=veiculos.find(x=>x.id===selId); if(!v||!v.pos) return;
   window.open('https://www.google.com/maps/@?api=1&map_action=pano&viewpoint='+v.pos[0].toFixed(6)+','+v.pos[1].toFixed(6),'_blank','noopener') });
 $('ruaCelImg').addEventListener('error',()=>{ const k=RUA.mostrando; if(k) RUA.ponto[k]={erro:Date.now()}; RUA.mostrando=''; ruaRedesenhar() });
 $('vRuaImg').addEventListener('error',()=>{ /* sem foto no ponto ou limite do dia atingido: não tenta de novo nesta abertura */
