@@ -153,6 +153,7 @@ body.mapa-google #map .leaflet-top.leaflet-left .leaflet-control-attribution{mar
 .maisgrid>.maiscard:last-child:nth-child(odd){grid-column:1/-1;min-height:0;flex-direction:row;align-items:center}
 .maiscard .mic.s{background:rgba(124,58,237,.14);color:#8b5cf6}
 .maiscard .mic.r{background:rgba(245,184,61,.16);color:var(--amber)} /* 18/10/2026: Para retirar */
+.maiscard .mic.b{background:rgba(37,99,235,.14);color:#2563eb} /* 23/10/2026: Leitor de placas */
 #mRetirar .box2{display:flex;flex-direction:column;max-height:86vh;overflow:hidden}
 #mRetirar .almtopo{flex:none;display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:4px}
 #mRetirar .almtopo h3{margin:0}
@@ -2753,12 +2754,13 @@ nav button.on .nemo.txt{color:var(--red2)}
           <button class="atab on" id="aTabEquip" title="Equipamentos" aria-label="Equipamentos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="10" r="3"/><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/></svg></button>
           <button class="atab" id="aTabCli" title="Clientes" aria-label="Clientes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 3-5.5 6.5-5.5s6.5 1.9 6.5 5.5"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18.5 14.8c2 .8 3 2.5 3 5.2"/></svg></button>
         </div>
-        <input class="search" id="aSearch" type="search" placeholder="Buscar" autocomplete="off">
+        <input class="search" id="aSearch" type="search" name="admBuscaLista" placeholder="Buscar" autocomplete="off" autocapitalize="none" spellcheck="false" readonly data-lpignore="true" data-1p-ignore data-form-type="other" onfocus="this.removeAttribute('readonly')"><!-- 21/10/2026: readonly até tocar = o navegador não coloca o e-mail do login aqui sozinho -->
         <button class="aico" id="aFinAtualizar" style="display:none" title="Atualizar situação financeira" aria-label="Atualizar situação financeira"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg></button>
         <button class="aico" id="aImportar" title="Importar equipamentos em lista" aria-label="Importar equipamentos em lista"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 9v12M15 9v12"/></svg><b class="imbadge" id="imBadge"></b></button>
         <button class="aico" id="aSmsMassa" title="SMS em massa" aria-label="SMS em massa"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v11H9l-5 4z"/><path d="M8 9h8M8 12h5"/></svg></button>
         <button class="aico" id="aSmsFat" title="Lançar no próximo boleto (SMS e avulso)" aria-label="Lançar no próximo boleto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M14.5 8.5c-.5-.8-1.4-1.2-2.5-1.2-1.4 0-2.4.7-2.4 1.7 0 2.3 5 1.1 5 3.5 0 1-1.1 1.8-2.6 1.8-1.2 0-2.2-.5-2.7-1.3M12 6v1.3M12 14.3v1.4"/></svg></button>
         <button class="aico" id="aEmerg" title="Modo emergência (lista copiada, planilha e SMS para a plataforma reserva)" aria-label="Modo emergência"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18v.5"/></svg></button>
+        <button class="aico" id="aPlacas" title="Leitor de placas" aria-label="Leitor de placas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M2 9.5h20"/><path d="M6 14h3M11 14h2M15 14h3"/></svg></button><!-- 23/10/2026 -->
         <button class="aico anovo" id="aNovo" title="Novo equipamento" aria-label="Novo equipamento"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span class="fila" id="aNovoFila"></span></button>
       </div>
       <div class="ameta"><button class="emlink" id="aEmerg2" type="button">⚠ Modo emergência</button><b id="aCount"></b><span id="aFinTxt"></span><span id="aTabNome" hidden></span></div>
@@ -3317,6 +3319,7 @@ nav button.on .nemo.txt{color:var(--red2)}
     <label class="fchk"><input type="checkbox" id="pmAncora"> Cerca rápida (botão da âncora no veículo)</label>
     <label class="fchk"><input type="checkbox" id="pmEu"> Ver a posição do próprio celular no mapa (botão Minha posição)</label>
     <label class="fchk"><input type="checkbox" id="pmRetirar"> Ver a lista <b>Para retirar</b> (para técnico: veículos marcados para retirada, pelo mais perto, com o nome e o WhatsApp do cliente)</label>
+    <label class="fchk"><input type="checkbox" id="pmPlacas"> <b>Leitor de placas</b> (abre o leitor pela câmera do celular, na aba Mais; só com o login deste cliente)</label><!-- 23/10/2026 -->
     <label class="fchk"><input type="checkbox" id="pmFichas"> Cobrar fichas no compartilhar localização (1 ficha por link; o cliente compra pacotes por PIX no app)</label>
     <div class="pmfichas" id="pmLogoBox"><span class="sp">🖼️ Logo do cliente: <b id="pmLogoSt">—</b></span><button type="button" id="pmLogoAbrir">Ver / enviar logo</button></div>
     <div class="pmfichas" id="pmModBox"><span class="sp">⭐ Premium (odômetro/mapa): <b id="pmModSt">—</b></span><input class="fld" id="pmModDias" type="text" inputmode="numeric" maxlength="3" value="30" autocomplete="off" title="Dias de teste grátis"><button type="button" data-mf="dar">Liberar dias</button><button type="button" data-mf="boleto" style="background:#7c3aed" title="Premium incluído na mensalidade: fica ativo sem prazo até você tirar">♾️ No boleto</button><button type="button" data-mf="0" style="background:#64748b">Tirar</button></div>
@@ -6234,7 +6237,7 @@ async function carregarPermissoes(){
     if(!r.ok) return;
     const j=await r.json(); permCli=Object.assign({smsBloqueio:false,reset:false,editarNome:false,cercaRapida:false,minhaPosicao:false},j.perm||{},{appBloqueio:permCli.appBloqueio,cercaBloqueio:permCli.cercaBloqueio,semBloqueio:permCli.semBloqueio,frotista:permCli.frotista,modFrotaAteMs:Number(j.modFrotaAteMs||0)}); cobrCli=j.cobranca||null;
     try{ modFrotaAplicar() }catch(e){}
-    mostrarBotoesSms(); fichasAplicar(); try{ retAplicar() }catch(e){} try{ logoAplicar() }catch(e){}
+    mostrarBotoesSms(); fichasAplicar(); try{ retAplicar() }catch(e){} try{ leitorAplicar() }catch(e){} try{ logoAplicar() }catch(e){}
   }catch(e){}
 }
 function textoCusto(){
@@ -6545,7 +6548,7 @@ async function salvarPermTraccar(u){
 }
 function mostrarPerm(j){
   const p=j.perm||{}, c=j.cobranca||{pendentes:0,valor:0};
-  $('pmSms').checked=!!p.smsBloqueio; $('pmReset').checked=!!p.reset; $('pmNome').checked=!!p.editarNome; $('pmAncora').checked=!!p.cercaRapida; $('pmEu').checked=!!p.minhaPosicao; $('pmIcone').checked=p.trocarIcone!==false; $('pmRetirar').checked=!!p.verRetirar;
+  $('pmSms').checked=!!p.smsBloqueio; $('pmReset').checked=!!p.reset; $('pmNome').checked=!!p.editarNome; $('pmAncora').checked=!!p.cercaRapida; $('pmEu').checked=!!p.minhaPosicao; $('pmIcone').checked=p.trocarIcone!==false; $('pmRetirar').checked=!!p.verRetirar; $('pmPlacas').checked=!!p.leitorPlacas;
   $('pmCob').innerHTML='SMS pela plataforma a cobrar: <b>'+c.pendentes+'</b> = <b>'+brl2(c.valor)+'</b>'+
     (c.faturadoEm?'<br><span style="color:var(--mut);font-size:12px">Último zerado em '+fmtHora(c.faturadoEm)+' · total já faturado: '+(c.totalFaturado||0)+' SMS</span>':'');
   $('pmZerar').disabled=!c.pendentes;
@@ -6564,7 +6567,7 @@ $('pmSalvar').onclick=async()=>{
   try{
     const u=usuarios.find(x=>x.id===permUserId); if(!u) throw new Error('Cliente não encontrado. Feche e abra de novo.');
     await salvarPermTraccar(u);
-    mostrarPerm(await chamarPerm('permSalvar',{perm:{smsBloqueio:$('pmSms').checked,reset:$('pmReset').checked,editarNome:$('pmNome').checked,cercaRapida:$('pmAncora').checked,minhaPosicao:$('pmEu').checked,fichas:$('pmFichas').checked,trocarIcone:$('pmIcone').checked,verRetirar:$('pmRetirar').checked}}));
+    mostrarPerm(await chamarPerm('permSalvar',{perm:{smsBloqueio:$('pmSms').checked,reset:$('pmReset').checked,editarNome:$('pmNome').checked,cercaRapida:$('pmAncora').checked,minhaPosicao:$('pmEu').checked,fichas:$('pmFichas').checked,trocarIcone:$('pmIcone').checked,verRetirar:$('pmRetirar').checked,leitorPlacas:$('pmPlacas').checked}}));
     await carregarUsuarios(); const u2=usuarios.find(x=>x.id===permUserId); if(u2) mostrarPermTraccar(u2);
     desenharAdmin(); toast('Permissões salvas.')
   }
@@ -8756,6 +8759,7 @@ function desenharAdmin(){
   $('aTabNome').textContent = abaAdmin==='equip' ? 'Equipamentos' : 'Clientes'; rotularFin();
   $('aNovo').classList.toggle('verde',abaAdmin==='equip'); $('aNovo').classList.toggle('azul',abaAdmin!=='equip');
   $('aSearch').style.display = '';
+  try{ aBuscaLimparAutofill() }catch(e){} /* 21/10/2026 */
   const ph = abaAdmin==='equip' ? 'Buscar equipamento' : 'Buscar cliente';
   $('aSearch').title = abaAdmin==='equip' ? 'Busca por nome, placa, IMEI, chip ou cliente' : 'Busca por nome, login ou CPF';
   if($('aSearch').placeholder!==ph){ buscaAdmin[abaAnt||'equip']=$('aSearch').value; $('aSearch').value=buscaAdmin[abaAdmin]||''; $('aSearch').placeholder=ph }
@@ -9090,6 +9094,13 @@ function desenharClientes(fundo){
 $('aList').addEventListener('toggle',e=>{ const d=e.target; if(d.dataset && d.dataset.u) abertos[d.dataset.u]=d.open; if(d.classList && d.classList.contains('eq')) abertosEq[d.dataset.id]=d.open },true);
 $('aTabEquip').onclick=()=>{abaAdmin='equip';desenharAdmin()};
 $('aTabCli').onclick=()=>{abaAdmin='cli';desenharAdmin(); if(finVelho()) carregarFin(true); carregarAcessos()};
+/* 21/10/2026: se o navegador mesmo assim preencher com o e-mail do login, apaga (sem mexer no que a pessoa digitou) */
+function aBuscaLimparAutofill(){
+  const b=$('aSearch'); if(!b || !b.value || document.activeElement===b) return false;
+  const v=b.value.trim().toLowerCase(), em=String(lsGet('rg_email')||'').trim().toLowerCase();
+  if(em && v===em){ b.value=''; buscaAdmin[abaAdmin]=''; return true } return false;
+}
+[300,1200,3000,6000].forEach(ms=>setTimeout(()=>{ if(aBuscaLimparAutofill()){ try{ if(abaAdmin==='equip') desenharEquip(); else desenharClientes() }catch(e){} } },ms));
 $('aSearch').addEventListener('input',()=>{ buscaAdmin[abaAdmin]=$('aSearch').value; if(abaAdmin==='equip') desenharEquip(); else desenharClientes() });
 $('aNovo').onclick=()=>{ if(abaAdmin==='equip') abrirEquip(null); else abrirCliente() };
 
@@ -12059,6 +12070,22 @@ const LOJA_SVG_CAR='<svg viewBox="0 0 24 24"><path d="M6 6h15l-1.5 9h-12z"/><pat
 $('lojaCarBtn').onclick=()=>{ lojaCarAberto=true; const c=$('lojaCar'); if(c) c.classList.add('aberto'); $('lojaRola').scrollTo({top:0,behavior:'smooth'}) };
 $('maisFat').onclick=()=>irPara('Faturas');
 $('maisServ').onclick=()=>abrir('mServ');
+/* ===== LEITOR DE PLACAS (23/10/2026, pedido do dono) =====
+   Cliente com a permissão "Leitor de placas": cartão no Mais. Administrador: botão na barra do Admin.
+   A página (leitor-placas.html, mesmo endereço do app) usa o mesmo login e o servidor confere a permissão. */
+const LEITOR_URL='leitor-placas.html';
+function leitorAbrir(){ const w=window.open(LEITOR_URL,'_blank'); if(!w) location.href=LEITOR_URL }
+function leitorAplicar(){
+  const pode=!ehAdmin && !!(permCli&&permCli.leitorPlacas), grid=document.querySelector('#maisview .maisgrid');
+  let c=$('maisPlacas');
+  if(pode && !c && grid){
+    c=document.createElement('button'); c.className='maiscard'; c.id='maisPlacas'; c.type='button';
+    c.innerHTML='<span class="mic b"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M2 9.5h20"/><path d="M6 14h3M11 14h2M15 14h3"/></svg></span><b>Leitor de placas</b><small>Lê as placas pela câmera e avisa quando passa um veículo procurado</small>';
+    c.onclick=leitorAbrir; grid.insertBefore(c,$('maisConta'));
+  }
+  if(!pode && c) c.remove();
+}
+$('aPlacas').onclick=leitorAbrir;
 /* ===== PARA RETIRAR (18/10/2026, pedido do dono) =====
    Quem tem a permissão "Ver a lista Para retirar" (ex.: técnico) ganha o cartão "Para retirar" no Mais.
    A lista vem do servidor (veículos marcados pelo administrador), com a distância até o celular, do mais perto ao mais longe. */
