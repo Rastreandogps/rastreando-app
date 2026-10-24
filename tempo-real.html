@@ -12583,7 +12583,18 @@ $('maisServ').onclick=()=>abrir('mServ');
    Cliente com a permissão "Leitor de placas": cartão no Mais. Administrador: botão na barra do Admin.
    A página (leitor-placas.html, mesmo endereço do app) usa o mesmo login e o servidor confere a permissão. */
 const LEITOR_URL='leitor-placas.html';
-function leitorAbrir(){ const w=window.open(LEITOR_URL,'_blank'); if(!w) location.href=LEITOR_URL }
+/* 24/10/2026 (dono: "deitado, a câmera não vira"): aberto de dentro do app instalado, o Android abre o leitor numa aba
+   presa ao app (Custom Tab), que segue a trava "em pé" do app. Agora, no Android, o leitor abre no Chrome de verdade,
+   onde a rotação automática funciona. iPhone e computador seguem como antes. */
+function leitorAbrir(){
+  const abs=new URL(LEITOR_URL,location.href).href;
+  const android=/Android/i.test(navigator.userAgent), instalado=(window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone===true;
+  if(android && instalado){
+    location.href='intent://'+abs.replace(/^https?:\/\//,'')+'#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url='+encodeURIComponent(abs)+';end';
+    return;
+  }
+  const w=window.open(LEITOR_URL,'_blank'); if(!w) location.href=LEITOR_URL;
+}
 function leitorAplicar(){
   const pode=!ehAdmin && !!(permCli&&permCli.leitorPlacas), grid=document.querySelector('#maisview .maisgrid');
   let c=$('maisPlacas');
