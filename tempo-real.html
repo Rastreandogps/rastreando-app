@@ -12323,7 +12323,8 @@ async function lojaPedidosDesenhar(){ /* pedidos dos últimos 7 dias (aguardando
     lojaMapaPintar(lista);
     if(!lista.length){ box.innerHTML=''; cb.classList.remove('show'); return }
     const ag=lista.filter(p=>p.estado!=='pago').length, pg=lista.length-ag;
-    const resumo=[ag?ag+(ag>1?' aguardando pagamento':' aguardando pagamento'):'', pg?pg+(pg>1?' pagos':' pago')+' · combine a entrega':''].filter(Boolean).join(' · ');
+    const pgEnt=lista.filter(p=>p.estado==='pago' && !(Number(p.giros)>0||Number(p.frotaDias)>0)).length;
+    const resumo=[ag?ag+(ag>1?' aguardando pagamento':' aguardando pagamento'):'', pg?pg+(pg>1?' pagos':' pago')+(pgEnt?' · combine a entrega':''):''].filter(Boolean).join(' · ');
     if(ag) lojaCarAberto=true; /* tem PIX para pagar: já mostra aberto */
     $('lojaCarN').textContent=lista.length; cb.classList.add('show');
     box.innerHTML='<div class="ljcar'+(lojaCarAberto?' aberto':'')+'" id="lojaCar">'+
@@ -12333,7 +12334,8 @@ async function lojaPedidosDesenhar(){ /* pedidos dos últimos 7 dias (aguardando
         const pago=p.estado==='pago';
         const canc=!pago&&p.cancelarEmMs;
         const tag=pago?'<span class="ljst ok">Pago</span>':canc?'<span class="ljst cc">Cancelamento até '+fmtHora(p.cancelarEmMs).split(' ').pop()+'</span>':'<span class="ljst ag">Aguardando pagamento</span>';
-        const bts=pago?'<button class="ljbtn" type="button" data-lent="'+esc(p.rotulo||'')+'" data-ln="'+esc(p.nome)+'">'+LOJA_SVG_WPP+'Entrega</button>'
+        const semEntrega=Number(p.giros)>0||Number(p.frotaDias)>0; /* 24/10/2026: giros e Premium entram na hora, não têm entrega */
+        const bts=pago?(semEntrega?'<span class="ljst ok" style="align-self:center">'+(Number(p.giros)>0?'Giros creditados':'Liberado')+'</span>':'<button class="ljbtn" type="button" data-lent="'+esc(p.rotulo||'')+'" data-ln="'+esc(p.nome)+'">'+LOJA_SVG_WPP+'Entrega</button>')
           :'<div class="ljpb"><button class="ljcomprar" type="button" data-k="'+esc(p.produto)+'" data-q="'+(Number(p.qtd)||1)+'">Pagar</button>'+
             (canc?'<button class="ljcanc" type="button" data-lmant="'+esc(p.pedido)+'">Manter pedido</button>'
                  :'<button class="ljcanc" type="button" data-lcan="'+esc(p.pedido)+'" data-ln="'+esc(p.nome)+'" data-k2="'+esc(p.produto)+'" data-q="'+(Number(p.qtd)||1)+'">Cancelar</button>')+'</div>';
