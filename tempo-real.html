@@ -952,6 +952,12 @@ body.hist-on #mapCar{display:none!important}
 @keyframes euPulsa{0%,100%{opacity:1}50%{opacity:.35}}
 @media (prefers-reduced-motion:reduce){#btnEu.buscando svg{animation:none}}
 .eu-ponto{width:18px;height:18px;border-radius:50%;background:#1a73e8;border:3px solid #fff;box-shadow:0 0 0 2px rgba(26,115,232,.35),0 2px 8px rgba(0,0,0,.5)}
+/* 24/10/2026 (pedido do dono): "lanterna" azul na frente da bolinha, como no Google Maps, mostrando para onde o celular aponta (bússola) */
+.eu-wrap{position:relative;width:64px;height:64px;display:flex;align-items:center;justify-content:center}
+.eu-wrap .eu-ponto{position:relative;z-index:2}
+.eu-cone{position:absolute;left:0;top:0;width:64px;height:64px;display:none;transform-origin:50% 50%;pointer-events:none}
+.eu-cone.on{display:block}
+.eu-cone svg{width:64px;height:64px;display:block}
 
 /* Aviso sem veículo */
 .vazio{display:none;position:absolute;left:16px;right:16px;bottom:24px;z-index:450;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;text-align:center;font-weight:600}
@@ -4241,7 +4247,7 @@ const cartao = () => ativo() || veiculos.find(v=>v.id===semPosId && v.id===selId
 const map = L.map('map',{zoomControl:false,attributionControl:false}).setView([-22.787,-43.307],15);
 L.control.attribution({position:'topleft',prefix:false}).addTo(map);
 const camadaOsm=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
-  maxZoom:19,attribution:'© OpenStreetMap'
+  maxZoom:19,attribution:'© OpenStreetMap',zIndex:1 /* 24/10/2026: o grátis fica SEMPRE por baixo do Google (zIndex 2); antes, quando entrava como reserva, cobria o Google */
 });
 /* sem piscar o mapa grátis antes do Google (11/10, 21h11): o app lembra neste aparelho qual mapa foi usado por último;
    se foi o Google, já abre carregando o Google e só mostra o grátis se o Google falhar */
@@ -4298,14 +4304,30 @@ function gmCarregarApi(){
 function mapaPe(){
   try{ $('map').style.setProperty('--mapa-lado',(gmEstado==='google'?coberturaLado():0)+'px') }catch(e){}
 }
+/* 24/10/2026 (dono: "os termos do Google ficaram sobrepostos lá embaixo, em cima do cartão"): o plugin do Google às vezes
+   coloca o logo e os créditos de novo nos cantos de BAIXO do mapa (e repetidos). Os cantos de baixo não são usados pelo app,
+   então tudo o que aparecer neles sobe para o canto de cima, e fica só um logo e uma linha de créditos. */
+function gmCantosVigiar(){
+  if(gmCantosVigiar.ok) return;
+  const c=map._controlCorners; if(!c || !c.bottomleft || !c.bottomright || !c.topleft) return;
+  gmCantosVigiar.ok=true;
+  const subir=()=>{ [['bottomleft','logo'],['bottomright','attr']].forEach(([k,tipo])=>{ Array.from(c[k].children).forEach(el=>{
+      c.topleft.querySelectorAll('[data-gm="'+tipo+'"]').forEach(o=>{ if(o!==el) o.remove() });
+      el.dataset.gm=tipo; if(tipo==='logo') el.classList.add('leaflet-control','gmlogo');
+      c.topleft.appendChild(el);
+    }) }) };
+  const ob=new MutationObserver(subir); ob.observe(c.bottomleft,{childList:true}); ob.observe(c.bottomright,{childList:true}); subir();
+}
 function gmMoverLogo(camada){
+  try{ gmCantosVigiar() }catch(e){}
   let n=0;
   const t=setInterval(()=>{
     n++;
     if(!camada || gmCamada!==camada || n>40){ clearInterval(t); return }
     const lg=camada._logoContainer, at=camada._attributionContainer, canto=map._controlCorners && map._controlCorners.topleft;
     if(lg && at && canto){
-      lg.classList.add('leaflet-control','gmlogo'); canto.appendChild(lg); canto.appendChild(at);
+      lg.classList.add('leaflet-control','gmlogo'); lg.dataset.gm='logo'; at.dataset.gm='attr';
+      canto.querySelectorAll('[data-gm]').forEach(o=>{ if(o!==lg && o!==at) o.remove() }); canto.appendChild(lg); canto.appendChild(at);
       clearInterval(t);
     }
   },250);
@@ -4336,13 +4358,13 @@ async function mapaGoogleLigar(){
     if(!(L.gridLayer && L.gridLayer.googleMutant)) throw new Error('leitor do mapa');
   }catch(e){
     /* 15/10/2026: internet lenta não desiste de primeira: mostra o grátis e tenta o Google de novo (até 3 vezes) */
-    if(e.message==='demorou' && gmTentativas<3){ gmTentativas++; if(!map.hasLayer(camadaOsm)) camadaOsm.addTo(map); setTimeout(()=>{ if(gmPref==='google'&&gmEstado!=='google') mapaGoogleLigar() },15000); return }
+    if(e.message==='demorou'){ gmTentativas++; if(!map.hasLayer(camadaOsm)) camadaOsm.addTo(map); setTimeout(()=>{ if(gmPref==='google'&&gmEstado!=='google') mapaGoogleLigar() },gmTentativas<3?15000:60000); return } /* 24/10/2026: não desiste mais depois de 3 vezes; passa a tentar de minuto em minuto */
     if(e.message!=='chave') gmFalhou(e.message==='demorou'?'demorou demais':(e.message==='leitor do mapa'?'este aparelho não suporta':'sem internet ou bloqueado')); return }
   gmTentativas=0;
   if(gmPref!=='google') return;
   const escuro=temaEscuro(), marca=(escuro?'escuro':'claro')+'/'+gmTipo;
   if(gmCamada && gmEstado==='google' && gmTemaAtual===marca) return;
-  const nova=L.gridLayer.googleMutant({type:gmTipo,maxZoom:19,maxNativeZoom:19,styles:(escuro&&gmTipo==='roadmap')?GM_ESCURO:[]});
+  const nova=L.gridLayer.googleMutant({type:gmTipo,maxZoom:19,maxNativeZoom:19,zIndex:2,styles:(escuro&&gmTipo==='roadmap')?GM_ESCURO:[]});
   const antiga=gmCamada; gmCamada=nova; gmTemaAtual=marca;
   let pronto=false, avisou=false, t=null;
   /* 15/10/2026: antes, 25 s sem carregar = desistia do Google (e com o app em segundo plano ou fora da aba Mapa o
@@ -4350,19 +4372,24 @@ async function mapaGoogleLigar(){
      SEM desistir, e troca para o Google assim que ele terminar de carregar. */
   const espera=()=>{
     if(pronto || gmCamada!==nova) return;
-    if(document.hidden || !(map.getSize && map.getSize().x)){ t=setTimeout(espera,5000); return }
+    if(document.hidden || abaAgora()!=='Mapa' || !(map.getSize && map.getSize().x)){ t=setTimeout(espera,5000); return } /* 24/10/2026: fora da aba Mapa só espera (sem grátis, sem aviso) */
     if(!map.hasLayer(camadaOsm)) camadaOsm.addTo(map);
     if(!avisou && ehAdmin){ avisou=true; toast('O mapa do Google está demorando. Mostrando o mapa grátis enquanto ele carrega.',5000) }
     t=setTimeout(espera,20000);
   };
   t=setTimeout(espera,25000);
-  nova.once('load',()=>{
-    pronto=true; clearTimeout(t);
+  const ficouPronto=()=>{
+    if(pronto) return; pronto=true; clearTimeout(t);
     if(gmCamada!==nova) return;
     if(antiga){ try{ map.removeLayer(antiga) }catch(e){} }
     if(map.hasLayer(camadaOsm)) map.removeLayer(camadaOsm);
     document.body.classList.add('mapa-google'); gmEstado='google'; mapaPe(); mapaBotoes(); gmMoverLogo(nova);
-  });
+  };
+  nova.once('load',ficouPronto);
+  /* 24/10/2026 (dono: "o mapa grátis está competindo com o Google"): o aviso de "carregou" do Leaflet às vezes não vinha
+     (um pedaço do Google fora da tela ficava pendente) e o grátis ficava por cima para sempre. Agora vale também o
+     aviso do próprio Google ("tilesloaded"), e o grátis já nasce por baixo (zIndex), então o Google aparece assim que chega. */
+  nova.once('spawned',ev=>{ try{ google.maps.event.addListenerOnce(ev.mapObject,'tilesloaded',()=>setTimeout(ficouPronto,300)) }catch(e){} });
   nova.addTo(map);
 }
 function mapaAplicar(pref){
@@ -4680,7 +4707,36 @@ setInterval(()=>{ if(document.visibilityState==='visible' && Date.now()-grp.t>90
 
 /* ===== MINHA POSIÇÃO (só administrador): bolinha azul + distância até o veículo =====
    A posição do celular fica só no navegador: não é enviada para servidor nenhum. */
-const eu = {on:false, watch:null, pos:null, acc:0, ponto:null, circ:null, linha:null};
+const eu = {on:false, watch:null, pos:null, acc:0, ponto:null, circ:null, linha:null, rumo:null, rumoEm:0, bussola:null, rumoRaf:0};
+/* bússola do celular: iPhone pede permissão (tem que ser no toque do botão); Android usa a orientação absoluta */
+const EU_CONE='<svg viewBox="0 0 64 64"><defs><radialGradient id="euConeG" cx="32" cy="32" r="30" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#1a73e8" stop-opacity=".85"/><stop offset=".7" stop-color="#1a73e8" stop-opacity=".35"/><stop offset="1" stop-color="#1a73e8" stop-opacity="0"/></radialGradient></defs><path d="M32 32 L17 2 A31 31 0 0 1 47 2 Z" fill="url(#euConeG)"/></svg>';
+function euRumoPintar(){
+  eu.rumoRaf=0;
+  const c=eu.ponto && eu.ponto.getElement && eu.ponto.getElement() && eu.ponto.getElement().querySelector('.eu-cone'); if(!c) return;
+  if(eu.rumo==null || Date.now()-eu.rumoEm>5000){ c.classList.remove('on'); return }
+  c.classList.add('on'); c.style.transform='rotate('+eu.rumo.toFixed(1)+'deg)';
+}
+function euRumoNovo(h){
+  if(h==null || isNaN(h)) return;
+  let ang=0; try{ ang=(screen.orientation && typeof screen.orientation.angle==='number') ? screen.orientation.angle : (typeof window.orientation==='number'?window.orientation:0) }catch(e){}
+  eu.rumo=((h+ang)%360+360)%360; eu.rumoEm=Date.now();
+  if(!eu.rumoRaf) eu.rumoRaf=requestAnimationFrame(euRumoPintar);
+}
+function euBussolaLigar(){
+  if(eu.bussola) return;
+  const ios=e=>{ if(typeof e.webkitCompassHeading==='number') euRumoNovo(e.webkitCompassHeading) };
+  const abs=e=>{ if(e.absolute!==false && typeof e.alpha==='number') euRumoNovo(360-e.alpha) };
+  const ligar=()=>{
+    if('ondeviceorientationabsolute' in window){ window.addEventListener('deviceorientationabsolute',abs); eu.bussola={t:'deviceorientationabsolute',f:abs} }
+    else { window.addEventListener('deviceorientation',ios); eu.bussola={t:'deviceorientation',f:ios} }
+  };
+  try{
+    if(typeof DeviceOrientationEvent!=='undefined' && typeof DeviceOrientationEvent.requestPermission==='function'){
+      DeviceOrientationEvent.requestPermission().then(r=>{ if(r==='granted' && eu.on) ligar() }).catch(()=>{}); /* iPhone: sem permissão, a bolinha fica sem a lanterna */
+    } else ligar();
+  }catch(e){}
+}
+function euBussolaDesligar(){ try{ if(eu.bussola) window.removeEventListener(eu.bussola.t,eu.bussola.f) }catch(e){} eu.bussola=null; eu.rumo=null }
 function distM(a,b){
   const R=6371000, rad=x=>x*Math.PI/180, dLa=rad(b[0]-a[0]), dLo=rad(b[1]-a[1]);
   const h=Math.sin(dLa/2)**2+Math.cos(rad(a[0]))*Math.cos(rad(b[0]))*Math.sin(dLo/2)**2;
@@ -4689,7 +4745,7 @@ function distM(a,b){
 function fmtDist(m){ return m<1000 ? Math.round(m/10)*10+' m' : (m/1000).toFixed(m<10000?1:0).replace('.',',')+' km' }
 function euDesligar(){
   if(eu.watch!==null && navigator.geolocation){ try{ navigator.geolocation.clearWatch(eu.watch) }catch(e){} }
-  eu.watch=null; eu.on=false; eu.pos=null;
+  eu.watch=null; eu.on=false; eu.pos=null; euBussolaDesligar();
   [eu.ponto,eu.circ,eu.linha].forEach(l=>{ if(l && map.hasLayer(l)) map.removeLayer(l) });
   eu.ponto=eu.circ=eu.linha=null;
   $('btnEu').classList.remove('active'); $('btnEu').setAttribute('aria-pressed','false'); $('euTxt').textContent='Minha posição'; $('btnEu').classList.remove('buscando');
@@ -4707,13 +4763,16 @@ function euAtualizarTela(){
 }
 function euLigar(){
   if(!navigator.geolocation){ toast('Este navegador não consegue pegar a posição do celular.'); return }
-  eu.on=true; $('btnEu').classList.add('active'); $('btnEu').setAttribute('aria-pressed','true'); $('euTxt').textContent='Localizando...'; $('btnEu').classList.add('buscando');
+  eu.on=true; euBussolaLigar(); $('btnEu').classList.add('active'); $('btnEu').setAttribute('aria-pressed','true'); $('euTxt').textContent='Localizando...'; $('btnEu').classList.add('buscando');
   let primeira=true;
   eu.watch=navigator.geolocation.watchPosition(p=>{
     eu.pos=[p.coords.latitude,p.coords.longitude]; eu.acc=p.coords.accuracy||0;
+    /* sem bússola (ou parada): andando, usa a direção do próprio GPS */
+    if(typeof p.coords.heading==='number' && !isNaN(p.coords.heading) && (p.coords.speed||0)>1.5 && Date.now()-eu.rumoEm>3000){ eu.rumo=p.coords.heading; eu.rumoEm=Date.now(); if(!eu.rumoRaf) eu.rumoRaf=requestAnimationFrame(euRumoPintar) }
     if(!eu.ponto){
       eu.circ=L.circle(eu.pos,{radius:eu.acc,color:'#1a73e8',weight:1,fillColor:'#1a73e8',fillOpacity:.12,interactive:false}).addTo(map);
-      eu.ponto=L.marker(eu.pos,{icon:L.divIcon({className:'',html:'<div class="eu-ponto"></div>',iconSize:[18,18],iconAnchor:[9,9]}),interactive:false,keyboard:false,zIndexOffset:900}).addTo(map);
+      eu.ponto=L.marker(eu.pos,{icon:L.divIcon({className:'',html:'<div class="eu-wrap"><div class="eu-cone">'+EU_CONE+'</div><div class="eu-ponto"></div></div>',iconSize:[64,64],iconAnchor:[32,32]}),interactive:false,keyboard:false,zIndexOffset:900}).addTo(map);
+      euRumoPintar();
     } else { eu.ponto.setLatLng(eu.pos); eu.circ.setLatLng(eu.pos); eu.circ.setRadius(eu.acc) }
     $('euTxt').textContent='Minha posição'; $('btnEu').classList.remove('buscando');
     if(primeira){ primeira=false; const v=ativo(); if(v && !seguir) map.fitBounds(L.latLngBounds([eu.pos,v.pos]),{padding:[60,60],maxZoom:17}); else if(!v) map.setView(eu.pos,16) }
@@ -4728,7 +4787,7 @@ $('zoomMais').onclick=()=>map.zoomIn(); $('zoomMenos').onclick=()=>map.zoomOut()
 function zoomPos(){ try{ const p=$('pontoBtn'), d=$('deslizeBtn'), tem=x=>x&&getComputedStyle(x).display!=='none'; $('zoomBox').style.top=tem(p)?'96px':tem(d)?'54px':'12px' }catch(e){} } /* administrador tem a lupa e o deslize em cima; cliente não */
 [1500,4000,9000].forEach(t=>setTimeout(zoomPos,t));
 $('btnEu').onclick=()=>{ if(eu.on) euDesligar(); else euLigar() };
-setInterval(()=>{ if(eu.on) euAtualizarTela() },2000);
+setInterval(()=>{ if(eu.on){ euAtualizarTela(); euRumoPintar() } },2000);
 
 /* ===== SEGUIR VEÍCULO ===== */
 function setSeguir(on){
