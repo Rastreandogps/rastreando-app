@@ -274,6 +274,23 @@ body.mapa-google #map .leaflet-top.leaflet-left .leaflet-control-attribution{mar
 .drpagar>b{display:flex;align-items:center;gap:6px;font-size:14px}
 .drpagar>small{display:block;font-size:12px;color:var(--mut);margin:2px 0 8px}
 .drpagar .drchip{margin:0 6px 6px 0}
+#mDrAp{align-items:center;padding:16px;z-index:1200}
+#mDrAp .box2{border-radius:22px;max-width:400px;width:100%;text-align:center;position:relative;padding-top:22px}
+#mDrAp .dapx{position:absolute;top:12px;right:12px;width:36px;height:36px;border-radius:50%;background:var(--card2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center}
+#mDrAp .dapx svg{width:17px;height:17px;fill:none;stroke:var(--txt);stroke-width:2.4;stroke-linecap:round}
+.dapcoin{width:64px!important;height:64px!important;margin:0 auto 8px;display:block}
+.dapt{font-size:20px;font-weight:900;margin:2px 0 10px}
+.dapval{display:flex;align-items:center;justify-content:center;gap:10px;font-size:15px;font-weight:700}
+.dapval s{color:var(--mut);font-weight:600}.dapval b{font-size:22px;color:#e0a800}
+.dapdata{font-size:13px;color:var(--mut);margin:2px 0 12px}
+.dapganha{background:linear-gradient(135deg,rgba(255,213,74,.22),rgba(224,168,0,.08));border:1px solid rgba(224,168,0,.35);border-radius:14px;padding:10px 12px;font-size:14px;line-height:1.4;margin-bottom:12px}
+.dapcats{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin:6px 0 8px}
+.dapcats span{font-size:12.5px;font-weight:700;background:var(--card2);border:1px solid var(--line);border-radius:999px;padding:5px 10px}
+.dapmin{font-size:12px;color:var(--mut);line-height:1.4}
+.dapbt{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+.dapbt .btn{height:48px}
+.dapok{background:linear-gradient(135deg,#f5c518,#e0a800);color:#1a1200;font-weight:900;border-radius:12px}
+.dapok:disabled{opacity:.6}
 #aview .aico.adr{position:relative}
 .draprazo{color:#16a34a}.draprazo.vence{color:var(--red2)}
 #aview .aico.adr .fila{position:absolute;top:-5px;right:-5px;min-width:19px;height:19px;padding:0 5px;border-radius:10px;background:#dc2626;color:#fff;font-size:11px;font-weight:800;display:none;align-items:center;justify-content:center;border:2px solid var(--bg)}
@@ -3878,6 +3895,13 @@ nav button.on .nemo.txt{color:var(--red2)}
     <div class="almtopo"><h3>Fichas douradas</h3><button class="almx" data-close type="button" aria-label="Fechar" title="Fechar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
     <div class="rtsub" id="drSub">Carregando...</div>
     <div id="drCorpo"></div>
+  </div>
+</div>
+<div class="modal" id="mDrAp"><!-- 25/10/2026 (dono): confirmar o aporte antes de mudar o boleto -->
+  <div class="box2">
+    <button class="almx dapx" id="dapX" type="button" aria-label="Fechar" title="Fechar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    <div id="dapCorpo"></div>
+    <div class="dapbt"><button class="btn btn-out" id="dapNao" type="button">Agora não</button><button class="btn dapok" id="dapSim" type="button">Confirmar</button></div>
   </div>
 </div>
 <div class="modal alsheet" id="mParcAdm"><!-- 25/10/2026: aprovar parceiros (prestadores de serviço) -->
@@ -13143,6 +13167,27 @@ function drDesenhar(){
   if(j.termoAceito && j.termoEm) h+='<div class="draceite"><button type="button" id="drVerTermo">📄 Termo aceito em '+drQuando(j.termoEm)+(j.termoCpf?' · CPF '+drCpfMask(j.termoCpf):'')+'</button><div id="drTermoAceito" hidden><div class="drtxt">'+drTermoTxt(j)+'</div><small>Aceito por '+esc(j.termoLogin||'você')+(j.termoCpf?' (CPF '+drCpfMask(j.termoCpf)+')':'')+' em '+drQuando(j.termoEm)+' · versão '+esc(j.termoVer||'')+'. O aceite fica registrado e não pode ser desfeito.</small></div></div>'; /* 25/10/2026 (dono) */
   $('drCorpo').innerHTML=h;
 }
+/* ---- confirmação do aporte (25/10/2026, dono: "um modal bonito, com poucas palavras") ---- */
+let drApV=null;
+function drApAbrir(v,sim){
+  drApV=v; const liga=v>0;
+  const cats=(typeof PC_CATS!=='undefined'?PC_CATS:[]).map(c=>'<span>'+c[2]+' '+esc(c[1])+'</span>').join('');
+  $('dapCorpo').innerHTML='<span class="drcoin dapcoin" aria-hidden="true"></span>'+
+    '<div class="dapt">'+(liga?'+ R$ '+v+' por mês em fichas':'Desligar o aporte')+'</div>'+
+    '<div class="dapval"><s>'+brl2(sim.mensalidadeAtual)+'</s> → <b>'+brl2(sim.mensalidade)+'</b></div>'+
+    '<div class="dapdata">mensalidade a partir do boleto de '+drData(sim.desde)+'</div>'+
+    (liga?'<div class="dapganha">Pagou o boleto, ganhou <b>'+v+' fichas</b> ('+brl2(v)+'). Use para pagar reboque e serviços do app até o valor das suas fichas.</div>'+
+      '<div class="dapcats">'+cats+'</div><div class="dapmin">Pode mudar ou desligar quando quiser.</div>'
+     :'<div class="dapganha">Suas fichas continuam com você.</div>');
+  $('dapSim').textContent=liga?'Confirmar':'Desligar'; $('dapSim').disabled=false;
+  abrir('mDrAp');
+}
+function drApFechar(){ $('mDrAp').classList.remove('show'); drApV=null }
+$('dapX').onclick=drApFechar; $('dapNao').onclick=drApFechar;
+$('mDrAp').addEventListener('click',e=>{ if(e.target.id==='mDrAp') drApFechar() });
+$('dapSim').onclick=async()=>{ const v=drApV; if(v==null) return; const b=$('dapSim'); b.disabled=true; b.textContent='Salvando...';
+  try{ const r=await drApi('douradaAporte',{valor:v}); drApFechar(); toast(r.semMudanca?'Sem mudança.':v?'Pronto! + R$ '+v+'/mês a partir do boleto de '+drData(r.desde)+'.':'Aporte desligado a partir do boleto de '+drData(r.desde)+'.',5000); await drCarregar(false) }
+  catch(e){ toast(e.message); b.disabled=false; b.textContent=v?'Confirmar':'Desligar' } };
 /* 25/10/2026 (dono): texto do termo (versão 2026-10-25d: prazo de 2 dias úteis; sem reembolso de nota; até 7 dias devolve 100%). Fica guardado no app e o aceite (data, hora, login e CPF) no servidor */
 function drTermoTxt(j){ return '<p>As <b>fichas douradas</b> são <b>créditos pré-pagos de serviço</b> da Rastreando GPS: 1 ficha = R$ 1 para usar com os <b>parceiros do app</b> (reboque e serviços). <b>Não é seguro, não é poupança e não rende.</b></p>'+
   '<p>• <b>Só o valor que você adiciona a mais vira fichas.</b> A mensalidade do rastreamento continua sendo a mensalidade e <b>não vira crédito</b>. Exemplo: mensalidade de R$ 59,90 + aporte de R$ 20,00 = boleto de R$ 79,90 → você ganha <b>20 fichas</b> (R$ 20,00), não 79,90.</p>'+
@@ -13168,7 +13213,8 @@ $('mDourada').addEventListener('click',async e=>{
   const ocupar=async(fn)=>{ b.disabled=true; try{ await fn() }catch(err){ toast(err.message) } b.disabled=false };
   if(b.id==='drVerTermo'){ const t=$('drTermoAceito'); t.hidden=!t.hidden; return }
   if(b.id==='drAceitar'){ if(!$('drAceito').checked){ toast('Marque que leu e aceita o termo.'); return } await ocupar(async()=>{ await drApi('douradaTermo',{aceito:true}); await drCarregar(false) }); return }
-  if(b.dataset.drap!=null){ const v=Number(b.dataset.drap); await ocupar(async()=>{ const r=await drApi('douradaAporte',{valor:v}); toast(r.semMudanca?'Sem mudança.':v?'Aporte de R$ '+v+'/mês ativado a partir do boleto de '+drData(r.desde)+'.':'Aporte desligado a partir do próximo boleto.',5000); await drCarregar(false) }); return }
+  if(b.dataset.drap!=null){ const v=Number(b.dataset.drap); if(DR.dados&&v===DR.dados.aporte) return; /* 25/10/2026 (dono): primeiro mostra o que vai acontecer; só muda no Confirmar */
+    await ocupar(async()=>{ const sim=await drApi('douradaAporte',{valor:v,simular:true}); if(sim.semMudanca){ toast('Sem mudança.'); return } drApAbrir(v,sim) }); return }
   if(b.dataset.drk){ lojaComprarPix(b.dataset.drk,b,1); return }
   if(b.dataset.drcan){ await ocupar(async()=>{ await drApi('douradaCancelar',{pedido:b.dataset.drcan}); toast('Pedido cancelado. As fichas voltaram.'); await drCarregar(false) }); return }
   const pix=($('drPix')&&$('drPix').value||'').trim();
