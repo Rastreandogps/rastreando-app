@@ -320,6 +320,9 @@ body.mapa-google #map .leaflet-top.leaflet-left .leaflet-control-attribution{mar
 .pnfil{display:flex;gap:6px;overflow-x:auto;padding:2px 0 8px;scrollbar-width:none}.pnfil::-webkit-scrollbar{display:none}
 .pnfil button{flex:none;padding:7px 12px;border-radius:999px;border:1px solid var(--line);background:var(--card2);color:var(--txt);font:inherit;font-size:12.5px;font-weight:700;cursor:pointer}
 .pnfil button.on{background:#e3262f;border-color:#e3262f;color:#fff}
+.pnbusca{height:42px;margin:0 0 8px;font-size:14px}
+.pngrp{display:flex;align-items:center;gap:8px;margin:10px 0 8px;font-size:13px;font-weight:800;color:var(--mut)}.pngrp::after{content:'';flex:1;height:1px;background:var(--line)}.pngrp .n{font-weight:600}
+.pngrp[hidden]{display:none}
 .pnst{display:inline-block;font-size:11px;font-weight:800;padding:2px 8px;border-radius:999px;background:var(--card2);color:var(--mut);margin-left:6px;vertical-align:1px}
 .pnst.and{background:rgba(245,184,61,.18);color:#b87800}.pnst.pag{background:rgba(22,163,74,.9);color:#fff}.pnst.ap{background:rgba(22,163,74,.14);color:#16a34a}.pnst.cc{background:rgba(225,29,72,.12);color:#e11d48}
 .pnsenha{margin-top:8px;background:rgba(224,168,0,.12);border:1px dashed rgba(224,168,0,.6);border-radius:12px;padding:10px 12px;font-size:13px}
@@ -3955,7 +3958,9 @@ nav button.on .nemo.txt{color:var(--red2)}
       </div>
       <div id="pnParc" hidden>
         <div class="pclink"><b>Link de cadastro para mandar aos prestadores</b><small>gps.rastreandogpsbr.com.br/parceiro.html</small><div class="rtbt"><a href="#" id="paCopiar">Copiar link</a><a href="#" class="wpp" id="paWpp">Mandar no WhatsApp</a></div></div>
-        <div class="pnfil" id="pnParcFil"><button type="button" data-f="todos" class="on">Todos</button><button type="button" data-f="analise">Em análise</button><button type="button" data-f="aprovado">Aprovados</button><button type="button" data-f="reboque">Reboquistas</button><button type="button" data-f="fora">Recusados/suspensos</button></div>
+        <input class="fld pnbusca" id="pnParcBusca" type="search" placeholder="Buscar parceiro: nome, bairro, WhatsApp, serviço..." autocomplete="off"><!-- 25/10/2026 (dono) -->
+        <div class="pnfil" id="pnParcFil"><button type="button" data-f="todos" class="on">Todos</button><button type="button" data-f="analise">Em análise</button><button type="button" data-f="aprovado">Aprovados</button><button type="button" data-f="fora">Recusados/suspensos</button></div>
+        <div class="pnfil" id="pnParcCat"></div>
         <div id="paLista"></div>
       </div>
       <div id="pnCli" hidden>
@@ -13485,23 +13490,42 @@ const PC_ST={analise:['Em análise','ag'],aprovado:['Aprovado','ok'],recusado:['
 const PC_LINK='https://gps.rastreandogpsbr.com.br/parceiro.html';
 async function pcAdmContar(){ const b=$('aParcN'); if(!b||!ehAdmin) return; try{ const j=await rbApi('parcAdmLista'); b.textContent=j.pendentes||''; b.classList.toggle('on',(j.pendentes||0)>0) }catch(e){} }
 function pcAdmAbrir(){ pnAbrir('parc') }
-function pnParcFiltrar(){ const f=PN.pfil; document.querySelectorAll('#paLista .rtit').forEach(x=>{ const st=x.dataset.pst||''; x.hidden=!(f==='todos'||(f==='reboque'?st==='reboque':f==='fora'?(st==='recusado'||st==='suspenso'):st===f)) }) }
+function pnNorm(t){ return String(t||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'') }
+function pnParcFiltrar(){ /* 25/10/2026 (dono): busca + categoria + situação; agrupado por categoria */
+  const f=PN.pfil, c=PN.pcat||'todas', q=pnNorm(($('pnParcBusca')||{}).value).trim();
+  document.querySelectorAll('#paLista .rtit').forEach(x=>{ const st=x.dataset.pst||'', cat=x.dataset.pcat||'';
+    const okSt=f==='todos'||(f==='fora'?(st==='recusado'||st==='suspenso'):st===f);
+    const okCat=c==='todas'||cat===c;
+    const okQ=!q||pnNorm(x.textContent).indexOf(q)>=0;
+    x.hidden=!(okSt&&okCat&&okQ) });
+  document.querySelectorAll('#paLista .pngrp').forEach(g=>{ let n=0, e=g.nextElementSibling; while(e&&!e.classList.contains('pngrp')){ if(!e.hidden) n++; e=e.nextElementSibling } g.hidden=!n; const k=g.querySelector('.n'); if(k) k.textContent='('+n+')' });
+  const vis=[...document.querySelectorAll('#paLista .rtit')].filter(x=>!x.hidden).length; const vz=$('pnParcVazio'); if(vz) vz.hidden=vis>0;
+}
+$('pnParcBusca').addEventListener('input',pnParcFiltrar);
+function pnParcCats(){ const cats=[['todas','Todas']].concat((typeof PC_CATS!=='undefined'?PC_CATS:[]).map(c=>[c[0],c[2]+' '+c[1]]));
+  $('pnParcCat').innerHTML=cats.map(([k,n])=>'<button type="button" data-c="'+k+'"'+(k===(PN.pcat||'todas')?' class="on"':'')+'>'+n+'</button>').join('') }
+$('pnParcCat').onclick=e=>{ const b=e.target.closest('[data-c]'); if(!b) return; PN.pcat=b.dataset.c; document.querySelectorAll('#pnParcCat button').forEach(x=>x.classList.toggle('on',x===b)); pnParcFiltrar() };
 async function pcAdmCarregar(){ $('paLista').innerHTML='<div class="rtvz">Carregando...</div>';
   try{ const [j,rj]=await Promise.all([rbApi('parcAdmLista'),rbApi('reboqueAdmLista').catch(()=>({lista:[]}))]); const l=j.lista||[], rl=rj.lista||[]; $('aParcN').textContent=j.pendentes||''; $('aParcN').classList.toggle('on',(j.pendentes||0)>0); $('pnNParc').hidden=!(j.pendentes||0); $('pnNParc').textContent=j.pendentes||'';
     /* 25/10/2026 (dono): reboquistas no mesmo painel dos parceiros (eles têm login do app e rastreador; cadastro em "Meu reboque") */
-    const rebHtml=rl.map(r=>'<div class="rtit pnreb" data-pst="reboque"><div class="rttopo"><div><b>'+esc(r.nome||'Reboquista')+'</b><div class="rtinfo">🚛 Reboquista (login do app, rastreador nº '+(r.deviceId||'—')+') · '+(r.disponivel?'🟢 disponível':'⚪ invisível')+(r.sinalMs?' · sinal '+fmtHora(r.sinalMs):'')+'<br>'+
+    pnParcCats();
+    const rebHtml=rl.map(r=>'<div class="rtit pnreb" data-pst="aprovado" data-pcat="reboque"><div class="rttopo"><div><b>'+esc(r.nome||'Reboquista')+'</b><div class="rtinfo">🚛 Reboquista (login do app, rastreador nº '+(r.deviceId||'—')+') · '+(r.disponivel?'🟢 disponível':'⚪ invisível')+(r.sinalMs?' · sinal '+fmtHora(r.sinalMs):'')+'<br>'+
         (r.wpp?'WhatsApp: '+esc(fmtWpp(r.wpp)):'')+(r.fone?' · tel '+esc(fmtWpp(r.fone)):'')+'<br>Base: '+esc((r.base&&r.base.end)||'—')+'<br>'+
         (r.tabelas||[]).map(t=>esc(t.tipo)+': '+brl2(t.saida)+' até '+t.kmInc+' km + '+brl2(t.kmExtra)+'/km').join(' · ')+'<br>PIX: '+esc(r.pix||'—')+' · '+(r.vistosHoje||0)+' consultas hoje</div></div></div>'+
         '<div class="rtbt">'+(r.wpp?'<a class="wpp" href="https://wa.me/55'+esc(r.wpp)+'" target="_blank" rel="noopener">WhatsApp</a>':'')+'<a href="#" data-pnperm="'+r.id+'">Permissões / fichas</a></div></div>').join('');
-    $('paLista').innerHTML=(l.length||rl.length)?l.map(p=>{ const st=PC_ST[p.status]||[p.status,'ag'];
-      return '<div class="rtit" data-pst="'+esc(p.status)+'"><div class="rttopo"><div><b>'+esc(p.nome)+'</b><div class="rtinfo">'+esc(p.categoriaNome)+' · <span class="ljst '+st[1]+'" style="display:inline-block">'+st[0]+'</span><br>'+
+    const porCat={}; const addCat=(k,h)=>{ (porCat[k]=porCat[k]||[]).push(h) };
+    l.forEach(p=>{ const st=PC_ST[p.status]||[p.status,'ag']; addCat(p.categoria||'outros', (p=>{
+      return '<div class="rtit" data-pst="'+esc(p.status)+'" data-pcat="'+esc(p.categoria||'')+'"><div class="rttopo"><div><b>'+esc(p.nome)+'</b><div class="rtinfo">'+esc(p.categoriaNome)+' · <span class="ljst '+st[1]+'" style="display:inline-block">'+st[0]+'</span><br>'+
         'WhatsApp: '+esc(fmtWpp(p.whatsapp))+(p.responsavel?' · '+esc(p.responsavel):'')+(p.doc?' · doc '+esc(p.doc):'')+'<br>'+esc((p.base&&p.base.end)||'')+'<br>'+
         (p.h24?'24 horas':esc(p.horario||''))+(p.atendeLocal?' · vai até o cliente'+(p.raioKm?' ('+p.raioKm+' km)':''):'')+(p.lojaPublica?' · loja aberta':'')+'<br>PIX: '+esc(p.pix||'—')+'<br>'+
         (p.servicos||[]).map(s=>esc(s.nome)+': '+(s.sobConsulta||!(s.aPartir>0)?'sob consulta':brl2(s.aPartir))).join(' · ')+(p.status==='aprovado'?'<br>'+(p.disponivel?'🟢 disponível agora':'⚪ fechado')+' · '+(p.vistosHoje||0)+' '+((p.vistosHoje||0)===1?'visualização':'visualizações')+' hoje':'')+'</div></div></div>'+
         '<div class="rtbt"><a class="wpp" href="https://wa.me/55'+esc(p.whatsapp)+'" target="_blank" rel="noopener">WhatsApp</a>'+
         (p.status!=='aprovado'?'<a href="#" data-paap="'+p.id+'" style="background:rgba(22,163,74,.14);border-color:rgba(22,163,74,.4);color:#16a34a">Aprovar</a>':'')+
         (p.status==='analise'?'<a href="#" data-pare="'+p.id+'">Recusar</a>':'')+(p.status==='aprovado'?'<a href="#" data-pasu="'+p.id+'">Suspender</a>':'')+(['recusado','suspenso','rascunho'].includes(p.status)?'<a href="#" data-paex="'+p.id+'" style="color:var(--red2)">Excluir</a>':'')+
-        '<a href="#" data-pasn="'+p.id+'" data-pan="'+esc(p.nome)+'" data-paw="'+esc(p.whatsapp)+'">Nova senha</a></div><div class="pnsenhabox" id="pnSn'+p.id+'"></div></div>' }).join('')+rebHtml:'<div class="rtvz">Nenhum parceiro cadastrado ainda. Mande o link acima para os prestadores.</div>';
+        '<a href="#" data-pasn="'+p.id+'" data-pan="'+esc(p.nome)+'" data-paw="'+esc(p.whatsapp)+'">Nova senha</a></div><div class="pnsenhabox" id="pnSn'+p.id+'"></div></div>' })(p)) });
+    if(rebHtml) addCat('reboque',rebHtml);
+    const ordem=(typeof PC_CATS!=='undefined'?PC_CATS:[]).map(c=>c[0]).concat(Object.keys(porCat).filter(k=>!PC_CATS.some(c=>c[0]===k)));
+    $('paLista').innerHTML=(l.length||rl.length)?ordem.filter(k=>porCat[k]).map(k=>{ const c=(PC_CATS.find(x=>x[0]===k)||[k,k,'📍']); return '<div class="pngrp">'+c[2]+' '+esc(c[1])+(k==='reboque'?' (reboquistas)':'')+' <span class="n"></span></div>'+porCat[k].join('') }).join('')+'<div class="rtvz" id="pnParcVazio" hidden>Nenhum parceiro com esse filtro.</div>':'<div class="rtvz">Nenhum parceiro cadastrado ainda. Mande o link acima para os prestadores.</div>';
     pnParcFiltrar();
   }catch(e){ $('paLista').innerHTML='<div class="rtvz">'+esc(e.message)+'</div>' }
 }
