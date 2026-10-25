@@ -12813,12 +12813,22 @@ function rbDesenhar(){
       (r.fone?'<a href="tel:+55'+esc(r.fone)+'">Ligar</a>':'')+(r.wpp?'<a class="wpp" href="https://wa.me/55'+esc(r.wpp)+'?text='+encodeURIComponent(rbMsg(r,null))+'" target="_blank" rel="noopener">WhatsApp</a>':'')+'</div></div>';
   }).join('');
 }
-function rbMsg(r,cota){
-  const v=rbCarroAtual, onde=v?(v.nome+(v.addr||v.geo?' — '+(v.addr||v.geo):'')):'';
-  let t='Olá, '+r.nome+'! Vi seu reboque no app da Rastreando GPS. Preciso de reboque'+(onde?' para o veículo '+onde:'')+'.';
-  if(cota){ t+=' Destino: '+(rbCota.dest&&rbCota.dest.end||'')+'. O app estimou '+cota.km+' km: '+cota.valores.map(x=>x.nome+' '+brl2(x.total)).join(' · ')+'.' }
-  if(v&&v.pos) t+=' Localização: https://maps.google.com/?q='+v.pos[0].toFixed(6)+','+v.pos[1].toFixed(6);
-  return t;
+function rbMsg(r,cota){ /* 25/10/2026 (pedido do dono): mensagem organizada em linhas, com emojis */
+  const v=rbCarroAtual, L=[];
+  L.push('Olá, '+r.nome+'! 👋');
+  L.push('Vi seu reboque no app da *Rastreando GPS* e preciso de um reboque.');
+  L.push('');
+  if(v){ L.push('🚗 *Veículo:* '+v.nome); if(v.addr||v.geo) L.push('📍 *Onde está:* '+(v.addr||v.geo)) }
+  if(v&&v.pos) L.push('🗺️ https://maps.google.com/?q='+v.pos[0].toFixed(6)+','+v.pos[1].toFixed(6));
+  if(cota){
+    L.push('🏁 *Destino:* '+(rbCota.dest&&rbCota.dest.end||''));
+    L.push('');
+    L.push('💰 *Valor estimado pelo app* ('+cota.km+' km ida e volta):');
+    cota.valores.forEach(x=>L.push('• '+x.nome+': *'+brl2(x.total)+'*'));
+    L.push('');
+    L.push('Pode atender? 🙏');
+  } else L.push('\nPode atender? 🙏');
+  return L.join('\n');
 }
 $('rbAtualizar').onclick=rbCarregar;
 $('rbLista').addEventListener('click',e=>{ const a=e.target.closest('[data-rbcota]'); if(!a) return; e.preventDefault(); rbCotaAbrir(rbLista[+a.dataset.rbcota]) });
