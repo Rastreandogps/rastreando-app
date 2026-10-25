@@ -905,6 +905,7 @@ body.hist-on #mapCar{display:none!important}
 .hpanel .hdorres{display:none;margin-top:12px}
 .hpanel .hdorres.show{display:block}
 .hpanel .hdorcab{font-size:12.5px;color:var(--mut);margin-bottom:8px;line-height:1.4}
+.hpanel .hdoraviso{background:rgba(245,158,11,.14);border:1px solid rgba(245,158,11,.5);color:var(--txt);border-radius:10px;padding:8px 10px;margin-bottom:8px;font-size:12.5px}
 .hpanel .hdoritem{display:flex;gap:10px;align-items:flex-start;padding:10px;border-radius:12px;background:var(--card2);margin-bottom:6px;cursor:pointer;font-size:13px;line-height:1.4}
 .hpanel .hdoritem.top{border:1px solid #f59e0b;background:rgba(245,158,11,.10)}
 .hpanel .hdoritem .n{flex:none;width:26px;height:26px;border-radius:50%;background:#7c3aed;color:#fff;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center}
@@ -3460,6 +3461,7 @@ nav button.on .nemo.txt{color:var(--red2)}
     <label class="fchk"><input type="checkbox" id="pmFichas"> Cobrar fichas no compartilhar localização (1 ficha por link; o cliente compra pacotes por PIX no app)</label>
     <div class="pmfichas" id="pmLogoBox"><span class="sp">🖼️ Logo do cliente: <b id="pmLogoSt">—</b></span><button type="button" id="pmLogoAbrir">Ver / enviar logo</button></div>
     <div class="pmfichas" id="pmModBox"><span class="sp">⭐ Premium (odômetro/mapa): <b id="pmModSt">—</b></span><input class="fld" id="pmModDias" type="text" inputmode="numeric" maxlength="3" value="30" autocomplete="off" title="Dias de teste grátis"><button type="button" data-mf="dar">Liberar dias</button><button type="button" data-mf="boleto" style="background:#7c3aed" title="Premium incluído na mensalidade: fica ativo sem prazo até você tirar">♾️ No boleto</button><button type="button" data-mf="0" style="background:#64748b">Tirar</button></div>
+    <div class="pmfichas" id="pmGiroBox"><span class="sp">🔄 Giros extras da vista da rua: <b id="pmGiroSaldo">—</b></span><input class="fld" id="pmGiroQ" type="text" inputmode="numeric" placeholder="+10" autocomplete="off" aria-label="Giros para lançar"><button type="button" id="pmGiroLancar">Lançar</button></div><!-- 25/10/2026 (pedido do dono): giros de cortesia de volta -->
     <div class="pmfichas" id="pmFichasBox"><span class="sp">Saldo: <b id="pmFichasSaldo">—</b> fichas</span><input class="fld" id="pmFichasQ" type="text" inputmode="numeric" placeholder="+10" autocomplete="off" aria-label="Fichas para lançar"><button type="button" id="pmFichasLancar">Lançar</button></div>
     <div class="pmval pmmapa"><span class="pmvl">Mapa do app</span><select class="fld" id="pmMapa"><option value="gratis">Grátis (padrão)</option><option value="google">Google Maps</option></select></div>
     <p class="pmvh">Todo cliente começa com o mapa grátis. Se ele reclamar do mapa, troque para o Google aqui (custa por uso; vale na próxima vez que ele abrir o app).</p>
@@ -6795,6 +6797,7 @@ function mostrarPerm(j){
   $('pmZerar').disabled=!c.pendentes;
   $('pmFichas').checked=!!p.fichas; pmFichasCarregar();
   pmModPintar(j.modFrotaAteMs);
+  $('pmGiroSaldo').textContent=Number(j.girosExtra||0).toLocaleString('pt-BR'); $('pmGiroQ').value='';
   $('pmLogoSt').textContent='…'; fnAdm('logoVer',{userId:permUserId}).then(r=>{ $('pmLogoSt').textContent=r.img?'enviada'+(r.nome?' ('+r.nome+')':''):'nenhuma' }).catch(()=>{ $('pmLogoSt').textContent='?' });
 }
 async function abrirPermissoes(userId){
@@ -8507,7 +8510,9 @@ function dormeLugares(est,minMs){
   });
   grupos.forEach(g=>{
     const dias=new Set();
-    g.lst.forEach(s=>{ for(let k=0;k*DOR_DIA<=s.dur;k++) dias.add(dorDiaDe(s.ini+k*DOR_DIA)) });
+    /* 25/10/2026: conta os DIAS DO CALENDÁRIO que a parada toca (pelo menos 1 h em cada um). Antes contava 1 dia a cada 24 h
+       parado a partir do início: a noite de 19h às 6h valia só o dia em que começou, e um veículo com 2 dias de histórico nunca aparecia. */
+    g.lst.forEach(s=>{ const d0=dorDiaDe(s.ini), d1=dorDiaDe(s.fim); for(let d=d0; d<=d1; d++){ const ini=Math.max(s.ini,d*DOR_DIA+3*3600000), fim=Math.min(s.fim,(d+1)*DOR_DIA+3*3600000); if(fim-ini>=3600000) dias.add(d) } });
     g.dias=dias.size; g.vezes=g.lst.length; g.total=g.lst.reduce((a,s)=>a+s.dur,0);
     g.ult=g.lst.reduce((a,s)=>s.fim>a.fim?s:a,g.lst[0]);
   });
@@ -8518,7 +8523,7 @@ function popDorme(g,i,n){
   const gm='https://www.google.com/maps/search/?api=1&query='+la+','+lo, am='https://maps.apple.com/?q='+encodeURIComponent('Lugar '+(i+1))+'&ll='+la+','+lo;
   const end=enderecoGuardado(g.ll);
   return '<div class="hpopt">'+(i===0?'🛏️ Lugar 1 · principal':'Lugar '+(i+1))+'</div>'+
-    '<div class="hpopd"><b>Parado aqui em '+g.dias+' dos últimos '+n+' dias</b><br>'+g.vezes+(g.vezes===1?' vez':' vezes')+' · em média '+durCurta(g.total/g.vezes)+' por vez<br>Última: '+dorDataHora(g.ult.ini)+' até '+dorDataHora(g.ult.fim)+'</div>'+
+    '<div class="hpopd"><b>Parado aqui em '+g.dias+' dos '+n+'</b><br>'+g.vezes+(g.vezes===1?' vez':' vezes')+' · em média '+durCurta(g.total/g.vezes)+' por vez<br>Última: '+dorDataHora(g.ult.ini)+' até '+dorDataHora(g.ult.fim)+'</div>'+
     '<div class="hpope" data-pe="'+i+'">'+(end?esc(end):'Buscando endereço...')+'</div>'+
     '<a class="hpopb" href="'+gm+'" target="_blank" rel="noopener">Abrir no Google Maps</a>'+
     (ehIphone()?'<a class="hpopb ap" href="'+am+'" target="_blank" rel="noopener">Abrir no Mapas (Apple)</a>':'');
@@ -8549,10 +8554,16 @@ $('hDorme').onclick=async()=>{
     if(!pts.length){ $('hMsg').textContent='Sem posições nesse período (o rastreador pode ter ficado desligado ou sem GPS).'; hist.modo=''; return }
     const lug=dormeLugares(dormeEstadias(pts),horas*3600000);
     hist.dor=lug;
+    /* 25/10/2026 (pedido do dono): veículo com menos dias de histórico que o período escolhido -> aviso e textos com os dias que existem */
+    const diasHist=new Set(); pts.forEach(q=>{ diasHist.add(dorDiaDe(q.t)); diasHist.add(dorDiaDe(q.fim)) });
+    const nHist=Math.min(n,Math.max(1,diasHist.size)), curto=nHist<n;
+    const nTxt=curto?nHist+(nHist===1?' dia com histórico':' dias com histórico'):'últimos '+n+' dias';
+    lug.forEach(g=>{ g.dias=Math.min(g.dias,nHist) }); /* a parada que começou antes do período não conta dia a mais */
     $('hPerTxt').textContent='🛏️ Onde dorme · últimos '+n+' dias · '+horas+' h ou mais'; $('hpanel').classList.add('achou');
-    $('hDorCab').innerHTML=lug.length?'Lugares onde ficou parado '+horas+' h ou mais em pelo menos 2 dias diferentes. O <b>principal</b> está em destaque.':'';
+    $('hDorCab').innerHTML=(curto?'<div class="hdoraviso">⚠️ Este veículo só tem <b>'+nHist+(nHist===1?' dia':' dias')+'</b> de histórico no período de '+n+' dias.'+(nHist<2?' Para achar onde ele dorme, precisa de pelo menos 2 dias.':'')+'</div>':'')+
+      (lug.length?'Lugares onde ficou parado '+horas+' h ou mais em pelo menos 2 dias diferentes. O <b>principal</b> está em destaque.':'');
     if(!lug.length){
-      $('hDorLista').innerHTML='<div class="hdoritem"><small>Nenhum lugar onde ele ficou parado '+horas+' h ou mais em 2 dias diferentes nesse período.</small></div>';
+      $('hDorLista').innerHTML='<div class="hdoritem"><small>'+(nHist<2?'Ainda não dá para saber: só há '+nHist+' dia de histórico.':'Nenhum lugar onde ele ficou parado '+horas+' h ou mais em 2 dias diferentes nesse período.')+'</small></div>';
       $('hDorRes').classList.add('show'); map.setView(pts[pts.length-1].ll,15); return;
     }
     const g=L.layerGroup();
@@ -8561,10 +8572,10 @@ $('hDorme').onclick=async()=>{
       const tam=i===0?52:44;
       return L.marker(x.ll,{icon:L.divIcon({className:'hmk',html:'<div class="hpinarea" style="width:'+tam+'px;height:'+tam+'px"><div class="hpin dor'+(i===0?' top':'')+'">'+(i+1)+'</div></div>',iconSize:[tam,tam],iconAnchor:[tam/2,tam/2]}),zIndexOffset:i===0?900:600,bubblingMouseEvents:false})
         .on('click',function(){ const pp=this.getPopup(); if(!pp) return; pp.options.autoPanPaddingBottomRight=[20,telaLarga()?40:($('hpanel').offsetHeight||0)+40]; pp.options.autoPanPaddingTopLeft=[telaLarga()?($('hpanel').offsetWidth||0)+40:20,20] })
-        .bindPopup(popDorme(x,i,n),{className:'hpop',closeButton:true,autoPanPaddingTopLeft:[20,20],autoPanPaddingBottomRight:[20,40]}).addTo(g);
+        .bindPopup(popDorme(x,i,nTxt),{className:'hpop',closeButton:true,autoPanPaddingTopLeft:[20,20],autoPanPaddingBottomRight:[20,40]}).addTo(g);
     });
     g.addTo(map); hist.camDor=g;
-    $('hDorLista').innerHTML=lug.map((x,i)=>'<div class="hdoritem'+(i===0?' top':'')+'" data-di="'+i+'"><span class="n">'+(i+1)+'</span><span><b>'+(i===0?'Principal · ':'')+'parado aqui em '+x.dias+' dos últimos '+n+' dias</b>'+
+    $('hDorLista').innerHTML=lug.map((x,i)=>'<div class="hdoritem'+(i===0?' top':'')+'" data-di="'+i+'"><span class="n">'+(i+1)+'</span><span><b>'+(i===0?'Principal · ':'')+'parado aqui em '+x.dias+' dos '+nTxt+'</b>'+
       '<small>'+x.vezes+(x.vezes===1?' vez':' vezes')+' · em média '+durCurta(x.total/x.vezes)+' por vez · última: '+dorDataHora(x.ult.ini)+' até '+dorDataHora(x.ult.fim)+'</small>'+
       '<em class="hend" data-de="'+i+'">'+esc(enderecoGuardado(x.ll)||'')+'</em></span></div>').join('');
     $('hDorLista').onclick=e=>{ const r=e.target.closest('[data-di]'); if(r){ const i=+r.dataset.di; histFocar(lug[i].ll,17); setTimeout(()=>{ try{ hist.mkDor[i].openPopup() }catch(er){} },350) } };
@@ -8572,7 +8583,7 @@ $('hDorme').onclick=async()=>{
     enderecosParadas(lug,(i,t)=>{
       if(ger!==dorGer) return;
       const e=$('hDorLista').querySelector('[data-de="'+i+'"]'); if(e) e.textContent=t;
-      const mk=hist.mkDor&&hist.mkDor[i]; if(mk) mk.setPopupContent(popDorme(lug[i],i,n));
+      const mk=hist.mkDor&&hist.mkDor[i]; if(mk) mk.setPopupContent(popDorme(lug[i],i,nTxt));
     });
     setTimeout(()=>{ try{ if(lug.length===1) histFocar(lug[0].ll,16); else map.fitBounds(L.latLngBounds(lug.map(x=>x.ll)),Object.assign({maxZoom:16},histPadding())) }catch(e){} },60);
   }catch(e){ if(ger===dorGer && !e.sessao) $('hMsg').textContent=e.message||'Não consegui ler o histórico.'; if(ger===dorGer) hist.modo='' }
@@ -12569,6 +12580,14 @@ $('pmModBox').addEventListener('click',async e=>{
   try{ const j=await chamarPerm('modFrotaLancar',{dias}); pmModPintar(j.modFrotaAteMs); toast(dias?'Premium liberado: +'+dias+' dia'+(dias>1?'s':'')+'.':'Premium tirado.') }catch(err){ $('pmErro').textContent=err.message }
   b.disabled=false;
 });
+$('pmGiroLancar').onclick=async()=>{ /* 25/10/2026: giros extras (não vencem; fora do limite do dia) */
+  const t=$('pmGiroQ').value.replace(/\s/g,'').replace('−','-'), q=parseInt(t,10);
+  if(!/^[+-]?\d+$/.test(t) || !q){ $('pmErro').textContent='Digite quantos giros (ex.: 10 para dar, -5 para tirar).'; return }
+  const b=$('pmGiroLancar'); b.disabled=true; $('pmErro').textContent='';
+  try{ const j=await chamarPerm('ruaGiroLancar',{qtd:q}); $('pmGiroSaldo').textContent=Number(j.girosExtra||0).toLocaleString('pt-BR'); $('pmGiroQ').value=''; toast((q>0?'+':'')+q+' giros lançados. Saldo extra: '+j.girosExtra+'.') }
+  catch(e){ $('pmErro').textContent=e.message }
+  b.disabled=false;
+};
 $('pmFichasLancar').onclick=async()=>{
   const t=$('pmFichasQ').value.replace(/\s/g,'').replace('−','-'), q=parseInt(t,10);
   if(!/^[+-]?\d+$/.test(t) || !q){ $('pmErro').textContent='Digite quantas fichas (ex.: 10 para dar, -5 para tirar).'; return }
