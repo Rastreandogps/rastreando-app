@@ -306,6 +306,17 @@ body.mapa-google #map .leaflet-top.leaflet-left .leaflet-control-attribution{mar
 .dapok{background:linear-gradient(135deg,#f5c518,#e0a800);color:#1a1200;font-weight:900;border-radius:12px}
 .dapok:disabled{opacity:.6}
 /* 25/10/2026 (dono): painel do admin */
+#mPnExcluir{align-items:center;padding:16px;z-index:1300}
+#mPnExcluir .box2{border-radius:22px;max-width:400px;width:100%;text-align:center}
+.pnexic{width:58px;height:58px;margin:4px auto 12px;border-radius:50%;background:rgba(225,29,72,.14);display:flex;align-items:center;justify-content:center}
+.pnexic svg{width:28px;height:28px;fill:none;stroke:#e11d48;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+#mPnExcluir p{font-size:14.5px;line-height:1.5;margin-top:8px}
+.pnexmin{font-size:12.5px!important;color:var(--mut)}
+.pnexbt{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px}
+.pnexbt .btn{height:48px}
+.pnexsim{background:#e11d48;color:#fff;font-weight:900;border-radius:12px}
+.pnexsim.cont{background:var(--card2);color:var(--txt);border:1px solid var(--line)}
+.rtbt a.pnx{color:var(--red2);flex:0 0 auto}
 #mDouradaAdm .box2.pnbox{display:flex;flex-direction:column;max-height:92vh;overflow:hidden;max-width:760px;width:100%}
 .pnrola{flex:1 1 auto;min-height:120px;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding-top:4px}
 .pnres{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:6px 0 10px;flex:none}
@@ -3939,6 +3950,16 @@ nav button.on .nemo.txt{color:var(--red2)}
     <button class="almx dapx" id="dapX" type="button" aria-label="Fechar" title="Fechar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     <div id="dapCorpo"></div>
     <div class="dapbt"><button class="btn btn-out" id="dapNao" type="button">Agora não</button><button class="btn dapok" id="dapSim" type="button">Confirmar</button></div>
+  </div>
+</div>
+<!-- 25/10/2026 (dono): confirmação de exclusão com contagem de 10 segundos -->
+<div class="modal" id="mPnExcluir">
+  <div class="box2">
+    <div class="pnexic"><svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14M10 10v6M14 10v6"/></svg></div>
+    <h3 id="pnexTit">Excluir?</h3>
+    <p id="pnexTxt"></p>
+    <p class="pnexmin">Não dá para desfazer.</p>
+    <div class="pnexbt"><button class="btn btn-out" id="pnexNao" type="button">Cancelar</button><button class="btn pnexsim" id="pnexSim" type="button">Sim, tenho certeza</button></div>
   </div>
 </div>
 <!-- 25/10/2026 (dono): PAINEL completo de serviços, fichas e parceiros (no lugar dos pop-ups "pendências" e "Parceiros") -->
@@ -13326,11 +13347,12 @@ async function drAdmCarregar(){ $('draLista').innerHTML='<div class="rtvz">Carre
         '<div class="rtdist">'+brl2(pagar)+'<small>pagar por PIX</small></div></div><div class="rtbt">'+
         (p.temFoto?'<a href="#" data-drafoto="'+esc(p.pedido)+'">Ver nota</a>':'')+
         (!reb&&p.estado==='pendente'?'<a href="#" data-draapr="'+esc(p.pedido)+'">Aprovar</a>':'')+
-        '<a href="#" class="wpp" data-drapago="'+esc(p.pedido)+'">Já fiz o PIX</a>'+(reb||p.estado!=='pendente'?'':'<a href="#" data-drarec="'+esc(p.pedido)+'">Recusar</a>')+'</div></div>' }).join(''):'<div class="rtvz">Nada pendente. 👍</div>';
+        '<a href="#" class="wpp" data-drapago="'+esc(p.pedido)+'">Já fiz o PIX</a>'+(reb||p.estado!=='pendente'?'':'<a href="#" data-drarec="'+esc(p.pedido)+'">Recusar</a>')+'<a href="#" class="pnx" data-pnxp="'+esc(p.pedido)+'" data-pnxt="'+esc(pnTitulo(p)+' · '+(p.cliente||''))+'">Excluir</a></div></div>' }).join(''):'<div class="rtvz">Nada pendente. 👍</div>';
   }catch(e){ $('draLista').innerHTML='<div class="rtvz">'+esc(e.message)+'</div>' }
 }
 $('draLista').addEventListener('click',async e=>{
   const a=e.target.closest('a'); if(!a) return; e.preventDefault();
+  if(a.dataset.pnxp){ pnExcluir('Excluir este registro?',a.dataset.pnxt+'. Se ainda tiver fichas presas, elas voltam para o cliente.',async()=>{ await drApi('douradaAdmExcluir',{pedido:a.dataset.pnxp}); drAdmCarregar(); pnPainelCarregar() }); return }
   try{
     if(a.dataset.drafoto){ const j=await drApi('douradaAdmFoto',{pedido:a.dataset.drafoto}); lojaZoom(j.img); return }
     if(a.dataset.draapr){ a.textContent='Salvando...'; const r=await drApi('douradaAdmDecidir',{pedido:a.dataset.draapr,decisao:'aprovar'}); toast('Aprovado. Faça o PIX até '+drDia(r.prazoMs)+'.'); drAdmCarregar(); pnPainelCarregar(); return } /* 25/10/2026: prazo de 2 dias úteis */
@@ -13341,6 +13363,18 @@ $('draLista').addEventListener('click',async e=>{
 $('aDourada').onclick=()=>pnAbrir('pend');
 /* ===== PAINEL do admin (25/10/2026, dono: "um dashboard completo, não um pop-upzinho") ===== */
 let PN={aba:'pend',fil:'todos',pfil:'todos',dados:null};
+/* excluir com certeza + contagem de 10 s (dono: "uma contagem de 10 segundos para excluir") */
+let PNX={fn:null,timer:null,n:0};
+function pnExcluir(titulo,texto,fn){ PNX.fn=fn; clearInterval(PNX.timer); $('pnexTit').textContent=titulo; $('pnexTxt').textContent=texto; const b=$('pnexSim'); b.disabled=false; b.className='btn pnexsim'; b.textContent='Sim, tenho certeza'; $('pnexNao').textContent='Cancelar'; $('mPnExcluir').classList.add('show') }
+function pnExcluirFechar(){ clearInterval(PNX.timer); PNX.fn=null; $('mPnExcluir').classList.remove('show') }
+$('pnexNao').onclick=pnExcluirFechar;
+$('mPnExcluir').addEventListener('click',e=>{ if(e.target.id==='mPnExcluir') pnExcluirFechar() });
+$('pnexSim').onclick=()=>{ const b=$('pnexSim'); if(b.disabled) return; const fn=PNX.fn; if(!fn) return;
+  if(b.classList.contains('cont')) return;
+  PNX.n=10; b.classList.add('cont'); b.textContent='Excluindo em 10...'; $('pnexNao').textContent='Parar';
+  PNX.timer=setInterval(async()=>{ PNX.n--; if(PNX.n>0){ b.textContent='Excluindo em '+PNX.n+'...'; return }
+    clearInterval(PNX.timer); b.disabled=true; b.textContent='Excluindo...';
+    try{ await fn(); toast('Excluído.'); }catch(err){ toast(err.message) } pnExcluirFechar() },1000) };
 function drAdmAbrir(){ pnAbrir('pend') }
 function pnAba(a){ PN.aba=a; document.querySelectorAll('#pnAbas button').forEach(b=>b.classList.toggle('on',b.dataset.pn===a)); ['pend','serv','parc','cli'].forEach(k=>{ $('pn'+k[0].toUpperCase()+k.slice(1)).hidden=k!==a }); $('pnRola').scrollTop=0 }
 $('pnAbas').onclick=e=>{ const b=e.target.closest('[data-pn]'); if(b) pnAba(b.dataset.pn) };
@@ -13374,7 +13408,8 @@ function pnServDesenhar(){
       (s?'<br>'+(p.valorFinal?'Valor final '+brl2(p.valorFinal)+' · ':'')+(p.fichasUsadas!=null?'pago com fichas '+brl2(p.fichasUsadas):p.fichas+' fichas reservadas')+(p.cobrarDireto?' · cliente pagou '+brl2(p.cobrarDireto)+' direto':'')+(p.reboquePix?'<br>PIX do '+(p.tipo==='servico'?'parceiro':'reboquista')+': '+esc(p.reboquePix):'')
         :'<br>'+p.fichas+' fichas → '+brl2(p.valorPagar)+(p.fichasIntegral?' ('+p.fichasIntegral+' a R$ 1,00)':'')+(p.pixChave?'<br>PIX do cliente: '+esc(p.pixChave):''))+
       (p.pagoPor?'<br><span style="color:#16a34a">PIX feito por '+esc(p.pagoPor)+'</span>':'')+'</div></div>'+
-      '<div class="rtdist">'+brl2(s?(p.fichasUsadas!=null?p.fichasUsadas:p.fichas):p.valorPagar)+'<small>'+(s?'ao parceiro':'ao cliente')+'</small></div></div></div>' }).join(''):'<div class="rtvz">Nada aqui (últimos 90 dias).</div>';
+      '<div class="rtdist">'+brl2(s?(p.fichasUsadas!=null?p.fichasUsadas:p.fichas):p.valorPagar)+'<small>'+(s?'ao parceiro':'ao cliente')+'</small></div></div>'+
+      '<div class="rtbt"><a href="#" class="pnx" data-pnxp="'+esc(p.pedido)+'" data-pnxt="'+esc(pnTitulo(p)+' · '+(p.cliente||''))+'">Excluir</a></div></div>' }).join(''):'<div class="rtvz">Nada aqui (últimos 90 dias).</div>';
 }
 function pnCliDesenhar(){
   const l=(PN.dados&&PN.dados.carteiras)||[];
@@ -13383,6 +13418,8 @@ function pnCliDesenhar(){
       '<div class="rtdist">'+c.saldo+' fichas<small>'+brl2(c.saldo)+'</small></div></div>'+
       '<div class="rtbt"><a href="#" data-pncl="'+c.userId+'" data-pnn="'+esc(c.nome||c.login||'')+'">Lançar fichas</a></div></div>').join(''):'<div class="rtvz">Nenhum cliente com fichas ainda.</div>';
 }
+$('pnServLista').addEventListener('click',e=>{ const a=e.target.closest('[data-pnxp]'); if(!a) return; e.preventDefault();
+  pnExcluir('Excluir este registro?',a.dataset.pnxt+'. Se ainda tiver fichas presas, elas voltam para o cliente.',async()=>{ await drApi('douradaAdmExcluir',{pedido:a.dataset.pnxp}); drAdmCarregar(); pnPainelCarregar() }) });
 $('pnCliLista').addEventListener('click',async e=>{ const a=e.target.closest('[data-pncl]'); if(!a) return; e.preventDefault();
   const t=prompt('Quantas fichas para '+a.dataset.pnn+'? (ex.: 50 para dar, -20 para tirar)',''); if(t===null) return; const q=parseInt(String(t).replace(/\s/g,'').replace('−','-'),10); if(!q){ toast('Digite um número.'); return }
   const m=prompt('Motivo (aparece no extrato do cliente):','')||'';
@@ -13517,7 +13554,7 @@ async function pcAdmCarregar(){ $('paLista').innerHTML='<div class="rtvz">Carreg
     const rebHtml=rl.map(r=>'<div class="rtit pnreb" data-pst="aprovado" data-pcat="reboque"><div class="rttopo"><div><b>'+esc(r.nome||'Reboquista')+'</b><div class="rtinfo">🚛 Reboquista (login do app, rastreador nº '+(r.deviceId||'—')+') · '+(r.disponivel?'🟢 disponível':'⚪ invisível')+(r.sinalMs?' · sinal '+fmtHora(r.sinalMs):'')+'<br>'+
         (r.wpp?'WhatsApp: '+esc(fmtWpp(r.wpp)):'')+(r.fone?' · tel '+esc(fmtWpp(r.fone)):'')+'<br>Base: '+esc((r.base&&r.base.end)||'—')+'<br>'+
         (r.tabelas||[]).map(t=>esc(t.tipo)+': '+brl2(t.saida)+' até '+t.kmInc+' km + '+brl2(t.kmExtra)+'/km').join(' · ')+'<br>PIX: '+esc(r.pix||'—')+' · '+(r.vistosHoje||0)+' consultas hoje</div></div></div>'+
-        '<div class="rtbt">'+(r.wpp?'<a class="wpp" href="https://wa.me/55'+esc(r.wpp)+'" target="_blank" rel="noopener">WhatsApp</a>':'')+'<a href="#" data-pnperm="'+r.id+'">Permissões / fichas</a></div></div>').join('');
+        '<div class="rtbt">'+(r.wpp?'<a class="wpp" href="https://wa.me/55'+esc(r.wpp)+'" target="_blank" rel="noopener">WhatsApp</a>':'')+'<a href="#" data-pnperm="'+r.id+'">Permissões / fichas</a><a href="#" class="pnx" data-pnxr="'+r.id+'" data-pan2="'+esc(r.nome||'Reboquista')+'">Excluir</a></div></div>').join('');
     const porCat={}; const addCat=(k,h)=>{ (porCat[k]=porCat[k]||[]).push(h) };
     l.forEach(p=>{ const st=PC_ST[p.status]||[p.status,'ag']; addCat(p.categoria||'outros', (p=>{
       return '<div class="rtit" data-pst="'+esc(p.status)+'" data-pcat="'+esc(p.categoria||'')+'"><div class="rttopo"><div><b>'+esc(p.nome)+'</b><div class="rtinfo">'+esc(p.categoriaNome)+' · <span class="ljst '+st[1]+'" style="display:inline-block">'+st[0]+'</span><br>'+
@@ -13526,7 +13563,7 @@ async function pcAdmCarregar(){ $('paLista').innerHTML='<div class="rtvz">Carreg
         (p.servicos||[]).map(s=>esc(s.nome)+': '+(s.sobConsulta||!(s.aPartir>0)?'sob consulta':brl2(s.aPartir))).join(' · ')+(p.status==='aprovado'?'<br>'+(p.disponivel?'🟢 disponível agora':'⚪ fechado')+' · '+(p.vistosHoje||0)+' '+((p.vistosHoje||0)===1?'visualização':'visualizações')+' hoje':'')+'</div></div></div>'+
         '<div class="rtbt"><a class="wpp" href="https://wa.me/55'+esc(p.whatsapp)+'" target="_blank" rel="noopener">WhatsApp</a>'+
         (p.status!=='aprovado'?'<a href="#" data-paap="'+p.id+'" style="background:rgba(22,163,74,.14);border-color:rgba(22,163,74,.4);color:#16a34a">Aprovar</a>':'')+
-        (p.status==='analise'?'<a href="#" data-pare="'+p.id+'">Recusar</a>':'')+(p.status==='aprovado'?'<a href="#" data-pasu="'+p.id+'">Suspender</a>':'')+(['recusado','suspenso','rascunho'].includes(p.status)?'<a href="#" data-paex="'+p.id+'" style="color:var(--red2)">Excluir</a>':'')+
+        (p.status==='analise'?'<a href="#" data-pare="'+p.id+'">Recusar</a>':'')+(p.status==='aprovado'?'<a href="#" data-pasu="'+p.id+'">Suspender</a>':'')+'<a href="#" class="pnx" data-paex="'+p.id+'" data-pan2="'+esc(p.nome)+'">Excluir</a>'+
         '<a href="#" data-pasn="'+p.id+'" data-pan="'+esc(p.nome)+'" data-paw="'+esc(p.whatsapp)+'">Nova senha</a></div><div class="pnsenhabox" id="pnSn'+p.id+'"></div></div>' })(p)) });
     if(rebHtml) addCat('reboque',rebHtml);
     const ordem=(typeof PC_CATS!=='undefined'?PC_CATS:[]).map(c=>c[0]).concat(Object.keys(porCat).filter(k=>!PC_CATS.some(c=>c[0]===k)));
@@ -13543,9 +13580,9 @@ $('paLista').addEventListener('click',async e=>{
       $('pnSn'+sn.dataset.pasn).innerHTML='<div class="pnsenha">Senha provisória (só você vê; mande para ele):<b class="sn">'+j.senha+'</b><div class="rtbt" style="margin-top:4px"><a href="#" data-pncp="'+j.senha+'">Copiar senha</a><a class="wpp" href="https://wa.me/55'+esc(sn.dataset.paw)+'?text='+encodeURIComponent(msg)+'" target="_blank" rel="noopener">Mandar no WhatsApp</a></div></div>' }
     catch(err){ toast(err.message); sn.textContent='Nova senha' } return }
   const cp=e.target.closest('[data-pncp]'); if(cp){ e.preventDefault(); copiarTexto(cp.dataset.pncp).then(()=>toast('Senha copiada.')).catch(()=>toast(cp.dataset.pncp,6000)); return }
-  const x=e.target.closest('[data-paex]'); /* 25/10/2026 (dono): apagar recusado/suspenso (testes) */
-  if(x){ e.preventDefault(); if(!confirm('Excluir esse cadastro de vez? Não dá para desfazer.')) return; x.textContent='Excluindo...';
-    try{ await rbApi('parcAdmExcluir',{id:x.dataset.paex}); toast('Cadastro excluído.'); pcAdmCarregar() }catch(err){ toast(err.message); x.textContent='Excluir' } return }
+  const xr=e.target.closest('[data-pnxr]'); if(xr){ e.preventDefault(); pnExcluir('Excluir o cadastro de reboque?',xr.dataset.pan2+' sai da lista de reboques. A permissão de reboquista continua e ele pode cadastrar de novo.',async()=>{ await rbApi('reboqueAdmExcluir',{id:xr.dataset.pnxr}); pcAdmCarregar() }); return }
+  const x=e.target.closest('[data-paex]'); /* 25/10/2026 (dono): apagar qualquer parceiro, com confirmação e contagem */
+  if(x){ e.preventDefault(); pnExcluir('Excluir este parceiro?',x.dataset.pan2+' é apagado de vez e some para os clientes. Pedidos com fichas em aberto impedem a exclusão.',async()=>{ await rbApi('parcAdmExcluir',{id:x.dataset.paex}); pcAdmCarregar() }); return }
   const a=e.target.closest('[data-paap],[data-pare],[data-pasu]'); if(!a) return; e.preventDefault();
   const id=a.dataset.paap||a.dataset.pare||a.dataset.pasu, dec=a.dataset.paap?'aprovar':a.dataset.pare?'recusar':'suspender';
   let motivo=''; if(dec!=='aprovar'){ const inp=prompt(dec==='recusar'?'Motivo da recusa (o parceiro vê):':'Motivo da suspensão:',''); if(inp===null) return; motivo=inp }
