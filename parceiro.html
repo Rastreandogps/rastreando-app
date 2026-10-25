@@ -51,7 +51,12 @@ textarea.fld{height:70px;padding:10px 12px;resize:vertical}
 .st-aprovado{background:rgba(51,209,122,.18);color:var(--green)}
 .st-recusado,.st-suspenso{background:rgba(227,38,47,.15);color:var(--red)}
 .linha{display:flex;align-items:center;justify-content:space-between;gap:12px}
-.sw{position:relative;width:52px;height:30px;flex:none}
+.sw{position:relative;display:inline-block;width:52px;height:30px;flex:none}
+/* 25/10/2026 (dono: "uma bolinha solta no meio do nada"): chave numa faixa clara, com texto do lado */
+.dispbox{display:flex;align-items:center;gap:12px;margin-top:12px;padding:12px 14px;border-radius:14px;border:1px solid var(--line);background:var(--card2);cursor:pointer}
+.dispbox b{display:block;font-size:15px}.dispbox small{display:block;font-size:12px;color:var(--mut);margin-top:1px}
+.dispbox.on{border-color:rgba(51,209,122,.55);background:rgba(51,209,122,.12)}.dispbox.on b{color:var(--green)}
+.dispbox.off{opacity:.6;cursor:not-allowed}
 .sw input{opacity:0;width:0;height:0}
 .sw span{position:absolute;inset:0;border-radius:999px;background:#9aa3b2;transition:background .2s;cursor:pointer}
 .sw span::after{content:'';position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
@@ -120,8 +125,8 @@ textarea.fld{height:70px;padding:10px 12px;resize:vertical}
   <!-- ===== PAINEL DO PARCEIRO ===== -->
   <section id="tPainel" hidden>
     <div class="card">
-      <div class="linha"><div><h2 id="pNome"></h2><span class="status" id="pStatus"></span></div>
-        <div style="text-align:center"><label class="sw"><input type="checkbox" id="pDisp"><span></span></label><div style="font-size:11px;color:var(--mut);margin-top:3px" id="pDispTxt">Disponível</div></div></div>
+      <div class="linha"><div><h2 id="pNome"></h2><span class="status" id="pStatus"></span></div></div>
+      <label class="dispbox" id="pDispBox"><span class="sw"><input type="checkbox" id="pDisp"><span></span></span><div><b id="pDispTxt">Disponível</b><small id="pDispSub">Os clientes veem você no app</small></div></label>
       <p class="aviso" id="pStatusTxt" style="margin-top:10px"></p>
       <div class="vistos" id="pVistos"></div>
     </div>
@@ -225,6 +230,8 @@ function desenharTopo(){
   $('pStatus').className='status st-'+P.status; $('pStatus').textContent=st[0];
   $('pStatusTxt').textContent=st[1]+(P.motivo?' Motivo: '+P.motivo:'');
   $('pDisp').checked=!!P.disponivel; $('pDisp').disabled=P.status!=='aprovado'; $('pDispTxt').textContent=P.disponivel?'Disponível':'Fechado';
+  $('pDispSub').textContent=P.status!=='aprovado'?'Liga depois que a Rastreando aprovar':P.disponivel?'Os clientes veem você no app. Toque para fechar.':'Você não aparece para os clientes. Toque para abrir.';
+  $('pDispBox').classList.toggle('on',!!P.disponivel&&P.status==='aprovado'); $('pDispBox').classList.toggle('off',P.status!=='aprovado');
   $('pVistos').textContent=P.status==='aprovado'?(P.vistosHoje?'👀 '+P.vistosHoje+' '+(P.vistosHoje>1?'vezes':'vez')+' que clientes viram você hoje':'Nenhum cliente viu você hoje ainda.'):'';
 }
 $('pDisp').onchange=async()=>{
