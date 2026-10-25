@@ -191,6 +191,9 @@ body.mapa-google #map .leaflet-top.leaflet-left .leaflet-control-attribution{mar
 .rbdisp.on{border-color:rgba(51,209,122,.5)}
 .rbcar{width:14px;height:14px;border-radius:50%;background:#2563eb;border:3px solid #fff;box-shadow:0 0 0 2px #2563eb}
 .rbcirc{color:#0ea5e9}
+.maiscard .mrsw{position:absolute;top:14px;right:14px;cursor:pointer} /* 25/10/2026 (pedido do dono): chave Disponível no cartão Meu reboque */
+.maiscard .mrsw input:checked+span{background:var(--green)}
+.maiscard .mrsw.ocupado{opacity:.5;pointer-events:none}
 .rbtt{background:rgba(14,165,233,.9);color:#fff;border:0;font-weight:700;font-size:12px;border-radius:8px;padding:2px 8px;box-shadow:none}
 .rbtt::before{display:none}
 #mRetirar .box2{display:flex;flex-direction:column;max-height:86vh;overflow:hidden}
@@ -12745,11 +12748,28 @@ function rbAplicar(){
   const pode=!ehAdmin && !!(permCli&&permCli.reboquista);
   let m=$('maisMeuReboque');
   if(pode && !m){
-    m=document.createElement('button'); m.className='maiscard'; m.id='maisMeuReboque'; m.type='button';
-    m.innerHTML='<span class="mic t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg></span><b>Meu reboque</b><small>Sua base, seus valores e se está disponível</small>';
-    m.onclick=mrAbrir; grid.insertBefore(m,$('maisConta'));
+    m=document.createElement('div'); m.className='maiscard'; m.id='maisMeuReboque'; m.setAttribute('role','button'); m.tabIndex=0;
+    m.innerHTML='<label class="sw mrsw" id="mrSwBox" title="Disponível para chamados"><input type="checkbox" id="mrSw"><span></span></label><span class="mic t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg></span><b>Meu reboque</b><small>Sua base, seus valores e se está disponível</small>';
+    m.onclick=e=>{ if(e.target.closest('.mrsw')) return; mrAbrir() }; m.onkeydown=e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); mrAbrir() } };
+    grid.insertBefore(m,$('maisConta'));
+    $('mrSw').addEventListener('change',mrSwTrocar);
+    mrSwCarregar();
   }
   if(!pode && m) m.remove();
+}
+/* chave Disponível/Invisível no próprio cartão (25/10/2026, pedido do dono): verde = ligado, cinza = desligado */
+let mrSwCfg=null;
+async function mrSwCarregar(){
+  const sw=$('mrSw'); if(!sw) return;
+  try{ const j=await rbApi('reboqueMeuVer'); mrSwCfg=j.cfg; sw.checked=!!(j.cfg&&j.cfg.disponivel) }catch(e){}
+}
+async function mrSwTrocar(){
+  const sw=$('mrSw'), on=sw.checked;
+  if(!mrSwCfg||!mrSwCfg.deviceId){ sw.checked=false; toast('Preencha e salve o seu reboque primeiro.'); mrAbrir(); return }
+  $('mrSwBox').classList.add('ocupado');
+  try{ await rbApi('reboqueDisponivel',{disponivel:on}); mrSwCfg.disponivel=on; if(mrCfg) mrCfg.disponivel=on; if($('mrDisp')) { $('mrDisp').checked=on; $('mrDispBox').classList.toggle('on',on) } toast(on?'Você está disponível para os clientes.':'Você ficou invisível.') }
+  catch(e){ sw.checked=!on; toast(e.message) }
+  $('mrSwBox').classList.remove('ocupado');
 }
 /* o carro do cliente que entra na conta: o selecionado; senão, o primeiro com posição */
 function rbCarro(){ return ativo() || veiculos.find(v=>v.pos && v.visivel && !v.tag) || veiculos.find(v=>v.pos) || null }
@@ -12852,7 +12872,7 @@ async function mrCarregar(){
   $('mrSub').textContent='Carregando...'; $('mrErro').textContent=''; mrCfg=null; mrBase=null;
   try{
     const j=await rbApi('reboqueMeuVer');
-    mrCfg=j.cfg; const c=j.cfg||{};
+    mrCfg=j.cfg; mrSwCfg=j.cfg; if($('mrSw')) $('mrSw').checked=!!(j.cfg&&j.cfg.disponivel); const c=j.cfg||{};
     $('mrNome').value=c.nome||j.nomeLogin||''; $('mrFone').value=fmtWpp(c.fone||''); $('mrWpp').value=fmtWpp(c.wpp||'');
     $('mrDev').innerHTML=(j.veiculos||[]).map(v=>'<option value="'+v.id+'"'+(c.deviceId===v.id?' selected':'')+'>'+esc(v.nome)+'</option>').join('')||'<option value="">Nenhum rastreador no seu login</option>';
     $('mrDisp').checked=c.disponivel===true; $('mrDispBox').classList.toggle('on',c.disponivel===true);
@@ -12886,7 +12906,7 @@ $('mrBaseAqui').onclick=()=>{
 $('mrDisp').addEventListener('change',async()=>{
   const on=$('mrDisp').checked; $('mrDispBox').classList.toggle('on',on);
   if(!mrCfg) return; /* ainda não salvou: vai junto no Salvar */
-  try{ await rbApi('reboqueDisponivel',{disponivel:on}); mrCfg.disponivel=on; toast(on?'Você está disponível para os clientes.':'Você ficou invisível.') }
+  try{ await rbApi('reboqueDisponivel',{disponivel:on}); mrCfg.disponivel=on; if(mrSwCfg) mrSwCfg.disponivel=on; if($('mrSw')) $('mrSw').checked=on; toast(on?'Você está disponível para os clientes.':'Você ficou invisível.') }
   catch(e){ $('mrDisp').checked=!on; $('mrDispBox').classList.toggle('on',!on); toast(e.message) }
 });
 $('mrSalvar').onclick=async()=>{
