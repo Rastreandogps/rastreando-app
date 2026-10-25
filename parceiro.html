@@ -281,16 +281,17 @@ $('bSalvar').onclick=async()=>{
   b.disabled=false;
 };
 /* pedidos com fichas douradas */
-const EST={reservado:'Aguardando você concluir',concluido:'Concluído · a Rastreando faz o PIX',recusado:'Recusado',cancelado:'Cancelado pelo cliente'};
+const diaBR=ms=>new Date(ms).toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo',day:'2-digit',month:'2-digit'});
+const EST={reservado:'Aguardando você concluir',concluido:'Concluído',recusado:'Recusado',cancelado:'Cancelado pelo cliente'};
 async function carregarPedidos(){
   try{ const j=await api('parcPedidos',{ptoken:TOK}); const l=j.lista||[]; $('cPedidos').hidden=!l.length;
-    $('pPedidos').innerHTML=l.map(p=>'<div class="ped"><b>'+esc(p.cliente||'Cliente')+' · '+p.fichas+' fichas reservadas</b><small>'+esc(p.resumo||'')+' · '+new Date(p.criadoMs).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})+' · '+(EST[p.estado]||p.estado)+(p.valorFinal?' · '+brl(p.valorFinal):'')+'</small>'+
+    $('pPedidos').innerHTML=l.map(p=>'<div class="ped"><b>'+esc(p.cliente||'Cliente')+' · '+p.fichas+' fichas reservadas</b><small>'+esc(p.resumo||'')+' · '+new Date(p.criadoMs).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})+' · '+(EST[p.estado]||p.estado)+(p.valorFinal?' · '+brl(p.valorFinal):'')+(p.estado==='concluido'?(p.pagoParceiro?' · ✅ PIX da Rastreando feito':' · 💰 PIX da Rastreando até '+(p.prazoMs?diaBR(p.prazoMs):'2 dias úteis')):'')+'</small>'+
       (p.estado==='reservado'?'<div class="ac"><input class="fld" data-v="'+esc(p.pedido)+'" inputmode="decimal" autocomplete="off" placeholder="Valor final R$"><button class="btn pri" type="button" data-c="'+esc(p.pedido)+'">Concluir</button><button class="btn out" type="button" data-r="'+esc(p.pedido)+'">Recusar</button></div>':'')+'</div>').join('') }
   catch(e){}
 }
 $('pPedidos').onclick=async e=>{
   const c=e.target.closest('[data-c]'), r=e.target.closest('[data-r]'); if(!c&&!r) return; const b=c||r; b.disabled=true;
-  try{ if(c){ const v=document.querySelector('[data-v="'+c.dataset.c+'"]').value; const j=await api('parcConcluir',{ptoken:TOK,pedido:c.dataset.c,valor:v}); toast('Concluído! A Rastreando vai fazer o PIX de '+brl(j.fichasUsadas)+' para você'+(j.cobrarDireto?'. Cobre '+brl(j.cobrarDireto)+' direto do cliente':'')+'.',7000) }
+  try{ if(c){ const v=document.querySelector('[data-v="'+c.dataset.c+'"]').value; const j=await api('parcConcluir',{ptoken:TOK,pedido:c.dataset.c,valor:v}); toast('Concluído! A Rastreando vai fazer o PIX de '+brl(j.fichasUsadas)+' para você até '+(j.prazoMs?diaBR(j.prazoMs):'2 dias úteis')+(j.cobrarDireto?'. Cobre '+brl(j.cobrarDireto)+' direto do cliente':'')+'.',7000) }
     else { await api('parcConcluir',{ptoken:TOK,pedido:r.dataset.r,recusar:true}); toast('Recusado. As fichas voltaram para o cliente.') }
     carregarPedidos() }
   catch(err){ toast(err.message); b.disabled=false }

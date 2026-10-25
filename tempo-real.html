@@ -13181,7 +13181,8 @@ async function drRebCarregar(){
   const box=$('mrFichas'); if(!box) return;
   try{ const j=await drApi('douradaRebLista'); const l=j.lista||[];
     box.innerHTML=l.length?'<label class="flbl" style="margin-top:10px">Pedidos pagos com fichas douradas</label>'+l.map(p=>{ const e=DR_EST[p.estado]||[p.estado,'ag'];
-      return '<div class="drped"><div><b>'+esc(p.cliente||'Cliente')+'</b><small>'+p.fichas+' fichas reservadas · '+esc(p.resumo||'')+' · '+fmtHora(p.criadoMs)+'</small><span class="ljst '+e[1]+'">'+e[0]+(p.valorFinal?' · '+brl2(p.valorFinal):'')+'</span></div>'+
+      return '<div class="drped"><div><b>'+esc(p.cliente||'Cliente')+'</b><small>'+p.fichas+' fichas reservadas · '+esc(p.resumo||'')+' · '+fmtHora(p.criadoMs)+'</small><span class="ljst '+e[1]+'">'+e[0]+(p.valorFinal?' · '+brl2(p.valorFinal):'')+'</span>'+
+        (p.estado==='concluido'?'<small style="margin-top:4px">'+(p.pagoParceiro?'✅ PIX da Rastreando feito':'💰 PIX da Rastreando até '+(p.prazoMs?drDia(p.prazoMs):'2 dias úteis'))+'</small>':'')+'</div>'+ /* 25/10/2026: prazo de 2 dias úteis */
         (p.estado==='reservado'?'<div class="drrebac"><input class="fld" data-drrv="'+esc(p.pedido)+'" inputmode="decimal" placeholder="Valor final R$"><button class="btn btn-red" type="button" data-drrc="'+esc(p.pedido)+'">Concluir</button><button class="btn btn-out" type="button" data-drrr="'+esc(p.pedido)+'">Recusar</button></div>':'')+'</div>' }).join(''):'';
   }catch(e){ box.innerHTML='' }
 }
@@ -13189,7 +13190,7 @@ $('mMeuReboque').addEventListener('click',async e=>{
   const c=e.target.closest('[data-drrc]'), rr=e.target.closest('[data-drrr]'); if(!c&&!rr) return;
   const b=c||rr; b.disabled=true;
   try{
-    if(c){ const v=document.querySelector('[data-drrv="'+c.dataset.drrc+'"]').value; const r=await drApi('douradaRebConcluir',{pedido:c.dataset.drrc,valor:v}); toast('Concluído: '+r.fichasUsadas+' fichas. A Rastreando faz o PIX para você'+(r.cobrarDireto?'; cobre '+brl2(r.cobrarDireto)+' direto do cliente':'')+'.',7000) }
+    if(c){ const v=document.querySelector('[data-drrv="'+c.dataset.drrc+'"]').value; const r=await drApi('douradaRebConcluir',{pedido:c.dataset.drrc,valor:v}); toast('Concluído: '+r.fichasUsadas+' fichas. A Rastreando faz o PIX para você até '+(r.prazoMs?drDia(r.prazoMs):'2 dias úteis')+(r.cobrarDireto?'; cobre '+brl2(r.cobrarDireto)+' direto do cliente':'')+'.',7000) }
     else { await drApi('douradaRebConcluir',{pedido:rr.dataset.drrr,recusar:true}); toast('Pedido recusado. As fichas voltaram para o cliente.') }
     drRebCarregar();
   }catch(err){ toast(err.message); b.disabled=false }
@@ -13203,7 +13204,7 @@ async function drAdmAbrir(){ abrir('mDouradaAdm'); $('draLista').innerHTML='<div
       return '<div class="rtit"><div class="rttopo"><div><b>'+esc(DR_TIPO[p.tipo]||p.tipo)+'</b><div class="rtinfo">Cliente: '+esc(p.cliente||'')+' ('+esc(p.login||'')+')<br>'+
         (reb?'Reboquista: '+esc(p.reboque)+' · PIX: <b>'+esc(p.reboquePix||'não cadastrado')+'</b><br>Valor final '+brl2(p.valorFinal)+' · fichas usadas '+(p.fichasUsadas||0)+(p.cobrarDireto?' · cliente paga '+brl2(p.cobrarDireto)+' direto':'')
           :(p.fichasIntegral?p.fichasIntegral+' a R$ 1,00 (até 7 dias)'+(p.fichas>p.fichasIntegral?' + '+(p.fichas-p.fichasIntegral)+' × R$ 0,94':''):p.fichas+' fichas × R$ 0,94')+(p.notaValor?' · nota de '+brl2(p.notaValor):'')+'<br>PIX do cliente: <b>'+esc(p.pixChave)+'</b>')+'<br>'+fmtHora(p.criadoMs)+
-        (p.estado==='aprovado'&&p.prazoMs?'<br><b class="draprazo'+(p.prazoMs-Date.now()<86400000?' vence':'')+'">Aprovado · pagar o PIX até '+drDia(p.prazoMs)+(p.prazoMs<Date.now()?' (vencido)':'')+'</b>':'')+'</div></div>'+
+        ((p.estado==='aprovado'||(p.estado==='concluido'&&!p.pagoParceiro))&&p.prazoMs?'<br><b class="draprazo'+(p.prazoMs-Date.now()<86400000?' vence':'')+'">'+(p.estado==='concluido'?'Pagar o PIX ao '+(p.tipo==='reboque'?'reboquista':'parceiro')+' até ':'Aprovado · pagar o PIX até ')+drDia(p.prazoMs)+(p.prazoMs<Date.now()?' (vencido)':'')+'</b>':'')+'</div></div>'+
         '<div class="rtdist">'+brl2(pagar)+'<small>pagar por PIX</small></div></div><div class="rtbt">'+
         (p.temFoto?'<a href="#" data-drafoto="'+esc(p.pedido)+'">Ver nota</a>':'')+
         (!reb&&p.estado==='pendente'?'<a href="#" data-draapr="'+esc(p.pedido)+'">Aprovar</a>':'')+
