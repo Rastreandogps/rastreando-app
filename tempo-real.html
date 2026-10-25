@@ -3889,7 +3889,7 @@ nav button.on .nemo.txt{color:var(--red2)}
 <div class="modal alsheet" id="mDouradaAdm">
   <div class="box2">
     <div class="almtopo"><h3>Fichas douradas · pendências</h3><button class="almx" data-close type="button" aria-label="Fechar" title="Fechar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
-    <div class="rtsub">Vendas para aprovar (R$ 0,94 por ficha) e reboquistas para pagar. O PIX é feito por você, fora do app.</div>
+    <div class="rtsub">Vendas para aprovar (R$ 0,94 por ficha; R$ 1,00 nas adicionadas há até 7 dias) e reboquistas para pagar. O PIX é feito por você, fora do app.</div>
     <div id="draLista"></div>
   </div>
 </div>
@@ -13115,7 +13115,7 @@ function drDesenhar(){
       j.pacotes.map(p=>'<button type="button" class="drchip compra" data-drk="'+esc(p.k)+'"'+(j.saldo+p.fichas>j.teto?' disabled':'')+'>+ '+p.fichas+' fichas · '+brl2(p.valor)+'</button>').join('')+'</div></div>';
     h+='<div class="drsec"><label class="flbl">Sua chave PIX (para receber a venda das fichas)</label><input class="fld" id="drPix" name="dr-chave-pix" autocomplete="off" maxlength="80" placeholder="CPF, celular, e-mail ou aleatória" value="'+esc(j.pixChave||'')+'"></div>';
     /* 25/10/2026 (dono): reembolso de nota de outra empresa ENCERRADO — quem quiser usar serviço de fora vende as fichas */
-    h+='<div class="drsec"><b>Vender fichas</b><small>A Rastreando recompra a R$ 0,94 por ficha, por PIX, em até 2 dias úteis depois da aprovação.</small>'+
+    h+='<div class="drsec"><b>Vender fichas</b><small>'+(j.integral7d?'<b style="color:#16a34a">'+j.integral7d+' '+(j.integral7d>1?'fichas foram adicionadas':'ficha foi adicionada')+' há até 7 dias e '+(j.integral7d>1?'voltam':'volta')+' por R$ 1,00.</b> ':'')+'As outras a R$ 0,94 por ficha. Por PIX, em até 2 dias úteis depois da aprovação. Para usar um serviço fora do app, venda as fichas.</small>'+
       '<div class="rbdois"><div><label class="flbl">Quantas fichas</label><input class="fld" id="drVdQ" name="dr-qtd-fichas" type="text" inputmode="numeric" autocomplete="off" placeholder="'+Math.max(0,j.livres)+'"></div><div><label class="flbl">Você recebe</label><div class="fld drreceber" id="drVdRec">R$ 0,00</div></div></div>'+
       '<button class="btn btn-out" id="drVdEnviar" type="button" style="width:100%">Pedir a venda</button></div>';
   }
@@ -13127,13 +13127,14 @@ function drDesenhar(){
   if(j.termoAceito && j.termoEm) h+='<div class="draceite"><button type="button" id="drVerTermo">📄 Termo aceito em '+drQuando(j.termoEm)+(j.termoCpf?' · CPF '+drCpfMask(j.termoCpf):'')+'</button><div id="drTermoAceito" hidden><div class="drtxt">'+drTermoTxt(j)+'</div><small>Aceito por '+esc(j.termoLogin||'você')+(j.termoCpf?' (CPF '+drCpfMask(j.termoCpf)+')':'')+' em '+drQuando(j.termoEm)+' · versão '+esc(j.termoVer||'')+'. O aceite fica registrado e não pode ser desfeito.</small></div></div>'; /* 25/10/2026 (dono) */
   $('drCorpo').innerHTML=h;
 }
-/* 25/10/2026 (dono): texto do termo (versão 2026-10-25c: + prazo de devolução em até 2 dias úteis após a aprovação). Fica guardado no app e o aceite (data, hora, login e CPF) no servidor */
+/* 25/10/2026 (dono): texto do termo (versão 2026-10-25d: prazo de 2 dias úteis; sem reembolso de nota; até 7 dias devolve 100%). Fica guardado no app e o aceite (data, hora, login e CPF) no servidor */
 function drTermoTxt(j){ return '<p>As <b>fichas douradas</b> são <b>créditos pré-pagos de serviço</b> da Rastreando GPS: 1 ficha = R$ 1 para usar com os <b>parceiros do app</b> (reboque e serviços). <b>Não é seguro, não é poupança e não rende.</b></p>'+
   '<p>• <b>Só o valor que você adiciona a mais vira fichas.</b> A mensalidade do rastreamento continua sendo a mensalidade e <b>não vira crédito</b>. Exemplo: mensalidade de R$ 59,90 + aporte de R$ 20,00 = boleto de R$ 79,90 → você ganha <b>20 fichas</b> (R$ 20,00), não 79,90.</p>'+
   '<p>• As fichas do aporte entram só depois que o boleto é pago. Também dá para adicionar fichas avulsas por PIX. Limite de '+(j.teto||500)+' fichas.</p>'+
   '<p>• Para pagar um parceiro do app, as fichas ficam reservadas até ele concluir; o que passar do saldo você paga direto a ele.</p>'+
   '<p>• <b>As fichas valem só com os parceiros do app.</b> Não reembolsamos nota de outra empresa: para usar um serviço de fora, venda as fichas.</p>'+
-  '<p>• Quer as fichas de volta (inclusive se cancelar o rastreamento)? A Rastreando recompra a <b>R$ 0,94 por ficha</b>, por PIX, depois da conferência.</p>'+
+  '<p>• <b>Mudou de ideia?</b> Fichas adicionadas há <b>até 7 dias</b> voltam por <b>R$ 1,00</b> cada (100%).</p>'+
+  '<p>• Depois de 7 dias, se quiser as fichas de volta (inclusive se cancelar o rastreamento), a Rastreando recompra a <b>R$ 0,94 por ficha</b>, por PIX.</p>'+
   '<p>• <b>Prazo da devolução:</b> o dinheiro das fichas fica aplicado. Por isso a venda e a devolução no cancelamento são pagas por PIX em <b>até 2 dias úteis depois da aprovação</b>. Sábados, domingos e feriados não contam.</p>'+
   '<p>• As fichas são pessoais: não passam para outra pessoa e não vencem enquanto você for cliente.</p>' }
 const drCpfMask=c=>{ c=String(c||'').replace(/\D/g,''); return c.length===11?'***.'+c.slice(3,6)+'.'+c.slice(6,9)+'-**':c.length===14?c.slice(0,2)+'.***.***/'+c.slice(8,12)+'-**':'' };
@@ -13145,7 +13146,7 @@ function drFotoComprimir(arq){ return new Promise((res,rej)=>{ const im=new Imag
 $('mDourada').addEventListener('change',async e=>{
   if(e.target.id==='drReFoto' && e.target.files && e.target.files[0]){ try{ drFotoDados=await drFotoComprimir(e.target.files[0]); $('drReFotoTxt').textContent='✅ Foto pronta' }catch(err){ drFotoDados=null; toast(err.message) } }
 });
-$('mDourada').addEventListener('input',e=>{ if(e.target.id==='drVdQ'){ e.target.value=e.target.value.replace(/\D/g,'').slice(0,3); const q=parseInt(e.target.value,10)||0; $('drVdRec').textContent=brl2(q*0.94) } });
+$('mDourada').addEventListener('input',e=>{ if(e.target.id==='drVdQ'){ e.target.value=e.target.value.replace(/\D/g,'').slice(0,3); const q=parseInt(e.target.value,10)||0, n=Math.min(q,(DR.dados&&DR.dados.integral7d)||0); $('drVdRec').textContent=brl2(Math.round((n+(q-n)*0.94)*100)/100) } });
 $('mDourada').addEventListener('click',async e=>{
   const b=e.target.closest('button'); if(!b||b.disabled) return;
   const ocupar=async(fn)=>{ b.disabled=true; try{ await fn() }catch(err){ toast(err.message) } b.disabled=false };
@@ -13201,7 +13202,7 @@ async function drAdmAbrir(){ abrir('mDouradaAdm'); $('draLista').innerHTML='<div
       const reb=p.tipo==='reboque', pagar=reb?(p.fichasUsadas||p.fichas):p.valorPagar;
       return '<div class="rtit"><div class="rttopo"><div><b>'+esc(DR_TIPO[p.tipo]||p.tipo)+'</b><div class="rtinfo">Cliente: '+esc(p.cliente||'')+' ('+esc(p.login||'')+')<br>'+
         (reb?'Reboquista: '+esc(p.reboque)+' · PIX: <b>'+esc(p.reboquePix||'não cadastrado')+'</b><br>Valor final '+brl2(p.valorFinal)+' · fichas usadas '+(p.fichasUsadas||0)+(p.cobrarDireto?' · cliente paga '+brl2(p.cobrarDireto)+' direto':'')
-          :p.fichas+' fichas × R$ 0,94'+(p.notaValor?' · nota de '+brl2(p.notaValor):'')+'<br>PIX do cliente: <b>'+esc(p.pixChave)+'</b>')+'<br>'+fmtHora(p.criadoMs)+
+          :(p.fichasIntegral?p.fichasIntegral+' a R$ 1,00 (até 7 dias)'+(p.fichas>p.fichasIntegral?' + '+(p.fichas-p.fichasIntegral)+' × R$ 0,94':''):p.fichas+' fichas × R$ 0,94')+(p.notaValor?' · nota de '+brl2(p.notaValor):'')+'<br>PIX do cliente: <b>'+esc(p.pixChave)+'</b>')+'<br>'+fmtHora(p.criadoMs)+
         (p.estado==='aprovado'&&p.prazoMs?'<br><b class="draprazo'+(p.prazoMs-Date.now()<86400000?' vence':'')+'">Aprovado · pagar o PIX até '+drDia(p.prazoMs)+(p.prazoMs<Date.now()?' (vencido)':'')+'</b>':'')+'</div></div>'+
         '<div class="rtdist">'+brl2(pagar)+'<small>pagar por PIX</small></div></div><div class="rtbt">'+
         (p.temFoto?'<a href="#" data-drafoto="'+esc(p.pedido)+'">Ver nota</a>':'')+
