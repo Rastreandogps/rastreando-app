@@ -385,7 +385,13 @@ setInterval(()=>{ if(P && !document.hidden){ carregarPedidos() } },60000);
     if(ios){ $('instTxt').innerHTML='No Safari, toque em <b>Compartilhar</b> (quadrado com seta ⬆️) e depois em <b>Adicionar à Tela de Início</b>.'; $('bInst').hidden=true }
     else $('instTxt').textContent='Fica com ícone na tela, igual a um aplicativo.' }
   window.addEventListener('beforeinstallprompt',e=>{ e.preventDefault(); adiado=e; if(!inst&&!fechou) $('cInst').hidden=false });
-  $('bInst').onclick=()=>{ if(adiado){ adiado.prompt(); adiado.userChoice.then(r=>{ if(r&&r.outcome==='accepted') $('cInst').hidden=true; adiado=null }).catch(()=>{}); return }
+  const abrirPrompt=()=>{ adiado.prompt(); adiado.userChoice.then(r=>{ if(r&&r.outcome==='accepted') $('cInst').hidden=true; adiado=null }).catch(()=>{}) };
+  $('bInst').onclick=async()=>{ if(adiado){ abrirPrompt(); return }
+    /* 25/10/2026: o Chrome às vezes libera a instalação só uns segundos depois de abrir a página — espera até 5 s antes de mostrar o passo a passo */
+    const b=$('bInst'); b.disabled=true; b.textContent='Aguarde...';
+    for(let i=0;i<25 && !adiado;i++) await new Promise(r=>setTimeout(r,200));
+    b.disabled=false; b.textContent='Instalar';
+    if(adiado){ abrirPrompt(); return }
     $('instTxt').innerHTML='Toque nos <b>3 pontinhos ⋮</b> do Chrome e depois em <b>Instalar app</b> (ou <b>Adicionar à tela inicial</b>).' };
   $('bInstX').onclick=()=>{ $('cInst').hidden=true; try{ localStorage.setItem('rg_parc_inst_x','1') }catch(e){} };
   window.addEventListener('appinstalled',()=>{ $('cInst').hidden=true; toast('App instalado! Procure o ícone "Parceiros" na tela do celular.') });
