@@ -235,6 +235,20 @@ body.mapa-google #map .leaflet-top.leaflet-left .leaflet-control-attribution{mar
 .pccat.on{background:#e3262f;border-color:#e3262f;color:#fff}
 .pcpino{width:30px;height:30px;border-radius:50%;background:#fff;border:2px solid #e3262f;display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 2px 6px rgba(0,0,0,.35)}
 .rbtt.pctt{background:rgba(227,38,47,.9)}
+/* 25/10/2026 (dono: "muito estático, quem fica embaixo não tem chance"): lista compacta; toque no mapa ou na linha abre o card */
+.pcdica{font-size:12px;color:var(--mut);margin:0 0 6px}
+.pcit{cursor:default;transition:border-color .2s}
+.pcit.on{border-color:#e3262f;box-shadow:0 0 0 1px #e3262f inset}
+.pcrow{display:flex;align-items:center;gap:10px;cursor:pointer}
+.pcrow>div:first-child{flex:1;min-width:0}
+.pcrow b.pcn{display:block;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pcrow small{display:block;font-size:12px;color:var(--mut);margin-top:2px}
+.pcrow .pckm{flex:none;text-align:right;font-weight:800;color:var(--amber);font-size:14px}
+.pcrow .pckm small{font-weight:500;color:var(--mut);font-size:11px}
+.pcrow .pcchev{flex:none;width:18px;height:18px;transition:transform .2s;stroke:var(--mut);fill:none;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.pcit.on .pcchev{transform:rotate(180deg)}
+.pcdet{margin-top:8px}
+.pcpino.on{border-width:3px;transform:scale(1.18);box-shadow:0 0 0 4px rgba(227,38,47,.25),0 2px 6px rgba(0,0,0,.35)}
 .pcserv{margin-top:8px;border-top:1px solid var(--line)}
 .pcserv>div{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid var(--line);font-size:13px}
 .pcserv>div b{white-space:nowrap;font-size:13px}
@@ -3811,7 +3825,7 @@ nav button.on .nemo.txt{color:var(--red2)}
     <div class="rtsub" id="rbSub">Carregando...</div>
     <div id="rbMapa"></div>
     <div id="rbRola"><div id="rbLista"></div></div>
-    <div class="rbnota" id="pcNota" hidden>Parceiros aprovados pela Rastreando GPS. Os preços são "a partir de": o valor final depende do seu veículo e é combinado com o parceiro pelo WhatsApp. Pode pagar com fichas douradas. O serviço é prestado pelo parceiro; a Rastreando GPS só faz a ponte.</div>
+    <div class="rbnota" id="pcNota" hidden>Parceiros aprovados pela Rastreando GPS. Preços "a partir de"; o valor final é combinado com o parceiro. O serviço é do parceiro; a Rastreando só faz a ponte.</div>
     <div class="rbnota" id="rbNota">Cada círculo é a <b>região</b> onde o reboque está agora (a posição exata não é mostrada). Os valores são <b>estimativas</b> feitas pelo app com a tabela de cada reboquista; pedágio e adicionais (noite, fim de semana, subsolo) são combinados direto com ele. O serviço é prestado pelo reboquista; a Rastreando GPS só faz a ponte.</div>
     <div class="rtacoes"><button class="btn btn-out" id="rbAtualizar" type="button">Atualizar</button><button class="btn btn-out" data-close type="button">Fechar</button></div>
   </div>
@@ -13228,7 +13242,7 @@ async function pcCarregar(){
   rbCarroAtual=rbCarro();
   try{
     const extra={categoria:pcCat}; if(rbCarroAtual&&rbCarroAtual.pos){ extra.lat=rbCarroAtual.pos[0]; extra.lon=rbCarroAtual.pos[1] }
-    const j=await rbApi('parcListar',extra); pcLista=j.lista||[]; pcDesenhar(j.categoriaNome||nome);
+    const j=await rbApi('parcListar',extra); pcLista=(j.lista||[]).slice().sort((a,b)=>(a.distKm==null?1e9:a.distKm)-(b.distKm==null?1e9:b.distKm)); pcDesenhar(j.categoriaNome||nome);
   }catch(e){ $('rbSub').textContent=''; $('rbLista').innerHTML='<div class="rtvz">'+esc(e.message||'Não consegui carregar.')+'</div>' }
 }
 const pcKm=k=>k==null?'':(k<1?String(k).replace('.',','):Math.round(k))+' km';
@@ -13237,25 +13251,40 @@ function pcDesenhar(nome){
   const pts=[], v=rbCarroAtual;
   if(v&&v.pos){ L.marker(v.pos,{icon:L.divIcon({className:'',html:'<div class="rbcar" title="Seu veículo"></div>',iconSize:[14,14],iconAnchor:[7,7]}),interactive:false}).addTo(rbCamada); pts.push(v.pos) }
   const emo=(PC_CATS.find(c=>c[0]===pcCat)||[])[2]||'📍';
-  pcLista.forEach(p=>{
-    if(p.ponto){ const c=[p.ponto.lat,p.ponto.lon]; L.marker(c,{icon:L.divIcon({className:'',html:'<div class="pcpino">'+emo+'</div>',iconSize:[30,30],iconAnchor:[15,15]})}).addTo(rbCamada).bindTooltip(p.nome,{direction:'top',className:'rbtt',offset:[0,-14]}); pts.push(c) }
-    else if(p.regiao){ const c=[p.regiao.lat,p.regiao.lon]; L.circle(c,{radius:p.regiao.raioM||1500,color:'#e3262f',weight:2,fillColor:'#e3262f',fillOpacity:.10}).addTo(rbCamada).bindTooltip(p.nome,{permanent:true,direction:'center',className:'rbtt pctt'}); pts.push(c) }
+  pcMarc=[]; pcAberto=pcLista.length===1?0:-1;
+  pcLista.forEach((p,i)=>{ let lay=null, c=null;
+    if(p.ponto){ c=[p.ponto.lat,p.ponto.lon]; lay=L.marker(c,{icon:L.divIcon({className:'',html:'<div class="pcpino" id="pcPino'+i+'">'+emo+'</div>',iconSize:[30,30],iconAnchor:[15,15]})}).addTo(rbCamada).bindTooltip(p.nome,{permanent:true,direction:'top',className:'rbtt pctt',offset:[0,-14]}) }
+    else if(p.regiao){ c=[p.regiao.lat,p.regiao.lon]; lay=L.circle(c,{radius:p.regiao.raioM||1500,color:'#e3262f',weight:2,fillColor:'#e3262f',fillOpacity:.10}).addTo(rbCamada).bindTooltip(p.nome,{permanent:true,direction:'center',className:'rbtt pctt',interactive:true}) }
+    if(lay){ pts.push(c); lay.on('click',()=>pcSel(i,true)); try{ lay.getTooltip().on('click',()=>pcSel(i,true)) }catch(e){} }
+    pcMarc.push({lay,c,circ:!!(lay&&!p.ponto)});
   });
   if(pts.length){ try{ rbMapa.fitBounds(L.latLngBounds(pts).pad(0.25),{maxZoom:14}) }catch(e){} }
   else if(map){ try{ rbMapa.setView(map.getCenter(),11) }catch(e){} }
   if(!pcLista.length){ $('rbSub').textContent=''; $('rbLista').innerHTML='<div class="rtvz">Ainda não temos '+esc(String(nome).toLowerCase())+' parceiro disponível perto de você.</div>'; return }
-  $('rbSub').textContent=pcLista.length+' '+String(nome).toLowerCase()+(pcLista.length>1?' (parceiros)':'')+' disponíve'+(pcLista.length>1?'is':'l')+(v?' · perto de '+v.nome:'');
+  $('rbSub').textContent=pcLista.length+' '+String(nome).toLowerCase()+(pcLista.length>1?'s':'')+' disponíve'+(pcLista.length>1?'is':'l')+(v?' · perto de '+v.nome:'');
   const fichas=drPode()&&DR.dados&&DR.dados.ativo&&DR.dados.termoAceito;
-  $('rbLista').innerHTML=pcLista.map((p,i)=>'<div class="rtit pcit"><div class="rttopo"><div><b>'+esc(p.nome)+'</b><div class="rtinfo">'+
-      (p.h24?'<b style="color:#16a34a">Atende 24 horas</b>':esc(p.horario||''))+(p.atendeLocal?' · vai até você'+(p.raioKm?' (até '+p.raioKm+' km)':''):'')+
-      (p.ponto&&p.ponto.end?'<br>📍 '+esc(p.ponto.end):'')+'</div></div><div class="rtdist">'+(p.distKm!=null?'~'+pcKm(p.distKm)+'<small>do seu veículo</small>':'')+'</div></div>'+
+  $('rbLista').innerHTML=(pcLista.length>1?'<div class="pcdica">Toque no mapa ou num nome para ver os serviços e chamar.</div>':'')+pcLista.map((p,i)=>'<div class="rtit pcit'+(i===pcAberto?' on':'')+'" id="pcIt'+i+'"><div class="pcrow" data-pcab="'+i+'"><div><b class="pcn">'+esc(p.nome)+'</b><small>'+
+      (p.h24?'<span style="color:#16a34a;font-weight:700">Atende 24 horas</span>':esc(p.horario||''))+(p.atendeLocal?' · vai até você':'')+'</small></div>'+
+      (p.distKm!=null?'<div class="pckm">~'+pcKm(p.distKm)+'<small>do veículo</small></div>':'')+'<svg class="pcchev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></div>'+
+    '<div class="pcdet" id="pcDet'+i+'"'+(i===pcAberto?'':' hidden')+'><div class="rtinfo">'+(p.atendeLocal&&p.raioKm?'Vai até você (até '+p.raioKm+' km)':'')+(p.ponto&&p.ponto.end?(p.atendeLocal&&p.raioKm?'<br>':'')+'📍 '+esc(p.ponto.end):'')+'</div>'+
     '<div class="pcserv">'+(p.servicos||[]).map(s=>'<div><span>'+esc(s.nome)+'</span><b>'+(s.sobConsulta||!(s.aPartir>0)?'sob consulta':'a partir de '+brl2(s.aPartir))+'</b></div>').join('')+
       (p.atendeLocal&&p.deslocamento&&p.deslocamento.fixo?'<div><span>Deslocamento</span><b>'+brl2(p.deslocamento.fixo)+'</b></div>':'')+'</div>'+
     (p.obs?'<div class="rtinfo" style="margin-top:6px">'+esc(p.obs)+'</div>':'')+
     '<div class="rtbt"><a class="wpp" href="https://wa.me/55'+esc(p.wpp)+'?text='+encodeURIComponent(pcMsg(p))+'" target="_blank" rel="noopener">Pedir orçamento</a>'+(p.fone?'<a href="tel:+55'+esc(p.fone)+'">Ligar</a>':'')+
-      (fichas?'<a href="#" data-pcpag="'+i+'" class="pcpagbt">'+DR_COIN+' Pagar com fichas</a>':'')+'</div>'+
+      (fichas?'<a href="#" data-pcpag="'+i+'" class="pcpagbt">'+DR_COIN+' Pagar com fichas</a>':'')+'</div></div>'+
     '<div class="pcpag" id="pcPag'+i+'" hidden><label class="flbl">Valor combinado com o '+esc(String(nome).toLowerCase())+' (R$)</label><div class="rbcbusca"><input class="fld" data-pcval="'+i+'" inputmode="decimal" autocomplete="off" placeholder="0,00"><button class="btn btn-out" type="button" data-pcres="'+i+'">Reservar fichas</button></div><small>Você tem '+((DR.dados&&DR.dados.livres)||0)+' fichas livres. Elas ficam reservadas até o parceiro concluir.</small></div>'+
   '</div>').join('');
+}
+let pcMarc=[], pcAberto=-1;
+function pcMarcar(){ pcMarc.forEach((m,i)=>{ if(!m.lay) return; const on=i===pcAberto;
+  if(m.circ) m.lay.setStyle({weight:on?4:2,fillOpacity:on?.22:.10}); else { const el=$('pcPino'+i); if(el) el.classList.toggle('on',on) } }) }
+function pcSel(i,doMapa){ /* 25/10/2026: abre o card do parceiro (pelo mapa ou pela lista); só um aberto por vez */
+  pcAberto=(pcAberto===i&&!doMapa)?-1:i;
+  pcLista.forEach((p,k)=>{ const it=$('pcIt'+k), d=$('pcDet'+k); if(it) it.classList.toggle('on',k===pcAberto); if(d) d.hidden=k!==pcAberto });
+  pcMarcar();
+  if(pcAberto<0) return;
+  const it=$('pcIt'+pcAberto); if(it) setTimeout(()=>{ try{ it.scrollIntoView({behavior:'smooth',block:'nearest'}) }catch(e){ it.scrollIntoView() } },60);
+  const m=pcMarc[pcAberto]; if(!doMapa&&m&&m.c&&rbMapa){ try{ rbMapa.panTo(m.c) }catch(e){} }
 }
 function pcMsg(p){
   const v=rbCarroAtual, L=[], nome=((PC_CATS.find(c=>c[0]===pcCat)||[])[1]||'serviço').toLowerCase();
@@ -13265,6 +13294,7 @@ function pcMsg(p){
   return L.join('\n');
 }
 $('rbLista').addEventListener('click',async e=>{
+  const ab=e.target.closest('[data-pcab]'); if(ab){ pcSel(+ab.dataset.pcab,false); return }
   const a=e.target.closest('[data-pcpag]'); if(a){ e.preventDefault(); const bx=$('pcPag'+a.dataset.pcpag); bx.hidden=!bx.hidden; return }
   const r=e.target.closest('[data-pcres]'); if(!r) return;
   const i=+r.dataset.pcres, p=pcLista[i], val=Number(String(document.querySelector('[data-pcval="'+i+'"]').value||'').replace(/\./g,'').replace(',','.'));
