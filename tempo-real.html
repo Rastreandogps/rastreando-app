@@ -3592,7 +3592,7 @@ nav button.on .nemo.txt{color:var(--red2)}
     <label class="fchk"><input type="checkbox" id="pmRetirar"> Ver a lista <b>Para retirar</b> (para técnico: veículos marcados para retirada, pelo mais perto, com o nome e o WhatsApp do cliente)</label>
     <label class="fchk"><input type="checkbox" id="pmPlacas"> <b>Leitor de placas</b> (abre o leitor pela câmera do celular, na aba Mais; só com o login deste cliente)</label><!-- 23/10/2026 -->
     <label class="fchk"><input type="checkbox" id="pmRuaCel"> <b>Vista da rua no celular</b> (no cartão do veículo, a foto da rua toma o lugar de odômetro, combustível e faturas)</label><!-- 23/10/2026 -->
-    <label class="fchk"><input type="checkbox" id="pmDourada"> <b>Fichas douradas</b> (crédito de R$ 1 por ficha para reboque: aporte no boleto, compra avulsa, venda e reembolso a R$ 0,94; ainda em teste)</label><!-- 25/10/2026 -->
+    <label class="fchk"><input type="checkbox" id="pmDourada"> <b>Fichas douradas</b> (crédito de R$ 1 por ficha para os parceiros do app: aporte no boleto, adição avulsa e venda a R$ 0,94; ainda em teste)</label><!-- 25/10/2026 -->
     <label class="fchk"><input type="checkbox" id="pmReboque"> <b>Reboquista</b> (ganha o cartão "Meu reboque" na aba Mais: base, valores e Disponível/Invisível; os clientes veem só a região do reboque)</label><!-- 25/10/2026 -->
     <label class="fchk"><input type="checkbox" id="pmFichas"> Cobrar fichas no compartilhar localização (1 ficha por link; o cliente compra pacotes por PIX no app)</label>
     <div class="pmfichas" id="pmLogoBox"><span class="sp">🖼️ Logo do cliente: <b id="pmLogoSt">—</b></span><button type="button" id="pmLogoAbrir">Ver / enviar logo</button></div>
@@ -3889,7 +3889,7 @@ nav button.on .nemo.txt{color:var(--red2)}
 <div class="modal alsheet" id="mDouradaAdm">
   <div class="box2">
     <div class="almtopo"><h3>Fichas douradas · pendências</h3><button class="almx" data-close type="button" aria-label="Fechar" title="Fechar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
-    <div class="rtsub">Vendas e reembolsos para aprovar (R$ 0,94 por ficha) e reboquistas para pagar. O PIX é feito por você, fora do app.</div>
+    <div class="rtsub">Vendas para aprovar (R$ 0,94 por ficha) e reboquistas para pagar. O PIX é feito por você, fora do app.</div>
     <div id="draLista"></div>
   </div>
 </div>
@@ -13113,10 +13113,8 @@ function drDesenhar(){
       (j.aporte?'<div class="drinfo">Ativo: + R$ '+j.aporte+'/mês a partir do boleto de '+drData(j.aporteDesde)+' → '+j.aporte+' fichas por boleto pago.</div>':'')+'</div>';
     h+='<div class="drsec"><b>Adicionar fichas avulsas</b><small>Por PIX, as fichas entram na hora.</small><div class="drchips">'+
       j.pacotes.map(p=>'<button type="button" class="drchip compra" data-drk="'+esc(p.k)+'"'+(j.saldo+p.fichas>j.teto?' disabled':'')+'>+ '+p.fichas+' fichas · '+brl2(p.valor)+'</button>').join('')+'</div></div>';
-    h+='<div class="drsec"><label class="flbl">Sua chave PIX (para receber venda e reembolso)</label><input class="fld" id="drPix" name="dr-chave-pix" autocomplete="off" maxlength="80" placeholder="CPF, celular, e-mail ou aleatória" value="'+esc(j.pixChave||'')+'"></div>';
-    h+='<div class="drsec"><b>Reembolso de reboque de outra empresa</b><small>Mande a foto da nota. Você recebe R$ 0,94 por ficha usada, por PIX, em até 2 dias úteis depois da aprovação.</small>'+
-      '<div class="rbdois"><div><label class="flbl">Valor da nota (R$)</label><input class="fld" id="drReVal" name="dr-nota-valor" inputmode="decimal" autocomplete="off" placeholder="350,00"></div><div><label class="flbl">Foto da nota</label><label class="btn btn-out drfotobtn" for="drReFoto" id="drReFotoTxt">📷 Tirar foto</label><input type="file" id="drReFoto" accept="image/*" capture="environment" hidden></div></div>'+
-      '<button class="btn btn-out" id="drReEnviar" type="button" style="width:100%">Pedir reembolso</button></div>';
+    h+='<div class="drsec"><label class="flbl">Sua chave PIX (para receber a venda das fichas)</label><input class="fld" id="drPix" name="dr-chave-pix" autocomplete="off" maxlength="80" placeholder="CPF, celular, e-mail ou aleatória" value="'+esc(j.pixChave||'')+'"></div>';
+    /* 25/10/2026 (dono): reembolso de nota de outra empresa ENCERRADO — quem quiser usar serviço de fora vende as fichas */
     h+='<div class="drsec"><b>Vender fichas</b><small>A Rastreando recompra a R$ 0,94 por ficha, por PIX, em até 2 dias úteis depois da aprovação.</small>'+
       '<div class="rbdois"><div><label class="flbl">Quantas fichas</label><input class="fld" id="drVdQ" name="dr-qtd-fichas" type="text" inputmode="numeric" autocomplete="off" placeholder="'+Math.max(0,j.livres)+'"></div><div><label class="flbl">Você recebe</label><div class="fld drreceber" id="drVdRec">R$ 0,00</div></div></div>'+
       '<button class="btn btn-out" id="drVdEnviar" type="button" style="width:100%">Pedir a venda</button></div>';
@@ -13130,13 +13128,13 @@ function drDesenhar(){
   $('drCorpo').innerHTML=h;
 }
 /* 25/10/2026 (dono): texto do termo (versão 2026-10-25c: + prazo de devolução em até 2 dias úteis após a aprovação). Fica guardado no app e o aceite (data, hora, login e CPF) no servidor */
-function drTermoTxt(j){ return '<p>As <b>fichas douradas</b> são <b>créditos pré-pagos de serviço</b> da Rastreando GPS: 1 ficha = R$ 1 para usar em serviços da Rastreando (hoje: reboque). <b>Não é seguro, não é poupança e não rende.</b></p>'+
+function drTermoTxt(j){ return '<p>As <b>fichas douradas</b> são <b>créditos pré-pagos de serviço</b> da Rastreando GPS: 1 ficha = R$ 1 para usar com os <b>parceiros do app</b> (reboque e serviços). <b>Não é seguro, não é poupança e não rende.</b></p>'+
   '<p>• <b>Só o valor que você adiciona a mais vira fichas.</b> A mensalidade do rastreamento continua sendo a mensalidade e <b>não vira crédito</b>. Exemplo: mensalidade de R$ 59,90 + aporte de R$ 20,00 = boleto de R$ 79,90 → você ganha <b>20 fichas</b> (R$ 20,00), não 79,90.</p>'+
   '<p>• As fichas do aporte entram só depois que o boleto é pago. Também dá para adicionar fichas avulsas por PIX. Limite de '+(j.teto||500)+' fichas.</p>'+
-  '<p>• Para pagar reboque do app, as fichas ficam reservadas até o reboquista concluir; o que passar do saldo você paga direto a ele.</p>'+
-  '<p>• Reboque de outra empresa: mande a foto da nota e devolvemos por PIX <b>R$ 0,94 por ficha</b> (6% de taxa administrativa). Depende da nossa conferência.</p>'+
+  '<p>• Para pagar um parceiro do app, as fichas ficam reservadas até ele concluir; o que passar do saldo você paga direto a ele.</p>'+
+  '<p>• <b>As fichas valem só com os parceiros do app.</b> Não reembolsamos nota de outra empresa: para usar um serviço de fora, venda as fichas.</p>'+
   '<p>• Quer as fichas de volta (inclusive se cancelar o rastreamento)? A Rastreando recompra a <b>R$ 0,94 por ficha</b>, por PIX, depois da conferência.</p>'+
-  '<p>• <b>Prazo da devolução:</b> o dinheiro das fichas fica aplicado. Por isso a venda, o reembolso de nota e a devolução no cancelamento são pagos por PIX em <b>até 2 dias úteis depois da aprovação</b>. Sábados, domingos e feriados não contam.</p>'+
+  '<p>• <b>Prazo da devolução:</b> o dinheiro das fichas fica aplicado. Por isso a venda e a devolução no cancelamento são pagas por PIX em <b>até 2 dias úteis depois da aprovação</b>. Sábados, domingos e feriados não contam.</p>'+
   '<p>• As fichas são pessoais: não passam para outra pessoa e não vencem enquanto você for cliente.</p>' }
 const drCpfMask=c=>{ c=String(c||'').replace(/\D/g,''); return c.length===11?'***.'+c.slice(3,6)+'.'+c.slice(6,9)+'-**':c.length===14?c.slice(0,2)+'.***.***/'+c.slice(8,12)+'-**':'' };
 let drFotoDados=null;
