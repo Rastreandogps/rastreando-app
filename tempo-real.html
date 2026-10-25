@@ -2775,6 +2775,7 @@ nav button.on .nemo.txt{color:var(--red2)}
 .pmfichas{display:flex;align-items:center;flex-wrap:wrap;gap:8px;background:rgba(245,184,61,.10);border-radius:12px;padding:8px 10px;margin:-2px 0 8px;font-size:13px}
 .pmfichas .sp{flex:1;min-width:120px}
 .pmfichas input{width:70px;height:34px;margin:0;padding:0 8px;text-align:center}
+.pmdr{background:rgba(224,168,0,.14)}.pmfichas input.pmdrmot{width:100%;flex:1 1 100%;text-align:left}
 .pmfichas button{height:34px;padding:0 12px;border-radius:9px;background:#d97706;color:#fff;font-weight:700;font-size:13px}
 </style>
 </head>
@@ -3597,6 +3598,7 @@ nav button.on .nemo.txt{color:var(--red2)}
     <label class="fchk"><input type="checkbox" id="pmFichas"> Cobrar fichas no compartilhar localização (1 ficha por link; o cliente compra pacotes por PIX no app)</label>
     <div class="pmfichas" id="pmLogoBox"><span class="sp">🖼️ Logo do cliente: <b id="pmLogoSt">—</b></span><button type="button" id="pmLogoAbrir">Ver / enviar logo</button></div>
     <div class="pmfichas" id="pmModBox"><span class="sp">⭐ Premium (odômetro/mapa): <b id="pmModSt">—</b></span><input class="fld" id="pmModDias" type="text" inputmode="numeric" maxlength="3" value="30" autocomplete="off" title="Dias de teste grátis"><button type="button" data-mf="dar">Liberar dias</button><button type="button" data-mf="boleto" style="background:#7c3aed" title="Premium incluído na mensalidade: fica ativo sem prazo até você tirar">♾️ No boleto</button><button type="button" data-mf="0" style="background:#64748b">Tirar</button></div>
+    <div class="pmfichas pmdr" id="pmDrBox" hidden><span class="sp"><span class="drcoin" style="width:18px;height:18px;vertical-align:-4px"></span> Fichas douradas: <b id="pmDrSaldo">—</b></span><input class="fld" id="pmDrQ" type="text" inputmode="numeric" placeholder="+50" autocomplete="off" aria-label="Fichas douradas para lançar"><input class="fld pmdrmot" id="pmDrMot" type="text" maxlength="60" placeholder="Motivo (ex.: teste)" autocomplete="off" aria-label="Motivo"><button type="button" id="pmDrLancar">Lançar</button></div><!-- 25/10/2026 (dono): creditar/retirar fichas douradas à mão -->
     <div class="pmfichas" id="pmGiroBox"><span class="sp">🔄 Giros extras da vista da rua: <b id="pmGiroSaldo">—</b></span><input class="fld" id="pmGiroQ" type="text" inputmode="numeric" placeholder="+10" autocomplete="off" aria-label="Giros para lançar"><button type="button" id="pmGiroLancar">Lançar</button></div><!-- 25/10/2026 (pedido do dono): giros de cortesia de volta -->
     <div class="pmfichas" id="pmFichasBox"><span class="sp">Saldo: <b id="pmFichasSaldo">—</b> fichas</span><input class="fld" id="pmFichasQ" type="text" inputmode="numeric" placeholder="+10" autocomplete="off" aria-label="Fichas para lançar"><button type="button" id="pmFichasLancar">Lançar</button></div>
     <div class="pmval pmmapa"><span class="pmvl">Mapa do app</span><select class="fld" id="pmMapa"><option value="gratis">Grátis (padrão)</option><option value="google">Google Maps</option></select></div>
@@ -7012,7 +7014,7 @@ function mostrarPerm(j){
   $('pmZerar').disabled=!c.pendentes;
   $('pmFichas').checked=!!p.fichas; pmFichasCarregar();
   pmModPintar(j.modFrotaAteMs);
-  $('pmGiroSaldo').textContent=Number(j.girosExtra||0).toLocaleString('pt-BR'); $('pmGiroQ').value='';
+  $('pmGiroSaldo').textContent=Number(j.girosExtra||0).toLocaleString('pt-BR'); $('pmGiroQ').value=''; try{ pmDrCarregar() }catch(e){}
   $('pmLogoSt').textContent='…'; fnAdm('logoVer',{userId:permUserId}).then(r=>{ $('pmLogoSt').textContent=r.img?'enviada'+(r.nome?' ('+r.nome+')':''):'nenhuma' }).catch(()=>{ $('pmLogoSt').textContent='?' });
 }
 async function abrirPermissoes(userId){
@@ -12801,6 +12803,20 @@ $('pmModBox').addEventListener('click',async e=>{
   try{ const j=await chamarPerm('modFrotaLancar',{dias}); pmModPintar(j.modFrotaAteMs); toast(dias?'Premium liberado: +'+dias+' dia'+(dias>1?'s':'')+'.':'Premium tirado.') }catch(err){ $('pmErro').textContent=err.message }
   b.disabled=false;
 });
+async function pmDrCarregar(){ /* 25/10/2026: saldo de fichas douradas do cliente (admin) */
+  const box=$('pmDrBox'); if(!box) return; box.hidden=!$('pmDourada').checked; if(box.hidden) return;
+  $('pmDrSaldo').textContent='...';
+  try{ const j=await chamarPerm('douradaAdmVer'); $('pmDrSaldo').textContent=j.saldo+' (R$ '+brl2(j.saldo).replace('R$','').trim()+')'+(j.reservado?' · '+j.reservado+' reservadas':'') }catch(e){ $('pmDrSaldo').textContent='—' }
+}
+$('pmDourada').addEventListener('change',pmDrCarregar);
+$('pmDrLancar').onclick=async()=>{
+  const t=$('pmDrQ').value.replace(/\s/g,'').replace('−','-'), q=parseInt(t,10);
+  if(!/^[+-]?\d+$/.test(t) || !q){ $('pmErro').textContent='Digite quantas fichas (ex.: 50 para creditar, -20 para retirar).'; return }
+  const b=$('pmDrLancar'); b.disabled=true; $('pmErro').textContent='';
+  try{ const j=await chamarPerm('douradaAdmLancar',{q,motivo:$('pmDrMot').value.trim()}); $('pmDrQ').value=''; $('pmDrMot').value=''; toast((q>0?'+':'')+q+' fichas douradas lançadas. Saldo: '+j.saldo+'.'); pmDrCarregar() }
+  catch(e){ $('pmErro').textContent=e.message }
+  b.disabled=false;
+};
 $('pmGiroLancar').onclick=async()=>{ /* 25/10/2026: giros extras (não vencem; fora do limite do dia) */
   const t=$('pmGiroQ').value.replace(/\s/g,'').replace('−','-'), q=parseInt(t,10);
   if(!/^[+-]?\d+$/.test(t) || !q){ $('pmErro').textContent='Digite quantos giros (ex.: 10 para dar, -5 para tirar).'; return }
