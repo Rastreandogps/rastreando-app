@@ -82,6 +82,30 @@ textarea.fld{height:70px;padding:10px 12px;resize:vertical}
 .aviso{font-size:12.5px;color:var(--mut);line-height:1.5}
 .toast{position:fixed;left:16px;right:16px;bottom:calc(20px + env(safe-area-inset-bottom));max-width:520px;margin:0 auto;background:var(--card);border:1px solid var(--line);border-left:5px solid var(--green);border-radius:12px;padding:12px 14px;font-weight:700;font-size:14px;box-shadow:0 8px 24px rgba(0,0,0,.3);display:none;z-index:50}
 .toast.show{display:block}
+/* 25/10/2026 (dono): abas Serviços / Meu cadastro; o parceiro vê dinheiro, não fichas */
+.abas button .n{display:inline-flex;min-width:20px;height:20px;padding:0 6px;border-radius:10px;background:var(--red);color:#fff;font-size:11.5px;align-items:center;justify-content:center;margin-left:6px}
+.resumo{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.resumo div{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px}
+.resumo small{display:block;font-size:12px;color:var(--mut)}
+.resumo b{display:block;font-size:20px;font-weight:900;margin-top:2px}
+.resumo .ar b{color:var(--green)}
+.pcard{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:10px}
+.pcard.novo{border:2px solid var(--red);box-shadow:0 4px 18px rgba(227,38,47,.12)}
+.pcard .tag{display:inline-block;font-size:11.5px;font-weight:800;padding:3px 9px;border-radius:999px;margin-bottom:6px}
+.tag.nv{background:var(--red);color:#fff}.tag.ok{background:rgba(26,158,87,.14);color:var(--green)}.tag.pg{background:rgba(26,158,87,.9);color:#fff}.tag.cc{background:var(--card2);color:var(--mut)}
+.pcard h3{font-size:17px;margin-bottom:2px}
+.pcard .info{font-size:13px;color:var(--mut);line-height:1.45}
+.pcard .val{display:flex;justify-content:space-between;align-items:center;background:var(--card2);border-radius:12px;padding:10px 12px;margin:10px 0}
+.pcard .val small{font-size:12px;color:var(--mut)}.pcard .val b{font-size:20px;font-weight:900;color:var(--green)}
+.pcard .lin{display:flex;justify-content:space-between;gap:10px;font-size:13.5px;padding:4px 0}
+.pcard .lin b{white-space:nowrap}
+.pcard .ac{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px}
+.pcard .ac .btn{height:46px}
+.vazio{text-align:center;color:var(--mut);font-size:14px;line-height:1.5;padding:26px 16px;background:var(--card);border:1px dashed var(--line);border-radius:16px}
+.vazio b{display:block;color:var(--txt);font-size:16px;margin-bottom:4px}
+.cadres{font-size:14px;line-height:1.55}
+.cadres .lin{display:flex;gap:8px;padding:6px 0;border-top:1px solid var(--line)}
+.cadres .lin span{color:var(--mut);min-width:92px;font-size:13px}
 [hidden]{display:none!important}
 </style>
 </head>
@@ -131,13 +155,19 @@ textarea.fld{height:70px;padding:10px 12px;resize:vertical}
       <div class="vistos" id="pVistos"></div>
     </div>
 
-    <div class="card" id="cPedidos" hidden>
-      <h2><span class="moeda"></span>Pagamentos com fichas douradas</h2>
-      <p class="sub">O cliente reservou o valor em fichas. Faça o serviço, informe o valor final e toque em Concluir: a Rastreando faz o PIX para você.</p>
+    <div class="abas" id="pAbas" hidden><button type="button" data-ab="serv" class="on">💼 Serviços<span class="n" id="pAbN" hidden></span></button><button type="button" data-ab="cad">✏️ Meu cadastro</button></div>
+
+    <div id="abServ">
+      <div class="resumo" id="pResumo" hidden><div class="ar"><small>A receber da Rastreando</small><b id="pAReceber">R$ 0,00</b></div><div><small>Recebido (30 dias)</small><b id="pRecebido">R$ 0,00</b></div></div>
       <div id="pPedidos"></div>
     </div>
 
-    <div class="card">
+    <div id="abCad">
+    <div class="card" id="cCadRes" hidden>
+      <div class="linha"><h2>Meu cadastro</h2><button class="btn out" id="bEditar" type="button" style="width:auto;padding:0 16px;height:40px">Editar</button></div>
+      <div class="cadres" id="pCadRes"></div>
+    </div>
+    <div class="card" id="cCadForm">
       <h2>Seu cadastro</h2>
       <p class="sub">É isso que o cliente vê. Pode mudar quando quiser.</p>
       <label class="l">Tipo de serviço</label>
@@ -175,7 +205,8 @@ textarea.fld{height:70px;padding:10px 12px;resize:vertical}
       <div class="err" id="pfErr"></div>
       <button class="btn pri" id="bSalvar" type="button">Salvar</button>
     </div>
-    <p class="aviso" style="text-align:center">O serviço é prestado por você. A Rastreando GPS faz a ponte com o cliente e repassa os pagamentos feitos com fichas douradas.</p>
+    </div>
+    <p class="aviso" style="text-align:center">O serviço é prestado por você. A Rastreando GPS faz a ponte com o cliente e paga por PIX os serviços contratados pelo app.</p>
   </section>
 </div>
 <div class="toast" id="toast"></div>
@@ -222,7 +253,7 @@ const ST={rascunho:['Cadastro incompleto','Complete os dados abaixo e toque em S
 async function abrirPainel(){
   const j=await api('parcVer',{ptoken:TOK}); P=j.perfil;
   $('tEntrar').hidden=true; $('tPainel').hidden=false; $('bSair').hidden=false;
-  desenharTopo(); preencher(); carregarPedidos();
+  desenharTopo(); preencher(); cadModo(false); carregarPedidos();
 }
 function desenharTopo(){
   const st=ST[P.status]||[P.status,''];
@@ -275,24 +306,59 @@ $('bSalvar').onclick=async()=>{
   $('pfErr').textContent=''; const b=$('bSalvar'); b.disabled=true;
   const perfil={nome:$('pfNome').value,responsavel:$('pfResp').value,doc:$('pfDoc').value,fone:$('pfFone').value,pix:$('pfPix').value,base,lojaPublica:$('pfLoja').checked,atendeLocal:$('pfLocal').checked,
     raioKm:$('pfRaio').value,deslocamento:{fixo:numBR($('pfDesl').value)||0,porKm:0},h24:$('pf24').checked,horario:$('pfHor').value,obs:$('pfObs').value,servicos:servLer(false)};
-  try{ const j=await api('parcSalvar',{ptoken:TOK,categoria:catPerfil,perfil}); const antes=P.status; P=j.perfil; desenharTopo(); preencher();
+  try{ const j=await api('parcSalvar',{ptoken:TOK,categoria:catPerfil,perfil}); const antes=P.status; P=j.perfil; desenharTopo(); preencher(); cadModo(false);
     toast(antes!==P.status&&P.status==='analise'?'Enviado para aprovação! A gente avisa quando liberar.':'Salvo.',5000); window.scrollTo({top:0,behavior:'smooth'}) }
   catch(e){ $('pfErr').textContent=e.message }
   b.disabled=false;
 };
-/* pedidos com fichas douradas */
+/* 25/10/2026 (dono): serviços contratados pelo app — o parceiro vê DINHEIRO (quem trata de fichas é só o cliente) */
 const diaBR=ms=>new Date(ms).toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo',day:'2-digit',month:'2-digit'});
-const EST={reservado:'Aguardando você concluir',concluido:'Concluído',recusado:'Recusado',cancelado:'Cancelado pelo cliente'};
+const hora=ms=>new Date(ms).toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}).replace(',',' às');
+let ABA='serv';
+function abaIr(a){ ABA=a; document.querySelectorAll('#pAbas button').forEach(b=>b.classList.toggle('on',b.dataset.ab===a)); $('abServ').hidden=a!=='serv'; $('abCad').hidden=a!=='cad'; }
+$('pAbas').onclick=e=>{ const b=e.target.closest('[data-ab]'); if(b) abaIr(b.dataset.ab) };
+function cadModo(editar){ /* aprovado: resumo + botão Editar; em cadastro/análise/recusado: formulário aberto */
+  const ok=P&&P.status==='aprovado'; $('pAbas').hidden=!ok;
+  if(!ok){ $('abServ').hidden=true; $('abCad').hidden=false; $('cCadRes').hidden=true; $('cCadForm').hidden=false; return }
+  abaIr(ABA); $('cCadRes').hidden=!!editar; $('cCadForm').hidden=!editar; if(!editar) cadResumo();
+}
+function cadResumo(){
+  const cat=(CATS.find(c=>c[0]===P.categoria)||[]); const sv=(P.servicos||[]).map(x=>esc(x.nome)+(x.sobConsulta||!(x.aPartir>0)?' (sob consulta)':' (a partir de '+brl(x.aPartir)+')')).join('<br>');
+  $('pCadRes').innerHTML='<div class="lin"><span>Serviço</span><b>'+(cat[2]||'')+' '+esc(cat[1]||'')+'</b></div>'+
+    '<div class="lin"><span>Endereço</span><div>'+esc((P.base&&P.base.end)||'—')+(P.lojaPublica?'<br><small style="color:var(--mut)">Loja aberta: o ponto aparece no mapa</small>':'')+'</div></div>'+
+    '<div class="lin"><span>Horário</span><div>'+(P.h24?'24 horas':esc(P.horario||'—'))+(P.atendeLocal?' · vai até o cliente'+(P.raioKm?' (até '+P.raioKm+' km)':''):'')+'</div></div>'+
+    '<div class="lin"><span>Preços</span><div>'+(sv||'—')+'</div></div>'+
+    '<div class="lin"><span>PIX</span><div>'+esc(P.pix||'— cadastre para receber')+'</div></div>';
+}
+$('bEditar').onclick=()=>{ cadModo(true); window.scrollTo({top:0,behavior:'smooth'}) };
 async function carregarPedidos(){
-  try{ const j=await api('parcPedidos',{ptoken:TOK}); const l=j.lista||[]; $('cPedidos').hidden=!l.length;
-    $('pPedidos').innerHTML=l.map(p=>'<div class="ped"><b>'+esc(p.cliente||'Cliente')+' · '+p.fichas+' fichas reservadas</b><small>'+esc(p.resumo||'')+' · '+new Date(p.criadoMs).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})+' · '+(EST[p.estado]||p.estado)+(p.valorFinal?' · '+brl(p.valorFinal):'')+(p.estado==='concluido'?(p.pagoParceiro?' · ✅ PIX da Rastreando feito':' · 💰 PIX da Rastreando até '+(p.prazoMs?diaBR(p.prazoMs):'2 dias úteis')):'')+'</small>'+
-      (p.estado==='reservado'?'<div class="ac"><input class="fld" data-v="'+esc(p.pedido)+'" inputmode="decimal" autocomplete="off" placeholder="Valor final R$"><button class="btn pri" type="button" data-c="'+esc(p.pedido)+'">Concluir</button><button class="btn out" type="button" data-r="'+esc(p.pedido)+'">Recusar</button></div>':'')+'</div>').join('') }
+  try{ const j=await api('parcPedidos',{ptoken:TOK}); const l=j.lista||[];
+    const novos=l.filter(p=>p.estado==='reservado').length; $('pAbN').hidden=!novos; $('pAbN').textContent=novos;
+    const aRec=l.filter(p=>p.estado==='concluido'&&!p.pagoParceiro).reduce((t,p)=>t+(p.pagoRastreando||0),0), rec=l.filter(p=>p.estado==='concluido'&&p.pagoParceiro).reduce((t,p)=>t+(p.pagoRastreando||0),0);
+    $('pResumo').hidden=!l.length; $('pAReceber').textContent=brl(aRec); $('pRecebido').textContent=brl(rec);
+    if(!l.length){ $('pPedidos').innerHTML='<div class="vazio"><b>Nenhum serviço pelo app ainda</b>Quando um cliente da Rastreando contratar você pelo app, ele aparece aqui. Você combina o valor, faz o serviço e informa o valor final: a Rastreando paga por PIX.</div>'; return }
+    $('pPedidos').innerHTML=l.map(p=>{
+      const topo='<h3>'+esc(p.cliente||'Cliente')+'</h3><div class="info">'+esc(p.resumo||'')+(p.resumo?' · ':'')+hora(p.criadoMs)+'</div>';
+      if(p.estado==='reservado') return '<div class="pcard novo"><span class="tag nv">NOVO SERVIÇO</span>'+topo+
+        '<div class="val"><div><small>Já garantido pela Rastreando</small></div><b>'+brl(p.fichas)+'</b></div>'+
+        '<label class="l">Depois do serviço, digite o valor final combinado (R$)</label><input class="fld" data-v="'+esc(p.pedido)+'" inputmode="decimal" autocomplete="off" placeholder="'+String(p.fichas).replace('.',',')+',00">'+
+        '<div class="ac"><button class="btn out" type="button" data-r="'+esc(p.pedido)+'">Não vou atender</button><button class="btn pri" type="button" data-c="'+esc(p.pedido)+'">Serviço feito</button></div></div>';
+      if(p.estado==='concluido'){ const vf=p.valorFinal||((p.pagoRastreando||0)+(p.cobrarDireto||0));
+        return '<div class="pcard"><span class="tag '+(p.pagoParceiro?'pg">✅ PIX RECEBIDO':'ok">CONCLUÍDO')+'</span>'+topo+
+          '<div class="val"><small>Valor do serviço</small><b>'+brl(vf)+'</b></div>'+
+          '<div class="lin"><span>'+(p.pagoParceiro?'Pago pela Rastreando':'A Rastreando paga por PIX'+(p.prazoMs?' até '+diaBR(p.prazoMs):''))+'</span><b>'+brl(p.pagoRastreando||0)+'</b></div>'+
+          (p.cobrarDireto?'<div class="lin"><span>Cobrar direto do cliente</span><b>'+brl(p.cobrarDireto)+'</b></div>':'')+'</div>' }
+      return '<div class="pcard" style="opacity:.6"><span class="tag cc">'+(p.estado==='cancelado'?'CANCELADO PELO CLIENTE':'NÃO ATENDIDO')+'</span>'+topo+'</div>';
+    }).join('') }
   catch(e){}
 }
 $('pPedidos').onclick=async e=>{
-  const c=e.target.closest('[data-c]'), r=e.target.closest('[data-r]'); if(!c&&!r) return; const b=c||r; b.disabled=true;
-  try{ if(c){ const v=document.querySelector('[data-v="'+c.dataset.c+'"]').value; const j=await api('parcConcluir',{ptoken:TOK,pedido:c.dataset.c,valor:v}); toast('Concluído! A Rastreando vai fazer o PIX de '+brl(j.fichasUsadas)+' para você até '+(j.prazoMs?diaBR(j.prazoMs):'2 dias úteis')+(j.cobrarDireto?'. Cobre '+brl(j.cobrarDireto)+' direto do cliente':'')+'.',7000) }
-    else { await api('parcConcluir',{ptoken:TOK,pedido:r.dataset.r,recusar:true}); toast('Recusado. As fichas voltaram para o cliente.') }
+  const c=e.target.closest('[data-c]'), r=e.target.closest('[data-r]'); if(!c&&!r) return; const b=c||r;
+  if(r && !confirm('Não vai atender esse serviço? O cliente é avisado no app.')) return;
+  b.disabled=true;
+  try{ if(c){ const v=document.querySelector('[data-v="'+c.dataset.c+'"]').value; if(!(numBR(v)>0)){ toast('Digite o valor final do serviço.'); b.disabled=false; return }
+      const j=await api('parcConcluir',{ptoken:TOK,pedido:c.dataset.c,valor:v}); toast('Pronto! A Rastreando paga '+brl(j.fichasUsadas)+' por PIX até '+(j.prazoMs?diaBR(j.prazoMs):'2 dias úteis')+(j.cobrarDireto?'. Cobre '+brl(j.cobrarDireto)+' direto do cliente':'')+'.',7000) }
+    else { await api('parcConcluir',{ptoken:TOK,pedido:r.dataset.r,recusar:true}); toast('Ok, serviço recusado.') }
     carregarPedidos() }
   catch(err){ toast(err.message); b.disabled=false }
 };
