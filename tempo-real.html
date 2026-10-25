@@ -12999,9 +12999,12 @@ async function rbCarregar(){
   rbCarroAtual=rbCarro();
   try{
     const extra={}; if(rbCarroAtual&&rbCarroAtual.pos){ extra.lat=rbCarroAtual.pos[0]; extra.lon=rbCarroAtual.pos[1] }
-    const j=await rbApi('reboqueListar',extra);
+    const [j,pj]=await Promise.all([rbApi('reboqueListar',extra),rbApi('parcListar',Object.assign({categoria:'reboque'},extra)).catch(()=>({lista:[]}))]);
     rbLista=j.lista||[];
     rbDesenhar();
+    /* 25/10/2026 (dono): reboquistas filiados pelo link do parceiro (sem rastreador) entram na mesma lista, com a base e o "a partir de" */
+    pcLista=(pj.lista||[]).slice().sort((a,b)=>(a.distKm==null?1e9:a.distKm)-(b.distKm==null?1e9:b.distKm));
+    if(pcLista.length){ if(!rbLista.length) $('rbLista').innerHTML=''; pcDesenhar('Reboque',true) }
   }catch(e){ $('rbSub').textContent=''; $('rbLista').innerHTML='<div class="rtvz">'+esc(e.message||'Não consegui carregar.')+'</div>' }
   $('rbAtualizar').disabled=false;
 }
@@ -13411,10 +13414,11 @@ async function pcCarregar(){
   }catch(e){ $('rbSub').textContent=''; $('rbLista').innerHTML='<div class="rtvz">'+esc(e.message||'Não consegui carregar.')+'</div>' }
 }
 const pcKm=k=>k==null?'':(k<1?String(k).replace('.',','):Math.round(k))+' km';
-function pcDesenhar(nome){
-  rbMapaPreparar(); rbCamada.clearLayers();
+function pcDesenhar(nome,anexar){ /* anexar=true: junta aos reboquistas com rastreador já desenhados (chip Reboque) */
+  rbMapaPreparar(); if(!anexar) rbCamada.clearLayers();
   const pts=[], v=rbCarroAtual;
-  if(v&&v.pos){ L.marker(v.pos,{icon:L.divIcon({className:'',html:'<div class="rbcar" title="Seu veículo"></div>',iconSize:[14,14],iconAnchor:[7,7]}),interactive:false}).addTo(rbCamada); pts.push(v.pos) }
+  if(anexar) rbLista.forEach(r=>{ if(r.regiao) pts.push([r.regiao.lat,r.regiao.lon]) });
+  if(v&&v.pos&&!anexar){ L.marker(v.pos,{icon:L.divIcon({className:'',html:'<div class="rbcar" title="Seu veículo"></div>',iconSize:[14,14],iconAnchor:[7,7]}),interactive:false}).addTo(rbCamada); pts.push(v.pos) }
   const emo=(PC_CATS.find(c=>c[0]===pcCat)||[])[2]||'📍';
   pcMarc=[]; pcAberto=pcLista.length===1?0:-1;
   pcLista.forEach((p,i)=>{ let lay=null, c=null;
@@ -13425,10 +13429,11 @@ function pcDesenhar(nome){
   });
   if(pts.length){ try{ rbMapa.fitBounds(L.latLngBounds(pts).pad(0.25),{maxZoom:14}) }catch(e){} }
   else if(map){ try{ rbMapa.setView(map.getCenter(),11) }catch(e){} }
-  if(!pcLista.length){ $('rbSub').textContent=''; $('rbLista').innerHTML='<div class="rtvz">Ainda não temos '+esc(String(nome).toLowerCase())+' parceiro disponível perto de você.</div>'; return }
-  $('rbSub').textContent=pcLista.length+' '+String(nome).toLowerCase()+(pcLista.length>1?'s':'')+' disponíve'+(pcLista.length>1?'is':'l')+(v?' · perto de '+v.nome:'');
+  if(!pcLista.length){ if(anexar) return; $('rbSub').textContent=''; $('rbLista').innerHTML='<div class="rtvz">Ainda não temos '+esc(String(nome).toLowerCase())+' parceiro disponível perto de você.</div>'; return }
+  const tot=pcLista.length+(anexar?rbLista.length:0);
+  $('rbSub').textContent=tot+' '+String(nome).toLowerCase()+(tot>1?'s':'')+' disponíve'+(tot>1?'is':'l')+(v?' · perto de '+v.nome:'');
   const fichas=drPode()&&DR.dados&&DR.dados.ativo&&DR.dados.termoAceito;
-  $('rbLista').innerHTML=(pcLista.length>1?'<div class="pcdica">Toque no mapa ou num nome para ver os serviços e chamar.</div>':'')+pcLista.map((p,i)=>'<div class="rtit pcit'+(i===pcAberto?' on':'')+'" id="pcIt'+i+'"><div class="pcrow" data-pcab="'+i+'"><div><b class="pcn">'+esc(p.nome)+'</b><small>'+
+  $('rbLista')[anexar?'insertAdjacentHTML':'innerHTML'](...(anexar?['beforeend']:[]),((pcLista.length>1&&!anexar)?'<div class="pcdica">Toque no mapa ou num nome para ver os serviços e chamar.</div>':'')+pcLista.map((p,i)=>'<div class="rtit pcit'+(i===pcAberto?' on':'')+'" id="pcIt'+i+'"><div class="pcrow" data-pcab="'+i+'"><div><b class="pcn">'+esc(p.nome)+'</b><small>'+
       (p.h24?'<span style="color:#16a34a;font-weight:700">Atende 24 horas</span>':esc(p.horario||''))+(p.atendeLocal?' · vai até você':'')+'</small></div>'+
       (p.distKm!=null?'<div class="pckm">~'+pcKm(p.distKm)+'<small>do veículo</small></div>':'')+'<svg class="pcchev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></div>'+
     '<div class="pcdet" id="pcDet'+i+'"'+(i===pcAberto?'':' hidden')+'><div class="rtinfo">'+(p.atendeLocal&&p.raioKm?'Vai até você (até '+p.raioKm+' km)':'')+(p.ponto&&p.ponto.end?(p.atendeLocal&&p.raioKm?'<br>':'')+'📍 '+esc(p.ponto.end):'')+'</div>'+
@@ -13438,7 +13443,7 @@ function pcDesenhar(nome){
     '<div class="rtbt"><a class="wpp" href="https://wa.me/55'+esc(p.wpp)+'?text='+encodeURIComponent(pcMsg(p))+'" target="_blank" rel="noopener">Pedir orçamento</a>'+(p.fone?'<a href="tel:+55'+esc(p.fone)+'">Ligar</a>':'')+
       (fichas?'<a href="#" data-pcpag="'+i+'" class="pcpagbt">'+DR_COIN+' Pagar com fichas</a>':'')+'</div></div>'+
     '<div class="pcpag" id="pcPag'+i+'" hidden><label class="flbl">Valor combinado com o '+esc(String(nome).toLowerCase())+' (R$)</label><div class="rbcbusca"><input class="fld" data-pcval="'+i+'" inputmode="decimal" autocomplete="off" placeholder="0,00"><button class="btn btn-out" type="button" data-pcres="'+i+'">Reservar fichas</button></div><small>Você tem '+((DR.dados&&DR.dados.livres)||0)+' fichas livres. Elas ficam reservadas até o parceiro concluir.</small></div>'+
-  '</div>').join('');
+  '</div>').join(''));
 }
 let pcMarc=[], pcAberto=-1;
 function pcMaisAtualizar(){ /* mostra "Ver mais N" enquanto houver itens abaixo da área visível */
