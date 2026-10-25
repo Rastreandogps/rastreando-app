@@ -158,7 +158,13 @@ body.mapa-google #map .leaflet-top.leaflet-left .leaflet-control-attribution{mar
 .maiscard .mic.t{background:rgba(14,165,233,.14);color:#0ea5e9}
 .rbbox{display:flex;flex-direction:column;max-height:88vh;overflow:hidden}
 #rbMapa{height:min(30vh,230px);border-radius:14px;overflow:hidden;background:var(--card2);flex:none;margin-bottom:10px;position:relative;z-index:0}
-#rbRola{flex:1 1 auto;min-height:120px;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+#rbRola{flex:1 1 auto;min-height:120px;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;position:relative}
+/* 25/10/2026 (dono): "uma setinha mostrando ver mais" quando a lista não cabe */
+.pcmais{position:sticky;bottom:6px;display:flex;align-items:center;gap:6px;margin:6px auto 2px;padding:8px 16px;border-radius:999px;background:#e3262f;color:#fff;font-weight:800;font-size:13px;box-shadow:0 4px 14px rgba(0,0,0,.3);z-index:2;animation:pcMaisPulo 1.6s ease-in-out infinite}
+.pcmais[hidden]{display:none}
+.pcmais svg{width:16px;height:16px;fill:none;stroke:#fff;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+@keyframes pcMaisPulo{0%,100%{transform:translateY(0)}50%{transform:translateY(3px)}}
+@media (prefers-reduced-motion:reduce){.pcmais{animation:none}}
 .rbnota{font-size:12px;color:var(--mut);line-height:1.45;margin:8px 0 2px}
 #mReboques .rbnota{flex:none;font-size:11.5px;margin-top:6px}
 .rbcinfo{font-size:13.5px;color:var(--txt);background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:12px;line-height:1.4}
@@ -3850,7 +3856,7 @@ nav button.on .nemo.txt{color:var(--red2)}
     <div class="pccats" id="rbCats"></div><!-- 25/10/2026: categorias de parceiros -->
     <div class="rtsub" id="rbSub">Carregando...</div>
     <div id="rbMapa"></div>
-    <div id="rbRola"><div id="rbLista"></div></div>
+    <div id="rbRola"><div id="rbLista"></div><button type="button" class="pcmais" id="pcMais" hidden></button></div>
     <div class="rbnota" id="pcNota" hidden>Parceiros aprovados pela Rastreando GPS. Preços "a partir de"; o valor final é combinado com o parceiro. O serviço é do parceiro; a Rastreando só faz a ponte.</div>
     <div class="rbnota" id="rbNota">Cada círculo é a <b>região</b> onde o reboque está agora (a posição exata não é mostrada). Os valores são <b>estimativas</b> feitas pelo app com a tabela de cada reboquista; pedágio e adicionais (noite, fim de semana, subsolo) são combinados direto com ele. O serviço é prestado pelo reboquista; a Rastreando GPS só faz a ponte.</div>
     <div class="rtacoes"><button class="btn btn-out" id="rbAtualizar" type="button">Atualizar</button><button class="btn btn-out" data-close type="button">Fechar</button></div>
@@ -13347,6 +13353,17 @@ function pcDesenhar(nome){
   '</div>').join('');
 }
 let pcMarc=[], pcAberto=-1;
+function pcMaisAtualizar(){ /* mostra "Ver mais N" enquanto houver itens abaixo da área visível */
+  const r=$('rbRola'), b=$('pcMais'); if(!r||!b) return;
+  const fim=r.scrollTop+r.clientHeight, itens=[...r.querySelectorAll('#rbLista .rtit')];
+  const n=itens.filter(x=>x.offsetTop+x.offsetHeight*0.6>fim).length;
+  b.hidden=!n; if(n) b.innerHTML='Ver mais '+n+' <svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>';
+}
+(function(){ const r=$('rbRola'), b=$('pcMais'); if(!r||!b) return; let t=0; const ag=()=>{ clearTimeout(t); t=setTimeout(pcMaisAtualizar,60) };
+  r.addEventListener('scroll',ag,{passive:true}); window.addEventListener('resize',ag);
+  try{ new MutationObserver(ag).observe($('rbLista'),{childList:true,subtree:true,attributes:true,attributeFilter:['hidden','class']}) }catch(e){}
+  b.onclick=()=>{ try{ r.scrollBy({top:Math.max(120,r.clientHeight*0.8),behavior:'smooth'}) }catch(e){ r.scrollTop+=r.clientHeight*0.8 } };
+})();
 function pcMarcar(){ pcMarc.forEach((m,i)=>{ if(!m.lay) return; const on=i===pcAberto;
   if(m.circ) m.lay.setStyle({weight:on?4:2,fillOpacity:on?.22:.10}); else { const el=$('pcPino'+i); if(el) el.classList.toggle('on',on) } }) }
 function pcSel(i,doMapa){ /* 25/10/2026: abre o card do parceiro (pelo mapa ou pela lista); só um aberto por vez */
