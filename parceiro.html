@@ -127,7 +127,7 @@ textarea.fld{height:70px;padding:10px 12px;resize:vertical}
   </header>
 
   <!-- 25/10/2026 (dono): instalar o app no celular (Android: botão; iPhone: Compartilhar → Adicionar à Tela de Início) -->
-  <div class="inst" id="cInst" hidden><img src="parceiro-192.png" alt=""><div><b>Instale o app no celular</b><small id="instTxt">Fica com ícone na tela, igual a um aplicativo.</small></div><button class="btn pri" id="bInst" type="button">Instalar</button><button class="x" id="bInstX" type="button" aria-label="Fechar">×</button></div>
+  <div class="inst" id="cInst" hidden><img src="parceiro-192.png" alt=""><div><b>Instale o app no celular</b><small id="instTxt"></small></div><button class="btn pri" id="bInst" type="button">Instalar</button><button class="x" id="bInstX" type="button" aria-label="Fechar">×</button></div>
 
   <!-- ===== ENTRAR / CADASTRAR ===== -->
   <section id="tEntrar">
@@ -383,7 +383,7 @@ setInterval(()=>{ if(P && !document.hidden){ carregarPedidos() } },60000);
   let adiado=null;
   if(!inst && !fechou && (ios||and)){ $('cInst').hidden=false;
     if(ios){ $('instTxt').innerHTML='No Safari, toque em <b>Compartilhar</b> (quadrado com seta ⬆️) e depois em <b>Adicionar à Tela de Início</b>.'; $('bInst').hidden=true }
-    else $('instTxt').textContent='Fica com ícone na tela, igual a um aplicativo.' }
+  }
   window.addEventListener('beforeinstallprompt',e=>{ e.preventDefault(); adiado=e; if(!inst&&!fechou) $('cInst').hidden=false });
   const abrirPrompt=()=>{ adiado.prompt(); adiado.userChoice.then(r=>{ if(r&&r.outcome==='accepted') $('cInst').hidden=true; adiado=null }).catch(()=>{}) };
   $('bInst').onclick=async()=>{ if(adiado){ abrirPrompt(); return }
