@@ -213,7 +213,7 @@ $('bEnt').onclick=async()=>{
 function sair(silencioso){ if(TOK && !silencioso) api('parcSair',{ptoken:TOK}).catch(()=>{}); TOK=null; lsDel('rg_parc_token'); P=null; $('tPainel').hidden=true; $('tEntrar').hidden=false; $('bSair').hidden=true; if(silencioso) toast('Entre de novo.') }
 $('bSair').onclick=()=>sair(false);
 /* ---------- painel ---------- */
-const ST={rascunho:['Cadastro incompleto','Complete os dados abaixo e toque em Salvar para enviar para aprovação.'],analise:['Em análise','Recebemos o seu cadastro. Assim que a Rastreando aprovar, você já pode ficar disponível para os clientes.'],aprovado:['Aprovado','Você está no app da Rastreando. Ligue "Disponível" para aparecer para os clientes.'],recusado:['Não aprovado','Confira o motivo, ajuste o cadastro e salve de novo para reenviar.'],suspenso:['Suspenso','Seu cadastro está suspenso. Fale com a Rastreando GPS pelo WhatsApp.']};
+const ST={rascunho:['Cadastro incompleto','Complete os dados abaixo e toque em Salvar para enviar para aprovação.'],analise:['Em análise','Recebemos o seu cadastro. Assim que a Rastreando aprovar, você já aparece para os clientes.'],aprovado:['Aprovado','Você está no app da Rastreando e já aparece para os clientes. Desligue "Disponível" quando estiver fechado.'],recusado:['Não aprovado','Confira o motivo, ajuste o cadastro e salve de novo para reenviar.'],suspenso:['Suspenso','Seu cadastro está suspenso. Fale com a Rastreando GPS pelo WhatsApp.']};
 async function abrirPainel(){
   const j=await api('parcVer',{ptoken:TOK}); P=j.perfil;
   $('tEntrar').hidden=true; $('tPainel').hidden=false; $('bSair').hidden=false;

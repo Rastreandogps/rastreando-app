@@ -13296,7 +13296,7 @@ $('paLista').addEventListener('click',async e=>{
   const id=a.dataset.paap||a.dataset.pare||a.dataset.pasu, dec=a.dataset.paap?'aprovar':a.dataset.pare?'recusar':'suspender';
   let motivo=''; if(dec!=='aprovar'){ const inp=prompt(dec==='recusar'?'Motivo da recusa (o parceiro vê):':'Motivo da suspensão:',''); if(inp===null) return; motivo=inp }
   a.textContent='Salvando...';
-  try{ await rbApi('parcAdmDecidir',{id,decisao:dec,motivo}); toast(dec==='aprovar'?'Parceiro aprovado. Ele já pode ficar disponível.':dec==='recusar'?'Recusado.':'Suspenso.'); pcAdmAbrir() }
+  try{ await rbApi('parcAdmDecidir',{id,decisao:dec,motivo}); toast(dec==='aprovar'?'Parceiro aprovado. Ele já aparece para os clientes.':dec==='recusar'?'Recusado.':'Suspenso.'); pcAdmAbrir() }
   catch(err){ toast(err.message) }
 });
 $('paCopiar').onclick=()=>copiar(PC_LINK).then(()=>toast('Link copiado')).catch(()=>toast(PC_LINK,6000));
