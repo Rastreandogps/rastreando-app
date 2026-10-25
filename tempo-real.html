@@ -154,6 +154,45 @@ body.mapa-google #map .leaflet-top.leaflet-left .leaflet-control-attribution{mar
 .maiscard .mic.s{background:rgba(124,58,237,.14);color:#8b5cf6}
 .maiscard .mic.r{background:rgba(245,184,61,.16);color:var(--amber)} /* 18/10/2026: Para retirar */
 .maiscard .mic.b{background:rgba(37,99,235,.14);color:#2563eb} /* 23/10/2026: Leitor de placas */
+/* ===== REBOQUES (25/10/2026, pedido do dono) ===== */
+.maiscard .mic.t{background:rgba(14,165,233,.14);color:#0ea5e9}
+.rbbox{display:flex;flex-direction:column;max-height:88vh;overflow:hidden}
+#rbMapa{height:min(30vh,230px);border-radius:14px;overflow:hidden;background:var(--card2);flex:none;margin-bottom:10px;position:relative;z-index:0}
+#rbRola{flex:1 1 auto;min-height:120px;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+.rbnota{font-size:12px;color:var(--mut);line-height:1.45;margin:8px 0 2px}
+#mReboques .rbnota{flex:none;font-size:11.5px;margin-top:6px}
+.rbcinfo{font-size:13.5px;color:var(--txt);background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:12px;line-height:1.4}
+.rbcinfo small{color:var(--mut)}
+.rbcbusca{display:flex;gap:8px;align-items:flex-start}
+.rbcbusca .fld{flex:1 1 auto;margin-bottom:8px}
+.rbcbusca .btn{flex:none;height:46px;padding:0 14px}
+.rbcdest{font-size:13.5px;background:rgba(51,209,122,.12);border:1px solid rgba(51,209,122,.4);border-radius:12px;padding:9px 12px;margin:4px 0 10px;line-height:1.4}
+.rbcdest b{color:#16a34a}
+#rbcCalc{width:100%;margin-top:6px}
+.rbval{margin-top:12px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 14px}
+.rbval .rbvkm{font-size:13px;color:var(--mut);margin-bottom:8px;line-height:1.45}
+.rbval .rbvl{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 0;border-top:1px solid var(--line);font-size:14px}
+.rbval .rbvl b{font-size:18px;color:var(--txt);white-space:nowrap}
+.rbval .rtbt{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.rbval .rtbt a{flex:1 1 auto;text-align:center;padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--card2);color:var(--txt);font-size:13.5px;font-weight:700;text-decoration:none}
+.rbval .rtbt a.wpp{background:rgba(37,211,102,.14);border-color:rgba(37,211,102,.4);color:#16a34a}
+#rbcCalc.btn-red{background:#0ea5e9}
+#rbcCalc:disabled{opacity:.45}
+.rbval .rbvl small{display:block;color:var(--mut);font-size:11.5px}
+.rbtab{border:1px solid var(--line);border-radius:12px;padding:8px 10px 0;margin-bottom:8px;background:var(--card)}
+.rbtab .fchk{margin-bottom:6px}
+.rbtres{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.rbtres .fld{height:40px;font-size:15px;margin-bottom:8px}
+.rbtres .flbl{font-size:11px}
+.rbtab.off .rbtres{display:none}
+.rbdois{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.rbdisp{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:12px}
+.rbdisp small{color:var(--mut);font-size:12px}
+.rbdisp.on{border-color:rgba(51,209,122,.5)}
+.rbcar{width:14px;height:14px;border-radius:50%;background:#2563eb;border:3px solid #fff;box-shadow:0 0 0 2px #2563eb}
+.rbcirc{color:#0ea5e9}
+.rbtt{background:rgba(14,165,233,.9);color:#fff;border:0;font-weight:700;font-size:12px;border-radius:8px;padding:2px 8px;box-shadow:none}
+.rbtt::before{display:none}
 #mRetirar .box2{display:flex;flex-direction:column;max-height:86vh;overflow:hidden}
 #mRetirar .almtopo{flex:none;display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:4px}
 #mRetirar .almtopo h3{margin:0}
@@ -161,7 +200,7 @@ body.mapa-google #map .leaflet-top.leaflet-left .leaflet-control-attribution{mar
 #mRetirar .almx svg{width:18px;height:18px;fill:none;stroke:var(--txt);stroke-width:2.4;stroke-linecap:round}
 #mRetirar .rtsub{flex:none;font-size:12.5px;color:var(--mut);margin-bottom:10px}
 #mRetirar #retRola{flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
-#mRetirar .rtacoes{flex:none;display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+#mRetirar .rtacoes,#mReboques .rtacoes,#mMeuReboque .rtacoes{flex:none;display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
 .rtit{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 14px;margin-bottom:10px}
 .rtit .rttopo{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
 .rtit .rttopo b{font-size:15px}
@@ -3458,6 +3497,7 @@ nav button.on .nemo.txt{color:var(--red2)}
     <label class="fchk"><input type="checkbox" id="pmRetirar"> Ver a lista <b>Para retirar</b> (para técnico: veículos marcados para retirada, pelo mais perto, com o nome e o WhatsApp do cliente)</label>
     <label class="fchk"><input type="checkbox" id="pmPlacas"> <b>Leitor de placas</b> (abre o leitor pela câmera do celular, na aba Mais; só com o login deste cliente)</label><!-- 23/10/2026 -->
     <label class="fchk"><input type="checkbox" id="pmRuaCel"> <b>Vista da rua no celular</b> (no cartão do veículo, a foto da rua toma o lugar de odômetro, combustível e faturas)</label><!-- 23/10/2026 -->
+    <label class="fchk"><input type="checkbox" id="pmReboque"> <b>Reboquista</b> (ganha o cartão "Meu reboque" na aba Mais: base, valores e Disponível/Invisível; os clientes veem só a região do reboque)</label><!-- 25/10/2026 -->
     <label class="fchk"><input type="checkbox" id="pmFichas"> Cobrar fichas no compartilhar localização (1 ficha por link; o cliente compra pacotes por PIX no app)</label>
     <div class="pmfichas" id="pmLogoBox"><span class="sp">🖼️ Logo do cliente: <b id="pmLogoSt">—</b></span><button type="button" id="pmLogoAbrir">Ver / enviar logo</button></div>
     <div class="pmfichas" id="pmModBox"><span class="sp">⭐ Premium (odômetro/mapa): <b id="pmModSt">—</b></span><input class="fld" id="pmModDias" type="text" inputmode="numeric" maxlength="3" value="30" autocomplete="off" title="Dias de teste grátis"><button type="button" data-mf="dar">Liberar dias</button><button type="button" data-mf="boleto" style="background:#7c3aed" title="Premium incluído na mensalidade: fica ativo sem prazo até você tirar">♾️ No boleto</button><button type="button" data-mf="0" style="background:#64748b">Tirar</button></div>
@@ -3680,6 +3720,55 @@ nav button.on .nemo.txt{color:var(--red2)}
   </div>
 </div>
 <!-- 20/10/2026: girar a vista da rua dentro do app (limite diário no servidor) -->
+<!-- 25/10/2026 (pedido do dono): REBOQUES — fase 1. O cliente vê os reboquistas disponíveis (só a REGIÃO, nunca o ponto exato),
+     calcula o valor estimado e chama por telefone/WhatsApp. O reboquista configura tudo em "Meu reboque". -->
+<div class="modal alsheet" id="mReboques">
+  <div class="box2 rbbox">
+    <div class="almtopo"><h3>Reboques por perto</h3><button class="almx" data-close type="button" aria-label="Fechar" title="Fechar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <div class="rtsub" id="rbSub">Carregando...</div>
+    <div id="rbMapa"></div>
+    <div id="rbRola"><div id="rbLista"></div></div>
+    <div class="rbnota">Cada círculo é a <b>região</b> onde o reboque está agora (a posição exata não é mostrada). Os valores são <b>estimativas</b> feitas pelo app com a tabela de cada reboquista; pedágio e adicionais (noite, fim de semana, subsolo) são combinados direto com ele. O serviço é prestado pelo reboquista; a Rastreando GPS só faz a ponte.</div>
+    <div class="rtacoes"><button class="btn btn-out" id="rbAtualizar" type="button">Atualizar</button><button class="btn btn-out" data-close type="button">Fechar</button></div>
+  </div>
+</div>
+<div class="modal alsheet" id="mRbCota">
+  <div class="box2">
+    <div class="almtopo"><h3 id="rbcTit">Ver valor</h3><button class="almx" data-close type="button" aria-label="Fechar" title="Fechar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <div class="rbcinfo" id="rbcCarro"></div>
+    <label class="flbl">Para onde levar o veículo?</label>
+    <div class="rbcbusca"><input class="fld" id="rbcBusca" placeholder="Endereço de destino (rua, número, bairro, cidade)" autocomplete="off"><button class="btn btn-out" id="rbcBuscar" type="button">Buscar</button></div>
+    <div id="rbcRes"></div>
+    <div class="rbcdest" id="rbcDest" hidden></div>
+    <button class="btn btn-red" id="rbcCalc" type="button" disabled>Calcular valor estimado</button>
+    <div id="rbcOut"></div>
+  </div>
+</div>
+<div class="modal alsheet" id="mMeuReboque">
+  <div class="box2">
+    <div class="almtopo"><h3>Meu reboque</h3><button class="almx" data-close type="button" aria-label="Fechar" title="Fechar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <div class="rtsub" id="mrSub">Carregando...</div>
+    <div class="row rbdisp" id="mrDispBox"><div><b>Disponível para chamados</b><br><small>Desligado = invisível: nenhum cliente vê seu reboque</small></div><label class="sw"><input type="checkbox" id="mrDisp"><span></span></label></div>
+    <label class="flbl">Nome que aparece para os clientes</label>
+    <input class="fld" id="mrNome" maxlength="40" placeholder="Ex.: Reboque do Zé">
+    <div class="rbdois">
+      <div><label class="flbl">Telefone</label><input class="fld" id="mrFone" inputmode="tel" placeholder="(21) 99999-9999"></div>
+      <div><label class="flbl">WhatsApp</label><input class="fld" id="mrWpp" inputmode="tel" placeholder="(21) 99999-9999"></div>
+    </div>
+    <label class="flbl">Rastreador que está no reboque</label>
+    <select class="fld" id="mrDev"></select>
+    <label class="flbl">Base (ponto de partida para o cálculo)</label>
+    <div class="rbcbusca"><input class="fld" id="mrBase" placeholder="Endereço da base (rua, número, bairro, cidade)" autocomplete="off"><button class="btn btn-out" id="mrBaseBuscar" type="button">Buscar</button></div>
+    <div id="mrBaseRes"></div>
+    <div class="rbcdest" id="mrBaseOk" hidden></div>
+    <button class="linkbtn" id="mrBaseAqui" type="button">Usar a posição atual do reboque como base</button>
+    <label class="flbl" style="margin-top:10px">Tabela de valores (marque os tipos que você atende)</label>
+    <div id="mrTab"></div>
+    <div class="rbnota">Como o app calcula para o cliente: soma a rota por estrada <b>base → veículo do cliente → destino → base</b>. Até os km incluídos, ele paga só a saída; cada km a mais é cobrado pelo valor do km extra. O cliente vê só a <b>região</b> do seu reboque (um círculo de 2 km), nunca o ponto exato nem a sua base.</div>
+    <div class="ferr" id="mrErro"></div>
+    <div class="rtacoes"><button class="btn btn-red" id="mrSalvar" type="button">Salvar</button><button class="btn btn-out" data-close type="button">Fechar</button></div>
+  </div>
+</div>
 <div class="modal alsheet" id="mRuaGiro">
   <div class="box2" style="max-width:920px;width:100%">
     <div class="almtopo"><h3 id="rgTit">Vista da rua 360°</h3><button class="almx" data-close type="button" aria-label="Fechar" title="Fechar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
@@ -6477,7 +6566,7 @@ async function carregarPermissoes(){
     if(!r.ok) return;
     const j=await r.json(); permCli=Object.assign({smsBloqueio:false,reset:false,editarNome:false,cercaRapida:false,minhaPosicao:false},j.perm||{},{appBloqueio:permCli.appBloqueio,cercaBloqueio:permCli.cercaBloqueio,semBloqueio:permCli.semBloqueio,frotista:permCli.frotista,modFrotaAteMs:Number(j.modFrotaAteMs||0)}); cobrCli=j.cobranca||null;
     try{ modFrotaAplicar() }catch(e){}
-    mostrarBotoesSms(); fichasAplicar(); try{ retAplicar() }catch(e){} try{ leitorAplicar() }catch(e){} try{ logoAplicar() }catch(e){} try{ ruaRedesenhar() }catch(e){}
+    mostrarBotoesSms(); fichasAplicar(); try{ retAplicar() }catch(e){} try{ leitorAplicar() }catch(e){} try{ rbAplicar() }catch(e){} try{ logoAplicar() }catch(e){} try{ ruaRedesenhar() }catch(e){}
   }catch(e){}
 }
 function textoCusto(){
@@ -6793,7 +6882,7 @@ async function salvarPermTraccar(u){
 }
 function mostrarPerm(j){
   const p=j.perm||{}, c=j.cobranca||{pendentes:0,valor:0};
-  $('pmSms').checked=!!p.smsBloqueio; $('pmReset').checked=!!p.reset; $('pmNome').checked=!!p.editarNome; $('pmAncora').checked=!!p.cercaRapida; $('pmEu').checked=!!p.minhaPosicao; $('pmIcone').checked=p.trocarIcone!==false; $('pmRetirar').checked=!!p.verRetirar; $('pmPlacas').checked=!!p.leitorPlacas; $('pmRuaCel').checked=!!p.ruaCelular;
+  $('pmSms').checked=!!p.smsBloqueio; $('pmReset').checked=!!p.reset; $('pmNome').checked=!!p.editarNome; $('pmAncora').checked=!!p.cercaRapida; $('pmEu').checked=!!p.minhaPosicao; $('pmIcone').checked=p.trocarIcone!==false; $('pmRetirar').checked=!!p.verRetirar; $('pmPlacas').checked=!!p.leitorPlacas; $('pmRuaCel').checked=!!p.ruaCelular; $('pmReboque').checked=!!p.reboquista;
   $('pmCob').innerHTML='SMS pela plataforma a cobrar: <b>'+c.pendentes+'</b> = <b>'+brl2(c.valor)+'</b>'+
     (c.faturadoEm?'<br><span style="color:var(--mut);font-size:12px">Último zerado em '+fmtHora(c.faturadoEm)+' · total já faturado: '+(c.totalFaturado||0)+' SMS</span>':'');
   $('pmZerar').disabled=!c.pendentes;
@@ -6813,7 +6902,7 @@ $('pmSalvar').onclick=async()=>{
   try{
     const u=usuarios.find(x=>x.id===permUserId); if(!u) throw new Error('Cliente não encontrado. Feche e abra de novo.');
     await salvarPermTraccar(u);
-    mostrarPerm(await chamarPerm('permSalvar',{perm:{smsBloqueio:$('pmSms').checked,reset:$('pmReset').checked,editarNome:$('pmNome').checked,cercaRapida:$('pmAncora').checked,minhaPosicao:$('pmEu').checked,fichas:$('pmFichas').checked,trocarIcone:$('pmIcone').checked,verRetirar:$('pmRetirar').checked,leitorPlacas:$('pmPlacas').checked,ruaCelular:$('pmRuaCel').checked}}));
+    mostrarPerm(await chamarPerm('permSalvar',{perm:{smsBloqueio:$('pmSms').checked,reset:$('pmReset').checked,editarNome:$('pmNome').checked,cercaRapida:$('pmAncora').checked,minhaPosicao:$('pmEu').checked,fichas:$('pmFichas').checked,trocarIcone:$('pmIcone').checked,verRetirar:$('pmRetirar').checked,leitorPlacas:$('pmPlacas').checked,ruaCelular:$('pmRuaCel').checked,reboquista:$('pmReboque').checked}}));
     await carregarUsuarios(); const u2=usuarios.find(x=>x.id===permUserId); if(u2) mostrarPermTraccar(u2);
     desenharAdmin(); toast('Permissões salvas.')
   }
@@ -12105,7 +12194,7 @@ function fatAtalho(){ /* cliente: Faturas na frente; administrador: Loja como an
 }
 $('sFatBtn').onclick=()=>irPara('Faturas');
 function maisAtualizar(){
-  fatAtalho();
+  fatAtalho(); try{ rbAplicar() }catch(e){} /* 25/10/2026: cartão Reboques (todos) e Meu reboque (reboquista) */
   const nivel=bloqueioNivel||'ok', dot=$('maisFatDot'), nb=$('maisBadge'), tx=$('maisFatTxt');
   const alerta = nivel==='aviso'||nivel==='bloqueado'||nivel==='confianca';
   if(dot) dot.classList.toggle('show',alerta);
@@ -12629,6 +12718,187 @@ function leitorAplicar(){
   if(!pode && c) c.remove();
 }
 $('aPlacas').onclick=leitorAbrir;
+/* ===== REBOQUES (25/10/2026, pedido do dono) — fase 1 =====
+   Cliente: cartão "Reboques" na aba Mais (todo mundo vê; é um atrativo do app). Mapa com a REGIÃO de cada reboque
+   disponível (círculo de 2 km; o servidor nunca manda o ponto exato nem a base), o carro do cliente, "Ver valor"
+   (rota base → carro → destino → base calculada no servidor), tempo de chegada, Ligar e WhatsApp com mensagem pronta.
+   Reboquista: login comum com a permissão "Reboquista" (Permissões do cliente) ganha o cartão "Meu reboque":
+   base, telefone/WhatsApp, rastreador do reboque, Disponível/Invisível e tabela por tipo (moto, carro, utilitário).
+   Fase 2 (depois do teste com o amigo do dono): "Chamar" com aceite e ponto exato só para quem foi aceito. */
+const RB_TIPOS=[['moto','Moto'],['carro','Carro'],['utilitario','Utilitário / SUV']];
+let rbMapa=null, rbCamada=null, rbLista=[], rbCarroAtual=null, rbCota={reb:null,dest:null}, mrCfg=null, mrBase=null;
+async function rbApi(acao,extra){
+  const tok=lsGet('rg_token'); if(!tok) throw new Error('Entre de novo no app.');
+  const r=await fetch(DESB_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',body:JSON.stringify(Object.assign({acao:acao,token:tok},extra||{}))});
+  let j={}; try{ j=await r.json() }catch(e){}
+  if(!r.ok) throw new Error(j.erro||('Erro '+r.status));
+  return j;
+}
+function rbAplicar(){
+  const grid=document.querySelector('#maisview .maisgrid'); if(!grid) return;
+  let c=$('maisReboques');
+  if(!c){
+    c=document.createElement('button'); c.className='maiscard'; c.id='maisReboques'; c.type='button';
+    c.innerHTML='<span class="mic t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 15V8h9l4 4h4l1 3v2H3z"/><path d="M12 8v4h4"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/></svg></span><b>Reboques</b><small>Reboquistas perto de você, com valor estimado</small>';
+    c.onclick=rbAbrir; grid.insertBefore(c,$('maisConta'));
+  }
+  const pode=!ehAdmin && !!(permCli&&permCli.reboquista);
+  let m=$('maisMeuReboque');
+  if(pode && !m){
+    m=document.createElement('button'); m.className='maiscard'; m.id='maisMeuReboque'; m.type='button';
+    m.innerHTML='<span class="mic t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg></span><b>Meu reboque</b><small>Sua base, seus valores e se está disponível</small>';
+    m.onclick=mrAbrir; grid.insertBefore(m,$('maisConta'));
+  }
+  if(!pode && m) m.remove();
+}
+/* o carro do cliente que entra na conta: o selecionado; senão, o primeiro com posição */
+function rbCarro(){ return ativo() || veiculos.find(v=>v.pos && v.visivel && !v.tag) || veiculos.find(v=>v.pos) || null }
+function rbAbrir(){ abrir('mReboques'); rbCarregar() }
+async function rbCarregar(){
+  $('rbSub').textContent='Procurando reboques disponíveis...'; $('rbAtualizar').disabled=true; $('rbLista').innerHTML='';
+  rbCarroAtual=rbCarro();
+  try{
+    const extra={}; if(rbCarroAtual&&rbCarroAtual.pos){ extra.lat=rbCarroAtual.pos[0]; extra.lon=rbCarroAtual.pos[1] }
+    const j=await rbApi('reboqueListar',extra);
+    rbLista=j.lista||[];
+    rbDesenhar();
+  }catch(e){ $('rbSub').textContent=''; $('rbLista').innerHTML='<div class="rtvz">'+esc(e.message||'Não consegui carregar.')+'</div>' }
+  $('rbAtualizar').disabled=false;
+}
+function rbMapaPreparar(){
+  if(rbMapa){ setTimeout(()=>{ try{ rbMapa.invalidateSize() }catch(e){} },60); return }
+  rbMapa=L.map('rbMapa',{zoomControl:false,attributionControl:false,tap:false});
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(rbMapa);
+  rbCamada=L.layerGroup().addTo(rbMapa);
+  setTimeout(()=>{ try{ rbMapa.invalidateSize() }catch(e){} },60);
+}
+function rbDesenhar(){
+  rbMapaPreparar(); rbCamada.clearLayers();
+  const pts=[]; const v=rbCarroAtual;
+  if(v&&v.pos){ L.marker(v.pos,{icon:L.divIcon({className:'',html:'<div class="rbcar" title="Seu veículo"></div>',iconSize:[14,14],iconAnchor:[7,7]}),interactive:false}).addTo(rbCamada); pts.push(v.pos) }
+  rbLista.forEach((r,i)=>{
+    const c=[r.regiao.lat,r.regiao.lon];
+    L.circle(c,{radius:r.regiao.raioM||2000,color:'#0ea5e9',weight:2,fillColor:'#0ea5e9',fillOpacity:.14}).addTo(rbCamada).bindTooltip(r.nome,{permanent:true,direction:'center',className:'rbtt'});
+    pts.push(c);
+  });
+  if(pts.length){ try{ rbMapa.fitBounds(L.latLngBounds(pts).pad(0.25),{maxZoom:13}) }catch(e){} }
+  else if(map){ try{ rbMapa.setView(map.getCenter(),11) }catch(e){} }
+  if(!rbLista.length){ $('rbSub').textContent=''; $('rbLista').innerHTML='<div class="rtvz">Nenhum reboque disponível agora. Tente de novo mais tarde.</div>'; return }
+  $('rbSub').textContent=rbLista.length+' reboque'+(rbLista.length>1?'s':'')+' disponíve'+(rbLista.length>1?'is':'l')+(v?' · seu veículo: '+v.nome:' · sem posição do seu veículo');
+  $('rbLista').innerHTML=rbLista.map((r,i)=>{
+    const menor=r.tabelas.reduce((m,t)=>m==null||t.saida<m?t.saida:m,null);
+    return '<div class="rtit"><div class="rttopo"><div><b>'+esc(r.nome)+'</b><div class="rtinfo">'+r.tabelas.map(t=>esc(t.nome)+': saída '+brl2(t.saida)+(t.kmInc?' (até '+t.kmInc+' km)':'')+' + '+brl2(t.kmExtra)+'/km').join('<br>')+'</div></div>'+
+      '<div class="rtdist">'+(r.distKm!=null?'~'+r.distKm+' km<small>de você</small>':'<small>'+(r.sinal==='ok'?'disponível':'sinal fraco')+'</small>')+'</div></div>'+
+      '<div class="rtbt"><a href="#" data-rbcota="'+i+'" style="background:rgba(14,165,233,.14);border-color:rgba(14,165,233,.4);color:#0ea5e9">Ver valor</a>'+
+      (r.fone?'<a href="tel:+55'+esc(r.fone)+'">Ligar</a>':'')+(r.wpp?'<a class="wpp" href="https://wa.me/55'+esc(r.wpp)+'?text='+encodeURIComponent(rbMsg(r,null))+'" target="_blank" rel="noopener">WhatsApp</a>':'')+'</div></div>';
+  }).join('');
+}
+function rbMsg(r,cota){
+  const v=rbCarroAtual, onde=v?(v.nome+(v.addr||v.geo?' — '+(v.addr||v.geo):'')):'';
+  let t='Olá, '+r.nome+'! Vi seu reboque no app da Rastreando GPS. Preciso de reboque'+(onde?' para o veículo '+onde:'')+'.';
+  if(cota){ t+=' Destino: '+(rbCota.dest&&rbCota.dest.end||'')+'. O app estimou '+cota.km+' km: '+cota.valores.map(x=>x.nome+' '+brl2(x.total)).join(' · ')+'.' }
+  if(v&&v.pos) t+=' Localização: https://maps.google.com/?q='+v.pos[0].toFixed(6)+','+v.pos[1].toFixed(6);
+  return t;
+}
+$('rbAtualizar').onclick=rbCarregar;
+$('rbLista').addEventListener('click',e=>{ const a=e.target.closest('[data-rbcota]'); if(!a) return; e.preventDefault(); rbCotaAbrir(rbLista[+a.dataset.rbcota]) });
+/* ---- Ver valor ---- */
+function rbCotaAbrir(r){
+  if(!r) return; rbCota={reb:r,dest:null};
+  const v=rbCarroAtual;
+  $('rbcTit').textContent='Ver valor · '+r.nome;
+  $('rbcCarro').innerHTML=v&&v.pos?'<b>Seu veículo:</b> '+esc(v.nome)+(v.addr||v.geo?'<br><small>'+esc(v.addr||v.geo)+'</small>':''):'<b>Sem a posição do seu veículo.</b> O cálculo precisa dela.';
+  $('rbcBusca').value=''; $('rbcRes').innerHTML=''; $('rbcDest').hidden=true; $('rbcOut').innerHTML=''; $('rbcCalc').disabled=true;
+  abrir('mRbCota');
+}
+async function rbcBuscar(){
+  const t=$('rbcBusca').value.trim(); if(!t) return;
+  const c=ptCoords(t); if(c){ rbcEscolher({lat:c.lat,lon:c.lon,end:'Coordenadas '+t}); return }
+  $('rbcRes').innerHTML='<div class="ptmsg">Buscando...</div>'; $('rbcBuscar').disabled=true;
+  try{
+    const v=rbCarroAtual, ce=v&&v.pos?{lat:v.pos[0],lng:v.pos[1]}:map.getCenter();
+    const r=await fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=6&countrycodes=br&accept-language=pt-BR&addressdetails=1&viewbox='+(ce.lng-1)+','+(ce.lat+1)+','+(ce.lng+1)+','+(ce.lat-1)+'&q='+encodeURIComponent(t));
+    const l=r.ok?await r.json():[];
+    if(!l.length) $('rbcRes').innerHTML='<div class="ptmsg">Nada encontrado. Tente com o número, o bairro e a cidade.</div>';
+    else{ window._rbcOps=l.map(x=>({lat:+x.lat,lon:+x.lon,end:txtEndereco(x)||String(x.display_name||'').split(',').slice(0,4).join(',')})); $('rbcRes').innerHTML=window._rbcOps.map((o,i)=>'<button type="button" class="ptop" data-rbci="'+i+'">'+esc(o.end)+'</button>').join('') }
+  }catch(e){ $('rbcRes').innerHTML='<div class="ptmsg">Não consegui buscar agora. Tente de novo.</div>' }
+  $('rbcBuscar').disabled=false;
+}
+function rbcEscolher(o){ rbCota.dest=o; $('rbcRes').innerHTML=''; $('rbcDest').hidden=false; $('rbcDest').innerHTML='<b>Destino:</b> '+esc(o.end); $('rbcCalc').disabled=!(rbCarroAtual&&rbCarroAtual.pos); $('rbcOut').innerHTML='' }
+$('rbcBuscar').onclick=rbcBuscar;
+$('rbcBusca').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); rbcBuscar() } });
+$('rbcRes').addEventListener('click',e=>{ const b=e.target.closest('[data-rbci]'); if(b&&window._rbcOps) rbcEscolher(window._rbcOps[+b.dataset.rbci]) });
+$('rbcCalc').onclick=async()=>{
+  const r=rbCota.reb, v=rbCarroAtual; if(!r||!rbCota.dest||!v||!v.pos) return;
+  $('rbcCalc').disabled=true; $('rbcOut').innerHTML='<div class="ptmsg">Calculando a rota por estrada...</div>';
+  try{
+    const j=await rbApi('reboqueCotar',{reboqueId:r.id,origem:{lat:v.pos[0],lon:v.pos[1]},destino:{lat:rbCota.dest.lat,lon:rbCota.dest.lon}});
+    $('rbcOut').innerHTML='<div class="rbval"><div class="rbvkm">Percurso estimado (base → seu veículo → destino → base): <b>'+j.km+' km</b>'+(j.minutos!=null?' · chega até você em <b>~'+j.minutos+' min</b>':'')+(j.aviso?'<br>'+esc(j.aviso):'')+'</div>'+
+      j.valores.map(x=>'<div class="rbvl"><div>'+esc(x.nome)+'<small>saída '+brl2(x.saida)+(x.kmInc?' até '+x.kmInc+' km':'')+(x.kmExtras?' + '+x.kmExtras+' km × '+brl2(x.kmExtra):'')+'</small></div><b>'+brl2(x.total)+'</b></div>').join('')+
+      '<div class="rtbt">'+(j.fone?'<a href="tel:+55'+esc(j.fone)+'">Ligar</a>':'')+(j.wpp?'<a class="wpp" href="https://wa.me/55'+esc(j.wpp)+'?text='+encodeURIComponent(rbMsg(r,j))+'" target="_blank" rel="noopener">Chamar no WhatsApp</a>':'')+'</div>'+
+      '<div class="rbnota">Valor estimado pelo app. Pedágio, noite, fim de semana e subsolo são combinados com o reboquista.</div></div>';
+  }catch(e){ $('rbcOut').innerHTML='<div class="rtvz">'+esc(e.message||'Não consegui calcular.')+'</div>' }
+  $('rbcCalc').disabled=false;
+};
+/* ---- Meu reboque (reboquista) ---- */
+function mrAbrir(){ abrir('mMeuReboque'); mrCarregar() }
+function mrTabDesenhar(tabelas){
+  const de={}; (tabelas||[]).forEach(t=>de[t.tipo]=t);
+  $('mrTab').innerHTML=RB_TIPOS.map(([k,n])=>{ const t=de[k]; return '<div class="rbtab'+(t?'':' off')+'" data-mrt="'+k+'"><label class="fchk"><input type="checkbox" data-mrchk="'+k+'"'+(t?' checked':'')+'> <b>'+n+'</b></label>'+
+    '<div class="rbtres"><div><label class="flbl">Saída (R$)</label><input class="fld" data-mrs="'+k+'" inputmode="decimal" value="'+(t?String(t.saida).replace('.',','):'')+'"></div><div><label class="flbl">Km incluídos</label><input class="fld" data-mrk="'+k+'" inputmode="numeric" value="'+(t?t.kmInc:'')+'"></div><div><label class="flbl">Km extra (R$)</label><input class="fld" data-mre="'+k+'" inputmode="decimal" value="'+(t?String(t.kmExtra).replace('.',','):'')+'"></div></div></div>' }).join('');
+}
+$('mrTab').addEventListener('change',e=>{ const c=e.target.closest('[data-mrchk]'); if(c) c.closest('.rbtab').classList.toggle('off',!c.checked) });
+async function mrCarregar(){
+  $('mrSub').textContent='Carregando...'; $('mrErro').textContent=''; mrCfg=null; mrBase=null;
+  try{
+    const j=await rbApi('reboqueMeuVer');
+    mrCfg=j.cfg; const c=j.cfg||{};
+    $('mrNome').value=c.nome||j.nomeLogin||''; $('mrFone').value=fmtWpp(c.fone||''); $('mrWpp').value=fmtWpp(c.wpp||'');
+    $('mrDev').innerHTML=(j.veiculos||[]).map(v=>'<option value="'+v.id+'"'+(c.deviceId===v.id?' selected':'')+'>'+esc(v.nome)+'</option>').join('')||'<option value="">Nenhum rastreador no seu login</option>';
+    $('mrDisp').checked=c.disponivel===true; $('mrDispBox').classList.toggle('on',c.disponivel===true);
+    mrBaseMostrar(c.base||null); $('mrBase').value=''; $('mrBaseRes').innerHTML='';
+    mrTabDesenhar(c.tabelas||[]);
+    $('mrSub').textContent=(j.cfg?(c.disponivel?'Você está DISPONÍVEL para os clientes.':'Você está invisível (ninguém vê seu reboque).'):'Preencha e salve para aparecer para os clientes.')+(j.vistosHoje?' · '+j.vistosHoje+' cliente'+(j.vistosHoje>1?'s consultaram':' consultou')+' seu valor hoje':'');
+  }catch(e){ $('mrSub').textContent=''; $('mrErro').textContent=e.message||'Não consegui carregar.' }
+}
+function mrBaseMostrar(b){ mrBase=b; $('mrBaseOk').hidden=!b; if(b) $('mrBaseOk').innerHTML='<b>Base:</b> '+esc(b.end||(b.lat.toFixed(5)+', '+b.lon.toFixed(5))) }
+async function mrBaseBuscar(){
+  const t=$('mrBase').value.trim(); if(!t) return;
+  const c=ptCoords(t); if(c){ mrBaseMostrar({lat:c.lat,lon:c.lon,end:'Coordenadas '+t}); $('mrBaseRes').innerHTML=''; return }
+  $('mrBaseRes').innerHTML='<div class="ptmsg">Buscando...</div>'; $('mrBaseBuscar').disabled=true;
+  try{
+    const ce=map.getCenter();
+    const r=await fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=6&countrycodes=br&accept-language=pt-BR&addressdetails=1&viewbox='+(ce.lng-1)+','+(ce.lat+1)+','+(ce.lng+1)+','+(ce.lat-1)+'&q='+encodeURIComponent(t));
+    const l=r.ok?await r.json():[];
+    if(!l.length) $('mrBaseRes').innerHTML='<div class="ptmsg">Nada encontrado. Tente com o número, o bairro e a cidade.</div>';
+    else{ window._mrOps=l.map(x=>({lat:+x.lat,lon:+x.lon,end:txtEndereco(x)||String(x.display_name||'').split(',').slice(0,4).join(',')})); $('mrBaseRes').innerHTML=window._mrOps.map((o,i)=>'<button type="button" class="ptop" data-mri="'+i+'">'+esc(o.end)+'</button>').join('') }
+  }catch(e){ $('mrBaseRes').innerHTML='<div class="ptmsg">Não consegui buscar agora. Tente de novo.</div>' }
+  $('mrBaseBuscar').disabled=false;
+}
+$('mrBaseBuscar').onclick=mrBaseBuscar;
+$('mrBase').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); mrBaseBuscar() } });
+$('mrBaseRes').addEventListener('click',e=>{ const b=e.target.closest('[data-mri]'); if(b&&window._mrOps){ mrBaseMostrar(window._mrOps[+b.dataset.mri]); $('mrBaseRes').innerHTML=''; $('mrBase').value='' } });
+$('mrBaseAqui').onclick=()=>{
+  const id=Number($('mrDev').value), v=veiculos.find(x=>x.id===id);
+  if(!v||!v.pos){ toast('O rastreador escolhido ainda não tem posição.'); return }
+  mrBaseMostrar({lat:v.pos[0],lon:v.pos[1],end:v.addr||v.geo||''}); toast('Base marcada na posição atual do reboque.');
+};
+$('mrDisp').addEventListener('change',async()=>{
+  const on=$('mrDisp').checked; $('mrDispBox').classList.toggle('on',on);
+  if(!mrCfg) return; /* ainda não salvou: vai junto no Salvar */
+  try{ await rbApi('reboqueDisponivel',{disponivel:on}); mrCfg.disponivel=on; toast(on?'Você está disponível para os clientes.':'Você ficou invisível.') }
+  catch(e){ $('mrDisp').checked=!on; $('mrDispBox').classList.toggle('on',!on); toast(e.message) }
+});
+$('mrSalvar').onclick=async()=>{
+  $('mrErro').textContent='';
+  const num=s=>Number(String(s||'').replace(/\./g,'').replace(',','.'));
+  const tabelas=RB_TIPOS.filter(([k])=>{ const c=document.querySelector('[data-mrchk="'+k+'"]'); return c&&c.checked }).map(([k])=>({tipo:k,saida:num(document.querySelector('[data-mrs="'+k+'"]').value),kmInc:num(document.querySelector('[data-mrk="'+k+'"]').value||0),kmExtra:num(document.querySelector('[data-mre="'+k+'"]').value||0)}));
+  const cfg={nome:$('mrNome').value.trim(),fone:$('mrFone').value,wpp:$('mrWpp').value,base:mrBase,deviceId:Number($('mrDev').value),disponivel:$('mrDisp').checked,tabelas};
+  $('mrSalvar').disabled=true;
+  try{ const j=await rbApi('reboqueMeuSalvar',{cfg}); mrCfg=j.cfg; toast('Salvo. '+(j.cfg.disponivel?'Você já aparece para os clientes.':'Ligue "Disponível" para aparecer.')); mrCarregar() }
+  catch(e){ $('mrErro').textContent=e.message }
+  $('mrSalvar').disabled=false;
+};
 /* ===== PARA RETIRAR (18/10/2026, pedido do dono) =====
    Quem tem a permissão "Ver a lista Para retirar" (ex.: técnico) ganha o cartão "Para retirar" no Mais.
    A lista vem do servidor (veículos marcados pelo administrador), com a distância até o celular, do mais perto ao mais longe. */
