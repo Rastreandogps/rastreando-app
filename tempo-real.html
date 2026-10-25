@@ -201,6 +201,13 @@ body.mapa-google #map .leaflet-top.leaflet-left .leaflet-control-attribution{mar
 #mDourada .almx svg,#mDouradaAdm .almx svg{width:18px;height:18px;fill:none;stroke:var(--txt);stroke-width:2.4;stroke-linecap:round}
 .drtopo{display:flex;align-items:center;gap:14px;background:linear-gradient(135deg,rgba(255,213,74,.22),rgba(224,168,0,.08));border:1px solid rgba(224,168,0,.35);border-radius:16px;padding:14px;margin:6px 0 12px}
 .drtopo>.drcoin{width:52px;height:52px}
+/* 25/10/2026 (dono): brilho cortando a moeda na vertical, de fora a fora */
+.drtopo>.drcoin,.dapcoin,.maiscard .mic.dr .drcoin{position:relative;overflow:hidden;isolation:isolate}
+.drtopo>.drcoin::after,.dapcoin::after,.maiscard .mic.dr .drcoin::after{content:'';position:absolute;top:-5%;bottom:-5%;left:-45%;width:34%;border-radius:0;
+  background:linear-gradient(90deg,rgba(255,255,255,0) 0%,rgba(255,250,220,.15) 25%,rgba(255,255,255,.85) 50%,rgba(255,250,220,.15) 75%,rgba(255,255,255,0) 100%);
+  mix-blend-mode:screen;animation:drBrilho 3.2s ease-in-out infinite;pointer-events:none}
+@keyframes drBrilho{0%{left:-45%}45%{left:115%}100%{left:115%}}
+@media (prefers-reduced-motion:reduce){.drtopo>.drcoin::after,.dapcoin::after,.maiscard .mic.dr .drcoin::after{animation:none;display:none}}
 .drtopo>div{flex:1;min-width:0}
 .drsaldo{font-size:28px;font-weight:900;line-height:1}
 .drsaldo small{font-size:14px;font-weight:700;color:var(--mut)}
