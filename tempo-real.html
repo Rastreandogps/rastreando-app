@@ -13249,7 +13249,7 @@ function pcDesenhar(nome){
   $('rbLista').innerHTML=pcLista.map((p,i)=>'<div class="rtit pcit"><div class="rttopo"><div><b>'+esc(p.nome)+'</b><div class="rtinfo">'+
       (p.h24?'<b style="color:#16a34a">Atende 24 horas</b>':esc(p.horario||''))+(p.atendeLocal?' · vai até você'+(p.raioKm?' (até '+p.raioKm+' km)':''):'')+
       (p.ponto&&p.ponto.end?'<br>📍 '+esc(p.ponto.end):'')+'</div></div><div class="rtdist">'+(p.distKm!=null?'~'+pcKm(p.distKm)+'<small>do seu veículo</small>':'')+'</div></div>'+
-    '<div class="pcserv">'+(p.servicos||[]).map(s=>'<div><span>'+esc(s.nome)+'</span><b>'+(s.sobConsulta?'sob consulta':'a partir de '+brl2(s.aPartir))+'</b></div>').join('')+
+    '<div class="pcserv">'+(p.servicos||[]).map(s=>'<div><span>'+esc(s.nome)+'</span><b>'+(s.sobConsulta||!(s.aPartir>0)?'sob consulta':'a partir de '+brl2(s.aPartir))+'</b></div>').join('')+
       (p.atendeLocal&&p.deslocamento&&p.deslocamento.fixo?'<div><span>Deslocamento</span><b>'+brl2(p.deslocamento.fixo)+'</b></div>':'')+'</div>'+
     (p.obs?'<div class="rtinfo" style="margin-top:6px">'+esc(p.obs)+'</div>':'')+
     '<div class="rtbt"><a class="wpp" href="https://wa.me/55'+esc(p.wpp)+'?text='+encodeURIComponent(pcMsg(p))+'" target="_blank" rel="noopener">Pedir orçamento</a>'+(p.fone?'<a href="tel:+55'+esc(p.fone)+'">Ligar</a>':'')+
@@ -13285,7 +13285,7 @@ async function pcAdmAbrir(){ abrir('mParcAdm'); $('paLista').innerHTML='<div cla
       return '<div class="rtit"><div class="rttopo"><div><b>'+esc(p.nome)+'</b><div class="rtinfo">'+esc(p.categoriaNome)+' · <span class="ljst '+st[1]+'" style="display:inline-block">'+st[0]+'</span><br>'+
         'WhatsApp: '+esc(fmtWpp(p.whatsapp))+(p.responsavel?' · '+esc(p.responsavel):'')+(p.doc?' · doc '+esc(p.doc):'')+'<br>'+esc((p.base&&p.base.end)||'')+'<br>'+
         (p.h24?'24 horas':esc(p.horario||''))+(p.atendeLocal?' · vai até o cliente'+(p.raioKm?' ('+p.raioKm+' km)':''):'')+(p.lojaPublica?' · loja aberta':'')+'<br>PIX: '+esc(p.pix||'—')+'<br>'+
-        (p.servicos||[]).map(s=>esc(s.nome)+': '+(s.sobConsulta?'sob consulta':brl2(s.aPartir))).join(' · ')+(p.status==='aprovado'?'<br>'+(p.disponivel?'🟢 disponível agora':'⚪ fechado')+' · '+(p.vistosHoje||0)+' '+((p.vistosHoje||0)===1?'visualização':'visualizações')+' hoje':'')+'</div></div></div>'+
+        (p.servicos||[]).map(s=>esc(s.nome)+': '+(s.sobConsulta||!(s.aPartir>0)?'sob consulta':brl2(s.aPartir))).join(' · ')+(p.status==='aprovado'?'<br>'+(p.disponivel?'🟢 disponível agora':'⚪ fechado')+' · '+(p.vistosHoje||0)+' '+((p.vistosHoje||0)===1?'visualização':'visualizações')+' hoje':'')+'</div></div></div>'+
         '<div class="rtbt"><a class="wpp" href="https://wa.me/55'+esc(p.whatsapp)+'" target="_blank" rel="noopener">WhatsApp</a>'+
         (p.status!=='aprovado'?'<a href="#" data-paap="'+p.id+'" style="background:rgba(22,163,74,.14);border-color:rgba(22,163,74,.4);color:#16a34a">Aprovar</a>':'')+
         (p.status==='analise'?'<a href="#" data-pare="'+p.id+'">Recusar</a>':'')+(p.status==='aprovado'?'<a href="#" data-pasu="'+p.id+'">Suspender</a>':'')+'</div></div>' }).join(''):'<div class="rtvz">Nenhum parceiro cadastrado ainda. Mande o link abaixo para os prestadores.</div>';
