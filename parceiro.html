@@ -6,7 +6,11 @@
 <meta name="theme-color" content="#f4f6f9">
 <title>Rastreando Parceiros</title>
 <link rel="icon" href="favicon.png">
-<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="apple-touch-icon" href="parceiro-apple.png">
+<link rel="manifest" href="manifest-parceiro.json"><!-- 25/10/2026 (dono): instalável no celular, separado do app de rastreamento -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Parceiros">
 <!-- 25/10/2026 (pedido do dono): APP DO PARCEIRO. Chaveiros, borracheiros, mecânicos, eletricistas, despachantes e lava-jatos
      se cadastram aqui, de graça. Depois que a Rastreando aprova, aparecem para os clientes do app de rastreamento.
      O cliente pode pagar com fichas douradas: o parceiro conclui aqui e a Rastreando faz o PIX para ele.
@@ -106,6 +110,11 @@ textarea.fld{height:70px;padding:10px 12px;resize:vertical}
 .cadres{font-size:14px;line-height:1.55}
 .cadres .lin{display:flex;gap:8px;padding:6px 0;border-top:1px solid var(--line)}
 .cadres .lin span{color:var(--mut);min-width:92px;font-size:13px}
+.inst{display:flex;align-items:center;gap:12px;background:linear-gradient(135deg,rgba(227,38,47,.10),rgba(227,38,47,.03));border:1px solid rgba(227,38,47,.35);border-radius:16px;padding:12px 14px;margin-bottom:12px}
+.inst img{width:46px;height:46px;border-radius:12px;flex:none}
+.inst div{flex:1;min-width:0}.inst div>b{display:block;font-size:14.5px}.inst small{display:block;font-size:12.5px;color:var(--mut);line-height:1.4;margin-top:2px}
+.inst .btn{width:auto;height:40px;padding:0 14px;font-size:14px;flex:none}
+.inst .x{background:none;border:none;color:var(--mut);font-size:20px;line-height:1;padding:4px;cursor:pointer;flex:none}
 [hidden]{display:none!important}
 </style>
 </head>
@@ -116,6 +125,9 @@ textarea.fld{height:70px;padding:10px 12px;resize:vertical}
     <div><h1>Rastreando Parceiros</h1><small>Seu serviço no app da Rastreando GPS</small></div>
     <button class="sair" id="bSair" type="button" hidden>Sair</button>
   </header>
+
+  <!-- 25/10/2026 (dono): instalar o app no celular (Android: botão; iPhone: Compartilhar → Adicionar à Tela de Início) -->
+  <div class="inst" id="cInst" hidden><img src="parceiro-192.png" alt=""><div><b>Instale o app no celular</b><small id="instTxt">Fica com ícone na tela, igual a um aplicativo.</small></div><button class="btn pri" id="bInst" type="button">Instalar</button><button class="x" id="bInstX" type="button" aria-label="Fechar">×</button></div>
 
   <!-- ===== ENTRAR / CADASTRAR ===== -->
   <section id="tEntrar">
@@ -363,6 +375,22 @@ $('pPedidos').onclick=async e=>{
   catch(err){ toast(err.message); b.disabled=false }
 };
 setInterval(()=>{ if(P && !document.hidden){ carregarPedidos() } },60000);
+/* instalar no celular */
+(function(){
+  const inst=window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches || navigator.standalone===true;
+  const ios=/iphone|ipad|ipod/i.test(navigator.userAgent), and=/android/i.test(navigator.userAgent);
+  let fechou=false; try{ fechou=localStorage.getItem('rg_parc_inst_x')==='1' }catch(e){}
+  let adiado=null;
+  if(!inst && !fechou && (ios||and)){ $('cInst').hidden=false;
+    if(ios){ $('instTxt').innerHTML='No Safari, toque em <b>Compartilhar</b> (quadrado com seta ⬆️) e depois em <b>Adicionar à Tela de Início</b>.'; $('bInst').hidden=true }
+    else $('instTxt').textContent='Fica com ícone na tela, igual a um aplicativo.' }
+  window.addEventListener('beforeinstallprompt',e=>{ e.preventDefault(); adiado=e; if(!inst&&!fechou) $('cInst').hidden=false });
+  $('bInst').onclick=()=>{ if(adiado){ adiado.prompt(); adiado.userChoice.then(r=>{ if(r&&r.outcome==='accepted') $('cInst').hidden=true; adiado=null }).catch(()=>{}); return }
+    $('instTxt').innerHTML='Toque nos <b>3 pontinhos ⋮</b> do Chrome e depois em <b>Instalar app</b> (ou <b>Adicionar à tela inicial</b>).' };
+  $('bInstX').onclick=()=>{ $('cInst').hidden=true; try{ localStorage.setItem('rg_parc_inst_x','1') }catch(e){} };
+  window.addEventListener('appinstalled',()=>{ $('cInst').hidden=true; toast('App instalado! Procure o ícone "Parceiros" na tela do celular.') });
+  if('serviceWorker' in navigator && location.protocol==='https:') navigator.serviceWorker.register('sw.js').catch(()=>{});
+})();
 /* início */
 if(TOK) abrirPainel().catch(()=>sair(true));
 </script>

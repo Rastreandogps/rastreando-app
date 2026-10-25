@@ -13,7 +13,7 @@ self.addEventListener('fetch', e => {
     fetch(r).then(res => {
       if (res && res.ok) { const c = res.clone(); caches.open(V).then(x => x.put(r, c)).catch(() => {}); }
       return res;
-    }).catch(() => caches.match(r).then(m => m || caches.match('./tempo-real.html')))
+    }).catch(() => caches.match(r).then(m => m || caches.match(r.url.indexOf('parceiro') >= 0 ? './parceiro.html' : './tempo-real.html'))) // 25/10/2026: app do parceiro sem internet mostra a própria página
   );
 });
 
