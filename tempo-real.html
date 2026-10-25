@@ -13288,10 +13288,13 @@ async function pcAdmAbrir(){ abrir('mParcAdm'); $('paLista').innerHTML='<div cla
         (p.servicos||[]).map(s=>esc(s.nome)+': '+(s.sobConsulta||!(s.aPartir>0)?'sob consulta':brl2(s.aPartir))).join(' · ')+(p.status==='aprovado'?'<br>'+(p.disponivel?'🟢 disponível agora':'⚪ fechado')+' · '+(p.vistosHoje||0)+' '+((p.vistosHoje||0)===1?'visualização':'visualizações')+' hoje':'')+'</div></div></div>'+
         '<div class="rtbt"><a class="wpp" href="https://wa.me/55'+esc(p.whatsapp)+'" target="_blank" rel="noopener">WhatsApp</a>'+
         (p.status!=='aprovado'?'<a href="#" data-paap="'+p.id+'" style="background:rgba(22,163,74,.14);border-color:rgba(22,163,74,.4);color:#16a34a">Aprovar</a>':'')+
-        (p.status==='analise'?'<a href="#" data-pare="'+p.id+'">Recusar</a>':'')+(p.status==='aprovado'?'<a href="#" data-pasu="'+p.id+'">Suspender</a>':'')+'</div></div>' }).join(''):'<div class="rtvz">Nenhum parceiro cadastrado ainda. Mande o link abaixo para os prestadores.</div>';
+        (p.status==='analise'?'<a href="#" data-pare="'+p.id+'">Recusar</a>':'')+(p.status==='aprovado'?'<a href="#" data-pasu="'+p.id+'">Suspender</a>':'')+(['recusado','suspenso','rascunho'].includes(p.status)?'<a href="#" data-paex="'+p.id+'" style="color:var(--red2)">Excluir</a>':'')+'</div></div>' }).join(''):'<div class="rtvz">Nenhum parceiro cadastrado ainda. Mande o link abaixo para os prestadores.</div>';
   }catch(e){ $('paLista').innerHTML='<div class="rtvz">'+esc(e.message)+'</div>' }
 }
 $('paLista').addEventListener('click',async e=>{
+  const x=e.target.closest('[data-paex]'); /* 25/10/2026 (dono): apagar recusado/suspenso (testes) */
+  if(x){ e.preventDefault(); if(!confirm('Excluir esse cadastro de vez? Não dá para desfazer.')) return; x.textContent='Excluindo...';
+    try{ await rbApi('parcAdmExcluir',{id:x.dataset.paex}); toast('Cadastro excluído.'); pcAdmAbrir() }catch(err){ toast(err.message); x.textContent='Excluir' } return }
   const a=e.target.closest('[data-paap],[data-pare],[data-pasu]'); if(!a) return; e.preventDefault();
   const id=a.dataset.paap||a.dataset.pare||a.dataset.pasu, dec=a.dataset.paap?'aprovar':a.dataset.pare?'recusar':'suspender';
   let motivo=''; if(dec!=='aprovar'){ const inp=prompt(dec==='recusar'?'Motivo da recusa (o parceiro vê):':'Motivo da suspensão:',''); if(inp===null) return; motivo=inp }
