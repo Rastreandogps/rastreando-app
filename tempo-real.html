@@ -262,7 +262,6 @@ body.mapa-google #map .leaflet-top.leaflet-left .leaflet-control-attribution{mar
 .ljpresente{position:absolute;top:-14px;left:10px;font-size:26px;line-height:1;animation:ljPisca 1.1s ease-in-out infinite;filter:drop-shadow(0 2px 4px rgba(0,0,0,.25))} /* 25/10/2026: presente piscando no adesivo grátis */
 @keyframes ljPisca{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.25) rotate(-8deg);opacity:.75}}
 .ljp.ljgratis{color:#16a34a;font-weight:900}
-#mLojaRes.gratis .ljstep .ljsc,#mLojaRes.gratis .ljrlin.tot{display:none}
 .ljcomprar{margin-top:10px;height:40px;padding:0 18px;border-radius:10px;background:linear-gradient(135deg,#22c55e,#16a34a);box-shadow:0 2px 8px rgba(22,163,74,.3);color:#fff;font-weight:700;font-size:14px;display:inline-flex;align-items:center;gap:6px}
 .ljcomprar:disabled{opacity:.6}
 /* coluna da foto + botão "Ver detalhes" */
@@ -12165,6 +12164,7 @@ const LOJA_WPP='5521980886087'; /* WhatsApp de atendimento da Rastreando GPS (pe
    servidor (rastreamento-desbloqueio.js, LOJA_PRODUTOS): o app só mostra; mudou o preço, mudar nos dois lugares. */
 const LOJA_FOTO='https://gps.rastreandogpsbr.com.br/loja/'; /* 13/10/2026: endereço próprio do app */
 const LOJA_QTD_MAX=10;
+const FLASH_URL='https://app.rastreandogpsbr.com.br/solicitar-flash.html'; /* 25/10/2026: adesivo grátis é pedido pelo Rastreando Flash (CPF, frete, PIX só do frete) */
 /* v = preço da unidade; de2 = preço de cada unidade comprando 2 ou mais (cartão NFC). Os valores que valem são os do servidor (LOJA_PRODUTOS). */
 const LOJA_ITENS=[
   {k:'nfc', img:'nfc.jpg', n:'Adesivo de emergência (NFC)', d:'Encoste no celular e abra o app na hora, sem procurar nada. Ideal para roubo ou emergência.', v:0, gratis:true, /* 25/10/2026 (decisão do dono): GRÁTIS, o cliente paga só a entrega (Rastreando Flash). Antes: R$ 35,00 / 2 = R$ 49,90 */
@@ -12174,8 +12174,7 @@ const LOJA_ITENS=[
                'Funciona até no celular de outra pessoa: é só entrar com o seu login e senha.',
                'Não usa bateria e não precisa carregar.',
                'Pequeno e discreto: cole na carteira, na capinha do celular ou do documento.',
-               'É GRÁTIS: você paga só a entrega, combinada pelo WhatsApp (Rastreando Flash).',
-               'Um adesivo grátis por cliente a cada 30 dias. Quer mais de um? Fale com a gente pelo WhatsApp.']}},
+               'É GRÁTIS: você paga só a entrega. Toque em "Solicitar o meu", informe o CPF, veja o valor do frete e pague por PIX. Depois a gente entrega.']}},
   {k:'ktag', img:'ktag.jpg', n:'K-tag', d:'Localizador auxiliar do rastreador. Bateria com duração de até 1 ano e meio.', v:99.00, mensal:9.90,
    det:{int:'Um localizador extra, pequeno e discreto, que trabalha como reforço do seu rastreador principal.',
         itens:['Mais uma forma de encontrar o veículo, além do rastreador já instalado.',
@@ -12241,7 +12240,7 @@ function lojaDesenhar(){
     const bd=e.target.closest('[data-det]');
     if(bd){ lojaDetalhe(+bd.dataset.det); return }
     const bc=e.target.closest('[data-compra]');
-    if(bc){ lojaResumo(+bc.dataset.compra); return }
+    if(bc){ const it=LOJA_ITENS[+bc.dataset.compra]; if(it&&it.gratis){ window.open(FLASH_URL,'_blank','noopener'); return } lojaResumo(+bc.dataset.compra); return }
     const bp=e.target.closest('[data-k]'); /* "Pagar" de um pedido aguardando: reabre o mesmo PIX (o servidor devolve o mesmo em até 30 min) */
     if(bp){ lojaComprarPix(bp.dataset.k,bp,Number(bp.dataset.q)||1); return }
     const bw=e.target.closest('[data-lw]');
@@ -12249,7 +12248,7 @@ function lojaDesenhar(){
       const msg='Olá! Vim pelo app da Rastreando GPS e quero saber sobre: *'+it.n+'*.'+(quem?'\nMeu login no app: '+quem:'');
       window.open('https://wa.me/'+LOJA_WPP+'?text='+encodeURIComponent(msg),'_blank'); return }
     const be=e.target.closest('[data-lent]');
-    if(be){ lojaWppEntrega(be.dataset.ln||'',be.dataset.lent||'',be.dataset.lgr==='1'); return }
+    if(be){ lojaWppEntrega(be.dataset.ln||'',be.dataset.lent||''); return }
     const bx=e.target.closest('[data-lcan]');
     if(bx){ lojaCancAbrir(bx.dataset.lcan,bx.dataset.ln||'',bx.dataset.k2||'',Number(bx.dataset.q)||1); return }
     const bm=e.target.closest('[data-lmant]');
@@ -12273,7 +12272,7 @@ function lojaDetFechar(){ $('mLojaDet').classList.remove('show') }
 $('ldX').onclick=lojaDetFechar;
 $('mLojaDet').addEventListener('click',e=>{ if(e.target.id==='mLojaDet') lojaDetFechar() });
 $('ldImg').onclick=()=>{ const it=LOJA_ITENS[lojaDetI]; if(it) lojaZoom(LOJA_FOTO+it.img) };
-$('ldComprar').onclick=()=>{ const i=lojaDetI; lojaDetFechar(); lojaResumo(i) };
+$('ldComprar').onclick=()=>{ const i=lojaDetI, it=LOJA_ITENS[i]; lojaDetFechar(); if(it&&it.gratis){ window.open(FLASH_URL,'_blank','noopener'); return } lojaResumo(i) };
 $('ldWpp').onclick=()=>{ const it=LOJA_ITENS[lojaDetI]; if(!it) return; const quem=lojaLogin();
   const msg='Olá! Vim pelo app da Rastreando GPS e quero saber sobre: *'+it.n+'*.'+(quem?'\nMeu login no app: '+quem:'');
   window.open('https://wa.me/'+LOJA_WPP+'?text='+encodeURIComponent(msg),'_blank') };
@@ -12283,10 +12282,9 @@ function lojaResumo(i){
   const it=LOJA_ITENS[i]; if(!it) return;
   lojaResItem=it; lojaResQ=1;
   $('ljrImg').src=LOJA_FOTO+it.img; $('ljrNome').textContent=it.n; $('ljrDesc').textContent=it.d;
-  $('ljrUnit').textContent=it.gratis?'1 adesivo grátis por cliente a cada 30 dias':it.de2?'1 un. '+brl(it.v)+' · 2 ou mais: '+brl(it.de2)+' cada':brl(it.v)+' cada';
-  $('mLojaRes').classList.toggle('gratis',!!it.gratis); /* 25/10/2026: sem quantidade e sem "Total no PIX" */
+  $('ljrUnit').textContent=it.de2?'1 un. '+brl(it.v)+' · 2 ou mais: '+brl(it.de2)+' cada':brl(it.v)+' cada';
   lojaResPintar();
-  $('ljrGerar').disabled=false; $('ljrGerar').textContent=it.gratis?'Solicitar grátis':'Gerar PIX de pagamento';
+  $('ljrGerar').disabled=false; $('ljrGerar').textContent='Gerar PIX de pagamento';
   $('mLojaRes').classList.add('show');
 }
 function lojaResPintar(){
@@ -12294,10 +12292,9 @@ function lojaResPintar(){
   $('ljrN').textContent=q;
   $('ljrMenos').disabled=q<=1; $('ljrMais').disabled=q>=LOJA_QTD_MAX;
   $('ljrItem').textContent=it.n+' · '+q+(q>1?' unidades':' unidade');
-  $('ljrValor').textContent=it.gratis?'Grátis':brl(tot); $('ljrTotal').textContent=brl(tot);
+  $('ljrValor').textContent=brl(tot); $('ljrTotal').textContent=brl(tot);
   const mes=it.mensal?Math.round(it.mensal*q*100)/100:0;
   $('ljrMesLin').style.display=mes?'':'none'; $('ljrMes').textContent=mes?'+ '+brl(mes)+'/mês':'';
-  if(it.gratis){ $('ljrNota').innerHTML='Ao tocar em <b>Solicitar grátis</b>, registramos o seu pedido e a gente combina a entrega com você pelo WhatsApp. <b>Você paga só a entrega</b> (Rastreando Flash); o adesivo é por nossa conta.'; return }
   $('ljrNota').innerHTML='Ao tocar em <b>Gerar PIX de pagamento</b>, criamos a cobrança no seu CPF.'+(mes?' A partir da ativação, sua mensalidade passa a ter <b>+ '+brl(mes)+' por mês</b>.':'')+' Depois de pagar, você combina a entrega com a gente pelo WhatsApp. Se não pagar, a cobrança é cancelada sozinha em 24 horas.';
 }
 $('ljrMenos').onclick=()=>{ if(lojaResQ>1){ lojaResQ--; lojaResPintar() } };
@@ -12309,11 +12306,9 @@ $('ljrGerar').onclick=async()=>{
   b.disabled=true; b.textContent='Gerando PIX...';
   try{
     const r=await fnLoja('lojaComprar',{produto:lojaResItem.k,qtd:lojaResQ});
-    if(r.jaPediu){ lojaResFechar(); toast('Você já pediu o seu adesivo grátis em '+fmtHora(r.criadoMs||Date.now()).split(' ')[0]+' (pedido '+(r.rotulo||'')+'). Para mais unidades, fale com a gente pelo WhatsApp.',6000); lojaPedidosDesenhar(); return } /* 25/10/2026 */
-    if(r.gratis){ lojaResFechar(); lojaGratisOk(r); return }
     if(r.semCpf||r.semCadastro){ toast('Seu CPF ainda não está vinculado ao financeiro. Fale com a gente pelo WhatsApp que resolvemos na hora.',5000); b.disabled=false; b.textContent='Gerar PIX de pagamento'; return }
     lojaResFechar(); lojaAbrirPix(r);
-  }catch(e){ toast(e.message); b.disabled=false; b.textContent=lojaResItem&&lojaResItem.gratis?'Solicitar grátis':'Gerar PIX de pagamento' }
+  }catch(e){ toast(e.message); b.disabled=false; b.textContent='Gerar PIX de pagamento' }
 };
 /* ----- foto ampliada: toque na foto aumenta/diminui; toque fora ou no X fecha ----- */
 function lojaZoom(src){ const z=$('ljZoom'); z.classList.remove('grande'); $('ljZoomImg').src=src; z.classList.add('show') }
@@ -12393,21 +12388,10 @@ function lojaPoll(){ /* pergunta ao servidor a cada 8 s enquanto a janela do PIX
     lojaPoll();
   },8000);
 }
-function lojaWppEntrega(nome,rotulo,gratis){
+function lojaWppEntrega(nome,rotulo){
   const quem=lojaLogin();
-  const msg=gratis?'Olá! Acabei de solicitar o meu *'+nome+'* grátis no app da Rastreando GPS (pedido '+rotulo+'). Quero combinar a entrega (pago só o frete).'+(quem?'\nMeu login no app: '+quem:'')
-    :'Olá! Acabei de comprar *'+nome+'* no app da Rastreando GPS (pedido '+rotulo+', pago por PIX). Quero combinar a entrega.'+(quem?'\nMeu login no app: '+quem:'');
+  const msg='Olá! Acabei de comprar *'+nome+'* no app da Rastreando GPS (pedido '+rotulo+', pago por PIX). Quero combinar a entrega.'+(quem?'\nMeu login no app: '+quem:'');
   window.open('https://wa.me/'+LOJA_WPP+'?text='+encodeURIComponent(msg),'_blank');
-}
-/* 25/10/2026: adesivo grátis — sem PIX; mostra a tela de confirmação com o botão de combinar a entrega */
-function lojaGratisOk(r){
-  lojaPed=null; clearInterval(ljpTempoTimer); $('ljpTempo').style.display='none';
-  $('ljpTit').textContent='Pedido registrado 🎁';
-  $('ljpPix').style.display='none'; $('ljpOk').style.display='';
-  $('ljpOkTxt').textContent=(r.nome||'Adesivo de emergência')+' · grátis · pedido '+(r.rotulo||'')+'. Agora é só combinar a entrega com a gente (você paga só o frete).';
-  $('ljpOkWpp').style.display=''; $('ljpOkWpp').onclick=()=>lojaWppEntrega(r.nome||'Adesivo de emergência (NFC)',r.rotulo||'',true);
-  try{ const mp=$('mLojaPix'); mp.style.zIndex='1400'; document.body.appendChild(mp) }catch(e){}
-  abrir('mLojaPix'); lojaPedidosDesenhar();
 }
 function lojaPagoOk(s){
   clearInterval(ljpTempoTimer); $('ljpTempo').style.display='none';
@@ -12461,11 +12445,11 @@ async function lojaPedidosDesenhar(){ /* pedidos dos últimos 7 dias (aguardando
         const canc=!pago&&p.cancelarEmMs;
         const tag=pago?'<span class="ljst ok">Pago</span>':canc?'<span class="ljst cc">Cancelamento até '+fmtHora(p.cancelarEmMs).split(' ').pop()+'</span>':'<span class="ljst ag">Aguardando pagamento</span>';
         const semEntrega=Number(p.giros)>0||Number(p.frotaDias)>0; /* 24/10/2026: giros e Premium entram na hora, não têm entrega */
-        const bts=pago?(semEntrega?'<span class="ljst ok" style="align-self:center">'+(Number(p.giros)>0?'Giros creditados':'Liberado')+'</span>':'<button class="ljbtn" type="button" data-lent="'+esc(p.rotulo||'')+'" data-ln="'+esc(p.nome)+'"'+(p.gratis?' data-lgr="1"':'')+'>'+LOJA_SVG_WPP+'Entrega</button>')
+        const bts=pago?(semEntrega?'<span class="ljst ok" style="align-self:center">'+(Number(p.giros)>0?'Giros creditados':'Liberado')+'</span>':'<button class="ljbtn" type="button" data-lent="'+esc(p.rotulo||'')+'" data-ln="'+esc(p.nome)+'">'+LOJA_SVG_WPP+'Entrega</button>')
           :'<div class="ljpb"><button class="ljcomprar" type="button" data-k="'+esc(p.produto)+'" data-q="'+(Number(p.qtd)||1)+'">Pagar</button>'+
             (canc?'<button class="ljcanc" type="button" data-lmant="'+esc(p.pedido)+'">Manter pedido</button>'
                  :'<button class="ljcanc" type="button" data-lcan="'+esc(p.pedido)+'" data-ln="'+esc(p.nome)+'" data-k2="'+esc(p.produto)+'" data-q="'+(Number(p.qtd)||1)+'">Cancelar</button>')+'</div>';
-        return '<div class="ljped"><div class="ljpt"><b>'+esc(p.nome)+'</b><small>'+esc(p.rotulo||'')+' · '+(p.gratis?'grátis':brl(p.valor))+'</small>'+tag+'</div>'+bts+'</div>'}).join('')+'</div></div>';
+        return '<div class="ljped"><div class="ljpt"><b>'+esc(p.nome)+'</b><small>'+esc(p.rotulo||'')+' · '+brl(p.valor)+'</small>'+tag+'</div>'+bts+'</div>'}).join('')+'</div></div>';
     $('lojaCarHead').onclick=()=>{ lojaCarAberto=!lojaCarAberto; $('lojaCar').classList.toggle('aberto',lojaCarAberto) };
   }catch(e){ box.innerHTML=''; cb.classList.remove('show') }
 }
