@@ -13151,7 +13151,9 @@ async function drCarregar(soCartao){
 const drData=iso=>iso?String(iso).split('-').reverse().join('/'):'';
 const DR_EST={pendente:['Aguardando aprovação','ag'],aprovado:['Aprovado','ag'],reservado:['Aguardando o reboquista','ag'],concluido:['Concluído','ok'],pago:['Pago','ok'],recusado:['Recusado','cc'],cancelado:['Cancelado','cc']};
 const drDia=ms=>new Date(ms).toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo',day:'2-digit',month:'2-digit'}); /* 25/10/2026: prazo do PIX */
-const DR_TIPO={resgate:'Venda de fichas',reembolso:'Reembolso de reboque',reboque:'Reboque'};
+function drCatNome(p){ try{ const c=(PC_CATS.find(x=>x[0]===p.categoria)||[])[1]; return c||'Serviço' }catch(e){ return 'Serviço' } } /* 25/10/2026: pedido de parceiro mostra a categoria (Chaveiro, Borracheiro...) */
+function drEstado(p){ const e=DR_EST[p.estado]||[p.estado,'ag']; return (p.estado==='reservado'&&p.tipo==='servico')?['Aguardando o '+drCatNome(p).toLowerCase(),'ag']:e }
+const DR_TIPO={servico:'Serviço',resgate:'Venda de fichas',reembolso:'Reembolso de reboque',reboque:'Reboque'};
 function drDesenhar(){
   const j=DR.dados||{}; if(!j.ativo){ $('drSub').textContent=''; $('drCorpo').innerHTML='<div class="rtvz">As fichas douradas ainda não estão liberadas para você.</div>'; return }
   $('drSub').textContent='1 ficha = R$ 1 · limite de '+j.teto+' fichas';
@@ -13173,8 +13175,8 @@ function drDesenhar(){
       '<div class="rbdois"><div><label class="flbl">Quantas fichas</label><input class="fld" id="drVdQ" name="dr-qtd-fichas" type="text" inputmode="numeric" autocomplete="off" placeholder="'+Math.max(0,j.livres)+'"></div><div><label class="flbl">Você recebe</label><div class="fld drreceber" id="drVdRec">R$ 0,00</div></div></div>'+
       '<button class="btn btn-out" id="drVdEnviar" type="button" style="width:100%">Pedir a venda</button></div>';
   }
-  if(j.pedidos&&j.pedidos.length) h+='<div class="drsec"><b>Seus pedidos</b>'+j.pedidos.map(p=>{ const e=DR_EST[p.estado]||[p.estado,'ag'];
-    return '<div class="drped"><div><b>'+esc(DR_TIPO[p.tipo]||p.tipo)+(p.reboque?' · '+esc(p.reboque):'')+'</b><small>'+p.fichas+' fichas'+(p.tipo!=='reboque'?' → '+brl2(p.valorPagar):'')+(p.valorFinal?' · final '+brl2(p.valorFinal):'')+' · '+fmtHora(p.criadoMs)+'</small><span class="ljst '+e[1]+'">'+e[0]+(p.estado==='aprovado'&&p.prazoMs?' · PIX até '+drDia(p.prazoMs):'')+'</span></div>'+
+  if(j.pedidos&&j.pedidos.length) h+='<div class="drsec"><b>Seus pedidos</b>'+j.pedidos.map(p=>{ const e=drEstado(p);
+    return '<div class="drped"><div><b>'+esc(p.tipo==='servico'?drCatNome(p):(DR_TIPO[p.tipo]||p.tipo))+(p.reboque?' · '+esc(p.reboque):'')+'</b><small>'+p.fichas+' fichas'+(p.tipo==='resgate'?' → '+brl2(p.valorPagar):' reservadas')+(p.valorFinal?' · final '+brl2(p.valorFinal):'')+' · '+fmtHora(p.criadoMs)+'</small><span class="ljst '+e[1]+'">'+e[0]+(p.estado==='aprovado'&&p.prazoMs?' · PIX até '+drDia(p.prazoMs):'')+'</span></div>'+
       (['pendente','reservado'].includes(p.estado)?'<button class="ljcanc" type="button" data-drcan="'+esc(p.pedido)+'">Cancelar</button>':'')+'</div>' }).join('')+'</div>';
   if(j.extrato&&j.extrato.length) h+='<div class="drsec"><b>Extrato</b>'+j.extrato.map(x=>'<div class="drext"><span>'+esc(x.desc)+'<small>'+fmtHora(x.ms)+'</small></span><b class="'+(x.q>0?'mais':'menos')+'">'+(x.q>0?'+':'')+x.q+'</b></div>').join('')+'</div>';
   const drQuando=ms=>new Date(ms).toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo',day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}).replace(',',' às');
@@ -13276,9 +13278,9 @@ async function drAdmContar(){ const b=$('aDouradaN'); if(!b||!ehAdmin) return; t
 async function drAdmAbrir(){ abrir('mDouradaAdm'); $('draLista').innerHTML='<div class="rtvz">Carregando...</div>';
   try{ const j=await drApi('douradaAdmLista'); const l=j.lista||[]; $('aDouradaN').textContent=l.length; $('aDouradaN').classList.toggle('on',l.length>0);
     $('draLista').innerHTML=l.length?l.map(p=>{
-      const reb=p.tipo==='reboque', pagar=reb?(p.fichasUsadas||p.fichas):p.valorPagar;
-      return '<div class="rtit"><div class="rttopo"><div><b>'+esc(DR_TIPO[p.tipo]||p.tipo)+'</b><div class="rtinfo">Cliente: '+esc(p.cliente||'')+' ('+esc(p.login||'')+')<br>'+
-        (reb?'Reboquista: '+esc(p.reboque)+' · PIX: <b>'+esc(p.reboquePix||'não cadastrado')+'</b><br>Valor final '+brl2(p.valorFinal)+' · fichas usadas '+(p.fichasUsadas||0)+(p.cobrarDireto?' · cliente paga '+brl2(p.cobrarDireto)+' direto':'')
+      const reb=p.tipo==='reboque'||p.tipo==='servico', pagar=reb?(p.fichasUsadas||p.fichas):p.valorPagar; /* 25/10/2026: serviço de parceiro paga igual ao reboque */
+      return '<div class="rtit"><div class="rttopo"><div><b>'+esc(p.tipo==='servico'?drCatNome(p)+' (parceiro)':(DR_TIPO[p.tipo]||p.tipo))+'</b><div class="rtinfo">Cliente: '+esc(p.cliente||'')+' ('+esc(p.login||'')+')<br>'+
+        (reb?(p.tipo==='servico'?'Parceiro: ':'Reboquista: ')+esc(p.reboque)+' · PIX: <b>'+esc(p.reboquePix||'não cadastrado')+'</b><br>Valor final '+brl2(p.valorFinal)+' · fichas usadas '+(p.fichasUsadas||0)+(p.cobrarDireto?' · cliente paga '+brl2(p.cobrarDireto)+' direto':'')
           :(p.fichasIntegral?p.fichasIntegral+' a R$ 1,00 (até 7 dias)'+(p.fichas>p.fichasIntegral?' + '+(p.fichas-p.fichasIntegral)+' × R$ 0,94':''):p.fichas+' fichas × R$ 0,94')+(p.notaValor?' · nota de '+brl2(p.notaValor):'')+'<br>PIX do cliente: <b>'+esc(p.pixChave)+'</b>')+'<br>'+fmtHora(p.criadoMs)+
         ((p.estado==='aprovado'||(p.estado==='concluido'&&!p.pagoParceiro))&&p.prazoMs?'<br><b class="draprazo'+(p.prazoMs-Date.now()<86400000?' vence':'')+'">'+(p.estado==='concluido'?'Pagar o PIX ao '+(p.tipo==='reboque'?'reboquista':'parceiro')+' até ':'Aprovado · pagar o PIX até ')+drDia(p.prazoMs)+(p.prazoMs<Date.now()?' (vencido)':'')+'</b>':'')+'</div></div>'+
         '<div class="rtdist">'+brl2(pagar)+'<small>pagar por PIX</small></div></div><div class="rtbt">'+
