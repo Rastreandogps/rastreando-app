@@ -5027,7 +5027,10 @@ async function completarStatus(v){
   if(v.histEm && agora-v.histEm<180000) return;
   v.histEm=agora;
   try{
-    const de=new Date(agora-35*60000).toISOString(), ate=new Date(agora+60000).toISOString();
+    /* 25/10/2026 (pedido do dono): aparelho sem conexão há dias também precisa achar a última bateria;
+       por isso a janela de 35 min termina no último contato do rastreador, e não na hora atual */
+    const fim=(v.ultimo && v.ultimo<agora) ? v.ultimo : agora;
+    const de=new Date(fim-35*60000).toISOString(), ate=new Date(fim+60000).toISOString();
     const r=await api('/api/positions?deviceId='+v.id+'&from='+encodeURIComponent(de)+'&to='+encodeURIComponent(ate));
     if(!r.ok) return;
     const lista=(await r.json()).map(p=>({p,t:new Date(p.serverTime||p.deviceTime||p.fixTime).getTime()})).filter(x=>!isNaN(x.t)).sort((a,b)=>a.t-b.t);
@@ -5040,19 +5043,19 @@ async function completarStatus(v){
       if(vv!=null && !isNaN(vv) && Number(vv)>0 && t>(v.voltEm||0)){ v.volt=Number(vv); v.voltEm=t; mudou=true }
     }
     if(v.ign!==null && !fresco(v.igEm,VALIDADE_ST)) v.ign=null;
-    if(v.bat!==null && !fresco(v.batEm,VALIDADE_ST)) v.bat=null;
+    /* 25/10/2026: a bateria NÃO expira mais; fica a última lida (a data de "Atualizado" mostra que é antiga) */
     if(mudou){ lsSet('rg_st_'+v.id,JSON.stringify({ign:v.ign,igEm:v.igEm,bat:v.bat,batEm:v.batEm,volt:v.volt,voltEm:v.voltEm})); atualizar() }
   }catch(e){ if(e.sessao) throw e }
 }
 
 /* O rastreador manda pacotes diferentes (posição, status, resposta de comando) e nem todo pacote traz ignição/bateria/voltagem.
    Por isso o app lembra o último valor recebido (no celular também) e só troca quando chega um novo. */
-const VALIDADE_ST=30*60*1000; /* ignição e bateria: depois de 30 min sem confirmação voltam a "—" */
+const VALIDADE_ST=30*60*1000; /* ignição: depois de 30 min sem confirmação volta a "—". Bateria: desde 25/10/2026 fica a última lida */
 const fresco=(em,max)=>!!em && Date.now()-em<max;
 function lerUltimos(v){
   let c={}; try{ c=JSON.parse(lsGet('rg_st_'+v.id)||'{}')||{} }catch(e){}
   if(typeof c.ign==='boolean' && fresco(c.igEm,VALIDADE_ST)){ v.ign=c.ign; v.igEm=c.igEm }
-  if(typeof c.bat==='number' && fresco(c.batEm,VALIDADE_ST)){ v.bat=c.bat; v.batEm=c.batEm }
+  if(typeof c.bat==='number'){ v.bat=c.bat; v.batEm=c.batEm||0 } /* 25/10/2026: última bateria, mesmo sem conexão */
   if(typeof c.volt==='number'){ v.volt=c.volt; v.voltEm=c.voltEm||0 }
 }
 function guardarUltimos(v,p,a){
@@ -5069,7 +5072,6 @@ function guardarUltimos(v,p,a){
   }
   }
   if(v.ign!==null && !fresco(v.igEm,VALIDADE_ST)) v.ign=null;
-  if(v.bat!==null && !fresco(v.batEm,VALIDADE_ST)) v.bat=null;
   if(mudou) lsSet('rg_st_'+v.id,JSON.stringify({ign:v.ign,igEm:v.igEm,bat:v.bat,batEm:v.batEm,volt:v.volt,voltEm:v.voltEm}));
 }
 /* ===== TAGS (K-TAG, 16/10/2026, pedido do dono) =====
