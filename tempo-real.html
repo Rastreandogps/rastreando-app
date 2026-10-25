@@ -191,6 +191,50 @@ body.mapa-google #map .leaflet-top.leaflet-left .leaflet-control-attribution{mar
 .rbdisp.on{border-color:rgba(51,209,122,.5)}
 .rbcar{width:14px;height:14px;border-radius:50%;background:#2563eb;border:3px solid #fff;box-shadow:0 0 0 2px #2563eb}
 .rbcirc{color:#0ea5e9}
+/* ===== FICHAS DOURADAS (25/10/2026) ===== */
+.drcoin{display:inline-block;width:22px;height:22px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff6c2 0,#ffd54a 30%,#e0a800 70%,#a77400 100%);box-shadow:inset 0 0 0 2px rgba(255,255,255,.35),0 1px 3px rgba(0,0,0,.3);vertical-align:-5px;flex:none}
+.maiscard .mic.dr{background:rgba(245,184,61,.18)}
+.maiscard .mic.dr .drcoin{width:26px;height:26px}
+#mDourada .almtopo,#mDouradaAdm .almtopo{flex:none;display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:4px}
+#mDourada .almtopo h3,#mDouradaAdm .almtopo h3{margin:0}
+#mDourada .almx,#mDouradaAdm .almx{width:38px;height:38px;flex:none;border-radius:50%;background:var(--card2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;cursor:pointer}
+#mDourada .almx svg,#mDouradaAdm .almx svg{width:18px;height:18px;fill:none;stroke:var(--txt);stroke-width:2.4;stroke-linecap:round}
+.drtopo{display:flex;align-items:center;gap:14px;background:linear-gradient(135deg,rgba(255,213,74,.22),rgba(224,168,0,.08));border:1px solid rgba(224,168,0,.35);border-radius:16px;padding:14px;margin:6px 0 12px}
+.drtopo>.drcoin{width:52px;height:52px}
+.drtopo>div{flex:1;min-width:0}
+.drsaldo{font-size:28px;font-weight:900;line-height:1}
+.drsaldo small{font-size:14px;font-weight:700;color:var(--mut)}
+.drvalor{font-size:13px;color:var(--mut);margin-top:3px}
+.drbarra{height:6px;border-radius:4px;background:var(--line);margin-top:8px;overflow:hidden}
+.drbarra i{display:block;height:100%;background:linear-gradient(90deg,#ffd54a,#e0a800)}
+.drsec{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:10px}
+.drsec>b{display:block;font-size:14.5px}
+.drsec>small{display:block;font-size:12px;color:var(--mut);margin:2px 0 8px;line-height:1.4}
+.drtxt{font-size:12.5px;line-height:1.5;color:var(--txt);margin:8px 0 10px}
+.drtxt p{margin:0 0 6px}
+.drchips{display:flex;flex-wrap:wrap;gap:8px}
+.drchip{padding:9px 12px;border-radius:999px;border:1px solid var(--line);background:var(--card2);color:var(--txt);font-weight:700;font-size:13px}
+.drchip.on{background:#e0a800;border-color:#e0a800;color:#1a1200}
+.drchip:disabled{opacity:.45}
+.drinfo{font-size:12px;color:#16a34a;margin-top:8px;font-weight:600}
+.drfotobtn{height:46px;width:100%;margin-bottom:10px;cursor:pointer}
+.drreceber{display:flex;align-items:center;font-weight:800;color:#16a34a}
+.drped{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:9px 0;border-top:1px solid var(--line);flex-wrap:wrap}
+.drped>div:first-child{flex:1;min-width:0}
+.drped small{display:block;color:var(--mut);font-size:12px;margin:2px 0 4px}
+.drrebac{display:grid;grid-template-columns:1fr auto auto;gap:6px;width:100%}
+.drrebac .fld{height:40px;margin:0}
+.drrebac .btn{height:40px;padding:0 12px;font-size:13px}
+.drext{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-top:1px solid var(--line);font-size:13px}
+.drext small{display:block;color:var(--mut);font-size:11px}
+.drext .mais{color:#16a34a}.drext .menos{color:var(--red2)}
+.drpagar{margin-top:12px;border-top:1px dashed rgba(224,168,0,.5);padding-top:10px}
+.drpagar>b{display:flex;align-items:center;gap:6px;font-size:14px}
+.drpagar>small{display:block;font-size:12px;color:var(--mut);margin:2px 0 8px}
+.drpagar .drchip{margin:0 6px 6px 0}
+#aview .aico.adr{position:relative}
+#aview .aico.adr .fila{position:absolute;top:-5px;right:-5px;min-width:19px;height:19px;padding:0 5px;border-radius:10px;background:#dc2626;color:#fff;font-size:11px;font-weight:800;display:none;align-items:center;justify-content:center;border:2px solid var(--bg)}
+#aview .aico.adr .fila.on{display:inline-flex}
 .maiscard .mrsw{position:absolute;top:14px;right:14px;cursor:pointer} /* 25/10/2026 (pedido do dono): chave Disponível no cartão Meu reboque */
 .maiscard .mrsw input:checked+span{background:var(--green)}
 .maiscard .mrsw.ocupado{opacity:.5;pointer-events:none}
@@ -347,12 +391,12 @@ body.mapa-google #map .leaflet-top.leaflet-left .leaflet-control-attribution{mar
 .ljcar.aberto .ljclista{display:block}
 .ljcar .ljped{background:var(--card);margin-bottom:8px}
 .ljcar .ljped:last-child{margin-bottom:0}
-.ljped .ljst{display:inline-block;padding:1px 7px;border-radius:7px;font-size:11px;font-weight:800;margin-top:4px}
-.ljped .ljst.ok{background:rgba(22,163,74,.18);color:#16a34a}
-.ljped .ljst.ag{background:rgba(245,158,11,.18);color:#d97706}
-.ljped .ljst.cc{background:rgba(225,29,72,.15);color:#e11d48}
+.ljped .ljst,.drped .ljst{display:inline-block;padding:1px 7px;border-radius:7px;font-size:11px;font-weight:800;margin-top:4px}
+.ljped .ljst.ok,.drped .ljst.ok{background:rgba(22,163,74,.18);color:#16a34a}
+.ljped .ljst.ag,.drped .ljst.ag{background:rgba(245,158,11,.18);color:#d97706}
+.ljped .ljst.cc,.drped .ljst.cc{background:rgba(225,29,72,.15);color:#e11d48}
 .ljped .ljpb{display:flex;flex-direction:column;align-items:stretch;gap:6px;flex:none}
-.ljped .ljcanc{background:none;border:none;color:var(--mut);font-size:12.5px;font-weight:700;text-decoration:underline;padding:2px 4px;cursor:pointer}
+.ljped .ljcanc,.drped .ljcanc{background:none;border:none;color:var(--mut);font-size:12.5px;font-weight:700;text-decoration:underline;padding:2px 4px;cursor:pointer}
 #mLojaCanc{align-items:center;padding:16px}
 #mLojaCanc .box2{border-radius:20px;max-width:420px;width:100%;text-align:center}
 #mLojaCanc .lcic{width:58px;height:58px;margin:4px auto 12px;border-radius:50%;display:flex;align-items:center;justify-content:center}
@@ -2943,6 +2987,7 @@ nav button.on .nemo.txt{color:var(--red2)}
         <button class="aico" id="aSmsFat" title="Lançar no próximo boleto (SMS e avulso)" aria-label="Lançar no próximo boleto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M14.5 8.5c-.5-.8-1.4-1.2-2.5-1.2-1.4 0-2.4.7-2.4 1.7 0 2.3 5 1.1 5 3.5 0 1-1.1 1.8-2.6 1.8-1.2 0-2.2-.5-2.7-1.3M12 6v1.3M12 14.3v1.4"/></svg></button>
         <button class="aico" id="aEmerg" title="Modo emergência (lista copiada, planilha e SMS para a plataforma reserva)" aria-label="Modo emergência"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18v.5"/></svg></button>
         <button class="aico" id="aPlacas" title="Leitor de placas" aria-label="Leitor de placas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M2 9.5h20"/><path d="M6 14h3M11 14h2M15 14h3"/></svg></button><!-- 23/10/2026 -->
+        <button class="aico adr" id="aDourada" title="Fichas douradas: pendências" aria-label="Fichas douradas: pendências"><span class="drcoin"></span><span class="fila" id="aDouradaN"></span></button><!-- 25/10/2026 -->
         <button class="aico anovo" id="aNovo" title="Novo equipamento" aria-label="Novo equipamento"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span class="fila" id="aNovoFila"></span></button>
       </div>
       <div class="ameta"><button class="emlink" id="aEmerg2" type="button">⚠ Modo emergência</button><b id="aCount"></b><span id="aFinTxt"></span><span id="aTabNome" hidden></span></div>
@@ -3503,6 +3548,7 @@ nav button.on .nemo.txt{color:var(--red2)}
     <label class="fchk"><input type="checkbox" id="pmRetirar"> Ver a lista <b>Para retirar</b> (para técnico: veículos marcados para retirada, pelo mais perto, com o nome e o WhatsApp do cliente)</label>
     <label class="fchk"><input type="checkbox" id="pmPlacas"> <b>Leitor de placas</b> (abre o leitor pela câmera do celular, na aba Mais; só com o login deste cliente)</label><!-- 23/10/2026 -->
     <label class="fchk"><input type="checkbox" id="pmRuaCel"> <b>Vista da rua no celular</b> (no cartão do veículo, a foto da rua toma o lugar de odômetro, combustível e faturas)</label><!-- 23/10/2026 -->
+    <label class="fchk"><input type="checkbox" id="pmDourada"> <b>Fichas douradas</b> (crédito de R$ 1 por ficha para reboque: aporte no boleto, compra avulsa, venda e reembolso a R$ 0,94; ainda em teste)</label><!-- 25/10/2026 -->
     <label class="fchk"><input type="checkbox" id="pmReboque"> <b>Reboquista</b> (ganha o cartão "Meu reboque" na aba Mais: base, valores e Disponível/Invisível; os clientes veem só a região do reboque)</label><!-- 25/10/2026 -->
     <label class="fchk"><input type="checkbox" id="pmFichas"> Cobrar fichas no compartilhar localização (1 ficha por link; o cliente compra pacotes por PIX no app)</label>
     <div class="pmfichas" id="pmLogoBox"><span class="sp">🖼️ Logo do cliente: <b id="pmLogoSt">—</b></span><button type="button" id="pmLogoAbrir">Ver / enviar logo</button></div>
@@ -3761,6 +3807,9 @@ nav button.on .nemo.txt{color:var(--red2)}
       <div><label class="flbl">Telefone</label><input class="fld" id="mrFone" inputmode="tel" placeholder="(21) 99999-9999"></div>
       <div><label class="flbl">WhatsApp</label><input class="fld" id="mrWpp" inputmode="tel" placeholder="(21) 99999-9999"></div>
     </div>
+    <label class="flbl">Chave PIX (para receber dos clientes que pagam com fichas douradas)</label>
+    <input class="fld" id="mrPix" maxlength="80" placeholder="CPF, CNPJ, celular, e-mail ou aleatória">
+    <div id="mrFichas"></div>
     <label class="flbl">Rastreador que está no reboque</label>
     <select class="fld" id="mrDev"></select>
     <label class="flbl">Base (ponto de partida para o cálculo)</label>
@@ -3773,6 +3822,21 @@ nav button.on .nemo.txt{color:var(--red2)}
     <div class="rbnota">Como o app calcula para o cliente: soma a rota por estrada <b>base → veículo do cliente → destino → base</b>. Até os km incluídos, ele paga só a saída; cada km a mais é cobrado pelo valor do km extra. O cliente vê só a <b>região</b> do seu reboque (um círculo de 2 km), nunca o ponto exato nem a sua base.</div>
     <div class="ferr" id="mrErro"></div>
     <div class="rtacoes"><button class="btn btn-red" id="mrSalvar" type="button">Salvar</button><button class="btn btn-out" data-close type="button">Fechar</button></div>
+  </div>
+</div>
+<!-- 25/10/2026 (decisão do dono): FICHAS DOURADAS (crédito de serviço, R$ 1 cada). Escondido atrás da permissão. -->
+<div class="modal alsheet" id="mDourada">
+  <div class="box2">
+    <div class="almtopo"><h3>Fichas douradas</h3><button class="almx" data-close type="button" aria-label="Fechar" title="Fechar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <div class="rtsub" id="drSub">Carregando...</div>
+    <div id="drCorpo"></div>
+  </div>
+</div>
+<div class="modal alsheet" id="mDouradaAdm">
+  <div class="box2">
+    <div class="almtopo"><h3>Fichas douradas · pendências</h3><button class="almx" data-close type="button" aria-label="Fechar" title="Fechar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <div class="rtsub">Vendas e reembolsos para aprovar (R$ 0,94 por ficha) e reboquistas para pagar. O PIX é feito por você, fora do app.</div>
+    <div id="draLista"></div>
   </div>
 </div>
 <div class="modal alsheet" id="mRuaGiro">
@@ -6572,7 +6636,7 @@ async function carregarPermissoes(){
     if(!r.ok) return;
     const j=await r.json(); permCli=Object.assign({smsBloqueio:false,reset:false,editarNome:false,cercaRapida:false,minhaPosicao:false},j.perm||{},{appBloqueio:permCli.appBloqueio,cercaBloqueio:permCli.cercaBloqueio,semBloqueio:permCli.semBloqueio,frotista:permCli.frotista,modFrotaAteMs:Number(j.modFrotaAteMs||0)}); cobrCli=j.cobranca||null;
     try{ modFrotaAplicar() }catch(e){}
-    mostrarBotoesSms(); fichasAplicar(); try{ retAplicar() }catch(e){} try{ leitorAplicar() }catch(e){} try{ rbAplicar() }catch(e){} try{ logoAplicar() }catch(e){} try{ ruaRedesenhar() }catch(e){}
+    mostrarBotoesSms(); fichasAplicar(); try{ retAplicar() }catch(e){} try{ leitorAplicar() }catch(e){} try{ rbAplicar() }catch(e){} try{ drAplicar() }catch(e){} try{ logoAplicar() }catch(e){} try{ ruaRedesenhar() }catch(e){}
   }catch(e){}
 }
 function textoCusto(){
@@ -6888,7 +6952,7 @@ async function salvarPermTraccar(u){
 }
 function mostrarPerm(j){
   const p=j.perm||{}, c=j.cobranca||{pendentes:0,valor:0};
-  $('pmSms').checked=!!p.smsBloqueio; $('pmReset').checked=!!p.reset; $('pmNome').checked=!!p.editarNome; $('pmAncora').checked=!!p.cercaRapida; $('pmEu').checked=!!p.minhaPosicao; $('pmIcone').checked=p.trocarIcone!==false; $('pmRetirar').checked=!!p.verRetirar; $('pmPlacas').checked=!!p.leitorPlacas; $('pmRuaCel').checked=!!p.ruaCelular; $('pmReboque').checked=!!p.reboquista;
+  $('pmSms').checked=!!p.smsBloqueio; $('pmReset').checked=!!p.reset; $('pmNome').checked=!!p.editarNome; $('pmAncora').checked=!!p.cercaRapida; $('pmEu').checked=!!p.minhaPosicao; $('pmIcone').checked=p.trocarIcone!==false; $('pmRetirar').checked=!!p.verRetirar; $('pmPlacas').checked=!!p.leitorPlacas; $('pmRuaCel').checked=!!p.ruaCelular; $('pmReboque').checked=!!p.reboquista; $('pmDourada').checked=!!p.fichasDouradas;
   $('pmCob').innerHTML='SMS pela plataforma a cobrar: <b>'+c.pendentes+'</b> = <b>'+brl2(c.valor)+'</b>'+
     (c.faturadoEm?'<br><span style="color:var(--mut);font-size:12px">Último zerado em '+fmtHora(c.faturadoEm)+' · total já faturado: '+(c.totalFaturado||0)+' SMS</span>':'');
   $('pmZerar').disabled=!c.pendentes;
@@ -6908,7 +6972,7 @@ $('pmSalvar').onclick=async()=>{
   try{
     const u=usuarios.find(x=>x.id===permUserId); if(!u) throw new Error('Cliente não encontrado. Feche e abra de novo.');
     await salvarPermTraccar(u);
-    mostrarPerm(await chamarPerm('permSalvar',{perm:{smsBloqueio:$('pmSms').checked,reset:$('pmReset').checked,editarNome:$('pmNome').checked,cercaRapida:$('pmAncora').checked,minhaPosicao:$('pmEu').checked,fichas:$('pmFichas').checked,trocarIcone:$('pmIcone').checked,verRetirar:$('pmRetirar').checked,leitorPlacas:$('pmPlacas').checked,ruaCelular:$('pmRuaCel').checked,reboquista:$('pmReboque').checked}}));
+    mostrarPerm(await chamarPerm('permSalvar',{perm:{smsBloqueio:$('pmSms').checked,reset:$('pmReset').checked,editarNome:$('pmNome').checked,cercaRapida:$('pmAncora').checked,minhaPosicao:$('pmEu').checked,fichas:$('pmFichas').checked,trocarIcone:$('pmIcone').checked,verRetirar:$('pmRetirar').checked,leitorPlacas:$('pmPlacas').checked,ruaCelular:$('pmRuaCel').checked,reboquista:$('pmReboque').checked,fichasDouradas:$('pmDourada').checked}}));
     await carregarUsuarios(); const u2=usuarios.find(x=>x.id===permUserId); if(u2) mostrarPermTraccar(u2);
     desenharAdmin(); toast('Permissões salvas.')
   }
@@ -9349,6 +9413,7 @@ function situacaoFin(u){
   return {t:'em dia'+esp,c:'bd-ok'};
 }
 async function abrirAdmin(){
+  try{ drAdmContar() }catch(e){} /* 25/10/2026: pendências das fichas douradas */
   await carregarUsuarios();
   desenharAdmin();
   carregarVinculos();
@@ -12201,7 +12266,7 @@ function fatAtalho(){ /* cliente: Faturas na frente; administrador: Loja como an
 }
 $('sFatBtn').onclick=()=>irPara('Faturas');
 function maisAtualizar(){
-  fatAtalho(); try{ rbAplicar() }catch(e){} /* 25/10/2026: cartão Reboques (todos) e Meu reboque (reboquista) */
+  fatAtalho(); try{ rbAplicar() }catch(e){} try{ drAplicar() }catch(e){} /* 25/10/2026: cartão Reboques (todos), Meu reboque (reboquista) e Fichas douradas */
   const nivel=bloqueioNivel||'ok', dot=$('maisFatDot'), nb=$('maisBadge'), tx=$('maisFatTxt');
   const alerta = nivel==='aviso'||nivel==='bloqueado'||nivel==='confianca';
   if(dot) dot.classList.toggle('show',alerta);
@@ -12413,6 +12478,9 @@ function lojaPagoOk(s){
     $('ljpOkTxt').textContent=s.giros+' giros liberados!'+(typeof s.girosSaldo==='number'?' Você tem '+s.girosSaldo+' giro'+(s.girosSaldo===1?'':'s')+' extra'+(s.girosSaldo===1?'':'s')+'. Eles não vencem.':'')+' Feche esta janela e toque em "Girar 360°".';
     $('ljpOkWpp').style.display='none'; return;
   }
+  if(Number(s.dourada)>0){ /* 25/10/2026: fichas douradas entram na hora */
+    $('ljpOkTxt').textContent=s.dourada+' fichas douradas já estão no seu saldo.'; $('ljpOkWpp').style.display='none'; try{ drCarregar(!$('mDourada').classList.contains('show')) }catch(e){} return;
+  }
   if(Number(s.fichas)>0){ /* 15/10/2026: fichas entram na hora, sem entrega */
     $('ljpOkTxt').textContent=s.fichas+' fichas já estão na sua conta.'+(typeof s.saldo==='number'?' Saldo agora: '+s.saldo+' fichas.':'');
     $('ljpOkWpp').style.display='none';
@@ -12444,8 +12512,8 @@ async function lojaPedidosDesenhar(){ /* pedidos dos últimos 7 dias (aguardando
         const pago=p.estado==='pago';
         const canc=!pago&&p.cancelarEmMs;
         const tag=pago?'<span class="ljst ok">Pago</span>':canc?'<span class="ljst cc">Cancelamento até '+fmtHora(p.cancelarEmMs).split(' ').pop()+'</span>':'<span class="ljst ag">Aguardando pagamento</span>';
-        const semEntrega=Number(p.giros)>0||Number(p.frotaDias)>0; /* 24/10/2026: giros e Premium entram na hora, não têm entrega */
-        const bts=pago?(semEntrega?'<span class="ljst ok" style="align-self:center">'+(Number(p.giros)>0?'Giros creditados':'Liberado')+'</span>':'<button class="ljbtn" type="button" data-lent="'+esc(p.rotulo||'')+'" data-ln="'+esc(p.nome)+'">'+LOJA_SVG_WPP+'Entrega</button>')
+        const semEntrega=Number(p.giros)>0||Number(p.frotaDias)>0||Number(p.dourada)>0; /* 24/10/2026: giros e Premium entram na hora, não têm entrega */
+        const bts=pago?(semEntrega?'<span class="ljst ok" style="align-self:center">'+(Number(p.giros)>0?'Giros creditados':Number(p.dourada)>0?'Fichas creditadas':'Liberado')+'</span>':'<button class="ljbtn" type="button" data-lent="'+esc(p.rotulo||'')+'" data-ln="'+esc(p.nome)+'">'+LOJA_SVG_WPP+'Entrega</button>')
           :'<div class="ljpb"><button class="ljcomprar" type="button" data-k="'+esc(p.produto)+'" data-q="'+(Number(p.qtd)||1)+'">Pagar</button>'+
             (canc?'<button class="ljcanc" type="button" data-lmant="'+esc(p.pedido)+'">Manter pedido</button>'
                  :'<button class="ljcanc" type="button" data-lcan="'+esc(p.pedido)+'" data-ln="'+esc(p.nome)+'" data-k2="'+esc(p.produto)+'" data-q="'+(Number(p.qtd)||1)+'">Cancelar</button>')+'</div>';
@@ -12840,7 +12908,7 @@ $('rbAtualizar').onclick=rbCarregar;
 $('rbLista').addEventListener('click',e=>{ const a=e.target.closest('[data-rbcota]'); if(!a) return; e.preventDefault(); rbCotaAbrir(rbLista[+a.dataset.rbcota]) });
 /* ---- Ver valor ---- */
 function rbCotaAbrir(r){
-  if(!r) return; rbCota={reb:r,dest:null};
+  if(!r) return; rbCota={reb:r,dest:null}; try{ if(drPode()) drCarregar(true) }catch(e){}
   const v=rbCarroAtual;
   $('rbcTit').textContent='Ver valor · '+r.nome;
   $('rbcCarro').innerHTML=v&&v.pos?'<b>Seu veículo:</b> '+esc(v.nome)+(v.addr||v.geo?'<br><small>'+esc(v.addr||v.geo)+'</small>':''):'<b>Sem a posição do seu veículo.</b> O cálculo precisa dela.';
@@ -12862,6 +12930,7 @@ async function rbcBuscar(){
 }
 function rbcEscolher(o){ rbCota.dest=o; $('rbcRes').innerHTML=''; $('rbcDest').hidden=false; $('rbcDest').innerHTML='<b>Destino:</b> '+esc(o.end); $('rbcCalc').disabled=!(rbCarroAtual&&rbCarroAtual.pos); $('rbcOut').innerHTML='' }
 $('rbcBuscar').onclick=rbcBuscar;
+$('rbcOut').addEventListener('click',e=>{ const b=e.target.closest('[data-drpag]'); if(b&&window._rbcJ) drPagarReboque(window._rbcJ,+b.dataset.drpag,b) }); /* 25/10/2026: pagar com fichas douradas */
 $('rbcBusca').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); rbcBuscar() } });
 $('rbcRes').addEventListener('click',e=>{ const b=e.target.closest('[data-rbci]'); if(b&&window._rbcOps) rbcEscolher(window._rbcOps[+b.dataset.rbci]) });
 $('rbcCalc').onclick=async()=>{
@@ -12872,7 +12941,8 @@ $('rbcCalc').onclick=async()=>{
     $('rbcOut').innerHTML='<div class="rbval"><div class="rbvkm">Percurso estimado (base → seu veículo → destino → base): <b>'+j.km+' km</b>'+(j.minutos!=null?' · chega até você em <b>~'+j.minutos+' min</b>':'')+(j.aviso?'<br>'+esc(j.aviso):'')+'</div>'+
       j.valores.map(x=>'<div class="rbvl"><div>'+esc(x.nome)+'<small>saída '+brl2(x.saida)+(x.kmInc?' até '+x.kmInc+' km':'')+(x.kmExtras?' + '+x.kmExtras+' km × '+brl2(x.kmExtra):'')+'</small></div><b>'+brl2(x.total)+'</b></div>').join('')+
       '<div class="rtbt">'+(j.fone?'<a href="tel:+55'+esc(j.fone)+'">Ligar</a>':'')+(j.wpp?'<a class="wpp" href="https://wa.me/55'+esc(j.wpp)+'?text='+encodeURIComponent(rbMsg(r,j))+'" target="_blank" rel="noopener">Chamar no WhatsApp</a>':'')+'</div>'+
-      '<div class="rbnota">Valor estimado pelo app. Pedágio, noite, fim de semana e subsolo são combinados com o reboquista.</div></div>';
+      '<div class="rbnota">Valor estimado pelo app. Pedágio, noite, fim de semana e subsolo são combinados com o reboquista.</div>'+(typeof drBotoesCota==='function'?drBotoesCota(j):'')+'</div>';
+    window._rbcJ=j;
   }catch(e){ $('rbcOut').innerHTML='<div class="rtvz">'+esc(e.message||'Não consegui calcular.')+'</div>' }
   $('rbcCalc').disabled=false;
 };
@@ -12889,7 +12959,7 @@ async function mrCarregar(){
   try{
     const j=await rbApi('reboqueMeuVer');
     mrCfg=j.cfg; mrSwCfg=j.cfg; if($('mrSw')) $('mrSw').checked=!!(j.cfg&&j.cfg.disponivel); const c=j.cfg||{};
-    $('mrNome').value=c.nome||j.nomeLogin||''; $('mrFone').value=fmtWpp(c.fone||''); $('mrWpp').value=fmtWpp(c.wpp||'');
+    $('mrNome').value=c.nome||j.nomeLogin||''; $('mrFone').value=fmtWpp(c.fone||''); $('mrWpp').value=fmtWpp(c.wpp||''); $('mrPix').value=c.pix||''; try{ drRebCarregar() }catch(e){}
     $('mrDev').innerHTML=(j.veiculos||[]).map(v=>'<option value="'+v.id+'"'+(c.deviceId===v.id?' selected':'')+'>'+esc(v.nome)+'</option>').join('')||'<option value="">Nenhum rastreador no seu login</option>';
     $('mrDisp').checked=c.disponivel===true; $('mrDispBox').classList.toggle('on',c.disponivel===true);
     mrBaseMostrar(c.base||null); $('mrBase').value=''; $('mrBaseRes').innerHTML='';
@@ -12929,12 +12999,163 @@ $('mrSalvar').onclick=async()=>{
   $('mrErro').textContent='';
   const num=s=>Number(String(s||'').replace(/\./g,'').replace(',','.'));
   const tabelas=RB_TIPOS.filter(([k])=>{ const c=document.querySelector('[data-mrchk="'+k+'"]'); return c&&c.checked }).map(([k])=>({tipo:k,saida:num(document.querySelector('[data-mrs="'+k+'"]').value),kmInc:num(document.querySelector('[data-mrk="'+k+'"]').value||0),kmExtra:num(document.querySelector('[data-mre="'+k+'"]').value||0)}));
-  const cfg={nome:$('mrNome').value.trim(),fone:$('mrFone').value,wpp:$('mrWpp').value,base:mrBase,deviceId:Number($('mrDev').value),disponivel:$('mrDisp').checked,tabelas};
+  const cfg={nome:$('mrNome').value.trim(),fone:$('mrFone').value,wpp:$('mrWpp').value,pix:$('mrPix').value.trim(),base:mrBase,deviceId:Number($('mrDev').value),disponivel:$('mrDisp').checked,tabelas};
   $('mrSalvar').disabled=true;
   try{ const j=await rbApi('reboqueMeuSalvar',{cfg}); mrCfg=j.cfg; toast('Salvo. '+(j.cfg.disponivel?'Você já aparece para os clientes.':'Ligue "Disponível" para aparecer.')); mrCarregar() }
   catch(e){ $('mrErro').textContent=e.message }
   $('mrSalvar').disabled=false;
 };
+/* ===== FICHAS DOURADAS (25/10/2026, decisão do dono) =====
+   1 ficha dourada = R$ 1 de crédito de serviço da Rastreando (fase 1: reboque). Saldo máximo 500.
+   Entram pelo aporte mensal no boleto (R$ 20/30/50) e por pacotes avulsos por PIX; saem pagando reboque do app,
+   na venda (cancelamento) ou no reembolso de reboque de terceiros com foto da nota (R$ 0,94 por ficha, aprovado pelo dono).
+   Escondido: só aparece para quem tem a permissão "Fichas douradas". As fichas de compartilhar são as "fichas prata". */
+let DR={dados:null,carregou:false};
+async function drApi(acao,extra){
+  const tok=lsGet('rg_token'); if(!tok) throw new Error('Entre de novo no app.');
+  const r=await fetch(DESB_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',body:JSON.stringify(Object.assign({acao:acao,token:tok},extra||{}))});
+  let j={}; try{ j=await r.json() }catch(e){}
+  if(!r.ok) throw new Error(j.erro||('Erro '+r.status));
+  return j;
+}
+const DR_COIN='<span class="drcoin" aria-hidden="true"></span>';
+function drPode(){ return !ehAdmin && !!(permCli&&permCli.fichasDouradas) }
+function drAplicar(){
+  const grid=document.querySelector('#maisview .maisgrid'); if(!grid) return;
+  let c=$('maisDourada');
+  if(drPode() && !c){
+    c=document.createElement('button'); c.className='maiscard'; c.id='maisDourada'; c.type='button';
+    c.innerHTML='<span class="mic dr">'+DR_COIN+'</span><b>Fichas douradas</b><small id="maisDrTxt">Crédito para reboque e serviços</small>';
+    c.onclick=drAbrir; grid.insertBefore(c,$('maisConta'));
+    drCarregar(true);
+  }
+  if(!drPode() && c) c.remove();
+}
+function drAbrir(){ abrir('mDourada'); drCarregar(false) }
+async function drCarregar(soCartao){
+  try{
+    const j=await drApi('douradaVer'); DR.dados=j; DR.carregou=true;
+    const t=$('maisDrTxt'); if(t&&j.ativo) t.textContent=j.saldo+' fichas · '+brl2(j.saldo)+(j.aporte?' · + R$ '+j.aporte+'/mês':'');
+    if(!soCartao) drDesenhar();
+  }catch(e){ if(!soCartao){ $('drSub').textContent=''; $('drCorpo').innerHTML='<div class="rtvz">'+esc(e.message||'Não consegui carregar.')+'</div>' } }
+}
+const drData=iso=>iso?String(iso).split('-').reverse().join('/'):'';
+const DR_EST={pendente:['Aguardando aprovação','ag'],reservado:['Aguardando o reboquista','ag'],concluido:['Concluído','ok'],pago:['Pago','ok'],recusado:['Recusado','cc'],cancelado:['Cancelado','cc']};
+const DR_TIPO={resgate:'Venda de fichas',reembolso:'Reembolso de reboque',reboque:'Reboque'};
+function drDesenhar(){
+  const j=DR.dados||{}; if(!j.ativo){ $('drSub').textContent=''; $('drCorpo').innerHTML='<div class="rtvz">As fichas douradas ainda não estão liberadas para você.</div>'; return }
+  $('drSub').textContent='1 ficha = R$ 1 · limite de '+j.teto+' fichas';
+  const pct=Math.min(100,Math.round(j.saldo*100/j.teto));
+  let h='<div class="drtopo">'+DR_COIN+'<div><div class="drsaldo">'+j.saldo+' <small>fichas</small></div><div class="drvalor">= '+brl2(j.saldo)+' em crédito'+(j.reservado?' · <b>'+j.reservado+'</b> reservadas':'')+'</div>'+
+    '<div class="drbarra"><i style="width:'+pct+'%"></i></div></div></div>';
+  if(!j.termoAceito){
+    h+='<div class="drsec drtermo"><b>Antes de começar, leia o termo</b><div class="drtxt">'+
+      '<p>As <b>fichas douradas</b> são <b>créditos pré-pagos de serviço</b> da Rastreando GPS: 1 ficha = R$ 1 para usar em serviços da Rastreando (hoje: reboque). <b>Não é seguro, não é poupança e não rende.</b></p>'+
+      '<p>• As fichas entram pelo aporte mensal escolhido (cobrado junto com a mensalidade, só quando o boleto é pago) ou por pacotes avulsos por PIX. Limite de '+j.teto+' fichas.</p>'+
+      '<p>• Para pagar reboque do app, as fichas ficam reservadas até o reboquista concluir; o que passar do saldo você paga direto a ele.</p>'+
+      '<p>• Reboque de outra empresa: mande a foto da nota e recebemos de volta por PIX a <b>R$ 0,94 por ficha</b> (6% de taxa administrativa). Depende da nossa conferência.</p>'+
+      '<p>• Quer as fichas de volta (inclusive se cancelar o rastreamento)? A Rastreando recompra a <b>R$ 0,94 por ficha</b>, por PIX, depois da conferência.</p>'+
+      '<p>• As fichas são pessoais: não passam para outra pessoa e não vencem enquanto você for cliente.</p></div>'+
+      '<label class="fchk"><input type="checkbox" id="drAceito"> Li e aceito o termo das fichas douradas</label><button class="btn btn-red" id="drAceitar" type="button" style="width:100%">Aceitar e continuar</button></div>';
+  } else {
+    h+='<div class="drsec"><b>Aporte mensal</b><small>Somado à sua mensalidade. Cada boleto pago vira fichas.</small><div class="drchips">'+
+      j.aporteOpcoes.map(v=>'<button type="button" class="drchip'+(v===j.aporte?' on':'')+'" data-drap="'+v+'">'+(v?'+ R$ '+v:'Nenhum')+'</button>').join('')+'</div>'+
+      (j.aporte?'<div class="drinfo">Ativo: + R$ '+j.aporte+'/mês a partir do boleto de '+drData(j.aporteDesde)+'.</div>':'')+'</div>';
+    h+='<div class="drsec"><b>Comprar fichas avulsas</b><small>Por PIX, crédito na hora.</small><div class="drchips">'+
+      j.pacotes.map(p=>'<button type="button" class="drchip compra" data-drk="'+esc(p.k)+'"'+(j.saldo+p.fichas>j.teto?' disabled':'')+'>'+p.fichas+' fichas · '+brl2(p.valor)+'</button>').join('')+'</div></div>';
+    h+='<div class="drsec"><label class="flbl">Sua chave PIX (para receber venda e reembolso)</label><input class="fld" id="drPix" maxlength="80" placeholder="CPF, celular, e-mail ou aleatória" value="'+esc(j.pixChave||'')+'"></div>';
+    h+='<div class="drsec"><b>Reembolso de reboque de outra empresa</b><small>Mande a foto da nota. Você recebe R$ 0,94 por ficha usada, por PIX, depois da conferência.</small>'+
+      '<div class="rbdois"><div><label class="flbl">Valor da nota (R$)</label><input class="fld" id="drReVal" inputmode="decimal" placeholder="350,00"></div><div><label class="flbl">Foto da nota</label><label class="btn btn-out drfotobtn" for="drReFoto" id="drReFotoTxt">📷 Tirar foto</label><input type="file" id="drReFoto" accept="image/*" capture="environment" hidden></div></div>'+
+      '<button class="btn btn-out" id="drReEnviar" type="button" style="width:100%">Pedir reembolso</button></div>';
+    h+='<div class="drsec"><b>Vender fichas</b><small>A Rastreando recompra a R$ 0,94 por ficha, por PIX, depois da conferência.</small>'+
+      '<div class="rbdois"><div><label class="flbl">Quantas fichas</label><input class="fld" id="drVdQ" inputmode="numeric" placeholder="'+Math.max(0,j.livres)+'"></div><div><label class="flbl">Você recebe</label><div class="fld drreceber" id="drVdRec">R$ 0,00</div></div></div>'+
+      '<button class="btn btn-out" id="drVdEnviar" type="button" style="width:100%">Pedir a venda</button></div>';
+  }
+  if(j.pedidos&&j.pedidos.length) h+='<div class="drsec"><b>Seus pedidos</b>'+j.pedidos.map(p=>{ const e=DR_EST[p.estado]||[p.estado,'ag'];
+    return '<div class="drped"><div><b>'+esc(DR_TIPO[p.tipo]||p.tipo)+(p.reboque?' · '+esc(p.reboque):'')+'</b><small>'+p.fichas+' fichas'+(p.tipo!=='reboque'?' → '+brl2(p.valorPagar):'')+(p.valorFinal?' · final '+brl2(p.valorFinal):'')+' · '+fmtHora(p.criadoMs)+'</small><span class="ljst '+e[1]+'">'+e[0]+'</span></div>'+
+      (['pendente','reservado'].includes(p.estado)?'<button class="ljcanc" type="button" data-drcan="'+esc(p.pedido)+'">Cancelar</button>':'')+'</div>' }).join('')+'</div>';
+  if(j.extrato&&j.extrato.length) h+='<div class="drsec"><b>Extrato</b>'+j.extrato.map(x=>'<div class="drext"><span>'+esc(x.desc)+'<small>'+fmtHora(x.ms)+'</small></span><b class="'+(x.q>0?'mais':'menos')+'">'+(x.q>0?'+':'')+x.q+'</b></div>').join('')+'</div>';
+  $('drCorpo').innerHTML=h;
+}
+let drFotoDados=null;
+function drFotoComprimir(arq){ return new Promise((res,rej)=>{ const im=new Image(), url=URL.createObjectURL(arq);
+  im.onload=()=>{ let L=1400, w=im.width, hh=im.height, k=Math.min(1,L/Math.max(w,hh)); const cv=document.createElement('canvas'); cv.width=Math.round(w*k); cv.height=Math.round(hh*k); cv.getContext('2d').drawImage(im,0,0,cv.width,cv.height);
+    let q=0.8, d=cv.toDataURL('image/jpeg',q); while(d.length>390000 && q>0.35){ q-=0.1; d=cv.toDataURL('image/jpeg',q) } URL.revokeObjectURL(url); d.length>390000?rej(new Error('Foto muito grande. Tente de novo mais perto da nota.')):res(d) };
+  im.onerror=()=>{ URL.revokeObjectURL(url); rej(new Error('Não consegui abrir a foto.')) }; im.src=url }) }
+$('mDourada').addEventListener('change',async e=>{
+  if(e.target.id==='drReFoto' && e.target.files && e.target.files[0]){ try{ drFotoDados=await drFotoComprimir(e.target.files[0]); $('drReFotoTxt').textContent='✅ Foto pronta' }catch(err){ drFotoDados=null; toast(err.message) } }
+});
+$('mDourada').addEventListener('input',e=>{ if(e.target.id==='drVdQ'){ const q=parseInt(e.target.value,10)||0; $('drVdRec').textContent=brl2(q*0.94) } });
+$('mDourada').addEventListener('click',async e=>{
+  const b=e.target.closest('button'); if(!b||b.disabled) return;
+  const ocupar=async(fn)=>{ b.disabled=true; try{ await fn() }catch(err){ toast(err.message) } b.disabled=false };
+  if(b.id==='drAceitar'){ if(!$('drAceito').checked){ toast('Marque que leu e aceita o termo.'); return } await ocupar(async()=>{ await drApi('douradaTermo',{aceito:true}); await drCarregar(false) }); return }
+  if(b.dataset.drap!=null){ const v=Number(b.dataset.drap); await ocupar(async()=>{ const r=await drApi('douradaAporte',{valor:v}); toast(r.semMudanca?'Sem mudança.':v?'Aporte de R$ '+v+'/mês ativado a partir do boleto de '+drData(r.desde)+'.':'Aporte desligado a partir do próximo boleto.',5000); await drCarregar(false) }); return }
+  if(b.dataset.drk){ lojaComprarPix(b.dataset.drk,b,1); return }
+  if(b.dataset.drcan){ await ocupar(async()=>{ await drApi('douradaCancelar',{pedido:b.dataset.drcan}); toast('Pedido cancelado. As fichas voltaram.'); await drCarregar(false) }); return }
+  const pix=($('drPix')&&$('drPix').value||'').trim();
+  if(b.id==='drReEnviar'){ const val=$('drReVal').value; if(!drFotoDados){ toast('Tire a foto da nota.'); return } if(pix.length<5){ toast('Informe a sua chave PIX.'); return }
+    await ocupar(async()=>{ const r=await drApi('douradaResgate',{tipo:'reembolso',notaValor:val,foto:drFotoDados,pixChave:pix}); drFotoDados=null; toast('Pedido enviado: '+r.fichas+' fichas → você recebe '+brl2(r.valorPagar)+' depois da conferência.',6000); await drCarregar(false) }); return }
+  if(b.id==='drVdEnviar'){ const q=parseInt($('drVdQ').value,10)||0; if(q<1){ toast('Diga quantas fichas quer vender.'); return } if(pix.length<5){ toast('Informe a sua chave PIX.'); return }
+    await ocupar(async()=>{ const r=await drApi('douradaResgate',{tipo:'venda',fichas:q,pixChave:pix}); toast('Pedido enviado: você recebe '+brl2(r.valorPagar)+' depois da conferência.',6000); await drCarregar(false) }); return }
+});
+/* ---- pagar reboque do app com fichas (no "Ver valor") ---- */
+function drBotoesCota(j){
+  if(!drPode()||!DR.dados||!DR.dados.ativo||!DR.dados.termoAceito) return '';
+  const livres=DR.dados.livres||0;
+  return '<div class="drpagar"><b>'+DR_COIN+' Pagar com fichas douradas</b><small>Você tem '+livres+' fichas livres. As fichas ficam reservadas até o reboquista concluir.</small>'+
+    j.valores.map((x,i)=>'<button type="button" class="drchip" data-drpag="'+i+'"'+(livres<1?' disabled':'')+'>'+esc(x.nome)+': '+Math.min(livres,Math.ceil(x.total))+' fichas'+(Math.ceil(x.total)>livres?' + '+brl2(x.total-livres)+' direto':'')+'</button>').join('')+'</div>';
+}
+async function drPagarReboque(j,i,btn){
+  const x=j.valores[i], r=rbCota.reb; if(!x||!r) return;
+  const fichas=Math.min(DR.dados.livres||0,Math.ceil(x.total)); if(fichas<1){ toast('Você não tem fichas livres.'); return }
+  btn.disabled=true;
+  try{ await drApi('douradaReboquePagar',{reboqueId:r.id,fichas,resumo:x.nome+' · '+j.km+' km · destino: '+((rbCota.dest&&rbCota.dest.end)||'')});
+    toast(fichas+' fichas reservadas para '+r.nome+'. Combine pelo WhatsApp; quando ele concluir, as fichas saem do seu saldo.',7000); drCarregar(true) }
+  catch(e){ toast(e.message); btn.disabled=false }
+}
+/* ---- reboquista: pedidos pagos com fichas (tela Meu reboque) ---- */
+async function drRebCarregar(){
+  const box=$('mrFichas'); if(!box) return;
+  try{ const j=await drApi('douradaRebLista'); const l=j.lista||[];
+    box.innerHTML=l.length?'<label class="flbl" style="margin-top:10px">Pedidos pagos com fichas douradas</label>'+l.map(p=>{ const e=DR_EST[p.estado]||[p.estado,'ag'];
+      return '<div class="drped"><div><b>'+esc(p.cliente||'Cliente')+'</b><small>'+p.fichas+' fichas reservadas · '+esc(p.resumo||'')+' · '+fmtHora(p.criadoMs)+'</small><span class="ljst '+e[1]+'">'+e[0]+(p.valorFinal?' · '+brl2(p.valorFinal):'')+'</span></div>'+
+        (p.estado==='reservado'?'<div class="drrebac"><input class="fld" data-drrv="'+esc(p.pedido)+'" inputmode="decimal" placeholder="Valor final R$"><button class="btn btn-red" type="button" data-drrc="'+esc(p.pedido)+'">Concluir</button><button class="btn btn-out" type="button" data-drrr="'+esc(p.pedido)+'">Recusar</button></div>':'')+'</div>' }).join(''):'';
+  }catch(e){ box.innerHTML='' }
+}
+$('mMeuReboque').addEventListener('click',async e=>{
+  const c=e.target.closest('[data-drrc]'), rr=e.target.closest('[data-drrr]'); if(!c&&!rr) return;
+  const b=c||rr; b.disabled=true;
+  try{
+    if(c){ const v=document.querySelector('[data-drrv="'+c.dataset.drrc+'"]').value; const r=await drApi('douradaRebConcluir',{pedido:c.dataset.drrc,valor:v}); toast('Concluído: '+r.fichasUsadas+' fichas. A Rastreando faz o PIX para você'+(r.cobrarDireto?'; cobre '+brl2(r.cobrarDireto)+' direto do cliente':'')+'.',7000) }
+    else { await drApi('douradaRebConcluir',{pedido:rr.dataset.drrr,recusar:true}); toast('Pedido recusado. As fichas voltaram para o cliente.') }
+    drRebCarregar();
+  }catch(err){ toast(err.message); b.disabled=false }
+});
+/* ---- administrador: pendências das fichas douradas ---- */
+async function drAdmContar(){ const b=$('aDouradaN'); if(!b||!ehAdmin) return; try{ const j=await drApi('douradaAdmLista'); const n=(j.lista||[]).length; b.textContent=n; b.classList.toggle('on',n>0) }catch(e){} }
+async function drAdmAbrir(){ abrir('mDouradaAdm'); $('draLista').innerHTML='<div class="rtvz">Carregando...</div>';
+  try{ const j=await drApi('douradaAdmLista'); const l=j.lista||[]; $('aDouradaN').textContent=l.length; $('aDouradaN').classList.toggle('on',l.length>0);
+    $('draLista').innerHTML=l.length?l.map(p=>{
+      const reb=p.tipo==='reboque', pagar=reb?(p.fichasUsadas||p.fichas):p.valorPagar;
+      return '<div class="rtit"><div class="rttopo"><div><b>'+esc(DR_TIPO[p.tipo]||p.tipo)+'</b><div class="rtinfo">Cliente: '+esc(p.cliente||'')+' ('+esc(p.login||'')+')<br>'+
+        (reb?'Reboquista: '+esc(p.reboque)+' · PIX: <b>'+esc(p.reboquePix||'não cadastrado')+'</b><br>Valor final '+brl2(p.valorFinal)+' · fichas usadas '+(p.fichasUsadas||0)+(p.cobrarDireto?' · cliente paga '+brl2(p.cobrarDireto)+' direto':'')
+          :p.fichas+' fichas × R$ 0,94'+(p.notaValor?' · nota de '+brl2(p.notaValor):'')+'<br>PIX do cliente: <b>'+esc(p.pixChave)+'</b>')+'<br>'+fmtHora(p.criadoMs)+'</div></div>'+
+        '<div class="rtdist">'+brl2(pagar)+'<small>pagar por PIX</small></div></div><div class="rtbt">'+
+        (p.temFoto?'<a href="#" data-drafoto="'+esc(p.pedido)+'">Ver nota</a>':'')+
+        '<a href="#" class="wpp" data-drapago="'+esc(p.pedido)+'">Já fiz o PIX</a>'+(reb?'':'<a href="#" data-drarec="'+esc(p.pedido)+'">Recusar</a>')+'</div></div>' }).join(''):'<div class="rtvz">Nada pendente. 👍</div>';
+  }catch(e){ $('draLista').innerHTML='<div class="rtvz">'+esc(e.message)+'</div>' }
+}
+$('draLista').addEventListener('click',async e=>{
+  const a=e.target.closest('a'); if(!a) return; e.preventDefault();
+  try{
+    if(a.dataset.drafoto){ const j=await drApi('douradaAdmFoto',{pedido:a.dataset.drafoto}); lojaZoom(j.img); return }
+    if(a.dataset.drapago){ a.textContent='Salvando...'; await drApi('douradaAdmDecidir',{pedido:a.dataset.drapago,decisao:'pago'}); toast('Marcado como pago.'); drAdmAbrir(); return }
+    if(a.dataset.drarec){ a.textContent='Salvando...'; await drApi('douradaAdmDecidir',{pedido:a.dataset.drarec,decisao:'recusar'}); toast('Recusado. As fichas voltaram para o cliente.'); drAdmAbrir(); return }
+  }catch(err){ toast(err.message) }
+});
+$('aDourada').onclick=drAdmAbrir;
+setInterval(()=>{ if(ehAdmin && !document.hidden) drAdmContar() },300000);
 /* ===== PARA RETIRAR (18/10/2026, pedido do dono) =====
    Quem tem a permissão "Ver a lista Para retirar" (ex.: técnico) ganha o cartão "Para retirar" no Mais.
    A lista vem do servidor (veículos marcados pelo administrador), com a distância até o celular, do mais perto ao mais longe. */
