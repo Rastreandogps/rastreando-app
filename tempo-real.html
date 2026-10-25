@@ -12739,13 +12739,14 @@ async function rbApi(acao,extra){
 }
 function rbAplicar(){
   const grid=document.querySelector('#maisview .maisgrid'); if(!grid) return;
+  const pode=!ehAdmin && !!(permCli&&permCli.reboquista);
   let c=$('maisReboques');
-  if(!c){
+  if(pode && c){ c.remove(); c=null } /* 25/10/2026 (decisão do dono): reboquista não vê a lista dos outros reboques (tabela dos concorrentes) */
+  if(!c && !pode){
     c=document.createElement('button'); c.className='maiscard'; c.id='maisReboques'; c.type='button';
     c.innerHTML='<span class="mic t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 15V8h9l4 4h4l1 3v2H3z"/><path d="M12 8v4h4"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/></svg></span><b>Reboques</b><small>Reboquistas perto de você, com valor estimado</small>';
     c.onclick=rbAbrir; grid.insertBefore(c,$('maisConta'));
   }
-  const pode=!ehAdmin && !!(permCli&&permCli.reboquista);
   let m=$('maisMeuReboque');
   if(pode && !m){
     m=document.createElement('div'); m.className='maiscard'; m.id='maisMeuReboque'; m.setAttribute('role','button'); m.tabIndex=0;
