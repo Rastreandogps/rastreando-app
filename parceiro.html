@@ -154,7 +154,20 @@ textarea.fld{height:70px;padding:10px 12px;resize:vertical}
         <input class="fld" id="eSenha" type="password" autocomplete="current-password">
         <div class="err" id="eErr"></div>
         <button class="btn pri" id="bEnt" type="button">Entrar</button>
+        <button class="linkbtn" id="bEsqueci" type="button" style="width:100%;text-align:center">Esqueci minha senha</button><!-- 25/10/2026 (dono) -->
       </div>
+    </div>
+  </section>
+
+  <!-- 25/10/2026 (dono): depois da senha provisória dada pela Rastreando, o parceiro cria a senha dele -->
+  <section id="tSenha" hidden>
+    <div class="card">
+      <h2>Crie uma senha nova</h2>
+      <p class="sub">Você entrou com a senha provisória que a Rastreando mandou. Escolha agora a sua senha (mínimo 6 caracteres).</p>
+      <label class="l">Nova senha</label><input class="fld" id="snNova" type="password" autocomplete="new-password">
+      <label class="l">Repita a senha</label><input class="fld" id="snRep" type="password" autocomplete="new-password">
+      <div class="err" id="snErr"></div>
+      <button class="btn pri" id="bSnSalvar" type="button">Salvar senha</button>
     </div>
   </section>
 
@@ -254,11 +267,15 @@ $('bCad').onclick=async()=>{
 };
 $('bEnt').onclick=async()=>{
   $('eErr').textContent=''; const b=$('bEnt'); b.disabled=true;
-  try{ const j=await api('parcEntrar',{whatsapp:$('eWpp').value,senha:$('eSenha').value}); TOK=j.ptoken; lsSet('rg_parc_token',TOK); await abrirPainel() }
+  try{ const j=await api('parcEntrar',{whatsapp:$('eWpp').value,senha:$('eSenha').value}); TOK=j.ptoken; lsSet('rg_parc_token',TOK); if(j.trocarSenha){ $('tEntrar').hidden=true; $('tSenha').hidden=false; $('bSair').hidden=false; $('snNova').focus() } else await abrirPainel() }
   catch(e){ $('eErr').textContent=e.message }
   b.disabled=false;
 };
-function sair(silencioso){ if(TOK && !silencioso) api('parcSair',{ptoken:TOK}).catch(()=>{}); TOK=null; lsDel('rg_parc_token'); P=null; $('tPainel').hidden=true; $('tEntrar').hidden=false; $('bSair').hidden=true; if(silencioso) toast('Entre de novo.') }
+$('bEsqueci').onclick=()=>{ const w=String($('eWpp').value||'').replace(/\D/g,''); const m='Olá! Esqueci a senha do meu app de parceiro da Rastreando GPS.'+(w?' Meu WhatsApp de cadastro é '+w+'.':'')+' Pode me mandar uma senha nova?'; window.open('https://wa.me/5521980886087?text='+encodeURIComponent(m),'_blank','noopener') };
+$('bSnSalvar').onclick=async()=>{ const a=$('snNova').value, b=$('snRep').value; $('snErr').textContent='';
+  if(a.length<6){ $('snErr').textContent='A senha precisa ter pelo menos 6 caracteres.'; return } if(a!==b){ $('snErr').textContent='As duas senhas não são iguais.'; return }
+  const bt=$('bSnSalvar'); bt.disabled=true; try{ await api('parcSenhaNova',{ptoken:TOK,senha:a}); $('tSenha').hidden=true; toast('Senha salva!'); await abrirPainel() }catch(e){ $('snErr').textContent=e.message } bt.disabled=false };
+function sair(silencioso){ if(TOK && !silencioso) api('parcSair',{ptoken:TOK}).catch(()=>{}); TOK=null; lsDel('rg_parc_token'); P=null; $('tPainel').hidden=true; $('tSenha').hidden=true; $('tEntrar').hidden=false; $('bSair').hidden=true; if(silencioso) toast('Entre de novo.') }
 $('bSair').onclick=()=>sair(false);
 /* ---------- painel ---------- */
 const ST={rascunho:['Cadastro incompleto','Complete os dados abaixo e toque em Salvar para enviar para aprovação.'],analise:['Em análise','Recebemos o seu cadastro. Assim que a Rastreando aprovar, você já aparece para os clientes.'],aprovado:['Aprovado','Você está no app da Rastreando e já aparece para os clientes. Desligue "Disponível" quando estiver fechado.'],recusado:['Não aprovado','Confira o motivo, ajuste o cadastro e salve de novo para reenviar.'],suspenso:['Suspenso','Seu cadastro está suspenso. Fale com a Rastreando GPS pelo WhatsApp.']};

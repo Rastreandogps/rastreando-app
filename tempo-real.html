@@ -278,8 +278,8 @@ body.mapa-google #map .leaflet-top.leaflet-left .leaflet-control-attribution{mar
 #mParcAdm .almtopo h3{margin:0}
 #mParcAdm .almx{width:38px;height:38px;flex:none;border-radius:50%;background:var(--card2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;cursor:pointer}
 #mParcAdm .almx svg{width:18px;height:18px;fill:none;stroke:var(--txt);stroke-width:2.4;stroke-linecap:round}
-#mParcAdm .ljst,#mParcAdm .ljst{padding:1px 7px;border-radius:7px;font-size:11px;font-weight:800}
-#mParcAdm .ljst.ok{background:rgba(22,163,74,.18);color:#16a34a}#mParcAdm .ljst.ag{background:rgba(245,158,11,.18);color:#d97706}#mParcAdm .ljst.cc{background:rgba(225,29,72,.15);color:#e11d48}
+#mDouradaAdm .ljst{padding:1px 7px;border-radius:7px;font-size:11px;font-weight:800}
+#mDouradaAdm .ljst.ok{background:rgba(22,163,74,.18);color:#16a34a}#mDouradaAdm .ljst.ag{background:rgba(245,158,11,.18);color:#d97706}#mDouradaAdm .ljst.cc{background:rgba(225,29,72,.15);color:#e11d48}
 .draceite{margin:4px 0 8px;text-align:center}
 .draceite>button{background:none;border:none;color:var(--mut);font-size:11.5px;text-decoration:underline;padding:6px;cursor:pointer}
 .draceite small{display:block;font-size:11px;color:var(--mut);margin-top:6px}
@@ -305,6 +305,26 @@ body.mapa-google #map .leaflet-top.leaflet-left .leaflet-control-attribution{mar
 .dapbt .btn{height:48px}
 .dapok{background:linear-gradient(135deg,#f5c518,#e0a800);color:#1a1200;font-weight:900;border-radius:12px}
 .dapok:disabled{opacity:.6}
+/* 25/10/2026 (dono): painel do admin */
+#mDouradaAdm .box2.pnbox{display:flex;flex-direction:column;max-height:92vh;overflow:hidden;max-width:760px;width:100%}
+.pnrola{flex:1 1 auto;min-height:120px;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding-top:4px}
+.pnres{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:6px 0 10px;flex:none}
+.pnres div{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:8px 10px;min-width:0}
+.pnres small{display:block;font-size:10.5px;color:var(--mut);line-height:1.25}
+.pnres b{display:block;font-size:16px;font-weight:900;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pnres .vm b{color:var(--red2)}.pnres .ok b{color:#16a34a}.pnres .au b{color:#e0a800}
+.pnabas{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;background:var(--card2);border-radius:12px;padding:4px;margin-bottom:8px;flex:none}
+.pnabas button{height:38px;border:none;border-radius:9px;background:none;color:var(--mut);font:inherit;font-weight:700;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px}
+.pnabas button.on{background:var(--card);color:var(--txt);box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.pnabas .n{display:inline-flex;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#dc2626;color:#fff;font-size:11px;align-items:center;justify-content:center}
+.pnfil{display:flex;gap:6px;overflow-x:auto;padding:2px 0 8px;scrollbar-width:none}.pnfil::-webkit-scrollbar{display:none}
+.pnfil button{flex:none;padding:7px 12px;border-radius:999px;border:1px solid var(--line);background:var(--card2);color:var(--txt);font:inherit;font-size:12.5px;font-weight:700;cursor:pointer}
+.pnfil button.on{background:#e3262f;border-color:#e3262f;color:#fff}
+.pnst{display:inline-block;font-size:11px;font-weight:800;padding:2px 8px;border-radius:999px;background:var(--card2);color:var(--mut);margin-left:6px;vertical-align:1px}
+.pnst.and{background:rgba(245,184,61,.18);color:#b87800}.pnst.pag{background:rgba(22,163,74,.9);color:#fff}.pnst.ap{background:rgba(22,163,74,.14);color:#16a34a}.pnst.cc{background:rgba(225,29,72,.12);color:#e11d48}
+.pnsenha{margin-top:8px;background:rgba(224,168,0,.12);border:1px dashed rgba(224,168,0,.6);border-radius:12px;padding:10px 12px;font-size:13px}
+.pnsenha b.sn{display:block;font-size:24px;letter-spacing:4px;font-weight:900;margin:4px 0 6px}
+.rtit.pnreb{border-left:4px solid #0ea5e9}
 #aview .aico.adr{position:relative}
 .draprazo{color:#16a34a}.draprazo.vence{color:var(--red2)}
 #aview .aico.adr .fila{position:absolute;top:-5px;right:-5px;min-width:19px;height:19px;padding:0 5px;border-radius:10px;background:#dc2626;color:#fff;font-size:11px;font-weight:800;display:none;align-items:center;justify-content:center;border:2px solid var(--bg)}
@@ -3918,19 +3938,31 @@ nav button.on .nemo.txt{color:var(--red2)}
     <div class="dapbt"><button class="btn btn-out" id="dapNao" type="button">Agora não</button><button class="btn dapok" id="dapSim" type="button">Confirmar</button></div>
   </div>
 </div>
-<div class="modal alsheet" id="mParcAdm"><!-- 25/10/2026: aprovar parceiros (prestadores de serviço) -->
-  <div class="box2">
-    <div class="almtopo"><h3>Parceiros</h3><button class="almx" data-close type="button" aria-label="Fechar" title="Fechar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
-    <div class="rtsub">Chaveiros, borracheiros, mecânicos, eletricistas, despachantes e lava-jatos. Só aparecem para os clientes depois que você aprova.</div>
-    <div class="pclink"><b>Link de cadastro para mandar aos prestadores</b><small>gps.rastreandogpsbr.com.br/parceiro.html</small><div class="rtbt"><a href="#" id="paCopiar">Copiar link</a><a href="#" class="wpp" id="paWpp">Mandar no WhatsApp</a></div></div>
-    <div id="paLista"></div>
-  </div>
-</div>
+<!-- 25/10/2026 (dono): PAINEL completo de serviços, fichas e parceiros (no lugar dos pop-ups "pendências" e "Parceiros") -->
 <div class="modal alsheet" id="mDouradaAdm">
-  <div class="box2">
-    <div class="almtopo"><h3>Fichas douradas · pendências</h3><button class="almx" data-close type="button" aria-label="Fechar" title="Fechar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
-    <div class="rtsub">Vendas para aprovar (R$ 0,94 por ficha; R$ 1,00 nas adicionadas há até 7 dias) e reboquistas para pagar. O PIX é feito por você, fora do app.</div>
-    <div id="draLista"></div>
+  <div class="box2 pnbox">
+    <div class="almtopo"><h3>Serviços, fichas e parceiros</h3><button class="almx" data-close type="button" aria-label="Fechar" title="Fechar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <div class="pnres" id="pnRes"></div>
+    <div class="pnabas" id="pnAbas"><button type="button" data-pn="pend" class="on">Pendências<span class="n" id="pnNPend" hidden></span></button><button type="button" data-pn="serv">Histórico</button><button type="button" data-pn="parc">Parceiros<span class="n" id="pnNParc" hidden></span></button><button type="button" data-pn="cli">Clientes</button></div>
+    <div class="pnrola" id="pnRola">
+      <div id="pnPend">
+        <div class="rtsub">O que depende de você: vendas para aprovar e PIX para fazer (fora do app). Depois de pago, o serviço vai para o Histórico.</div>
+        <div id="draLista"></div>
+      </div>
+      <div id="pnServ" hidden>
+        <div class="pnfil" id="pnFil"><button type="button" data-f="todos" class="on">Todos</button><button type="button" data-f="andamento">Em andamento</button><button type="button" data-f="apagar">A pagar</button><button type="button" data-f="pagos">Pagos</button><button type="button" data-f="vendas">Vendas de fichas</button><button type="button" data-f="cancel">Cancelados</button></div>
+        <div id="pnServLista"></div>
+      </div>
+      <div id="pnParc" hidden>
+        <div class="pclink"><b>Link de cadastro para mandar aos prestadores</b><small>gps.rastreandogpsbr.com.br/parceiro.html</small><div class="rtbt"><a href="#" id="paCopiar">Copiar link</a><a href="#" class="wpp" id="paWpp">Mandar no WhatsApp</a></div></div>
+        <div class="pnfil" id="pnParcFil"><button type="button" data-f="todos" class="on">Todos</button><button type="button" data-f="analise">Em análise</button><button type="button" data-f="aprovado">Aprovados</button><button type="button" data-f="reboque">Reboquistas</button><button type="button" data-f="fora">Recusados/suspensos</button></div>
+        <div id="paLista"></div>
+      </div>
+      <div id="pnCli" hidden>
+        <div class="rtsub">Clientes com fichas douradas: o que cada um tem guardado é dinheiro que você deve em serviço (ou em PIX, se vender).</div>
+        <div id="pnCliLista"></div>
+      </div>
+    </div>
   </div>
 </div>
 <div class="modal alsheet" id="mRuaGiro">
@@ -13275,7 +13307,7 @@ $('mMeuReboque').addEventListener('click',async e=>{
 });
 /* ---- administrador: pendências das fichas douradas ---- */
 async function drAdmContar(){ const b=$('aDouradaN'); if(!b||!ehAdmin) return; try{ const j=await drApi('douradaAdmLista'); const n=(j.lista||[]).length; b.textContent=n; b.classList.toggle('on',n>0) }catch(e){} }
-async function drAdmAbrir(){ abrir('mDouradaAdm'); $('draLista').innerHTML='<div class="rtvz">Carregando...</div>';
+async function drAdmCarregar(){ $('draLista').innerHTML='<div class="rtvz">Carregando...</div>';
   try{ const j=await drApi('douradaAdmLista'); const l=j.lista||[]; $('aDouradaN').textContent=l.length; $('aDouradaN').classList.toggle('on',l.length>0);
     $('draLista').innerHTML=l.length?l.map(p=>{
       const reb=p.tipo==='reboque'||p.tipo==='servico', pagar=reb?(p.fichasUsadas||p.fichas):p.valorPagar; /* 25/10/2026: serviço de parceiro paga igual ao reboque */
@@ -13293,12 +13325,60 @@ $('draLista').addEventListener('click',async e=>{
   const a=e.target.closest('a'); if(!a) return; e.preventDefault();
   try{
     if(a.dataset.drafoto){ const j=await drApi('douradaAdmFoto',{pedido:a.dataset.drafoto}); lojaZoom(j.img); return }
-    if(a.dataset.draapr){ a.textContent='Salvando...'; const r=await drApi('douradaAdmDecidir',{pedido:a.dataset.draapr,decisao:'aprovar'}); toast('Aprovado. Faça o PIX até '+drDia(r.prazoMs)+'.'); drAdmAbrir(); return } /* 25/10/2026: prazo de 2 dias úteis */
-    if(a.dataset.drapago){ a.textContent='Salvando...'; await drApi('douradaAdmDecidir',{pedido:a.dataset.drapago,decisao:'pago'}); toast('Marcado como pago.'); drAdmAbrir(); return }
-    if(a.dataset.drarec){ a.textContent='Salvando...'; await drApi('douradaAdmDecidir',{pedido:a.dataset.drarec,decisao:'recusar'}); toast('Recusado. As fichas voltaram para o cliente.'); drAdmAbrir(); return }
+    if(a.dataset.draapr){ a.textContent='Salvando...'; const r=await drApi('douradaAdmDecidir',{pedido:a.dataset.draapr,decisao:'aprovar'}); toast('Aprovado. Faça o PIX até '+drDia(r.prazoMs)+'.'); drAdmCarregar(); pnPainelCarregar(); return } /* 25/10/2026: prazo de 2 dias úteis */
+    if(a.dataset.drapago){ a.textContent='Salvando...'; await drApi('douradaAdmDecidir',{pedido:a.dataset.drapago,decisao:'pago'}); toast('Marcado como pago.'); drAdmCarregar(); pnPainelCarregar(); return }
+    if(a.dataset.drarec){ a.textContent='Salvando...'; await drApi('douradaAdmDecidir',{pedido:a.dataset.drarec,decisao:'recusar'}); toast('Recusado. As fichas voltaram para o cliente.'); drAdmCarregar(); pnPainelCarregar(); return }
   }catch(err){ toast(err.message) }
 });
-$('aDourada').onclick=drAdmAbrir;
+$('aDourada').onclick=()=>pnAbrir('pend');
+/* ===== PAINEL do admin (25/10/2026, dono: "um dashboard completo, não um pop-upzinho") ===== */
+let PN={aba:'pend',fil:'todos',pfil:'todos',dados:null};
+function drAdmAbrir(){ pnAbrir('pend') }
+function pnAba(a){ PN.aba=a; document.querySelectorAll('#pnAbas button').forEach(b=>b.classList.toggle('on',b.dataset.pn===a)); ['pend','serv','parc','cli'].forEach(k=>{ $('pn'+k[0].toUpperCase()+k.slice(1)).hidden=k!==a }); $('pnRola').scrollTop=0 }
+$('pnAbas').onclick=e=>{ const b=e.target.closest('[data-pn]'); if(b) pnAba(b.dataset.pn) };
+$('pnFil').onclick=e=>{ const b=e.target.closest('[data-f]'); if(!b) return; PN.fil=b.dataset.f; document.querySelectorAll('#pnFil button').forEach(x=>x.classList.toggle('on',x===b)); pnServDesenhar() };
+$('pnParcFil').onclick=e=>{ const b=e.target.closest('[data-f]'); if(!b) return; PN.pfil=b.dataset.f; document.querySelectorAll('#pnParcFil button').forEach(x=>x.classList.toggle('on',x===b)); pnParcFiltrar() };
+async function pnAbrir(aba){ abrir('mDouradaAdm'); pnAba(aba||'pend'); $('pnRes').innerHTML=''; drAdmCarregar(); pcAdmCarregar(); pnPainelCarregar() }
+async function pnPainelCarregar(){
+  $('pnServLista').innerHTML='<div class="rtvz">Carregando...</div>'; $('pnCliLista').innerHTML='<div class="rtvz">Carregando...</div>';
+  try{ const j=await drApi('douradaAdmPainel',{dias:90}); PN.dados=j; const r=j.resumo||{};
+    $('pnRes').innerHTML='<div class="vm"><small>PIX a fazer (parceiros + vendas)</small><b>'+brl2((r.aPagarParceiros||0)+(r.vendasAPagar||0))+'</b></div>'+
+      '<div class="au"><small>Serviços em andamento</small><b>'+(r.emAndamento||0)+'</b></div>'+
+      '<div class="ok"><small>Pago este mês</small><b>'+brl2(r.pagoMes||0)+'</b></div>'+
+      '<div><small>Serviços concluídos no mês</small><b>'+(r.servicosMes||0)+'</b></div>'+
+      '<div><small>Fichas em circulação</small><b>'+brl2(r.fichasEmCirculacao||0)+'</b></div>'+
+      '<div><small>Clientes com fichas</small><b>'+(r.clientesComFichas||0)+'</b></div>';
+    const np=(j.lista||[]).filter(p=>['pendente','aprovado'].includes(p.estado)||(p.estado==='concluido'&&!p.pagoParceiro)).length; $('pnNPend').hidden=!np; $('pnNPend').textContent=np;
+    pnServDesenhar(); pnCliDesenhar();
+  }catch(e){ $('pnServLista').innerHTML='<div class="rtvz">'+esc(e.message)+'</div>'; $('pnCliLista').innerHTML='' }
+}
+function pnTitulo(p){ const serv=p.tipo==='reboque'||p.tipo==='servico'; return serv?((p.tipo==='servico'?drCatNome(p):'Reboque')+(p.reboque?' · '+p.reboque:'')):(DR_TIPO[p.tipo]||p.tipo) }
+function pnEstado(p){ const serv=p.tipo==='reboque'||p.tipo==='servico';
+  if(p.estado==='reservado') return ['Em andamento','and']; if(p.estado==='pendente') return ['Aguardando sua aprovação','and']; if(p.estado==='aprovado') return ['Aprovado · PIX até '+(p.prazoMs?drDia(p.prazoMs):'—'),'ap'];
+  if(p.estado==='concluido') return p.pagoParceiro?['Pago '+(p.pagoMs?drDia(p.pagoMs):''),'pag']:['Concluído · PIX até '+(p.prazoMs?drDia(p.prazoMs):'—'),'ap'];
+  if(p.estado==='pago') return ['Pago '+(p.pagoMs?drDia(p.pagoMs):''),'pag']; if(p.estado==='recusado') return ['Recusado','cc']; if(p.estado==='cancelado') return ['Cancelado','cc']; return [p.estado,''] }
+function pnServDesenhar(){
+  const l=(PN.dados&&PN.dados.lista)||[], f=PN.fil, serv=p=>p.tipo==='reboque'||p.tipo==='servico';
+  const sel=l.filter(p=>f==='todos'?true:f==='andamento'?(serv(p)&&p.estado==='reservado')||(p.tipo==='resgate'&&['pendente','aprovado'].includes(p.estado)):f==='apagar'?(serv(p)&&p.estado==='concluido'&&!p.pagoParceiro)||(p.tipo==='resgate'&&p.estado==='aprovado'):f==='pagos'?(serv(p)&&p.pagoParceiro)||p.estado==='pago':f==='vendas'?p.tipo==='resgate':['recusado','cancelado'].includes(p.estado));
+  $('pnServLista').innerHTML=sel.length?sel.map(p=>{ const st=pnEstado(p), s=serv(p);
+    return '<div class="rtit"><div class="rttopo"><div><b>'+esc(pnTitulo(p))+'</b><span class="pnst '+st[1]+'">'+esc(st[0])+'</span><div class="rtinfo">'+
+      'Cliente: <b>'+esc(p.cliente||'')+'</b>'+(p.login?' ('+esc(p.login)+')':'')+(p.resumo?'<br>'+esc(p.resumo):'')+'<br>'+fmtHora(p.criadoMs)+(p.fimMs?' → concluído '+fmtHora(p.fimMs):'')+
+      (s?'<br>'+(p.valorFinal?'Valor final '+brl2(p.valorFinal)+' · ':'')+(p.fichasUsadas!=null?'pago com fichas '+brl2(p.fichasUsadas):p.fichas+' fichas reservadas')+(p.cobrarDireto?' · cliente pagou '+brl2(p.cobrarDireto)+' direto':'')+(p.reboquePix?'<br>PIX do '+(p.tipo==='servico'?'parceiro':'reboquista')+': '+esc(p.reboquePix):'')
+        :'<br>'+p.fichas+' fichas → '+brl2(p.valorPagar)+(p.fichasIntegral?' ('+p.fichasIntegral+' a R$ 1,00)':'')+(p.pixChave?'<br>PIX do cliente: '+esc(p.pixChave):''))+
+      (p.pagoPor?'<br><span style="color:#16a34a">PIX feito por '+esc(p.pagoPor)+'</span>':'')+'</div></div>'+
+      '<div class="rtdist">'+brl2(s?(p.fichasUsadas!=null?p.fichasUsadas:p.fichas):p.valorPagar)+'<small>'+(s?'ao parceiro':'ao cliente')+'</small></div></div></div>' }).join(''):'<div class="rtvz">Nada aqui (últimos 90 dias).</div>';
+}
+function pnCliDesenhar(){
+  const l=(PN.dados&&PN.dados.carteiras)||[];
+  $('pnCliLista').innerHTML=l.length?l.map(c=>'<div class="rtit"><div class="rttopo"><div><b>'+esc(c.nome||c.login||('cliente '+c.userId))+'</b><div class="rtinfo">'+(c.nome&&c.login?esc(c.login)+'<br>':'')+
+      (c.aporte?'Aporte de R$ '+c.aporte+'/mês · ':'')+(c.reservado?c.reservado+' reservadas · ':'')+(c.termo?'termo aceito':'sem termo')+(c.pix?'<br>PIX: '+esc(c.pix):'')+'</div></div>'+
+      '<div class="rtdist">'+c.saldo+' fichas<small>'+brl2(c.saldo)+'</small></div></div>'+
+      '<div class="rtbt"><a href="#" data-pncl="'+c.userId+'" data-pnn="'+esc(c.nome||c.login||'')+'">Lançar fichas</a></div></div>').join(''):'<div class="rtvz">Nenhum cliente com fichas ainda.</div>';
+}
+$('pnCliLista').addEventListener('click',async e=>{ const a=e.target.closest('[data-pncl]'); if(!a) return; e.preventDefault();
+  const t=prompt('Quantas fichas para '+a.dataset.pnn+'? (ex.: 50 para dar, -20 para tirar)',''); if(t===null) return; const q=parseInt(String(t).replace(/\s/g,'').replace('−','-'),10); if(!q){ toast('Digite um número.'); return }
+  const m=prompt('Motivo (aparece no extrato do cliente):','')||'';
+  try{ const j=await drApi('douradaAdmLancar',{userId:Number(a.dataset.pncl),q,motivo:m}); toast((q>0?'+':'')+q+' fichas. Saldo: '+j.saldo+'.'); pnPainelCarregar() }catch(err){ toast(err.message) } });
 /* ===== SOCORRO E SERVIÇOS: categorias de parceiros (25/10/2026, pedido do dono) =====
    O cartão "Reboques" virou "Socorro e serviços": chips Reboque (o de sempre) + chaveiro, borracheiro, mecânico,
    eletricista, despachante e lava-jato (parceiros cadastrados pelo parceiro.html e aprovados pelo administrador).
@@ -13404,30 +13484,47 @@ $('rbLista').addEventListener('click',async e=>{
 const PC_ST={analise:['Em análise','ag'],aprovado:['Aprovado','ok'],recusado:['Recusado','cc'],suspenso:['Suspenso','cc']};
 const PC_LINK='https://gps.rastreandogpsbr.com.br/parceiro.html';
 async function pcAdmContar(){ const b=$('aParcN'); if(!b||!ehAdmin) return; try{ const j=await rbApi('parcAdmLista'); b.textContent=j.pendentes||''; b.classList.toggle('on',(j.pendentes||0)>0) }catch(e){} }
-async function pcAdmAbrir(){ abrir('mParcAdm'); $('paLista').innerHTML='<div class="rtvz">Carregando...</div>';
-  try{ const j=await rbApi('parcAdmLista'); const l=j.lista||[]; $('aParcN').textContent=j.pendentes||''; $('aParcN').classList.toggle('on',(j.pendentes||0)>0);
-    $('paLista').innerHTML=l.length?l.map(p=>{ const st=PC_ST[p.status]||[p.status,'ag'];
-      return '<div class="rtit"><div class="rttopo"><div><b>'+esc(p.nome)+'</b><div class="rtinfo">'+esc(p.categoriaNome)+' · <span class="ljst '+st[1]+'" style="display:inline-block">'+st[0]+'</span><br>'+
+function pcAdmAbrir(){ pnAbrir('parc') }
+function pnParcFiltrar(){ const f=PN.pfil; document.querySelectorAll('#paLista .rtit').forEach(x=>{ const st=x.dataset.pst||''; x.hidden=!(f==='todos'||(f==='reboque'?st==='reboque':f==='fora'?(st==='recusado'||st==='suspenso'):st===f)) }) }
+async function pcAdmCarregar(){ $('paLista').innerHTML='<div class="rtvz">Carregando...</div>';
+  try{ const [j,rj]=await Promise.all([rbApi('parcAdmLista'),rbApi('reboqueAdmLista').catch(()=>({lista:[]}))]); const l=j.lista||[], rl=rj.lista||[]; $('aParcN').textContent=j.pendentes||''; $('aParcN').classList.toggle('on',(j.pendentes||0)>0); $('pnNParc').hidden=!(j.pendentes||0); $('pnNParc').textContent=j.pendentes||'';
+    /* 25/10/2026 (dono): reboquistas no mesmo painel dos parceiros (eles têm login do app e rastreador; cadastro em "Meu reboque") */
+    const rebHtml=rl.map(r=>'<div class="rtit pnreb" data-pst="reboque"><div class="rttopo"><div><b>'+esc(r.nome||'Reboquista')+'</b><div class="rtinfo">🚛 Reboquista (login do app, rastreador nº '+(r.deviceId||'—')+') · '+(r.disponivel?'🟢 disponível':'⚪ invisível')+(r.sinalMs?' · sinal '+fmtHora(r.sinalMs):'')+'<br>'+
+        (r.wpp?'WhatsApp: '+esc(fmtWpp(r.wpp)):'')+(r.fone?' · tel '+esc(fmtWpp(r.fone)):'')+'<br>Base: '+esc((r.base&&r.base.end)||'—')+'<br>'+
+        (r.tabelas||[]).map(t=>esc(t.tipo)+': '+brl2(t.saida)+' até '+t.kmInc+' km + '+brl2(t.kmExtra)+'/km').join(' · ')+'<br>PIX: '+esc(r.pix||'—')+' · '+(r.vistosHoje||0)+' consultas hoje</div></div></div>'+
+        '<div class="rtbt">'+(r.wpp?'<a class="wpp" href="https://wa.me/55'+esc(r.wpp)+'" target="_blank" rel="noopener">WhatsApp</a>':'')+'<a href="#" data-pnperm="'+r.id+'">Permissões / fichas</a></div></div>').join('');
+    $('paLista').innerHTML=(l.length||rl.length)?l.map(p=>{ const st=PC_ST[p.status]||[p.status,'ag'];
+      return '<div class="rtit" data-pst="'+esc(p.status)+'"><div class="rttopo"><div><b>'+esc(p.nome)+'</b><div class="rtinfo">'+esc(p.categoriaNome)+' · <span class="ljst '+st[1]+'" style="display:inline-block">'+st[0]+'</span><br>'+
         'WhatsApp: '+esc(fmtWpp(p.whatsapp))+(p.responsavel?' · '+esc(p.responsavel):'')+(p.doc?' · doc '+esc(p.doc):'')+'<br>'+esc((p.base&&p.base.end)||'')+'<br>'+
         (p.h24?'24 horas':esc(p.horario||''))+(p.atendeLocal?' · vai até o cliente'+(p.raioKm?' ('+p.raioKm+' km)':''):'')+(p.lojaPublica?' · loja aberta':'')+'<br>PIX: '+esc(p.pix||'—')+'<br>'+
         (p.servicos||[]).map(s=>esc(s.nome)+': '+(s.sobConsulta||!(s.aPartir>0)?'sob consulta':brl2(s.aPartir))).join(' · ')+(p.status==='aprovado'?'<br>'+(p.disponivel?'🟢 disponível agora':'⚪ fechado')+' · '+(p.vistosHoje||0)+' '+((p.vistosHoje||0)===1?'visualização':'visualizações')+' hoje':'')+'</div></div></div>'+
         '<div class="rtbt"><a class="wpp" href="https://wa.me/55'+esc(p.whatsapp)+'" target="_blank" rel="noopener">WhatsApp</a>'+
         (p.status!=='aprovado'?'<a href="#" data-paap="'+p.id+'" style="background:rgba(22,163,74,.14);border-color:rgba(22,163,74,.4);color:#16a34a">Aprovar</a>':'')+
-        (p.status==='analise'?'<a href="#" data-pare="'+p.id+'">Recusar</a>':'')+(p.status==='aprovado'?'<a href="#" data-pasu="'+p.id+'">Suspender</a>':'')+(['recusado','suspenso','rascunho'].includes(p.status)?'<a href="#" data-paex="'+p.id+'" style="color:var(--red2)">Excluir</a>':'')+'</div></div>' }).join(''):'<div class="rtvz">Nenhum parceiro cadastrado ainda. Mande o link abaixo para os prestadores.</div>';
+        (p.status==='analise'?'<a href="#" data-pare="'+p.id+'">Recusar</a>':'')+(p.status==='aprovado'?'<a href="#" data-pasu="'+p.id+'">Suspender</a>':'')+(['recusado','suspenso','rascunho'].includes(p.status)?'<a href="#" data-paex="'+p.id+'" style="color:var(--red2)">Excluir</a>':'')+
+        '<a href="#" data-pasn="'+p.id+'" data-pan="'+esc(p.nome)+'" data-paw="'+esc(p.whatsapp)+'">Nova senha</a></div><div class="pnsenhabox" id="pnSn'+p.id+'"></div></div>' }).join('')+rebHtml:'<div class="rtvz">Nenhum parceiro cadastrado ainda. Mande o link acima para os prestadores.</div>';
+    pnParcFiltrar();
   }catch(e){ $('paLista').innerHTML='<div class="rtvz">'+esc(e.message)+'</div>' }
 }
 $('paLista').addEventListener('click',async e=>{
+  const pm=e.target.closest('[data-pnperm]'); if(pm){ e.preventDefault(); fechar(); try{ abrirPermissoes(Number(pm.dataset.pnperm)) }catch(err){ toast('Abra o cliente no Admin e toque em Permissões.') } return }
+  const sn=e.target.closest('[data-pasn]'); /* 25/10/2026 (dono): senha provisória para quem esqueceu */
+  if(sn){ e.preventDefault(); if(!confirm('Gerar uma senha nova para '+sn.dataset.pan+'? A senha antiga deixa de valer e ele sai do app nos outros celulares.')) return; sn.textContent='Gerando...';
+    try{ const j=await rbApi('parcAdmSenha',{id:sn.dataset.pasn}); sn.textContent='Nova senha';
+      const msg='Olá, '+sn.dataset.pan+'! 👋\nSua senha provisória do app de parceiro da Rastreando GPS é *'+j.senha+'*.\nEntre em '+PC_LINK+' com o seu WhatsApp e essa senha. O app vai pedir para você criar uma senha nova.';
+      $('pnSn'+sn.dataset.pasn).innerHTML='<div class="pnsenha">Senha provisória (só você vê; mande para ele):<b class="sn">'+j.senha+'</b><div class="rtbt" style="margin-top:4px"><a href="#" data-pncp="'+j.senha+'">Copiar senha</a><a class="wpp" href="https://wa.me/55'+esc(sn.dataset.paw)+'?text='+encodeURIComponent(msg)+'" target="_blank" rel="noopener">Mandar no WhatsApp</a></div></div>' }
+    catch(err){ toast(err.message); sn.textContent='Nova senha' } return }
+  const cp=e.target.closest('[data-pncp]'); if(cp){ e.preventDefault(); copiarTexto(cp.dataset.pncp).then(()=>toast('Senha copiada.')).catch(()=>toast(cp.dataset.pncp,6000)); return }
   const x=e.target.closest('[data-paex]'); /* 25/10/2026 (dono): apagar recusado/suspenso (testes) */
   if(x){ e.preventDefault(); if(!confirm('Excluir esse cadastro de vez? Não dá para desfazer.')) return; x.textContent='Excluindo...';
-    try{ await rbApi('parcAdmExcluir',{id:x.dataset.paex}); toast('Cadastro excluído.'); pcAdmAbrir() }catch(err){ toast(err.message); x.textContent='Excluir' } return }
+    try{ await rbApi('parcAdmExcluir',{id:x.dataset.paex}); toast('Cadastro excluído.'); pcAdmCarregar() }catch(err){ toast(err.message); x.textContent='Excluir' } return }
   const a=e.target.closest('[data-paap],[data-pare],[data-pasu]'); if(!a) return; e.preventDefault();
   const id=a.dataset.paap||a.dataset.pare||a.dataset.pasu, dec=a.dataset.paap?'aprovar':a.dataset.pare?'recusar':'suspender';
   let motivo=''; if(dec!=='aprovar'){ const inp=prompt(dec==='recusar'?'Motivo da recusa (o parceiro vê):':'Motivo da suspensão:',''); if(inp===null) return; motivo=inp }
   a.textContent='Salvando...';
-  try{ await rbApi('parcAdmDecidir',{id,decisao:dec,motivo}); toast(dec==='aprovar'?'Parceiro aprovado. Ele já aparece para os clientes.':dec==='recusar'?'Recusado.':'Suspenso.'); pcAdmAbrir() }
+  try{ await rbApi('parcAdmDecidir',{id,decisao:dec,motivo}); toast(dec==='aprovar'?'Parceiro aprovado. Ele já aparece para os clientes.':dec==='recusar'?'Recusado.':'Suspenso.'); pcAdmCarregar() }
   catch(err){ toast(err.message) }
 });
-$('paCopiar').onclick=()=>copiar(PC_LINK).then(()=>toast('Link copiado')).catch(()=>toast(PC_LINK,6000));
+$('paCopiar').onclick=()=>copiarTexto(PC_LINK).then(()=>toast('Link copiado')).catch(()=>toast(PC_LINK,6000));
 $('paWpp').onclick=()=>window.open('https://wa.me/?text='+encodeURIComponent('Olá! Quer aparecer para os clientes da Rastreando GPS que precisam de '+'chaveiro, borracheiro, mecânico, eletricista, despachante ou lava-jato? O cadastro é grátis: '+PC_LINK),'_blank','noopener');
 $('aParc').onclick=pcAdmAbrir;
 
