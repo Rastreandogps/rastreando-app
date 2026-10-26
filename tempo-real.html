@@ -1508,6 +1508,7 @@ body.hist-on #mapCar{display:none!important}
 .ruacel{display:none}
 #sheet.comruacel .vrua{display:none!important} /* no celular a foto fica só no quadro grande */
 #sheet.comruacel #sOdoBtn,#sheet.comruacel #sCombBtn,#sheet.comruacel #sLojaBtn,#sheet.comruacel #sFatBtn{display:none!important}
+#sheet.comruacel .actions.comodo #sOdoBtn,#sheet.comruacel .actions.comodo #sCombBtn{display:flex!important;flex-direction:column;align-items:flex-start;justify-content:center;min-height:52px;padding:6px 10px;margin:0} /* 26/10/2026 */
 #sheet.comruacel .grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,3fr)}
 #sheet.comruacel .ruacel{display:block;position:relative;grid-column:3;grid-row:1;min-height:112px;padding:0;border:1px solid var(--line);border-radius:14px;overflow:hidden;cursor:pointer;
   background:linear-gradient(135deg,rgba(56,225,230,.16),rgba(154,163,178,.22)),var(--card2);color:var(--mut);box-shadow:0 4px 12px rgba(0,0,0,.12)}
@@ -6865,6 +6866,10 @@ function mostrarBotoesSms(){
   $('btnBlock').style.display=podeApp?'':'none'; $('btnUnblock').style.display=podeApp?'':'none';
   $('chaveBloq').classList.toggle('nao',!podeApp); /* 14/10/2026: a chave segue a mesma permissão dos botões */
   const acts=$('btnBlock').parentElement; if(acts) acts.style.gridTemplateColumns=(podeApp?'minmax(0,1fr) ':'')+(n?'52px ':'')+(podeApp?'44px':'52px')+(sheet.classList.contains('comruacel')?(podeApp?' 44px':' 52px'):''); /* chave ocupa o lugar dos 2 botões; 23/10/2026: + Navegar com a vista da rua no celular */
+  /* 26/10/2026 (dono): sem bloqueio + foto da rua no celular → Odômetro e Combustível voltam, no espaço vazio ao lado de Compartilhar */
+  try{ const odoIn=!podeApp && sheet.classList.contains('comruacel') && !(cartao()||{}).tag, ob=$('sOdoBtn'), cb=$('sCombBtn'), gr=$('sLojaBtn').parentElement;
+    if(acts && odoIn){ if(ob.parentElement!==acts){ acts.insertBefore(cb,acts.firstChild); acts.insertBefore(ob,acts.firstChild) } acts.style.gridTemplateColumns='minmax(0,1fr) minmax(0,1fr) '+(n?'52px ':'')+'52px 52px'; acts.classList.add('comodo') }
+    else if(ob.parentElement!==gr){ gr.insertBefore(ob,$('sLojaBtn')); gr.insertBefore(cb,$('sLojaBtn')); if(acts) acts.classList.remove('comodo') } }catch(e){}
   const semSinal=(()=>{ const c=cartao(); return !!(c && !c.pos) })();
   $('btnAncora').style.display=(!semSinal && (ehAdmin||permCli.cercaRapida))?'flex':'none';
   try{ mapaColuna() }catch(e){}
