@@ -212,6 +212,7 @@ textarea.fld{height:70px;padding:10px 12px;resize:vertical}
       <div id="pfEndOps"></div>
       <div class="ok" id="pfEndOk" hidden></div>
       <button class="linkbtn" id="bAqui" type="button">📍 Usar minha localização agora</button>
+      <p class="aviso" id="pfEndSeg" style="border:1px solid rgba(22,163,74,.45);background:rgba(22,163,74,.08);border-radius:10px;padding:10px 12px;margin:8px 0"></p>
       <label class="chk"><input type="checkbox" id="pfLoja"> Loja aberta ao público (mostra o ponto exato no mapa; desmarcado mostra só a região)</label>
       <label class="chk"><input type="checkbox" id="pfLocal"> Vou até o cliente</label>
       <div class="dois" id="pfDeslBox">
@@ -302,7 +303,7 @@ $('pDisp').onchange=async()=>{
 function preencher(){
   catPerfil=P.categoria; catsDesenhar($('pCats'),catPerfil,trocarCat); dicaServ(catPerfil);
   $('pfNome').value=P.nome||''; $('pfResp').value=P.responsavel||''; $('pfDoc').value=P.doc||''; $('pfFone').value=fmtWpp(P.fone); $('pfPix').value=P.pix||'';
-  mostrarBase(P.base); $('pfLoja').checked=!!P.lojaPublica; $('pfLocal').checked=!!P.atendeLocal; $('pfRaio').value=P.raioKm||''; $('pfDesl').value=P.deslocamento&&P.deslocamento.fixo?String(P.deslocamento.fixo).replace('.',','):'';
+  mostrarBase(P.base); $('pfLoja').checked=!!P.lojaPublica; endSeg(); $('pfLocal').checked=!!P.atendeLocal; $('pfRaio').value=P.raioKm||''; $('pfDesl').value=P.deslocamento&&P.deslocamento.fixo?String(P.deslocamento.fixo).replace('.',','):'';
   $('pf24').checked=!!P.h24; $('pfHor').value=P.horario||''; $('pfObs').value=P.obs||'';
   servDesenhar(P.servicos||[]); deslMostrar(); $('bSalvar').textContent=P.status==='rascunho'||P.status==='recusado'?'Salvar e enviar para aprovação':'Salvar';
 }
@@ -317,6 +318,11 @@ $('pfServ').addEventListener('change',e=>{ if(e.target.matches('[data-sc]')){ co
 $('bAddServ').onclick=()=>{ if(document.querySelectorAll('#pfServ .serv').length>=10){ toast('Máximo de 10 serviços.'); return } $('pfServ').insertAdjacentHTML('beforeend',servLinha({nome:'',aPartir:null,sobConsulta:false})) };
 function servLer(solto){ return [...document.querySelectorAll('#pfServ .serv')].map(r=>{ const sc=r.querySelector('[data-sc]').checked, v=r.querySelector('[data-sv]').value.trim(); const semPreco=!sc&&(v===''||!(numBR(v)>0)); return {nome:r.querySelector('[data-sn]').value.trim(),sobConsulta:sc||(!solto&&semPreco),aPartir:sc||semPreco?(solto?null:null):numBR(v)} }).filter(x=>x.nome) }
 /* endereço */
+/* 25/10/2026 (dono): texto para tranquilizar sobre a localização */
+function endSeg(){ const e=$('pfEndSeg'); if(!e) return; e.innerHTML=$('pfLoja').checked
+  ? '<b>📍 Loja aberta ao público:</b> o endereço exato aparece no mapa para os clientes da Rastreando encontrarem você.'
+  : '<b>🔒 Fique tranquilo: seu endereço é protegido.</b><br>O cliente <b>nunca</b> vê o seu endereço nem o ponto exato. No mapa aparece só uma <b>área aproximada</b> (um círculo que de propósito não fica em cima do seu endereço), apenas para ele saber que você atende perto. O endereço serve só para o app mostrar a distância até o cliente.' }
+$('pfLoja').addEventListener('change',endSeg); endSeg();
 function mostrarBase(b){ base=b; $('pfEndOk').hidden=!b; if(b) $('pfEndOk').innerHTML='<b>Endereço:</b> '+esc(b.end||(b.lat.toFixed(5)+', '+b.lon.toFixed(5))) }
 async function buscarEnd(){
   const q=$('pfEnd').value.trim(); if(q.length<4) return; $('pfEndOps').innerHTML='<p class="aviso">Buscando...</p>';
