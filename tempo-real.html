@@ -9228,8 +9228,8 @@ let faturasDados=null, faturasCarregando=false, bloqueioNivel='ok', bloqueioDado
 function ledHtml(n,b,fechavel){
   let txt;
   if(n==='aviso'){ const d=Number(b.diasRestantes);
-    txt='⚠ Fatura vencida · '+(d===1?'<b>último dia</b> para pagar antes da suspensão do seu acesso ao aplicativo':'faltam <b>'+d+' dias</b> para a suspensão do seu acesso ao aplicativo')+' · em caso de roubo, é pelo app que você localiza e protege o seu veículo · toque e pague pelo PIX ⚠' }
-  else txt='⚠ Acesso liberado de confiança até <b>'+fmtHora(b.ateMs)+'</b> · pague a fatura para manter seu acesso ao aplicativo · toque para pagar ⚠';
+    txt='⚠ Sua fatura venceu · '+(d===1?'<b>hoje é o último dia</b> do seu acesso ao aplicativo':'seu acesso ao aplicativo fica disponível por mais <b>'+d+' dias</b>')+' · em caso de roubo, é pelo app que você localiza e protege o seu veículo · toque e pague pelo PIX ⚠' }
+  else txt='✔ Obrigado por avisar que pagou · seu acesso segue normal até <b>'+fmtHora(b.ateMs)+'</b> enquanto o pagamento é confirmado · se ainda não pagou, toque e pague pelo PIX'; /* 26/10/2026 (dono): texto mais cordial */
   const t='<span>'+txt+'</span>';
   return '<div class="letreiro"><div class="lt-trilho">'+t+t+t+t+'</div></div>'+(fechavel?'<button type="button" class="apx" aria-label="Fechar o aviso até amanhã" title="Fechar até amanhã">×</button>':'');
 }
@@ -9288,9 +9288,9 @@ function desenharFaturas(){
     topo='<div class="fres trava">ACESSO AO APLICATIVO SUSPENSO<br><span style="font-weight:500">Sua mensalidade está vencida há '+bq.atraso+(bq.atraso===1?' dia':' dias')+'. Pague para liberar o mapa e os comandos.</span>'+
       (bq.podeConfianca?'<div style="margin-top:10px"><button class="btn btn-out mini" id="fJaPaguei">Já paguei</button><div style="font-weight:500;font-size:12.5px;margin-top:6px">Se você já pagou, libera 48 horas de acesso (só uma vez) até o pagamento ser confirmado.</div></div>':'')+'</div>';
   } else if(bq.nivel==='confianca'){
-    topo='<div class="fres aviso">Acesso ao aplicativo liberado até '+fmtHora(bq.ateMs)+'.<br><span style="font-weight:500">Pague a fatura em aberto para manter seu acesso.</span></div>';
+    topo='<div class="fres aviso">Obrigado por avisar que pagou. Seu acesso segue normal até '+fmtHora(bq.ateMs)+' enquanto o pagamento é confirmado.<br><span style="font-weight:500">Se ainda não pagou, pague a fatura em aberto pelo PIX.</span></div>';
   } else if(bq.nivel==='aviso'){
-    topo='<div class="fres aviso">Faltam '+bq.diasRestantes+(bq.diasRestantes===1?' dia':' dias')+' para a suspensão do acesso ao aplicativo.<br><span style="font-weight:500">Pague a fatura vencida para manter seu acesso.</span></div>';
+    topo='<div class="fres aviso">'+(bq.diasRestantes===1?'Hoje é o último dia do seu acesso ao aplicativo.':'Seu acesso ao aplicativo fica disponível por mais '+bq.diasRestantes+' dias.')+'<br><span style="font-weight:500">Pague a fatura vencida para manter seu acesso.</span></div>';
   }
   R.innerHTML = topo + (rs.qtdVencidas>0
     ? '<div class="fres mal">Você tem '+rs.qtdVencidas+(rs.qtdVencidas===1?' fatura vencida':' faturas vencidas')+': '+brl(rs.totalVencido)+'<br><span style="font-weight:500">Maior atraso: '+rs.maiorAtraso+(rs.maiorAtraso===1?' dia':' dias')+'. Pague para manter seu acesso ao aplicativo em dia.</span></div>'
