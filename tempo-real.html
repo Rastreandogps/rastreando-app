@@ -186,6 +186,15 @@ body.mapa-google #map .leaflet-top.leaflet-left .leaflet-control-attribution{mar
 #rbcCalc.btn-red{background:#0ea5e9}
 #rbcCalc:disabled{opacity:.45}
 .rbval .rbvl small{display:block;color:var(--mut);font-size:11.5px}
+#mMeuReboque .mrsec{border:1px solid var(--line);border-radius:16px;padding:14px 14px 12px;margin-top:12px;background:var(--card)}
+#mMeuReboque .mrsec .flbl:first-of-type{margin-top:4px}
+#mMeuReboque .mrtit{display:flex;align-items:center;gap:8px;font-weight:800;font-size:15px;margin-bottom:6px}
+#mMeuReboque .mrtit svg{width:18px;height:18px;color:var(--red);flex:none}
+#mMeuReboque .mrseg{display:flex;gap:10px;align-items:flex-start;margin-top:10px;padding:10px 12px;border-radius:12px;background:rgba(22,163,74,.10);font-size:12.5px;line-height:1.45;color:var(--mut)}
+#mMeuReboque .mrseg svg{width:18px;height:18px;color:#16a34a;flex:none;margin-top:1px}#mMeuReboque .mrseg b{color:var(--txt)}
+#mMeuReboque .mrcomo{margin-top:8px;font-size:12.5px;line-height:1.45;color:var(--mut)}
+#mMeuReboque .mrcomo summary{cursor:pointer;font-weight:700;color:var(--txt);list-style:none;padding:6px 0}#mMeuReboque .mrcomo summary::before{content:"ⓘ ";color:var(--red)}
+#mMeuReboque .rbtab{background:var(--card2)}
 .mrdica{display:flex;align-items:flex-end;gap:8px;margin:2px 0 6px;font-weight:800;font-size:14px;color:var(--red)}
 .mrdica i{font-style:normal;width:22px;margin-left:10px;text-align:center;font-size:20px;line-height:1;animation:mrPulsa 1s ease-in-out infinite}
 .mrdica.ok i{animation:none;opacity:.35}
@@ -3915,31 +3924,39 @@ nav button.on .nemo.txt{color:var(--red2)}
     <div id="rbcOut"></div>
   </div>
 </div>
-<div class="modal alsheet" id="mMeuReboque">
+<div class="modal alsheet" id="mMeuReboque"><!-- 26/10/2026 (dono): visual mais limpo, em blocos -->
   <div class="box2">
     <div class="almtopo"><h3>Meu reboque</h3><button class="almx" data-close type="button" aria-label="Fechar" title="Fechar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
     <div class="rtsub" id="mrSub">Carregando...</div>
     <div class="row rbdisp" id="mrDispBox"><div><b>Disponível para chamados</b><br><small>Desligado = invisível: nenhum cliente vê seu reboque</small></div><label class="sw"><input type="checkbox" id="mrDisp"><span></span></label></div>
-    <label class="flbl">Nome que aparece para os clientes</label>
-    <input class="fld" id="mrNome" maxlength="40" placeholder="Ex.: Reboque do Zé">
-    <div class="rbdois">
-      <div><label class="flbl">Telefone</label><input class="fld" id="mrFone" inputmode="tel" placeholder="(21) 99999-9999"></div>
-      <div><label class="flbl">WhatsApp</label><input class="fld" id="mrWpp" inputmode="tel" placeholder="(21) 99999-9999"></div>
-    </div>
-    <label class="flbl">Chave PIX (para a Rastreando te pagar os serviços contratados pelo app)</label>
-    <input class="fld" id="mrPix" maxlength="80" placeholder="CPF, CNPJ, celular, e-mail ou aleatória">
+    <section class="mrsec">
+      <div class="mrtit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Seus dados</div>
+      <label class="flbl">Nome que aparece para os clientes</label>
+      <input class="fld" id="mrNome" maxlength="40" placeholder="Ex.: Reboque do Zé">
+      <div class="rbdois">
+        <div><label class="flbl">Telefone</label><input class="fld" id="mrFone" inputmode="tel" placeholder="(21) 99999-9999"></div>
+        <div><label class="flbl">WhatsApp</label><input class="fld" id="mrWpp" inputmode="tel" placeholder="(21) 99999-9999"></div>
+      </div>
+      <label class="flbl">Chave PIX para receber os serviços</label>
+      <input class="fld" id="mrPix" maxlength="80" placeholder="CPF, CNPJ, celular, e-mail ou aleatória">
+    </section>
     <div id="mrFichas"></div>
-    <label class="flbl">Rastreador que está no reboque</label>
-    <select class="fld" id="mrDev"></select>
-    <label class="flbl">Base (ponto de partida para o cálculo)</label>
-    <div class="rbcbusca"><input class="fld" id="mrBase" placeholder="Endereço da base (rua, número, bairro, cidade)" autocomplete="off"><button class="btn btn-out" id="mrBaseBuscar" type="button">Buscar</button></div>
-    <div id="mrBaseRes"></div>
-    <div class="rbcdest" id="mrBaseOk" hidden></div>
-    <button class="linkbtn" id="mrBaseAqui" type="button">Usar a posição atual do reboque como base</button>
-    <div class="rbnota" style="border:1px solid rgba(22,163,74,.45);background:rgba(22,163,74,.10);border-radius:12px;padding:10px 12px;margin-top:8px"><b>🔒 Fique tranquilo: sua localização é protegida.</b><br>O cliente <b>nunca</b> vê o seu reboque no mapa, nem o endereço da sua base, nem a placa ou o rastreador. Ele vê só uma <b>área aproximada</b> (um círculo de 2 km, que de propósito não fica em cima do reboque), apenas para saber que tem reboque perto. O endereço da base serve só para o app calcular o valor da corrida.</div>
-    <label class="flbl" style="margin-top:10px">Tabela de valores (marque os tipos que você atende)</label>
-    <div id="mrTab"></div>
-    <div class="rbnota">Como o app calcula para o cliente: soma a rota por estrada <b>base → veículo do cliente → destino → base</b>. Até os km incluídos, ele paga só a saída; cada km a mais é cobrado pelo valor do km extra. O cliente vê só a <b>região</b> do seu reboque (um círculo de 2 km), nunca o ponto exato nem a sua base.</div>
+    <section class="mrsec">
+      <div class="mrtit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s7-6.1 7-12a7 7 0 0 0-14 0c0 5.9 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg>Rastreador e base</div>
+      <label class="flbl">Rastreador que está no reboque</label>
+      <select class="fld" id="mrDev"></select>
+      <label class="flbl">Base (ponto de partida para o cálculo)</label>
+      <div class="rbcbusca"><input class="fld" id="mrBase" placeholder="Rua, número, bairro, cidade" autocomplete="off"><button class="btn btn-out" id="mrBaseBuscar" type="button">Buscar</button></div>
+      <div id="mrBaseRes"></div>
+      <div class="rbcdest" id="mrBaseOk" hidden></div>
+      <button class="linkbtn" id="mrBaseAqui" type="button">Usar a posição atual do reboque como base</button>
+      <div class="mrseg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span><b>Sua localização é protegida.</b> O cliente nunca vê o seu reboque, a sua base, a placa ou o rastreador. Ele vê só uma área aproximada (círculo de 2 km, que de propósito não fica em cima do reboque).</span></div>
+    </section>
+    <section class="mrsec">
+      <div class="mrtit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 15V8h9l4 4h4l1 3v2H3z"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/></svg>Tabela de valores</div>
+      <div id="mrTab"></div>
+      <details class="mrcomo"><summary>Como o app calcula o valor para o cliente</summary>Soma a rota por estrada <b>base → veículo do cliente → destino → base</b>. Até os km incluídos, o cliente paga só a saída; cada km a mais é cobrado pelo valor do km extra.</details>
+    </section>
     <div class="ferr" id="mrErro"></div>
     <div class="rtacoes"><button class="btn btn-red" id="mrSalvar" type="button">Salvar</button><button class="btn btn-out" data-close type="button">Fechar</button></div>
   </div>
