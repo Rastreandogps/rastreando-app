@@ -13606,7 +13606,7 @@ function pnParcCats(){ const cats=[['todas','Todas']].concat((typeof PC_CATS!=='
   $('pnParcCat').innerHTML=cats.map(([k,n])=>'<button type="button" data-c="'+k+'"'+(k===(PN.pcat||'todas')?' class="on"':'')+'>'+n+'</button>').join('') }
 $('pnParcCat').onclick=e=>{ const b=e.target.closest('[data-c]'); if(!b) return; PN.pcat=b.dataset.c; document.querySelectorAll('#pnParcCat button').forEach(x=>x.classList.toggle('on',x===b)); pnParcFiltrar() };
 async function pcAdmCarregar(){ $('paLista').innerHTML='<div class="rtvz">Carregando...</div>';
-  try{ const [j,rj]=await Promise.all([rbApi('parcAdmLista'),rbApi('reboqueAdmLista').catch(()=>({lista:[]}))]); const l=j.lista||[], rl=rj.lista||[]; $('aParcN').textContent=j.pendentes||''; $('aParcN').classList.toggle('on',(j.pendentes||0)>0); $('pnNParc').hidden=!(j.pendentes||0); $('pnNParc').textContent=j.pendentes||'';
+  try{ const [j,rj]=await Promise.all([rbApi('parcAdmLista'),rbApi('reboqueAdmLista').catch(()=>({lista:[]}))]); const l=j.lista||[], rl=rj.lista||[]; { const bn=$('aParcN'); if(bn){ bn.textContent=j.pendentes||''; bn.classList.toggle('on',(j.pendentes||0)>0) } } /* 26/10/2026: o contador saiu do botão (virou aperto de mãos) */ $('pnNParc').hidden=!(j.pendentes||0); $('pnNParc').textContent=j.pendentes||'';
     /* 25/10/2026 (dono): reboquistas no mesmo painel dos parceiros (eles têm login do app e rastreador; cadastro em "Meu reboque") */
     pnParcCats();
     const rebHtml=rl.map(r=>'<div class="rtit pnreb" data-pst="aprovado" data-pcat="reboque"><div class="rttopo"><div><b>'+esc(r.nome||'Reboquista')+'</b><div class="rtinfo">🚛 Reboquista (login do app) · '+(r.disponivel?'🟢 disponível':'⚪ invisível')+(r.sinalMs?' · sinal '+fmtHora(r.sinalMs):'')+'<br>'+
