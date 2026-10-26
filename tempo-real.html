@@ -655,6 +655,9 @@ body.mapa-google #map .leaflet-top.leaflet-left .leaflet-control-attribution{mar
 #avisoPag{flex:none;display:none;padding:7px 14px;font-size:12.5px;font-weight:600;line-height:1.3;cursor:pointer;text-align:center}
 #avisoPag.show{display:block}
 #avisoPag.show{animation:avisoPisca 1.8s ease-in-out infinite}
+#avisoPag.led{position:relative;padding:6px 10px;background:var(--bg);animation:none;text-align:left}
+#avisoPag.led .apx{top:8px;right:14px;width:22px;height:22px;font-size:15px;background:rgba(255,255,255,.18);z-index:2}
+#avisoPag.led.fx .letreiro{margin-right:30px}
 @keyframes avisoPisca{0%,100%{opacity:1}50%{opacity:.55}}
 #avisoPag.a{background:transparent;border:0;padding:8px 12px 6px 10px;text-align:left;animation:none;color:#fff}
 /* 16/10/2026 (pedido do dono): faixa vermelha com o triângulo de alerta grande saindo por cima, e um apelo */
@@ -1508,7 +1511,7 @@ body.hist-on #mapCar{display:none!important}
 /* 23/10/2026 (pedido do dono): vista da rua no CELULAR para clientes escolhidos (permissão "Vista da rua no celular").
    A foto ocupa o lugar de odômetro, combustível e faturas/loja; velocidade e bateria continuam. */
 .ruacel{display:none}
-.letreiro{position:relative;overflow:hidden;height:28px;margin:0 0 10px;border-radius:8px;background:#07090d;border:1px solid #1f2937;cursor:pointer;
+.letreiro{position:relative;overflow:hidden;height:30px;margin:0;border-radius:8px;background:#07090d;border:1px solid #1f2937;cursor:pointer;
   box-shadow:inset 0 0 12px rgba(0,0,0,.9);background-image:radial-gradient(rgba(255,255,255,.06) 1px,transparent 1.2px);background-size:4px 4px}
 .letreiro[hidden]{display:none}
 .lt-trilho{position:absolute;top:0;left:0;height:100%;display:flex;align-items:center;white-space:nowrap;will-change:transform;animation:ltPassa 32s linear infinite}
@@ -2986,8 +2989,6 @@ nav button.on .nemo.txt{color:var(--red2)}
     <button id="cartRecolher" type="button" title="Abaixar o cartão (mais mapa)" aria-label="Abaixar o cartão"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
     <div class="dragzone" id="dragzone">
       <div class="handlewrap"><span class="handle"></span></div>
-      <!-- 26/10/2026 (dono): letreiro de LED (estilo placa de estádio) para cliente com fatura vencida ou liberado de confiança. Nunca falar em bloqueio. -->
-      <div class="letreiro" id="letreiro" role="button" tabindex="0" aria-label="Fatura vencida: toque para pagar" hidden><div class="lt-trilho" id="ltTrilho"></div></div>
       <div class="row">
         <button type="button" class="vrua" id="vRua" aria-label="Vista da rua"><img id="vRuaImg" alt=""><span class="vrmsg" id="vRuaMsg"></span><span class="vrtag" id="vRuaTag"></span></button>
         <div>
@@ -9223,16 +9224,14 @@ function fmtCpf(c){
 let faturasDados=null, faturasCarregando=false, bloqueioNivel='ok', bloqueioDados=null;
 /* Bloqueio por atraso (a partir de 5 dias na mensalidade). O servidor decide; o app só mostra.
    Se o servidor de faturas não responder, NÃO bloqueia (melhor deixar usar do que travar cliente em dia por falha nossa). */
-/* 26/10/2026 (dono): letreiro de LED no cartão do veículo para quem está com fatura vencida (antes da suspensão) ou liberado de confiança */
-function letreiroAplicar(){
-  const el=$('letreiro'); if(!el) return;
-  const n=bloqueioNivel||'ok', b=bloqueioDados||{}, on=!ehAdmin && (n==='aviso'||n==='confianca');
-  el.hidden=!on; if(!on) return;
+/* 26/10/2026 (dono): o aviso de fatura vencida / confiança no topo do mapa virou LETREIRO DE LED (estilo placa de estádio). Nunca falar em bloqueio. */
+function ledHtml(n,b,fechavel){
   let txt;
   if(n==='aviso'){ const d=Number(b.diasRestantes);
-    txt='⚠ Fatura vencida · '+(d===1?'<b>último dia</b> para pagar antes da suspensão do seu acesso ao aplicativo':'faltam <b>'+d+' dias</b> para a suspensão do seu acesso ao aplicativo')+' · toque e pague pelo PIX ⚠' }
+    txt='⚠ Fatura vencida · '+(d===1?'<b>último dia</b> para pagar antes da suspensão do seu acesso ao aplicativo':'faltam <b>'+d+' dias</b> para a suspensão do seu acesso ao aplicativo')+' · em caso de roubo, é pelo app que você localiza e protege o seu veículo · toque e pague pelo PIX ⚠' }
   else txt='⚠ Acesso liberado de confiança até <b>'+fmtHora(b.ateMs)+'</b> · pague a fatura para manter seu acesso ao aplicativo · toque para pagar ⚠';
-  const t='<span>'+txt+'</span>'; $('ltTrilho').innerHTML=t+t+t+t;
+  const t='<span>'+txt+'</span>';
+  return '<div class="letreiro"><div class="lt-trilho">'+t+t+t+t+'</div></div>'+(fechavel?'<button type="button" class="apx" aria-label="Fechar o aviso até amanhã" title="Fechar até amanhã">×</button>':'');
 }
 function aplicarBloqueio(b){
   bloqueioDados=b||null; bloqueioNivel=(b&&b.nivel)||'ok';
@@ -9245,20 +9244,14 @@ function aplicarBloqueio(b){
   const fechavel=bloqueioNivel==='aviso' && Number(b.diasRestantes)>=2; /* 16/10/2026 (dono): 1º ao 3º dia de atraso dá para fechar até o dia seguinte; 4º e 5º não */
   if(fechavel && lsGet('rg_aviso_fechado')===hojeAv){ bar.className=''; bar.textContent='' }
   else if(bloqueioNivel==='aviso'){
-    const n=b.diasRestantes;
-    bar.className='show a'; /* 16/10/2026: apelo (pedido do dono); nunca falar em bloqueio */
-    bar.innerHTML='<div class="apwrap"><span class="aptri" aria-hidden="true"><svg viewBox="0 0 64 56"><path d="M32 3L61 52H3z" fill="#ef4444" stroke="#fff" stroke-width="3.5" stroke-linejoin="round"/><path d="M32 19v16" stroke="#fff" stroke-width="6" stroke-linecap="round"/><circle cx="32" cy="44" r="3.6" fill="#fff"/></svg></span>'+
-      '<div class="apbox">'+(fechavel?'<button type="button" class="apx" aria-label="Fechar o aviso até amanhã" title="Fechar até amanhã">×</button>':'')+'<b>Fatura vencida: faltam '+n+(n===1?' dia':' dias')+' para a suspensão do seu acesso ao aplicativo.</b>'+
-      '<span>Em caso de roubo, é pelo app que você localiza e protege o seu veículo. Não fique sem essa proteção.</span><em>Toque para pagar</em></div></div>';
+    bar.className='show led'+(fechavel?' fx':''); bar.innerHTML=ledHtml('aviso',b,fechavel);
   } else if(bloqueioNivel==='confianca'){
-    bar.className='show c'; bar.textContent='Acesso ao aplicativo liberado até '+fmtHora(b.ateMs)+'. Pague a fatura para manter seu acesso. Toque para pagar.';
+    bar.className='show led'; bar.innerHTML=ledHtml('confianca',b,false);
   } else { bar.className=''; bar.textContent='' }
   if($('fview').classList.contains('show')) bar.classList.remove('show');
-  try{ letreiroAplicar() }catch(e){}
   try{ setTimeout(()=>map.invalidateSize(),50) }catch(e){}
   if(trav) irPara('Faturas');
 }
-$('letreiro').addEventListener('click',e=>{ e.stopPropagation(); irPara('Faturas') });
 $('avisoPag').onclick=e=>{
   if(e.target.closest('.apx')){ /* fecha só até amanhã */
     e.stopPropagation(); lsSet('rg_aviso_fechado',new Date(Date.now()-3*3600000).toISOString().slice(0,10));
