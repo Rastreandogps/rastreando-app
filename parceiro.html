@@ -50,8 +50,13 @@ textarea.fld{height:70px;padding:10px 12px;resize:vertical}
 .cats.so button[data-cat] span{font-size:24px}
 .cats button.troca{flex-direction:row;justify-content:center;padding:0 16px;color:var(--red);font-size:14px;border-style:dashed}
 .dois{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.chk{display:flex;align-items:center;gap:10px;font-size:14px;margin:2px 0 12px;cursor:pointer}
-.chk input{width:20px;height:20px;flex:none}
+/* 26/10/2026 (dono): opções viram chavinhas, em faixas com título e explicação */
+.chk{display:flex;align-items:center;gap:12px;margin:0 0 10px;padding:12px 14px;border-radius:14px;border:1px solid var(--line);background:var(--card2);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background .2s,border-color .2s}
+.chk span{flex:1;min-width:0}.chk b{display:block;font-size:15px}.chk small{display:block;font-size:12px;color:var(--mut);margin-top:2px;line-height:1.35}
+.chk input{appearance:none;-webkit-appearance:none;margin:0;flex:none;width:50px;height:28px;border-radius:99px;background:#c7ccd6;position:relative;cursor:pointer;transition:background .2s}
+.chk input::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:transform .2s}
+.chk input:checked{background:var(--green)}.chk input:checked::after{transform:translateX(22px)}
+.chk:has(input:checked){border-color:rgba(51,209,122,.55);background:rgba(51,209,122,.10)}
 .err{color:var(--red);font-size:13px;min-height:18px;margin:4px 0 8px}
 .status{display:inline-block;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:800}
 .st-rascunho{background:rgba(154,163,178,.18);color:var(--mut)}
@@ -217,13 +222,13 @@ textarea.fld{height:70px;padding:10px 12px;resize:vertical}
       <div class="ok" id="pfEndOk" hidden></div>
       <button class="linkbtn" id="bAqui" type="button">📍 Usar minha localização agora</button>
       <p class="aviso" id="pfEndSeg" style="border:1px solid rgba(22,163,74,.45);background:rgba(22,163,74,.08);border-radius:10px;padding:10px 12px;margin:8px 0"></p>
-      <label class="chk"><input type="checkbox" id="pfLoja"> Loja aberta ao público (mostra o ponto exato no mapa; desmarcado mostra só a região)</label>
-      <label class="chk"><input type="checkbox" id="pfLocal"> Vou até o cliente</label>
+      <label class="chk"><span><b>Loja aberta ao público</b><small>Ligado: o ponto exato aparece no mapa. Desligado: só uma região aproximada.</small></span><input type="checkbox" id="pfLoja"></label>
+      <label class="chk"><span><b>Vou até o cliente</b><small>Atendo no local onde o veículo está.</small></span><input type="checkbox" id="pfLocal"></label>
       <div class="dois" id="pfDeslBox">
         <div><label class="l">Atendo até (km)</label><input class="fld" id="pfRaio" inputmode="numeric" autocomplete="off" placeholder="15"></div>
         <div><label class="l">Taxa de deslocamento (R$)</label><input class="fld" id="pfDesl" inputmode="decimal" autocomplete="off" placeholder="0,00"></div>
       </div>
-      <label class="chk"><input type="checkbox" id="pf24"> Atendo 24 horas</label>
+      <label class="chk"><span><b>Atendo 24 horas</b><small>Inclusive de madrugada e fim de semana.</small></span><input type="checkbox" id="pf24"></label>
       <label class="l">Horário de atendimento</label>
       <input class="fld" id="pfHor" maxlength="60" placeholder="Ex.: Seg a Sáb, 8h às 20h" autocomplete="off">
       <label class="l" style="margin-top:6px">Serviços e preços "a partir de"</label>
