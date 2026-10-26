@@ -3459,6 +3459,8 @@ nav button.on .nemo.txt{color:var(--red2)}
     <div class="fldscan"><input class="fld" id="eImei" inputmode="numeric" autocomplete="off"><button type="button" id="eScan" aria-label="Escanear o código do IMEI com a câmera" title="Escanear com a câmera"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3"/><path d="M7 8v8M10 8v8M13 8v8M16.5 8v8"/></svg></button></div>
     <label class="flbl" for="eTipo">Tipo de aparelho</label>
     <select class="fld" id="eTipo"><option value="">Automático (pelo IMEI)</option><option value="rastreador">Rastreador</option><option value="tag">Tag (K-TAG)</option></select>
+    <!-- 26/10/2026 (pedido do dono): bloqueio marcado veículo por veículo, só pelo administrador -->
+    <label class="rnplck" style="height:auto;min-height:46px;margin:10px 0 4px;padding:10px 12px;white-space:normal;line-height:1.3"><input type="checkbox" id="eSemBloq"><span>Este veículo não tem bloqueio<br><small style="font-weight:400;color:var(--mut)">O cliente não vê o botão de bloquear neste veículo</small></span></label>
     <label class="flbl">Ícone no mapa</label>
     <div class="icpick" id="eIcone"></div>
     <div class="iccores" id="eIcCor"></div>
@@ -10419,6 +10421,7 @@ function abrirEquip(id){
   $('eImei').value = v ? v.imei : ''; $('eImei').disabled = !!v; $('eScan').hidden = !!v;
   $('eFone').value = v ? fmtFone(v.fone) : '';
   eqIcone = v ? (v.icone||'') : ''; eqIcCor = v ? (v.iconeCor||'') : ''; icPickDesenhar(); /* 16/10/2026 */
+  $('eSemBloq').checked = !!(v && v.semBloq); /* 26/10/2026 */
   $('eTipo').value = (v && v.raw && v.raw.attributes && ['tag','rastreador'].includes(v.raw.attributes.tipoAparelho)) ? v.raw.attributes.tipoAparelho : ''; /* 16/10/2026 */
   $('eBuscaCli').value='';
   eqSel=new Set(); eqAntes=new Set(); eqPronto=!v;
@@ -10636,10 +10639,11 @@ $('eSalvar').onclick=async ()=>{
       const at=Object.assign({},(v.raw&&v.raw.attributes)||{});
       if(placa) at.placa=placa; else delete at.placa;
       if($('eTipo').value) at.tipoAparelho=$('eTipo').value; else delete at.tipoAparelho; /* 16/10/2026 */
+      if($('eSemBloq').checked) at.semBloqueio=true; else delete at.semBloqueio; /* 26/10/2026 */
       if(eqIcone){ at.icone=eqIcone; if(eqIcCor) at.iconeCor=eqIcCor; else delete at.iconeCor } else { delete at.icone; delete at.iconeCor } /* 16/10/2026 */
       r=await api('/api/devices/'+editandoId,{method:'PUT',headers:JSONH,body:JSON.stringify(Object.assign({},v.raw,{name:nome,phone:fone,contact:email,attributes:at}))});
     } else {
-      r=await api('/api/devices',{method:'POST',headers:JSONH,body:JSON.stringify({name:nome,uniqueId:imei,phone:fone,contact:email,attributes:Object.assign(placa?{placa:placa}:{},$('eTipo').value?{tipoAparelho:$('eTipo').value}:{},eqIcone?{icone:eqIcone}:{},eqIcone&&eqIcCor?{iconeCor:eqIcCor}:{},{cadastradoEm:hojeIso()})})});
+      r=await api('/api/devices',{method:'POST',headers:JSONH,body:JSON.stringify({name:nome,uniqueId:imei,phone:fone,contact:email,attributes:Object.assign(placa?{placa:placa}:{},$('eTipo').value?{tipoAparelho:$('eTipo').value}:{},eqIcone?{icone:eqIcone}:{},eqIcone&&eqIcCor?{iconeCor:eqIcCor}:{},$('eSemBloq').checked?{semBloqueio:true}:{},{cadastradoEm:hojeIso()})})});
     }
     if(!r.ok) throw new Error(await msgErro(r,'Não foi possível salvar o equipamento'));
     const d=await r.json();
