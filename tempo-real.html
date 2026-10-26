@@ -13597,7 +13597,7 @@ const pcKm=k=>k==null?'':(k<1?String(k).replace('.',','):Math.round(k))+' km';
 /* 26/10/2026 (dono): o prestador marca o que atende (carro, moto, caminhão/diesel); o tipo do veículo do cliente vem do ícone escolhido */
 const PC_ATD={carro:'🚗 Carro',moto:'🏍️ Moto',diesel:'🚚 Diesel'};
 function pcVeicTipo(v){ const ic=v&&v.icone||''; return !ic?'':/^moto/.test(ic)?'moto':/caminhao|prancha|onibus|truck/.test(ic)?'diesel':'carro' }
-const pcAtdHtml=p=>(p.atende||[]).length?'<span class="pcatd">'+p.atende.map(k=>PC_ATD[k]||k).join(' · ')+'</span>':'';
+const pcAtdHtml=p=>(p.atende||[]).length?'<span class="pcatd">'+p.atende.map(k=>(k==='diesel'&&pcCat==='insulfilme')?'🚚 Caminhão':(PC_ATD[k]||k)) /* 26/10/2026: no insulfilme, sem "diesel" */.join(' · ')+'</span>':'';
 function pcDesenhar(nome,anexar){ /* anexar=true: junta aos reboquistas com rastreador já desenhados (chip Reboque) */
   rbMapaPreparar(); if(!anexar) rbCamada.clearLayers();
   const pts=[], v=rbCarroAtual;
