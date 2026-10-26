@@ -13795,7 +13795,7 @@ $('paLista').addEventListener('click',async e=>{
 });
 $('paCopiar').onclick=()=>copiarTexto(PC_LINK).then(()=>toast('Link copiado')).catch(()=>toast(PC_LINK,6000));
 /* 26/10/2026 (dono): convite pronto, bonito e atrativo, para trazer prestadores e encher o mapa */
-const PC_CONVITE=['🚗🔧 *Divulgue seu negócio GRÁTIS no app da Rastreando GPS!*','Reboque, chaveiro, borracheiro, mecânico, insulfilme e mais: apareça no mapa para nossos clientes e receba os chamados direto no seu WhatsApp.','👉 Cadastre-se: '+PC_LINK].join('\n'); /* 26/10/2026 (dono): curto, 3 linhas */
+const PC_CONVITE=['🚀 Que tal divulgar seu trabalho para milhares de pessoas? E o melhor: GRATUITAMENTE!','','📍 A Rastreando GPS quer colocar seu negócio no mapa! Cadastre seus serviços e seja encontrado por clientes do nosso aplicativo.','','🔒 Tudo grátis, com segurança e discrição!','🤝 Você oferece o serviço, nós ajudamos a divulgar!','','👇 Cadastre-se gratuitamente:',PC_LINK].join('\n'); /* 26/10/2026: texto do dono */ /* 26/10/2026 (dono): curto, 3 linhas */
 $('paWpp').onclick=()=>window.open('https://wa.me/?text='+encodeURIComponent(PC_CONVITE),'_blank','noopener');
 $('aParc').onclick=()=>rbAbrir(true); /* 26/10/2026: aperto de mãos = mapa dos prestadores (a lista de parceiros fica no painel da moeda) */
 
