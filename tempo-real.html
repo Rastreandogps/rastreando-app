@@ -183,6 +183,20 @@ body.mapa-google #map .leaflet-top.leaflet-left .leaflet-control-attribution{mar
 .pcdlin span{font-size:12px;font-weight:700;padding:5px 10px;border-radius:999px;background:var(--card2);border:1px solid var(--line);color:var(--txt)}
 .pcdlin span.ok{background:rgba(22,163,74,.12);border-color:rgba(22,163,74,.4);color:#16a34a}
 .pcdtit{font-size:12px;font-weight:800;letter-spacing:.3px;text-transform:uppercase;color:var(--mut);margin:6px 0 2px}
+#mParcWeb{align-items:flex-end}
+#mParcWeb .pwbox{width:100%;max-width:640px;height:80%;background:var(--bg);border-radius:20px 20px 0 0;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 -10px 30px rgba(0,0,0,.35);animation:pwSobe .25s ease-out}
+@keyframes pwSobe{from{transform:translateY(40px);opacity:.6}to{transform:none;opacity:1}}
+#mParcWeb .pwtopo{flex:none;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px 10px 18px;border-bottom:1px solid var(--line);background:var(--card)}
+#mParcWeb .pwtopo b{font-size:16px}
+#mParcWeb .pwx{width:48px;height:48px;border-radius:50%;border:1px solid var(--line);background:var(--card2);display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none}
+#mParcWeb .pwx svg{width:24px;height:24px;fill:none;stroke:var(--txt);stroke-width:2.6;stroke-linecap:round}
+#mParcWeb iframe{flex:1;width:100%;border:0;background:#f4f6f9}
+.rbresp{margin-top:8px;font-size:12.5px;line-height:1.45;color:var(--txt);background:rgba(227,38,47,.08);border:1.5px solid rgba(227,38,47,.55);border-radius:12px;padding:9px 12px}
+.rbresp b{color:#e3262f}
+/* 26/10/2026 (dono): todas as categorias à vista (sem rolar para o lado) */
+#mReboques .pccats{flex-wrap:wrap;overflow:visible;gap:6px}
+#mReboques .pccat{padding:7px 11px;font-size:12.5px}
+#mReboques .pccat span{font-size:14px}
 .pcdaviso{font-size:12px;line-height:1.45;color:var(--mut);background:rgba(224,168,0,.10);border:1px solid rgba(224,168,0,.4);border-radius:12px;padding:10px 12px;margin-bottom:4px}
 .pcdaviso b{color:var(--txt)}
 #rbRola{flex:1 1 auto;min-height:120px;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;position:relative}
@@ -3990,17 +4004,22 @@ nav button.on .nemo.txt{color:var(--red2)}
     <div id="rbMapa"></div>
     <div id="rbRola"><div id="rbLista"></div></div><button type="button" class="pcmais" id="pcMais" hidden></button>
     <!-- 26/10/2026 (dono): só o mapa; tocar no ícone abre a janela do prestador. Texto reforça que o prestador é independente -->
-    <div class="rbnota" id="pcNota" hidden>Cada círculo é a <b>região aproximada</b> do prestador (o endereço exato não é mostrado). Preços "a partir de": o valor final é combinado direto com ele. <b>O serviço é feito por um prestador independente</b>, que não é da Rastreando GPS: a Rastreando só faz a ponte e não se responsabiliza pelo serviço.</div>
-    <div class="rbnota" id="rbNota">Cada círculo é a <b>região aproximada</b> da base do reboque (o endereço exato não é mostrado). Os valores são <b>estimativas</b> feitas pelo app com a tabela de cada reboquista; pedágio e adicionais (noite, fim de semana, subsolo) são combinados direto com ele. <b>O serviço é feito por um prestador independente</b>, que não é da Rastreando GPS: a Rastreando só faz a ponte e não se responsabiliza pelo serviço.</div>
+    <div class="rbnota" id="pcNota" hidden>Cada círculo é a <b>região aproximada</b> do prestador (o endereço exato não é mostrado). Preços "a partir de": o valor final é combinado direto com ele.<div class="rbresp">⚠️ <b>A Rastreando GPS não se responsabiliza pelo serviço.</b> Ele é feito por um prestador independente, que não é da Rastreando; a gente só faz a ponte.</div></div>
+    <div class="rbnota" id="rbNota">Cada círculo é a <b>região aproximada</b> da base do reboque (o endereço exato não é mostrado). Os valores são <b>estimativas</b> feitas pelo app com a tabela de cada reboquista; pedágio e adicionais (noite, fim de semana, subsolo) são combinados direto com ele.<div class="rbresp">⚠️ <b>A Rastreando GPS não se responsabiliza pelo serviço.</b> Ele é feito por um prestador independente, que não é da Rastreando; a gente só faz a ponte.</div></div>
     <div class="rtacoes"><button class="btn btn-out" id="rbAtualizar" type="button">Atualizar</button><button class="btn btn-out" data-close type="button">Fechar</button></div>
   </div>
+</div>
+<!-- 26/10/2026 (dono): "Ofereça seu serviço" abre o app dos parceiros numa aba por cima do app (o app aparece por trás), com X grande para fechar -->
+<div class="modal" id="mParcWeb">
+  <div class="pwbox"><div class="pwtopo"><b>Ofereça seu serviço</b><button type="button" class="pwx" id="pwX" aria-label="Fechar e voltar ao app" title="Fechar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+  <iframe id="pwFrame" title="App dos parceiros" allow="geolocation; clipboard-write"></iframe></div>
 </div>
 <!-- 26/10/2026 (dono): janela do prestador, aberta ao tocar no ícone do mapa -->
 <div class="modal alsheet" id="mPcDet">
   <div class="box2 pcdbox">
     <div class="pcdtopo"><span class="pcdic" id="pcdIc"></span><div class="pcdtt"><b id="pcdNome"></b><small id="pcdSub"></small></div><button class="almx" id="pcdX" type="button" aria-label="Fechar" title="Fechar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
     <div class="pcdrola"><div class="rtit pcdcorpo" id="pcDetCorpo"></div>
-    <div class="pcdaviso"><b>Prestador independente.</b> O serviço é feito por ele, por conta própria; ele não é funcionário da Rastreando GPS. A Rastreando só faz a ponte e não se responsabiliza pelo serviço nem pelo valor combinado.</div></div>
+    <div class="rbresp">⚠️ <b>A Rastreando GPS não se responsabiliza pelo serviço nem pelo valor combinado.</b> Ele é feito por um prestador independente, por conta própria, que não é funcionário da Rastreando; a gente só faz a ponte.</div></div>
   </div>
 </div>
 <div class="modal alsheet" id="mRbCota">
@@ -13147,10 +13166,8 @@ function rbAplicar(){
   if(!ehAdmin && !pp){
     pp=document.createElement('button'); pp.className='maiscard'; pp.id='maisParceiro'; pp.type='button';
     pp.innerHTML='<span class="mic t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m11 17 2 2a1 1 0 1 0 3-3"/><path d="m14 14 2.5 2.5a1 1 0 1 0 3-3l-3.88-3.88a3 3 0 0 0-4.24 0l-.88.88a1 1 0 1 1-3-3l2.81-2.81a5.79 5.79 0 0 1 7.06-.87l.47.28a2 2 0 0 0 1.42.25L21 4"/><path d="m21 3 1 11h-2"/><path d="M3 3 2 14l6.5 6.5a1 1 0 1 0 3-3"/><path d="M3 4h8"/></svg></span><b>Ofereça seu serviço</b><small>Reboque, chaveiro, mecânico e mais: apareça no mapa para os clientes</small>';
-    pp.onclick=()=>{ /* 26/10/2026 (dono): abre FORA do app, numa guia do navegador */
-      const url=new URL('parceiro.html?de=app',location.href).href, inst=window.matchMedia&&matchMedia('(display-mode: standalone)').matches;
-      if(inst && /Android/i.test(navigator.userAgent)){ location.href='intent://'+url.replace(/^https?:\/\//,'')+'#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url='+encodeURIComponent(url)+';end'; return }
-      const w=window.open(url,'_blank','noopener'); if(!w) location.href=url };
+    pp.onclick=()=>{ /* 26/10/2026 (dono): abre numa aba POR CIMA do app (o app aparece atrás), com X grande para fechar */
+      $('pwFrame').src=new URL('parceiro.html?de=aba',location.href).href; abrir('mParcWeb') };
     grid.insertBefore(pp,$('maisConta'));
   }
   if(ehAdmin && pp) pp.remove();
@@ -13698,6 +13715,7 @@ function pcDetAbrir(tipo,i){
   if(!reb){ pcAberto=i; pcMarcar() }
   abrir('mPcDet'); try{ $('mPcDet').querySelector('.pcdrola').scrollTop=0 }catch(e){}
 }
+$('pwX').onclick=()=>{ $('mParcWeb').classList.remove('show'); setTimeout(()=>{ try{ $('pwFrame').src='about:blank' }catch(e){} },250) }; /* 26/10/2026: fecha só a aba dos parceiros */
 $('pcdX').onclick=()=>{ $('mPcDet').classList.remove('show'); document.querySelectorAll('#rbMapa .rbico.on').forEach(e=>e.classList.remove('on')); pcAberto=-1; try{ pcMarcar() }catch(e){} };
 function pcSel(i,doMapa){ if(doMapa){ pcDetAbrir('pc',i); return } /* 26/10/2026: o mapa abre a janela */
   pcAberto=(pcAberto===i&&!doMapa)?-1:i;

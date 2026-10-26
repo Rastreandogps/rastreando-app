@@ -26,6 +26,7 @@ header{display:flex;align-items:center;gap:12px;padding:18px 0 14px}
 header img{width:44px;height:44px;border-radius:50%;object-fit:cover;flex:none}
 header h1{font-size:18px;font-weight:800;letter-spacing:.3px}
 header small{display:block;color:var(--mut);font-size:12.5px;font-weight:500}
+html.comx header{padding-right:64px} /* 26/10/2026: espaço para o X */
 header .sair{margin-left:auto;background:none;border:1px solid var(--line);color:var(--mut);border-radius:10px;padding:8px 10px;font:inherit;font-size:13px;cursor:pointer}
 .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:12px}
 .card h2{font-size:16px;margin-bottom:4px}
@@ -149,12 +150,13 @@ textarea.fld{height:70px;padding:10px 12px;resize:vertical}
 </head>
 <body>
 <!-- 26/10/2026 (dono): aberto pelo app de rastreamento ("Ofereça seu serviço") dentro da janela do app, não havia como voltar -->
-<div id="voltarApp" hidden style="position:sticky;top:0;z-index:50;background:#14181f;color:#fff;padding:10px 14px;display:flex;align-items:center;gap:10px;font-weight:700;font-size:15px;cursor:pointer">
-  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>Voltar ao app Rastreando
-</div>
+<!-- 26/10/2026 (dono): em vez da barra "Voltar ao app", um X grande no canto (todo mundo entende que fecha) -->
+<button type="button" id="voltarApp" hidden aria-label="Fechar e voltar ao app" title="Fechar" style="position:fixed;top:calc(10px + env(safe-area-inset-top));right:12px;z-index:60;width:50px;height:50px;border-radius:50%;border:1px solid #d9dee6;background:#fff;box-shadow:0 4px 14px rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center;cursor:pointer">
+  <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#14181f" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+</button>
 <script>(function(){ try{
   const q=new URLSearchParams(location.search), noApp=(window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone===true;
-  if(q.get('de')==='app'&&noApp){ const v=document.getElementById('voltarApp'); v.hidden=false; v.onclick=()=>{ if(history.length>1) history.back(); else location.href='tempo-real.html' } }
+  if(q.get('de')==='app'&&noApp){ const v=document.getElementById('voltarApp'); v.hidden=false; v.onclick=()=>{ if(history.length>1) history.back(); else location.href='tempo-real.html' }; document.documentElement.classList.add('comx') }
 }catch(e){} })();</script>
 <div class="wrap">
   <header>
