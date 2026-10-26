@@ -3098,7 +3098,7 @@ nav button.on .nemo.txt{color:var(--red2)}
         <button class="aico" id="aEmerg" title="Modo emergência (lista copiada, planilha e SMS para a plataforma reserva)" aria-label="Modo emergência"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18v.5"/></svg></button>
         <button class="aico" id="aPlacas" title="Leitor de placas" aria-label="Leitor de placas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M2 9.5h20"/><path d="M6 14h3M11 14h2M15 14h3"/></svg></button><!-- 23/10/2026 -->
         <button class="aico adr" id="aDourada" title="Fichas douradas: pendências" aria-label="Fichas douradas: pendências"><span class="drcoin"></span><span class="fila" id="aDouradaN"></span></button><!-- 25/10/2026 -->
-        <button class="aico adr" id="aParc" title="Parceiros (prestadores de serviço)" aria-label="Parceiros"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/></svg><span class="fila" id="aParcN"></span></button><!-- 25/10/2026 -->
+        <button class="aico adr" id="aParc" title="Mapa dos prestadores" aria-label="Mapa dos prestadores"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m11 17 2 2a1 1 0 1 0 3-3"/><path d="m14 14 2.5 2.5a1 1 0 1 0 3-3l-3.88-3.88a3 3 0 0 0-4.24 0l-.88.88a1 1 0 1 1-3-3l2.81-2.81a5.79 5.79 0 0 1 7.06-.87l.47.28a2 2 0 0 0 1.42.25L21 4"/><path d="m21 3 1 11h-2"/><path d="M3 3 2 14l6.5 6.5a1 1 0 1 0 3-3"/><path d="M3 4h8"/></svg></button><!-- 25/10/2026 -->
         <button class="aico anovo" id="aNovo" title="Novo equipamento" aria-label="Novo equipamento"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span class="fila" id="aNovoFila"></span></button>
       </div>
       <div class="ameta"><button class="emlink" id="aEmerg2" type="button">⚠ Modo emergência</button><b id="aCount"></b><span id="aFinTxt"></span><span id="aTabNome" hidden></span></div>
@@ -13015,11 +13015,12 @@ async function mrSwTrocar(){
 }
 /* o carro do cliente que entra na conta: o selecionado; senão, o primeiro com posição */
 function rbCarro(){ return ativo() || veiculos.find(v=>v.pos && v.visivel && !v.tag) || veiculos.find(v=>v.pos) || null }
-function rbAbrir(){ abrir('mReboques'); pcCatsDesenhar(); try{ if(drPode()) drCarregar(true) }catch(e){} rbCarregar() }
+let pcAdmMapa=false; /* 26/10/2026 (dono): admin abre o mapa dos prestadores sem veículo */
+function rbAbrir(adm){ pcAdmMapa=adm===true; abrir('mReboques'); pcCatsDesenhar(); try{ if(drPode()) drCarregar(true) }catch(e){} rbCarregar() }
 async function rbCarregar(){
   if(pcCat!=='reboque'){ $('rbAtualizar').disabled=true; await pcCarregar(); $('rbAtualizar').disabled=false; return } /* 25/10/2026: categorias de parceiros */
   $('rbSub').textContent='Procurando reboques disponíveis...'; $('rbAtualizar').disabled=true; $('rbLista').innerHTML='';
-  rbCarroAtual=rbCarro();
+  rbCarroAtual=pcAdmMapa?null:rbCarro();
   try{
     const extra={}; if(rbCarroAtual&&rbCarroAtual.pos){ extra.lat=rbCarroAtual.pos[0]; extra.lon=rbCarroAtual.pos[1] }
     const [j,pj]=await Promise.all([rbApi('reboqueListar',extra),rbApi('parcListar',Object.assign({categoria:'reboque'},extra)).catch(()=>({lista:[]}))]);
@@ -13446,7 +13447,7 @@ $('rbCats').addEventListener('click',e=>{ const b=e.target.closest('[data-pccat]
 async function pcCarregar(){
   const nome=(PC_CATS.find(c=>c[0]===pcCat)||[])[1]||'';
   $('rbSub').textContent='Procurando '+nome.toLowerCase()+' perto de você...'; $('rbLista').innerHTML='';
-  rbCarroAtual=rbCarro();
+  rbCarroAtual=pcAdmMapa?null:rbCarro();
   try{
     const extra={categoria:pcCat}; if(rbCarroAtual&&rbCarroAtual.pos){ extra.lat=rbCarroAtual.pos[0]; extra.lon=rbCarroAtual.pos[1] }
     const j=await rbApi('parcListar',extra); pcLista=(j.lista||[]).slice().sort((a,b)=>(a.distKm==null?1e9:a.distKm)-(b.distKm==null?1e9:b.distKm)); pcDesenhar(j.categoriaNome||nome);
@@ -13597,7 +13598,7 @@ $('paLista').addEventListener('click',async e=>{
 });
 $('paCopiar').onclick=()=>copiarTexto(PC_LINK).then(()=>toast('Link copiado')).catch(()=>toast(PC_LINK,6000));
 $('paWpp').onclick=()=>window.open('https://wa.me/?text='+encodeURIComponent('Olá! Quer aparecer para os clientes da Rastreando GPS que precisam de '+'chaveiro, borracheiro, mecânico, eletricista, despachante ou lava-jato? O cadastro é grátis: '+PC_LINK),'_blank','noopener');
-$('aParc').onclick=pcAdmAbrir;
+$('aParc').onclick=()=>rbAbrir(true); /* 26/10/2026: aperto de mãos = mapa dos prestadores (a lista de parceiros fica no painel da moeda) */
 
 setInterval(()=>{ if(ehAdmin && !document.hidden) drAdmContar() },300000);
 /* ===== PARA RETIRAR (18/10/2026, pedido do dono) =====
