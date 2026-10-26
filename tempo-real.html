@@ -1524,6 +1524,7 @@ body.hist-on #mapCar{display:none!important}
   background:linear-gradient(180deg,#22b8d6,#0891b2);box-shadow:0 4px 0 #066a80,0 6px 14px rgba(0,0,0,.35);-webkit-tap-highlight-color:transparent;transition:transform .08s,box-shadow .08s}
 .ruacel .rcgirar:active{transform:translateY(3px);box-shadow:0 1px 0 #066a80,0 2px 6px rgba(0,0,0,.3)}
 .ruacel.foto .rcgirar{display:block}
+.ruacel.trava{background:linear-gradient(135deg,#9cc8ee 0 45%,#b9c2ca 45% 62%,#6b7280 62%)!important}.ruacel.trava::before{content:"";position:absolute;inset:0;backdrop-filter:blur(3px);background:rgba(15,23,42,.45)}.ruacel.trava .rcmsg{color:#fff;z-index:1}.ruacel.trava .rcmsg b{display:block;color:#facc15} /* 26/10/2026: celular sem Premium */
 .ruacel.foto .rctag{bottom:10px}
 .ruacel.foto .rctag{max-width:calc(100% - 110px)}
 @media (min-width:900px){ #sheet.comruacel .ruacel{display:none!important} }
@@ -8014,7 +8015,7 @@ function ruaAtualizar(v){
   const cel=ruaCelPode();
   if(!v || !v.pos || (!cel && (!ehPrime() || !telaLarga() || (ehAdmin && !ruaAdmLigada()))) || sheet.style.display==='none'){ ruaEsconder(); return }
   ruaCelLigar(cel);
-  if(!cel && !modFrota()){ RUA.mostrando=''; ruaPintar('trava','🔒 Vista da rua<b>⭐ Premium</b>',null,null,'🔒 Vista da rua<b>⭐ Assinar Premium</b><small>Veja a foto da rua onde o veículo está parado</small>'); return }
+  if(!modFrota()){ RUA.mostrando=''; ruaPintar('trava', /* 26/10/2026 (dono): Premium nos dois — no celular a permissão só mostra o quadro; a foto exige Premium */'🔒 Vista da rua<b>⭐ Premium</b>',null,null,'🔒 Vista da rua<b>⭐ Assinar Premium</b><small>Veja a foto da rua onde o veículo está parado</small>'); return }
   const lat=+v.pos[0], lon=+v.pos[1], andando=v.vel>2 && v.ign!==false, agora=Date.now();
   let pr=RUA.parada[v.id];
   if(andando){ RUA.parada[v.id]={lat,lon,t:agora,andou:true}; ruaPintar('','🚗 Em movimento',null,null,ruaComLogo('🚗 Em movimento')); return }
@@ -8075,7 +8076,7 @@ async function ruaGirar(){
 }
 ['pointerdown','touchstart'].forEach(t=>$('ruaCelGirar').addEventListener(t,e=>e.stopPropagation(),{passive:true}));
 $('ruaCelGirar').addEventListener('click',e=>{ e.preventDefault(); e.stopPropagation(); ruaGirar() });
-$('ruaCel').addEventListener('click',e=>{ e.stopPropagation(); if(e.target.closest('#ruaCelGirar')) return; const v=veiculos.find(x=>x.id===selId); if(!v||!v.pos) return;
+$('ruaCel').addEventListener('click',e=>{ e.stopPropagation(); if($('ruaCel').classList.contains('trava')){ premiumOferecer(); return } if(e.target.closest('#ruaCelGirar')) return; const v=veiculos.find(x=>x.id===selId); if(!v||!v.pos) return;
   window.open('https://www.google.com/maps/@?api=1&map_action=pano&viewpoint='+v.pos[0].toFixed(6)+','+v.pos[1].toFixed(6),'_blank','noopener') });
 $('ruaCelImg').addEventListener('error',()=>{ const k=RUA.mostrando; if(k) RUA.ponto[k]={erro:Date.now()}; RUA.mostrando=''; ruaRedesenhar() });
 $('vRuaImg').addEventListener('error',()=>{ /* sem foto no ponto ou limite do dia atingido: não tenta de novo nesta abertura */
