@@ -1533,7 +1533,7 @@ body.premteste #ruaBox.foto + #ruaTeste{display:block}
 #sheet.comruacel .vrua{display:none!important} /* no celular a foto fica só no quadro grande */
 #sheet.comruacel #sOdoBtn,#sheet.comruacel #sCombBtn,#sheet.comruacel #sLojaBtn,#sheet.comruacel #sFatBtn{display:none!important}
 #odoRow{display:none}
-#sheet.comruacel #odoRow.on{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;margin-top:8px}
+#sheet.comruacel #odoRow.on{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;margin-top:12px}
 #sheet.comruacel #odoRow #sOdoBtn,#sheet.comruacel #odoRow #sCombBtn{display:flex!important;flex-direction:column;align-items:flex-start;justify-content:center;min-height:56px;padding:8px 14px;margin:0}
 #sheet.comruacel .actions.comodo #sOdoBtn,#sheet.comruacel .actions.comodo #sCombBtn{display:flex!important;flex-direction:column;align-items:flex-start;justify-content:center;min-height:52px;padding:6px 10px;margin:0} /* 26/10/2026 */
 #sheet.comruacel .grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,3fr)}
@@ -1757,6 +1757,11 @@ h3.comdica .dica:hover~.dicatx,h3.comdica .dica:focus~.dicatx,h3.comdica .dica.o
     box-shadow:0 3px 0 rgba(15,23,42,.14),0 6px 12px rgba(15,23,42,.12);transition:transform .08s,box-shadow .08s;-webkit-tap-highlight-color:transparent}
   #sheet #btnSmsMenu:active,#sheet #btnShare:active,#sheet #btnNavMini:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(15,23,42,.14),0 2px 5px rgba(15,23,42,.12)}
   :root:not([data-tema="claro"]) #sheet #btnSmsMenu,:root:not([data-tema="claro"]) #sheet #btnShare,:root:not([data-tema="claro"]) #sheet #btnNavMini{background:linear-gradient(180deg,rgba(255,255,255,.08),var(--card2));box-shadow:0 3px 0 rgba(0,0,0,.55),0 6px 12px rgba(0,0,0,.35)}
+  /* 26/10/2026 (pedido do dono): Odômetro e Combustível (vista da rua no celular) com a mesma cara de botão 3D */
+  #sheet #odoRow .statbtn,#sheet .actions.comodo .statbtn{border:1px solid var(--line);background:linear-gradient(180deg,#fff,var(--card2));
+    box-shadow:0 3px 0 rgba(15,23,42,.14),0 6px 12px rgba(15,23,42,.12);transition:transform .08s,box-shadow .08s;-webkit-tap-highlight-color:transparent}
+  #sheet #odoRow .statbtn:active,#sheet .actions.comodo .statbtn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(15,23,42,.14),0 2px 5px rgba(15,23,42,.12)}
+  :root:not([data-tema="claro"]) #sheet #odoRow .statbtn,:root:not([data-tema="claro"]) #sheet .actions.comodo .statbtn{background:linear-gradient(180deg,rgba(255,255,255,.08),var(--card2));box-shadow:0 3px 0 rgba(0,0,0,.55),0 6px 12px rgba(0,0,0,.35)}
 }
 #sheet.comruacel .navrow{display:none!important} /* 23/10/2026: com a vista da rua no celular, "Navegar" vai para a linha de cima e "Ver a rua" sai (a foto já abre a rua) */
 #admSmsRow{display:none;margin-top:8px;gap:8px}
