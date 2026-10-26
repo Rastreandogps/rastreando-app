@@ -262,6 +262,7 @@ body.mapa-google #map .leaflet-top.leaflet-left .leaflet-control-attribution{mar
 .pcrow .pcchev{flex:none;width:18px;height:18px;transition:transform .2s;stroke:var(--mut);fill:none;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
 .pcit.on .pcchev{transform:rotate(180deg)}
 .pcdet{margin-top:8px}
+.pcpino.reg{border-style:dashed}
 .pcpino.on{border-width:3px;transform:scale(1.18);box-shadow:0 0 0 4px rgba(227,38,47,.25),0 2px 6px rgba(0,0,0,.35)}
 .pcserv{margin-top:8px;border-top:1px solid var(--line)}
 .pcserv>div{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid var(--line);font-size:13px}
@@ -13460,9 +13461,11 @@ function pcDesenhar(nome,anexar){ /* anexar=true: junta aos reboquistas com rast
   pcMarc=[]; pcAberto=pcLista.length===1?0:-1;
   pcLista.forEach((p,i)=>{ let lay=null, c=null;
     if(p.ponto){ c=[p.ponto.lat,p.ponto.lon]; lay=L.marker(c,{icon:L.divIcon({className:'',html:'<div class="pcpino" id="pcPino'+i+'">'+emo+'</div>',iconSize:[30,30],iconAnchor:[15,15]})}).addTo(rbCamada).bindTooltip(p.nome,{permanent:true,direction:'top',className:'rbtt pctt',offset:[0,-14]}) }
-    else if(p.regiao){ c=[p.regiao.lat,p.regiao.lon]; lay=L.circle(c,{radius:p.regiao.raioM||1500,color:'#e3262f',weight:2,fillColor:'#e3262f',fillOpacity:.10}).addTo(rbCamada).bindTooltip(p.nome,{permanent:true,direction:'center',className:'rbtt pctt',interactive:true}) }
+    else if(p.regiao){ c=[p.regiao.lat,p.regiao.lon]; /* 25/10/2026 (dono): ícone da categoria no meio do círculo (o centro já é deslocado do endereço real) */
+      const circ=L.circle(c,{radius:p.regiao.raioM||1500,color:'#e3262f',weight:1.5,dashArray:'5 5',fillColor:'#e3262f',fillOpacity:.07}).addTo(rbCamada); circ.on('click',()=>pcSel(i,true));
+      lay=L.marker(c,{icon:L.divIcon({className:'',html:'<div class="pcpino reg" id="pcPino'+i+'">'+emo+'</div>',iconSize:[30,30],iconAnchor:[15,15]})}).addTo(rbCamada).bindTooltip(p.nome,{permanent:true,direction:'top',className:'rbtt pctt',offset:[0,-14]}); lay._circ=circ }
     if(lay){ pts.push(c); lay.on('click',()=>pcSel(i,true)); try{ lay.getTooltip().on('click',()=>pcSel(i,true)) }catch(e){} }
-    pcMarc.push({lay,c,circ:!!(lay&&!p.ponto)});
+    pcMarc.push({lay,c,circ:lay&&lay._circ?lay._circ:null});
   });
   if(pts.length){ try{ rbMapa.fitBounds(L.latLngBounds(pts).pad(0.25),{maxZoom:14}) }catch(e){} }
   else if(map){ try{ rbMapa.setView(map.getCenter(),11) }catch(e){} }
@@ -13470,7 +13473,7 @@ function pcDesenhar(nome,anexar){ /* anexar=true: junta aos reboquistas com rast
   const tot=pcLista.length+(anexar?rbLista.length:0);
   $('rbSub').textContent=tot+' '+String(nome).toLowerCase()+(tot>1?'s':'')+' disponíve'+(tot>1?'is':'l')+(v?' · perto de '+v.nome:'');
   const fichas=drPode()&&DR.dados&&DR.dados.ativo&&DR.dados.termoAceito;
-  $('rbLista')[anexar?'insertAdjacentHTML':'innerHTML'](...(anexar?['beforeend']:[]),((pcLista.length>1&&!anexar)?'<div class="pcdica">Toque no mapa ou num nome para ver os serviços e chamar.</div>':'')+pcLista.map((p,i)=>'<div class="rtit pcit'+(i===pcAberto?' on':'')+'" id="pcIt'+i+'"><div class="pcrow" data-pcab="'+i+'"><div><b class="pcn">'+esc(p.nome)+'</b><small>'+
+  const html=((pcLista.length>1&&!anexar)?'<div class="pcdica">Toque no mapa ou num nome para ver os serviços e chamar.</div>':'')+pcLista.map((p,i)=>'<div class="rtit pcit'+(i===pcAberto?' on':'')+'" id="pcIt'+i+'"><div class="pcrow" data-pcab="'+i+'"><div><b class="pcn">'+esc(p.nome)+'</b><small>'+
       (p.h24?'<span style="color:#16a34a;font-weight:700">Atende 24 horas</span>':esc(p.horario||''))+(p.atendeLocal?' · vai até você':'')+'</small></div>'+
       (p.distKm!=null?'<div class="pckm">~'+pcKm(p.distKm)+'<small>do veículo</small></div>':'')+'<svg class="pcchev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></div>'+
     '<div class="pcdet" id="pcDet'+i+'"'+(i===pcAberto?'':' hidden')+'><div class="rtinfo">'+(p.atendeLocal&&p.raioKm?'Vai até você (até '+p.raioKm+' km)':'')+(p.ponto&&p.ponto.end?(p.atendeLocal&&p.raioKm?'<br>':'')+'📍 '+esc(p.ponto.end):'')+'</div>'+
@@ -13480,7 +13483,8 @@ function pcDesenhar(nome,anexar){ /* anexar=true: junta aos reboquistas com rast
     '<div class="rtbt"><a class="wpp" href="https://wa.me/55'+esc(p.wpp)+'?text='+encodeURIComponent(pcMsg(p))+'" target="_blank" rel="noopener">Pedir orçamento</a>'+(p.fone?'<a href="tel:+55'+esc(p.fone)+'">Ligar</a>':'')+
       (fichas?'<a href="#" data-pcpag="'+i+'" class="pcpagbt">'+DR_COIN+' Pagar com fichas</a>':'')+'</div></div>'+
     '<div class="pcpag" id="pcPag'+i+'" hidden><label class="flbl">Valor combinado com o '+esc(String(nome).toLowerCase())+' (R$)</label><div class="rbcbusca"><input class="fld" data-pcval="'+i+'" inputmode="decimal" autocomplete="off" placeholder="0,00"><button class="btn btn-out" type="button" data-pcres="'+i+'">Reservar fichas</button></div><small>Você tem '+((DR.dados&&DR.dados.livres)||0)+' fichas livres. Elas ficam reservadas até o parceiro concluir.</small></div>'+
-  '</div>').join(''));
+  '</div>').join('');
+  if(anexar) $('rbLista').insertAdjacentHTML('beforeend',html); else $('rbLista').innerHTML=html;
 }
 let pcMarc=[], pcAberto=-1;
 function pcMaisAtualizar(){ /* mostra "Ver mais N" enquanto houver itens abaixo da área visível */
@@ -13495,7 +13499,7 @@ function pcMaisAtualizar(){ /* mostra "Ver mais N" enquanto houver itens abaixo 
   b.onclick=()=>{ try{ r.scrollBy({top:Math.max(120,r.clientHeight*0.8),behavior:'smooth'}) }catch(e){ r.scrollTop+=r.clientHeight*0.8 } };
 })();
 function pcMarcar(){ pcMarc.forEach((m,i)=>{ if(!m.lay) return; const on=i===pcAberto;
-  if(m.circ) m.lay.setStyle({weight:on?4:2,fillOpacity:on?.22:.10}); else { const el=$('pcPino'+i); if(el) el.classList.toggle('on',on) } }) }
+  if(m.circ) m.circ.setStyle({weight:on?3:1.5,fillOpacity:on?.18:.07}); const el=$('pcPino'+i); if(el) el.classList.toggle('on',on) }) }
 function pcSel(i,doMapa){ /* 25/10/2026: abre o card do parceiro (pelo mapa ou pela lista); só um aberto por vez */
   pcAberto=(pcAberto===i&&!doMapa)?-1:i;
   pcLista.forEach((p,k)=>{ const it=$('pcIt'+k), d=$('pcDet'+k); if(it) it.classList.toggle('on',k===pcAberto); if(d) d.hidden=k!==pcAberto });
