@@ -50,6 +50,13 @@ textarea.fld{height:70px;padding:10px 12px;resize:vertical}
 .cats.so button[data-cat] span{font-size:24px}
 .cats button.troca{flex-direction:row;justify-content:center;padding:0 16px;color:var(--red);font-size:14px;border-style:dashed}
 .dois{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+/* 26/10/2026 (dono): blocos do cadastro */
+.sec{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 14px 6px;margin:0 0 12px;box-shadow:0 2px 8px rgba(15,23,42,.05)}
+.sech{display:flex;align-items:center;gap:12px;margin:0 0 14px;padding-bottom:12px;border-bottom:1px solid var(--line)}
+.secic{flex:none;width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;background:linear-gradient(180deg,#fff,var(--card2));border:1px solid var(--line);box-shadow:0 2px 0 rgba(15,23,42,.08)}
+.sech b{display:block;font-size:15.5px;letter-spacing:-.1px}.sech small{display:block;font-size:12.5px;color:var(--mut);margin-top:1px;line-height:1.35}
+#cCadForm{background:transparent;border:0;padding:4px 0 0}
+#cCadForm > h2{font-size:18px;padding:0 4px}#cCadForm > p.sub{padding:0 4px}
 /* 26/10/2026 (dono): opções viram chavinhas, em faixas com título e explicação */
 .atd{display:flex;flex-wrap:wrap;gap:8px;margin:2px 0 8px}
 .atd button{border:2px solid var(--line);background:var(--card2);color:var(--txt);border-radius:99px;padding:9px 14px;font:inherit;font-weight:700;font-size:14px;cursor:pointer}
@@ -224,10 +231,14 @@ textarea.fld{height:70px;padding:10px 12px;resize:vertical}
     <div class="card" id="cCadForm">
       <h2>Seu cadastro</h2>
       <p class="sub">É isso que o cliente vê. Pode mudar quando quiser.</p>
+      <!-- 26/10/2026 (dono): formulário organizado em blocos (negócio, responsável, onde atende, horário, serviços) -->
+      <section class="sec"><div class="sech"><span class="secic">🏷️</span><div><b>Seu negócio</b><small>O que aparece para o cliente no mapa</small></div></div>
       <label class="l">Tipo de serviço</label>
       <div class="cats" id="pCats"></div>
-      <label class="l">Nome do negócio (como aparece para o cliente)</label>
+      <label class="l">Nome do negócio</label>
       <input class="fld" id="pfNome" maxlength="50">
+      </section>
+      <section class="sec"><div class="sech"><span class="secic">👤</span><div><b>Responsável e pagamento</b><small>Fica só com a Rastreando. O PIX é para você receber</small></div></div>
       <div class="dois">
         <div><label class="l">Responsável</label><input class="fld" id="pfResp" maxlength="50" autocomplete="name"></div>
         <div><label class="l">CPF ou CNPJ</label><input class="fld" id="pfDoc" inputmode="numeric" maxlength="18" autocomplete="off"></div>
@@ -236,6 +247,8 @@ textarea.fld{height:70px;padding:10px 12px;resize:vertical}
         <div><label class="l">Telefone (opcional)</label><input class="fld" id="pfFone" inputmode="tel" autocomplete="off"></div>
         <div><label class="l">Chave PIX (para receber)</label><input class="fld" id="pfPix" maxlength="80" autocomplete="off"></div>
       </div>
+      </section>
+      <section class="sec"><div class="sech"><span class="secic">📍</span><div><b>Onde você atende</b><small>Endereço da base e até onde você vai</small></div></div>
       <label class="l">Endereço de onde você atende</label>
       <div style="display:flex;gap:8px"><input class="fld" id="pfEnd" placeholder="Rua, número, bairro, cidade" autocomplete="off" style="flex:1"><button class="btn out" id="bEnd" type="button" style="width:auto;padding:0 14px;height:46px">Buscar</button></div>
       <div id="pfEndOps"></div>
@@ -248,9 +261,13 @@ textarea.fld{height:70px;padding:10px 12px;resize:vertical}
         <div><label class="l" id="pfRaioTit">Atendo até (km)</label><input class="fld" id="pfRaio" inputmode="numeric" autocomplete="off" placeholder="15"></div>
         <div id="pfDeslTaxa"><label class="l">Taxa de deslocamento (R$)</label><input class="fld" id="pfDesl" inputmode="decimal" autocomplete="off" placeholder="0,00"></div>
       </div>
+      </section>
+      <section class="sec"><div class="sech"><span class="secic">🕒</span><div><b>Horário</b><small>Quando o cliente pode chamar você</small></div></div>
       <label class="chk"><span><b>Atendo 24 horas</b><small>Inclusive de madrugada e fim de semana.</small></span><input type="checkbox" id="pf24"></label>
       <label class="l">Horário de atendimento</label>
       <input class="fld" id="pfHor" maxlength="60" placeholder="Ex.: Seg a Sáb, 8h às 20h" autocomplete="off">
+      </section>
+      <section class="sec"><div class="sech"><span class="secic">🛠️</span><div><b>Serviços e preços</b><small>O que você faz e quanto cobra</small></div></div>
       <!-- 26/10/2026 (dono): o que o prestador atende (carro, moto, diesel) -->
       <div id="pfAtendeBox"><label class="l" style="margin-top:6px">Atendo</label>
         <div class="atd" id="pfAtende"><button type="button" data-atd="carro">🚗 Carro</button><button type="button" data-atd="moto">🏍️ Moto</button><button type="button" data-atd="diesel">🚚 Caminhão / diesel</button></div></div>
@@ -267,6 +284,7 @@ textarea.fld{height:70px;padding:10px 12px;resize:vertical}
       <button class="linkbtn" id="bAddServ" type="button">+ Adicionar serviço</button>
       <label class="l" style="margin-top:6px">Observações para o cliente (opcional)</label>
       <textarea class="fld" id="pfObs" maxlength="200" placeholder="Ex.: Aceito cartão. Atendo motos também."></textarea>
+      </section>
       <div class="err" id="pfErr"></div>
       <button class="btn pri" id="bSalvar" type="button">Salvar</button>
     </div>
