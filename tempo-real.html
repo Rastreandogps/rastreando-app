@@ -1506,6 +1506,13 @@ body.hist-on #mapCar{display:none!important}
 /* 23/10/2026 (pedido do dono): vista da rua no CELULAR para clientes escolhidos (permissão "Vista da rua no celular").
    A foto ocupa o lugar de odômetro, combustível e faturas/loja; velocidade e bateria continuam. */
 .ruacel{display:none}
+/* 26/10/2026 (dono): aviso discreto de TESTE do Premium, passando devagar no alto da foto da rua */
+.rteste{display:none;position:absolute;left:0;right:0;top:0;height:22px;overflow:hidden;background:rgba(15,23,42,.62);z-index:3;pointer-events:none}
+.rteste .rtt{position:absolute;top:0;left:0;height:100%;display:flex;align-items:center;white-space:nowrap;animation:rtPassa 38s linear infinite}
+.rteste .rtt span{padding-right:48px;font-size:11.5px;font-weight:600;color:#fff;letter-spacing:.01em}
+@keyframes rtPassa{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+body.premteste .ruacel.foto .rteste,body.premteste .ruabox.foto .rteste{display:block}
+.ruacel .rteste{right:32px;border-bottom-right-radius:8px}
 #sheet.comruacel .vrua{display:none!important} /* no celular a foto fica só no quadro grande */
 #sheet.comruacel #sOdoBtn,#sheet.comruacel #sCombBtn,#sheet.comruacel #sLojaBtn,#sheet.comruacel #sFatBtn{display:none!important}
 #sheet.comruacel .actions.comodo #sOdoBtn,#sheet.comruacel .actions.comodo #sCombBtn{display:flex!important;flex-direction:column;align-items:flex-start;justify-content:center;min-height:52px;padding:6px 10px;margin:0} /* 26/10/2026 */
@@ -2960,7 +2967,7 @@ nav button.on .nemo.txt{color:var(--red2)}
   <div id="abaSelo" role="status"><span class="abaselotx">Aba <b id="abaSeloNome"></b></span><button type="button" id="abaSeloX" title="Mostrar todos os veículos" aria-label="Mostrar todos os veículos">&times;</button></div>
   <div class="vazio" id="vazio">Nenhum veículo selecionado<small><span class="vz-cel">Abra a aba Veículos para escolher.</span><span class="vz-pc">Escolha um veículo na lista ao lado.</span></small></div>
 
-  <button id="ruaBox" class="ruabox" type="button" aria-label="Vista da rua"><img id="ruaBoxImg" alt=""><span class="rbmsg" id="ruaBoxMsg"></span><span class="rbtag" id="ruaBoxTag"></span><span class="rbgirar" id="ruaGirar">🔄 Girar 360°</span></button><!-- 20/10/2026: vista da rua grande, ao lado do cartão (computador) -->
+  <button id="ruaBox" class="ruabox" type="button" aria-label="Vista da rua"><img id="ruaBoxImg" alt=""><span class="rbmsg" id="ruaBoxMsg"></span><span class="rbtag" id="ruaBoxTag"></span><span class="rteste" aria-hidden="true"><span class="rtt"></span></span><span class="rbgirar" id="ruaGirar">🔄 Girar 360°</span></button><!-- 20/10/2026: vista da rua grande, ao lado do cartão (computador) -->
   <button id="cartMini" type="button" title="Mostrar o cartão do veículo" aria-label="Mostrar o cartão do veículo"><span class="cmdot" id="cmDot"></span><b id="cmNome"></b><small id="cmSt"></small><span class="cmup"><svg viewBox="0 0 24 24"><path d="M6 15l6-6 6 6"/></svg></span></button>
   <section class="sheet" id="sheet">
     <button id="cartRecolher" type="button" title="Abaixar o cartão (mais mapa)" aria-label="Abaixar o cartão"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
@@ -2986,7 +2993,7 @@ nav button.on .nemo.txt{color:var(--red2)}
       <button type="button" class="stat statbtn comb" id="sCombBtn" aria-label="Combustível" title="Toque para calcular o combustível"><span>Combustível</span><b id="sComb">—</b></button>
       <button type="button" class="stat statbtn loja" id="sLojaBtn" aria-label="Loja" title="Loja: tag de emergência, rastreador portátil e mais"><span>Loja</span><b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6h15l-1.5 9h-12z"/><path d="M6 6L5 3H2"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/></svg></b><em class="lojabadge" id="sLojaN" hidden></em></button>
       <!-- 15/10/2026 (pedido do dono): para o cliente, Faturas fica na frente no lugar da Loja (a Loja foi para o Mais) -->
-      <div class="ruacel" id="ruaCel" role="button" tabindex="0" aria-label="Vista da rua"><img id="ruaCelImg" alt=""><span class="rcmsg" id="ruaCelMsg"></span><span class="rctag" id="ruaCelTag"></span><button type="button" class="rcgirar" id="ruaCelGirar">🔄 Girar 360°</button></div><!-- 23/10/2026: o Girar é um botão próprio (no iPhone o toque dentro do quadro abria o Google Maps) --><!-- 23/10/2026: vista da rua no celular (permissão por cliente) -->
+      <div class="ruacel" id="ruaCel" role="button" tabindex="0" aria-label="Vista da rua"><img id="ruaCelImg" alt=""><span class="rcmsg" id="ruaCelMsg"></span><span class="rctag" id="ruaCelTag"></span><span class="rteste" aria-hidden="true"><span class="rtt"></span></span><button type="button" class="rcgirar" id="ruaCelGirar">🔄 Girar 360°</button></div><!-- 23/10/2026: o Girar é um botão próprio (no iPhone o toque dentro do quadro abria o Google Maps) --><!-- 23/10/2026: vista da rua no celular (permissão por cliente) -->
       <button type="button" class="stat statbtn loja fatatalho" id="sFatBtn" aria-label="Faturas" title="Faturas: mensalidades, PIX e segunda via" style="display:none"><span>Faturas</span><b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6M9 13h8M9 17h8"/></svg></b><em class="lojabadge" id="sFatN" hidden>!</em></button>
     </div>
     <div class="addr" id="addrRow"><strong id="vAddr"></strong><span id="vAgo"></span></div>
@@ -6825,7 +6832,7 @@ async function carregarPermissoes(){
   try{
     const r=await fetch(DESB_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',body:JSON.stringify({acao:'minhas',token:lsGet('rg_token')})});
     if(!r.ok) return;
-    const j=await r.json(); permCli=Object.assign({smsBloqueio:false,reset:false,editarNome:false,cercaRapida:false,minhaPosicao:false},j.perm||{},{appBloqueio:permCli.appBloqueio,cercaBloqueio:permCli.cercaBloqueio,semBloqueio:permCli.semBloqueio,frotista:permCli.frotista,modFrotaAteMs:Number(j.modFrotaAteMs||0)}); cobrCli=j.cobranca||null;
+    const j=await r.json(); permCli=Object.assign({smsBloqueio:false,reset:false,editarNome:false,cercaRapida:false,minhaPosicao:false},j.perm||{},{appBloqueio:permCli.appBloqueio,cercaBloqueio:permCli.cercaBloqueio,semBloqueio:permCli.semBloqueio,frotista:permCli.frotista,modFrotaAteMs:Number(j.modFrotaAteMs||0),modFrotaTeste:j.modFrotaTeste===true}); cobrCli=j.cobranca||null;
     try{ modFrotaAplicar() }catch(e){}
     mostrarBotoesSms(); fichasAplicar(); try{ retAplicar() }catch(e){} try{ leitorAplicar() }catch(e){} try{ rbAplicar() }catch(e){} try{ drAplicar() }catch(e){} try{ logoAplicar() }catch(e){} try{ ruaRedesenhar() }catch(e){}
   }catch(e){}
@@ -7430,8 +7437,17 @@ function cbRotular(){ if(!cbVeic) return; const v=veiculos.find(x=>x.id===cbVeic
    Grátis para todos: odômetro e o quadro do combustível (valor só no cartão e na janela).
    Premium: contagem regressiva do odômetro (meta de km / troca de óleo, com aviso) e "Mostrar no mapa". */
 const MODFROTA_VALOR='30 dias por PIX';
+/* 26/10/2026 (dono): Premium dado como teste -> aviso pequeno passando no alto da vista da rua */
+function premTesteAplicar(){
+  const ate=Number(permCli&&permCli.modFrotaAteMs||0), on=!ehAdmin && !!(permCli&&permCli.modFrotaTeste) && ate>Date.now();
+  document.body.classList.toggle('premteste',on); if(!on) return;
+  const dias=Math.max(1,Math.ceil((ate-Date.now())/86400000));
+  const t='<span>⭐ Este é um recurso Premium e está disponível para você em teste por '+(dias===1?'mais 1 dia (último dia)':dias+' dias')+'.</span>';
+  document.querySelectorAll('.rteste .rtt').forEach(el=>{ el.innerHTML=t+t+t+t });
+}
 function modFrota(){ return ehAdmin || Number(permCli&&permCli.modFrotaAteMs||0)>Date.now() }
 function modFrotaAplicar(){
+  try{ premTesteAplicar() }catch(e){}
   try{ cbMapaAtualizar() }catch(e){}
   try{ frAbaAplicar() }catch(e){}
 }
@@ -12357,6 +12373,7 @@ function sair(msg){
   try{ clearTimeout(lojaPollTimer); lojaPed=null; clearInterval(ljpTempoTimer) }catch(e){}
   try{ alCfg={ign:{},volta:{}}; kmLista=[] }catch(e){}
   cercasReset();
+  document.body.classList.remove('premteste'); /* 26/10/2026 */
   permCli={smsBloqueio:false,reset:false,editarNome:false,cercaRapida:false,minhaPosicao:false,appBloqueio:true,cercaBloqueio:true,semBloqueio:false,frotista:false}; cobrCli=null; try{ FCH.saldo=null; FCH.em=0; fichasAplicar() }catch(e){} /* 15/10/2026: fichas do login anterior saem */ try{ LG.meu=null; LG.carregou=false; logoAplicar() }catch(e){} /* 20/10/2026: logo do login anterior sai */
   ehAdmin=false; usuarios=[]; $('aview').classList.remove('show'); try{ $('mapCar').classList.remove('show') }catch(e){}
   try{ frAbaAplicar() }catch(e){} /* 19/10/2026: a aba Frota some ao sair */
@@ -12666,7 +12683,7 @@ function lojaPagoOk(s){
     $('ljpOkWpp').style.display='none'; anualInfo=null; try{ if($('fview').classList.contains('show')) abrirFaturas(true) }catch(e){} return;
   }
   if(Number(s.frotaAteMs)>0){ /* 19/10/2026: Módulo Frota liberado na hora */
-    permCli.modFrotaAteMs=Number(s.frotaAteMs); modFrotaAplicar(); try{ if($('mComb').classList.contains('show')){ $('mComb').classList.remove('semmod'); modFrotaPintarJanela(); cbPintar() } }catch(e){}
+    permCli.modFrotaAteMs=Number(s.frotaAteMs); permCli.modFrotaTeste=false; modFrotaAplicar(); /* 26/10/2026: pagou -> some o aviso de teste */ try{ if($('mComb').classList.contains('show')){ $('mComb').classList.remove('semmod'); modFrotaPintarJanela(); cbPintar() } }catch(e){}
     $('ljpOkTxt').textContent='Premium liberado até '+new Date(s.frotaAteMs).toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo'})+'. Toque no odômetro de qualquer veículo para usar a contagem regressiva e mostrar no mapa.';
     $('ljpOkWpp').style.display='none'; return;
   }
