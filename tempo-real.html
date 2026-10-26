@@ -13795,18 +13795,7 @@ $('paLista').addEventListener('click',async e=>{
 });
 $('paCopiar').onclick=()=>copiarTexto(PC_LINK).then(()=>toast('Link copiado')).catch(()=>toast(PC_LINK,6000));
 /* 26/10/2026 (dono): convite pronto, bonito e atrativo, para trazer prestadores e encher o mapa */
-const PC_CONVITE=['🚗🔧 *Divulgue seu negócio DE GRAÇA no app da Rastreando GPS!*','','Olá! Tudo bem? 👋','',
-  'A *Rastreando GPS* tem clientes com veículos rastreados que, no dia a dia, precisam de *reboque, chaveiro, borracheiro, mecânico, eletricista, despachante, insulfilme e multimídia*.','',
-  'E a gente quer indicar *você*! 🤝','',
-  '✅ *Cadastro grátis*, feito pelo celular em poucos minutos',
-  '📍 Seu negócio aparece no *mapa do app* para os clientes perto de você',
-  '💬 O cliente chama você *direto no WhatsApp*, já com o veículo e a localização',
-  '💰 *Você* escolhe os serviços e os preços',
-  '🔒 Seu endereço fica protegido: no mapa aparece só a região aproximada',
-  '🟢 Você fica *disponível* ou *fechado* quando quiser',
-  '💸 Serviço pago pelo app cai pra você no *PIX*','',
-  '👉 *Cadastre-se aqui:*',PC_LINK,'',
-  'Assim que a gente aprovar, você já aparece para os clientes. Qualquer dúvida, é só responder esta mensagem! 😉'].join('\n');
+const PC_CONVITE=['🚗🔧 *Divulgue seu negócio GRÁTIS no app da Rastreando GPS!*','Reboque, chaveiro, borracheiro, mecânico, insulfilme e mais: apareça no mapa para nossos clientes e receba os chamados direto no seu WhatsApp.','👉 Cadastre-se: '+PC_LINK].join('\n'); /* 26/10/2026 (dono): curto, 3 linhas */
 $('paWpp').onclick=()=>window.open('https://wa.me/?text='+encodeURIComponent(PC_CONVITE),'_blank','noopener');
 $('aParc').onclick=()=>rbAbrir(true); /* 26/10/2026: aperto de mãos = mapa dos prestadores (a lista de parceiros fica no painel da moeda) */
 
