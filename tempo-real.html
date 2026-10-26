@@ -12974,7 +12974,7 @@ $('aPlacas').onclick=leitorAbrir;
    Reboquista: login comum com a permissão "Reboquista" (Permissões do cliente) ganha o cartão "Meu reboque":
    base, telefone/WhatsApp, rastreador do reboque, Disponível/Invisível e tabela por tipo (moto, carro, utilitário).
    Fase 2 (depois do teste com o amigo do dono): "Chamar" com aceite e ponto exato só para quem foi aceito. */
-const RB_TIPOS=[['moto','Moto'],['carro','Carro'],['utilitario','Utilitário / SUV']];
+const RB_TIPOS=[['moto','Moto'],['carro','Carro'],['utilitario','Utilitário / SUV'],['pesado','Pesado']]; /* 26/10/2026: + pesado e tipos com nome livre */
 let rbMapa=null, rbCamada=null, rbLista=[], rbCarroAtual=null, rbCota={reb:null,dest:null}, mrCfg=null, mrBase=null;
 async function rbApi(acao,extra){
   const tok=lsGet('rg_token'); if(!tok) throw new Error('Entre de novo no app.');
@@ -13129,8 +13129,15 @@ function mrAbrir(){ abrir('mMeuReboque'); mrCarregar() }
 function mrTabDesenhar(tabelas){
   const de={}; (tabelas||[]).forEach(t=>de[t.tipo]=t);
   $('mrTab').innerHTML=RB_TIPOS.map(([k,n])=>{ const t=de[k]; return '<div class="rbtab'+(t?'':' off')+'" data-mrt="'+k+'"><label class="fchk"><input type="checkbox" data-mrchk="'+k+'"'+(t?' checked':'')+'> <b>'+n+'</b></label>'+
-    '<div class="rbtres"><div><label class="flbl">Saída (R$)</label><input class="fld" data-mrs="'+k+'" inputmode="decimal" value="'+(t?String(t.saida).replace('.',','):'')+'"></div><div><label class="flbl">Km incluídos</label><input class="fld" data-mrk="'+k+'" inputmode="numeric" value="'+(t?t.kmInc:'')+'"></div><div><label class="flbl">Km extra (R$)</label><input class="fld" data-mre="'+k+'" inputmode="decimal" value="'+(t?String(t.kmExtra).replace('.',','):'')+'"></div></div></div>' }).join('');
+    '<div class="rbtres"><div><label class="flbl">Saída (R$)</label><input class="fld" data-mrs="'+k+'" inputmode="decimal" value="'+(t?String(t.saida).replace('.',','):'')+'"></div><div><label class="flbl">Km incluídos</label><input class="fld" data-mrk="'+k+'" inputmode="numeric" value="'+(t?t.kmInc:'')+'"></div><div><label class="flbl">Km extra (R$)</label><input class="fld" data-mre="'+k+'" inputmode="decimal" value="'+(t?String(t.kmExtra).replace('.',','):'')+'"></div></div></div>' }).join('')+
+    (tabelas||[]).filter(t=>t.tipo==='outro').map(mrOutroLinha).join('')+'<button class="linkbtn" type="button" data-mradd>+ Adicionar outro tipo (máquinas, gerador, caçamba...)</button>';
 }
+/* 26/10/2026 (dono): reboquista com rastreador também cadastra outros tipos de serviço */
+const mrOutroLinha=t=>'<div class="rbtab" data-mrx><div style="display:flex;gap:8px;margin-bottom:6px"><input class="fld" data-mrn maxlength="40" placeholder="Ex.: Transporte de gerador" value="'+esc(t&&t.nome||'')+'" style="flex:1"><button type="button" class="btn btn-out" data-mrrm title="Excluir" aria-label="Excluir" style="width:46px;padding:0;color:#e3262f"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg></button></div>'+
+  '<div class="rbtres"><div><label class="flbl">Saída (R$)</label><input class="fld" data-mrs inputmode="decimal" value="'+(t?String(t.saida).replace('.',','):'')+'"></div><div><label class="flbl">Km incluídos</label><input class="fld" data-mrk inputmode="numeric" value="'+(t?t.kmInc:'')+'"></div><div><label class="flbl">Km extra (R$)</label><input class="fld" data-mre inputmode="decimal" value="'+(t?String(t.kmExtra).replace('.',','):'')+'"></div></div></div>';
+$('mrTab').addEventListener('click',e=>{ const r=e.target.closest('[data-mrrm]'); if(r){ r.closest('.rbtab').remove(); return }
+  const a=e.target.closest('[data-mradd]'); if(!a) return; if(document.querySelectorAll('#mrTab .rbtab[data-mrx]').length+RB_TIPOS.length>=10){ toast('Máximo de 10 tipos.'); return }
+  a.insertAdjacentHTML('beforebegin',mrOutroLinha(null)); const n=[...document.querySelectorAll('#mrTab [data-mrn]')].pop(); if(n) n.focus() });
 $('mrTab').addEventListener('change',e=>{ const c=e.target.closest('[data-mrchk]'); if(c) c.closest('.rbtab').classList.toggle('off',!c.checked) });
 async function mrCarregar(){
   $('mrSub').textContent='Carregando...'; $('mrErro').textContent=''; mrCfg=null; mrBase=null;
@@ -13176,7 +13183,7 @@ $('mrDisp').addEventListener('change',async()=>{
 $('mrSalvar').onclick=async()=>{
   $('mrErro').textContent='';
   const num=s=>Number(String(s||'').replace(/\./g,'').replace(',','.'));
-  const tabelas=RB_TIPOS.filter(([k])=>{ const c=document.querySelector('[data-mrchk="'+k+'"]'); return c&&c.checked }).map(([k])=>({tipo:k,saida:num(document.querySelector('[data-mrs="'+k+'"]').value),kmInc:num(document.querySelector('[data-mrk="'+k+'"]').value||0),kmExtra:num(document.querySelector('[data-mre="'+k+'"]').value||0)}));
+  const tabelas=RB_TIPOS.filter(([k])=>{ const c=document.querySelector('[data-mrchk="'+k+'"]'); return c&&c.checked }).map(([k])=>({tipo:k,saida:num(document.querySelector('[data-mrs="'+k+'"]').value),kmInc:num(document.querySelector('[data-mrk="'+k+'"]').value||0),kmExtra:num(document.querySelector('[data-mre="'+k+'"]').value||0)})).concat([...document.querySelectorAll('#mrTab .rbtab[data-mrx]')].filter(r=>r.querySelector('[data-mrn]').value.trim()).map(r=>({tipo:'outro',nome:r.querySelector('[data-mrn]').value.trim(),saida:num(r.querySelector('[data-mrs]').value),kmInc:num(r.querySelector('[data-mrk]').value||0),kmExtra:num(r.querySelector('[data-mre]').value||0)})));
   const cfg={nome:$('mrNome').value.trim(),fone:$('mrFone').value,wpp:$('mrWpp').value,pix:$('mrPix').value.trim(),base:mrBase,deviceId:Number($('mrDev').value),disponivel:$('mrDisp').checked,tabelas};
   $('mrSalvar').disabled=true;
   try{ const j=await rbApi('reboqueMeuSalvar',{cfg}); mrCfg=j.cfg; toast('Salvo. '+(j.cfg.disponivel?'Você já aparece para os clientes.':'Ligue "Disponível" para aparecer.')); mrCarregar() }
