@@ -821,6 +821,7 @@ main{position:relative;flex:1;min-height:0;overflow:hidden}
 .leaflet-container{font-family:inherit}
 .leaflet-control-attribution{background:rgba(15,17,21,.7)!important;color:var(--mut)!important;font-size:9px}
 .leaflet-control-attribution a{color:var(--mut)!important}
+body.foramapa #map .leaflet-control-attribution,body.foramapa #map .gmlogo{display:none!important}
 .car{width:44px;height:44px;transition:transform .25s linear}
 /* grupo de veículos no mesmo lugar (12/10/2026): bolinha com o número; tocar abre os veículos em volta */
 .grpmk{display:flex;align-items:center;justify-content:center}
@@ -8667,6 +8668,7 @@ function irPara(tab){
   ABA_SALVA=null; try{ sessionStorage.setItem('rg_aba',tab) }catch(e){}
   if(tab==='Mapa' && GM_PENDENTE){ GM_PENDENTE=false; setTimeout(()=>{ try{ mapaGoogleLigar() }catch(e){} },0) }
   document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.tab===tab));
+  document.body.classList.toggle('foramapa',tab!=='Mapa'&&tab!=='Histórico'); /* 26/10/2026: sem o crédito do mapa (© OpenStreetMap / logo Google) por cima das outras abas */
   $('vview').classList.toggle('show',tab==='Veículos');
   $('aview').classList.toggle('show',tab==='Admin');
   $('fview').classList.toggle('show',tab==='Faturas');
