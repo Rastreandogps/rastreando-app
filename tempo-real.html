@@ -184,7 +184,7 @@ body.mapa-google #map .leaflet-top.leaflet-left .leaflet-control-attribution{mar
 .pcdlin span.ok{background:rgba(22,163,74,.12);border-color:rgba(22,163,74,.4);color:#16a34a}
 .pcdtit{font-size:12px;font-weight:800;letter-spacing:.3px;text-transform:uppercase;color:var(--mut);margin:6px 0 2px}
 #mParcWeb{align-items:flex-end}
-#mParcWeb .pwbox{width:100%;max-width:640px;height:80%;background:var(--bg);border-radius:20px 20px 0 0;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 -10px 30px rgba(0,0,0,.35);animation:pwSobe .25s ease-out}
+#mParcWeb .pwbox{width:100%;max-width:640px;height:92vh;height:calc(100dvh - 56px - env(safe-area-inset-top,0px)); /* 26/10/2026 (dono): quase até o topo */background:var(--bg);border-radius:20px 20px 0 0;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 -10px 30px rgba(0,0,0,.35);animation:pwSobe .25s ease-out}
 @keyframes pwSobe{from{transform:translateY(40px);opacity:.6}to{transform:none;opacity:1}}
 #mParcWeb .pwtopo{flex:none;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px 10px 18px;border-bottom:1px solid var(--line);background:var(--card)}
 #mParcWeb .pwtopo b{font-size:16px}
