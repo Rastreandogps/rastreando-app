@@ -45,6 +45,10 @@ textarea.fld{height:70px;padding:10px 12px;resize:vertical}
 .cats button{background:var(--card2);border:2px solid var(--line);border-radius:14px;padding:14px 10px;color:var(--txt);font:inherit;font-weight:800;font-size:14px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px}
 .cats button span{font-size:28px}
 .cats button.on{border-color:var(--red);background:rgba(227,38,47,.10)}
+.cats.so{grid-template-columns:1fr auto;align-items:stretch}
+.cats.so button[data-cat]{flex-direction:row;justify-content:flex-start;gap:12px;padding:12px 14px;font-size:15px;cursor:default}
+.cats.so button[data-cat] span{font-size:24px}
+.cats button.troca{flex-direction:row;justify-content:center;padding:0 16px;color:var(--red);font-size:14px;border-style:dashed}
 .dois{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .chk{display:flex;align-items:center;gap:10px;font-size:14px;margin:2px 0 12px;cursor:pointer}
 .chk input{width:20px;height:20px;flex:none}
@@ -255,7 +259,15 @@ async function api(acao,extra){
 }
 const numBR=s=>Number(String(s||'').replace(/\./g,'').replace(',','.'));
 const fmtWpp=t=>{ const d=String(t||'').replace(/\D/g,''); return d.length===11?'('+d.slice(0,2)+') '+d.slice(2,7)+'-'+d.slice(7):d.length===10?'('+d.slice(0,2)+') '+d.slice(2,6)+'-'+d.slice(6):d };
-function catsDesenhar(box,sel,fn){ box.innerHTML=CATS.map(([k,n,e])=>'<button type="button" data-cat="'+k+'" class="'+(k===sel?'on':'')+'"><span>'+e+'</span>'+n+'</button>').join(''); box.onclick=ev=>{ const b=ev.target.closest('[data-cat]'); if(b) fn(b.dataset.cat) } }
+/* 26/10/2026 (dono): depois de escolher, o quadro mostra só o serviço escolhido + "Trocar" */
+function catsDesenhar(box,sel,fn){
+  const so=sel&&box.dataset.aberto!=='1'&&CATS.some(c=>c[0]===sel);
+  box.classList.toggle('so',!!so);
+  box.innerHTML=so ? CATS.filter(c=>c[0]===sel).map(([k,n,e])=>'<button type="button" data-cat="'+k+'" class="on"><span>'+e+'</span>'+n+'</button>').join('')+'<button type="button" class="troca" data-troca="1">Trocar</button>'
+    : CATS.map(([k,n,e])=>'<button type="button" data-cat="'+k+'" class="'+(k===sel?'on':'')+'"><span>'+e+'</span>'+n+'</button>').join('');
+  box.onclick=ev=>{ if(ev.target.closest('[data-troca]')){ box.dataset.aberto='1'; catsDesenhar(box,sel,fn); return }
+    const b=ev.target.closest('[data-cat]'); if(!b) return; box.dataset.aberto='';
+    if(b.dataset.cat===sel) catsDesenhar(box,sel,fn); else fn(b.dataset.cat) } }
 /* ---------- entrar / cadastrar ---------- */
 document.querySelector('.abas').onclick=e=>{ const b=e.target.closest('[data-aba]'); if(!b) return; document.querySelectorAll('.abas button').forEach(x=>x.classList.toggle('on',x===b)); $('fCad').hidden=b.dataset.aba!=='cad'; $('fEnt').hidden=b.dataset.aba!=='ent' };
 /* 26/10/2026 (dono): exemplo do nome muda conforme o serviço escolhido */
