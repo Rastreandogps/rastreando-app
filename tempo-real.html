@@ -3921,7 +3921,7 @@ nav button.on .nemo.txt{color:var(--red2)}
       <div><label class="flbl">Telefone</label><input class="fld" id="mrFone" inputmode="tel" placeholder="(21) 99999-9999"></div>
       <div><label class="flbl">WhatsApp</label><input class="fld" id="mrWpp" inputmode="tel" placeholder="(21) 99999-9999"></div>
     </div>
-    <label class="flbl">Chave PIX (para receber dos clientes que pagam com fichas douradas)</label>
+    <label class="flbl">Chave PIX (para a Rastreando te pagar os serviços contratados pelo app)</label>
     <input class="fld" id="mrPix" maxlength="80" placeholder="CPF, CNPJ, celular, e-mail ou aleatória">
     <div id="mrFichas"></div>
     <label class="flbl">Rastreador que está no reboque</label>
@@ -13320,8 +13320,8 @@ async function drPagarReboque(j,i,btn){
 async function drRebCarregar(){
   const box=$('mrFichas'); if(!box) return;
   try{ const j=await drApi('douradaRebLista'); const l=j.lista||[];
-    box.innerHTML=l.length?'<label class="flbl" style="margin-top:10px">Pedidos pagos com fichas douradas</label>'+l.map(p=>{ const e=DR_EST[p.estado]||[p.estado,'ag'];
-      return '<div class="drped"><div><b>'+esc(p.cliente||'Cliente')+'</b><small>'+p.fichas+' fichas reservadas · '+esc(p.resumo||'')+' · '+fmtHora(p.criadoMs)+'</small><span class="ljst '+e[1]+'">'+e[0]+(p.valorFinal?' · '+brl2(p.valorFinal):'')+'</span>'+
+    box.innerHTML=l.length?'<label class="flbl" style="margin-top:10px">Serviços contratados pelo app</label>'+l.map(p=>{ const e=p.estado==='reservado'?['Aguardando você','ag']:(DR_EST[p.estado]||[p.estado,'ag']); /* 25/10/2026 (dono): reboquista vê dinheiro, não fichas */
+      return '<div class="drped"><div><b>'+esc(p.cliente||'Cliente')+'</b><small>'+brl2(p.fichas)+' garantido pela Rastreando · '+esc(p.resumo||'')+' · '+fmtHora(p.criadoMs)+'</small><span class="ljst '+e[1]+'">'+e[0]+(p.valorFinal?' · '+brl2(p.valorFinal):'')+'</span>'+
         (p.estado==='concluido'?'<small style="margin-top:4px">'+(p.pagoParceiro?'✅ PIX da Rastreando feito':'💰 PIX da Rastreando até '+(p.prazoMs?drDia(p.prazoMs):'2 dias úteis'))+'</small>':'')+'</div>'+ /* 25/10/2026: prazo de 2 dias úteis */
         (p.estado==='reservado'?'<div class="drrebac"><input class="fld" data-drrv="'+esc(p.pedido)+'" inputmode="decimal" placeholder="Valor final R$"><button class="btn btn-red" type="button" data-drrc="'+esc(p.pedido)+'">Concluir</button><button class="btn btn-out" type="button" data-drrr="'+esc(p.pedido)+'">Recusar</button></div>':'')+'</div>' }).join(''):'';
   }catch(e){ box.innerHTML='' }
@@ -13330,8 +13330,8 @@ $('mMeuReboque').addEventListener('click',async e=>{
   const c=e.target.closest('[data-drrc]'), rr=e.target.closest('[data-drrr]'); if(!c&&!rr) return;
   const b=c||rr; b.disabled=true;
   try{
-    if(c){ const v=document.querySelector('[data-drrv="'+c.dataset.drrc+'"]').value; const r=await drApi('douradaRebConcluir',{pedido:c.dataset.drrc,valor:v}); toast('Concluído: '+r.fichasUsadas+' fichas. A Rastreando faz o PIX para você até '+(r.prazoMs?drDia(r.prazoMs):'2 dias úteis')+(r.cobrarDireto?'; cobre '+brl2(r.cobrarDireto)+' direto do cliente':'')+'.',7000) }
-    else { await drApi('douradaRebConcluir',{pedido:rr.dataset.drrr,recusar:true}); toast('Pedido recusado. As fichas voltaram para o cliente.') }
+    if(c){ const v=document.querySelector('[data-drrv="'+c.dataset.drrc+'"]').value; const r=await drApi('douradaRebConcluir',{pedido:c.dataset.drrc,valor:v}); toast('Concluído! A Rastreando faz o PIX de '+brl2(r.fichasUsadas)+' para você até '+(r.prazoMs?drDia(r.prazoMs):'2 dias úteis')+(r.cobrarDireto?'; cobre '+brl2(r.cobrarDireto)+' direto do cliente':'')+'.',7000) }
+    else { await drApi('douradaRebConcluir',{pedido:rr.dataset.drrr,recusar:true}); toast('Pedido recusado. O cliente foi liberado.') }
     drRebCarregar();
   }catch(err){ toast(err.message); b.disabled=false }
 });
