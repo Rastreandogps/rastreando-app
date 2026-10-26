@@ -81,6 +81,10 @@ textarea.fld{height:70px;padding:10px 12px;resize:vertical}
 .serv .fld{margin:0;height:42px;font-size:15px}
 .serv .sc{grid-column:1/-1;display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--mut);margin-top:-2px}
 .serv .sc input{width:18px;height:18px}
+.rbdica{display:flex;align-items:flex-end;justify-content:flex-end;gap:8px;margin:2px 0 6px;font-weight:800;font-size:14px;color:var(--red)}
+.rbdica i{font-style:normal;width:50px;margin-right:15px;text-align:center;font-size:22px;line-height:1;animation:rbPulsa 1s ease-in-out infinite}
+.rbdica.ok i{animation:none;opacity:.35}
+@keyframes rbPulsa{0%,100%{transform:translateY(0);opacity:1}50%{transform:translateY(6px);opacity:.45}}
 .rbt{border:1px solid var(--line);background:var(--card2);border-radius:14px;padding:12px 14px;margin-bottom:10px}
 .rbt.on{border-color:rgba(51,209,122,.55);background:rgba(51,209,122,.08)}
 .rbt .chk{margin:0;padding:0;border:0;background:none!important}
@@ -346,12 +350,13 @@ const REB_TIPOS=[['moto','Moto'],['passeio','Carro de passeio'],['utilitario','U
 function rebTipoDe(nome){ const n=pnNorm(nome); return n.includes('moto')?'moto':n.includes('pesad')||n.includes('caminh')?'pesado':n.includes('utilit')||n.includes('suv')||n.includes('van')?'utilitario':n.includes('carro')||n.includes('passeio')?'passeio':'' }
 function pnNorm(t){ return String(t||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'') }
 const brIn=v=>v!=null&&v!==''?String(v).replace('.',','):'';
-function rebDesenhar(servs){ const m={}; (servs||[]).forEach(x=>{ const t=rebTipoDe(x.nome); if(t&&!m[t]) m[t]=x });
-  $('pfRebTipos').innerHTML=REB_TIPOS.map(([k,n])=>{ const x=m[k];
+function rebDesenhar(servs){ const m={}; (servs||[]).forEach(x=>{ const t=rebTipoDe(x.nome); if(t&&!m[t]&&(x.aPartir>0||x.kmExtra>0)) m[t]=x }); /* 26/10/2026 (dono): todos começam desligados; só liga o que já tem valor */
+  $('pfRebTipos').innerHTML='<div class="rbdica" id="rbDica"><span>Ligue os serviços que você atende</span><i aria-hidden="true">⬇</i></div>'+REB_TIPOS.map(([k,n])=>{ const x=m[k];
     return '<div class="rbt'+(x?' on':'')+'" data-rbt="'+k+'"><label class="chk"><span><b>'+n+'</b></span><input type="checkbox" data-rbon'+(x?' checked':'')+'></label>'+
       '<div class="dois"'+(x?'':' hidden')+'><div><label class="l">Valor da saída (R$)</label><input class="fld" data-rbs inputmode="decimal" autocomplete="off" placeholder="0,00" value="'+(x?brIn(x.aPartir):'')+'"></div>'+
-      '<div><label class="l">Km excedente (R$/km)</label><input class="fld" data-rbk inputmode="decimal" autocomplete="off" placeholder="0,00" value="'+(x?brIn(x.kmExtra):'')+'"></div></div></div>' }).join('') }
-$('pfRebTipos').addEventListener('change',e=>{ if(!e.target.matches('[data-rbon]')) return; const c=e.target.closest('.rbt'); c.classList.toggle('on',e.target.checked); c.querySelector('.dois').hidden=!e.target.checked });
+      '<div><label class="l">Km excedente (R$/km)</label><input class="fld" data-rbk inputmode="decimal" autocomplete="off" placeholder="0,00" value="'+(x?brIn(x.kmExtra):'')+'"></div></div></div>' }).join(''); rebDica() }
+$('pfRebTipos').addEventListener('change',e=>{ if(!e.target.matches('[data-rbon]')) return; const c=e.target.closest('.rbt'); c.classList.toggle('on',e.target.checked); c.querySelector('.dois').hidden=!e.target.checked; rebDica() });
+function rebDica(){ const d=$('rbDica'); if(d) d.classList.toggle('ok',!!document.querySelector('#pfRebTipos [data-rbon]:checked')) }
 function rebLer(){ return [...document.querySelectorAll('#pfRebTipos .rbt')].filter(c=>c.querySelector('[data-rbon]').checked).map(c=>{ const n=(REB_TIPOS.find(t=>t[0]===c.dataset.rbt)||[])[1];
   const nR=t=>{ t=String(t||'').trim(); return /,/.test(t)?numBR(t):Number(t)||0 }, v=nR(c.querySelector('[data-rbs]').value), k=nR(c.querySelector('[data-rbk]').value); return {nome:n,aPartir:v>0?v:null,sobConsulta:!(v>0),kmExtra:k>0?k:null} }) }
 function localReboque(k){ const reb=k==='reboque'; $('pfReb').hidden=!reb; $('pfServTit').textContent=reb?'Tabela do reboque':'Serviços e preços "a partir de"'; ['pfServDica','pfServ','bAddServ'].forEach(i=>$(i).hidden=reb); if(reb&&!$('pfRebTipos').children.length) rebDesenhar(P&&P.categoria==='reboque'?P.servicos:[]); $('pfRaioTit').textContent=reb?'Saída até (km)':'Atendo até (km)'; $('pfLocalBox').hidden=reb; $('pfDeslTaxa').hidden=reb; if(reb) $('pfLocal').checked=true; deslMostrar(); if(reb) $('pfDeslBox').hidden=true }
@@ -388,6 +393,7 @@ $('bSalvar').onclick=async()=>{
   const perfil={nome:$('pfNome').value,responsavel:$('pfResp').value,doc:$('pfDoc').value,fone:$('pfFone').value,pix:$('pfPix').value,base,lojaPublica:$('pfLoja').checked,atendeLocal:catPerfil==='reboque'||$('pfLocal').checked,
     raioKm:catPerfil==='reboque'?$('pfSaidaKm').value:$('pfRaio').value,deslocamento:{fixo:catPerfil==='reboque'?0:(numBR($('pfDesl').value)||0),porKm:0},h24:$('pf24').checked,horario:$('pfHor').value,obs:$('pfObs').value,servicos:catPerfil==='reboque'?rebLer():servLer(false)};
   if(catPerfil==='reboque'&&!perfil.servicos.length){ $('pfErr').textContent='Ligue pelo menos um tipo de veículo que você reboca.'; b.disabled=false; return }
+  { const semV=catPerfil==='reboque'&&perfil.servicos.find(x=>!(x.aPartir>0)); if(semV){ $('pfErr').textContent='Coloque o valor da saída de '+semV.nome+' (ou desligue esse tipo).'; b.disabled=false; return } }
   try{ const j=await api('parcSalvar',{ptoken:TOK,categoria:catPerfil,perfil}); const antes=P.status; P=j.perfil; desenharTopo(); preencher(); cadModo(false);
     toast(antes!==P.status&&P.status==='analise'?'Enviado para aprovação! A gente avisa quando liberar.':'Salvo.',5000); window.scrollTo({top:0,behavior:'smooth'}) }
   catch(e){ $('pfErr').textContent=e.message }
