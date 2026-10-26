@@ -768,7 +768,8 @@ button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
 
 /* Topo */
 header{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:calc(10px + env(safe-area-inset-top)) 16px 10px;background:var(--bg);border-bottom:1px solid var(--line);z-index:5}
-.brand{display:flex;align-items:center;gap:10px}
+.brand{display:flex;align-items:center;gap:10px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.brand.gira img,.brand.gira .pin{animation:brGira .7s linear infinite} @keyframes brGira{to{transform:rotate(360deg)}} /* 26/10/2026: tocar na logo atualiza o app */
 .brand img{width:34px;height:34px;border-radius:50%;object-fit:cover}
 .brand .pin{width:34px;height:34px;border-radius:50%;border:2px solid var(--red);display:none;align-items:center;justify-content:center;box-shadow:0 0 10px rgba(227,38,47,.45)}
 .brand .name{font-weight:800;letter-spacing:.06em;font-size:15px;line-height:1}
@@ -2848,7 +2849,7 @@ nav button.on .nemo.txt{color:var(--red2)}
 <body>
 
 <header>
-  <div class="brand">
+  <div class="brand" id="brandAtualiza" title="Toque para atualizar o app" role="button" aria-label="Atualizar o app">
     <img src="logo.jpeg" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
     <div class="pin">
       <svg width="16" height="20" viewBox="0 0 16 20"><path d="M8 0C3.6 0 0 3.5 0 7.9 0 13.5 8 20 8 20s8-6.5 8-12.1C16 3.5 12.4 0 8 0z" fill="#e3262f"/><circle cx="8" cy="8" r="3" fill="#0f1115"/></svg>
@@ -12196,6 +12197,10 @@ $('alKmLista').addEventListener('click',async e=>{
   desenharManut();
 });
 /* tocar na notificação abre a aba Alertas */
+/* 26/10/2026 (dono): tocar na logo recarrega o app para pegar a versão publicada mais nova */
+$('brandAtualiza').addEventListener('click',async()=>{ const b=$('brandAtualiza'); if(b.classList.contains('gira')) return; b.classList.add('gira'); try{ toast('Atualizando o app...') }catch(e){}
+  try{ const reg=await navigator.serviceWorker.getRegistration(); if(reg) await reg.update() }catch(e){}
+  setTimeout(()=>location.reload(),350) });
 if('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('message',e=>{ if(e.data&&e.data.abrir==='alertas') irPara('Alertas') });
 
 /* ===== DIGITAL / FACE ID (opcional, por celular) =====
