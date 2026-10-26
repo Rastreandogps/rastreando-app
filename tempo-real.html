@@ -276,6 +276,7 @@ body.mapa-google #map .leaflet-top.leaflet-left .leaflet-control-attribution{mar
 .pcrow .pcchev{flex:none;width:18px;height:18px;transition:transform .2s;stroke:var(--mut);fill:none;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
 .pcit.on .pcchev{transform:rotate(180deg)}
 .pcdet{margin-top:8px}
+.pcatd{display:block;font-size:12px;font-weight:700;color:var(--mut);margin-top:2px}
 .pcpino.reg{border-style:dashed}
 .pcpino.on{border-width:3px;transform:scale(1.18);box-shadow:0 0 0 4px rgba(227,38,47,.25),0 2px 6px rgba(0,0,0,.35)}
 .pcserv{margin-top:8px;border-top:1px solid var(--line)}
@@ -13496,10 +13497,15 @@ async function pcCarregar(){
   rbCarroAtual=pcAdmMapa?null:rbCarro();
   try{
     const extra={categoria:pcCat}; if(rbCarroAtual&&rbCarroAtual.pos){ extra.lat=rbCarroAtual.pos[0]; extra.lon=rbCarroAtual.pos[1] }
-    const j=await rbApi('parcListar',extra); pcLista=(j.lista||[]).slice().sort((a,b)=>(a.distKm==null?1e9:a.distKm)-(b.distKm==null?1e9:b.distKm)); pcDesenhar(j.categoriaNome||nome);
+    const j=await rbApi('parcListar',extra); const vt=pcVeicTipo(rbCarroAtual), pr=p=>!vt||!(p.atende||[]).length?1:(p.atende.includes(vt)?0:2); /* 26/10/2026: quem atende o tipo do veículo vem primeiro */
+    pcLista=(j.lista||[]).slice().sort((a,b)=>(pr(a)-pr(b))||((a.distKm==null?1e9:a.distKm)-(b.distKm==null?1e9:b.distKm))); pcDesenhar(j.categoriaNome||nome);
   }catch(e){ $('rbSub').textContent=''; $('rbLista').innerHTML='<div class="rtvz">'+esc(e.message||'Não consegui carregar.')+'</div>' }
 }
 const pcKm=k=>k==null?'':(k<1?String(k).replace('.',','):Math.round(k))+' km';
+/* 26/10/2026 (dono): o prestador marca o que atende (carro, moto, caminhão/diesel); o tipo do veículo do cliente vem do ícone escolhido */
+const PC_ATD={carro:'🚗 Carro',moto:'🏍️ Moto',diesel:'🚚 Diesel'};
+function pcVeicTipo(v){ const ic=v&&v.icone||''; return !ic?'':/^moto/.test(ic)?'moto':/caminhao|prancha|onibus|truck/.test(ic)?'diesel':'carro' }
+const pcAtdHtml=p=>(p.atende||[]).length?'<span class="pcatd">'+p.atende.map(k=>PC_ATD[k]||k).join(' · ')+'</span>':'';
 function pcDesenhar(nome,anexar){ /* anexar=true: junta aos reboquistas com rastreador já desenhados (chip Reboque) */
   rbMapaPreparar(); if(!anexar) rbCamada.clearLayers();
   const pts=[], v=rbCarroAtual;
@@ -13522,7 +13528,7 @@ function pcDesenhar(nome,anexar){ /* anexar=true: junta aos reboquistas com rast
   $('rbSub').textContent=tot+' '+String(nome).toLowerCase()+(tot>1?'s':'')+' disponíve'+(tot>1?'is':'l')+(v?' · perto de '+v.nome:'');
   const fichas=drPode()&&DR.dados&&DR.dados.ativo&&DR.dados.termoAceito;
   const html=((pcLista.length>1&&!anexar)?'<div class="pcdica">Toque no mapa ou num nome para ver os serviços e chamar.</div>':'')+pcLista.map((p,i)=>'<div class="rtit pcit'+(i===pcAberto?' on':'')+'" id="pcIt'+i+'"><div class="pcrow" data-pcab="'+i+'"><div><b class="pcn">'+esc(p.nome)+'</b><small>'+
-      (p.h24?'<span style="color:#16a34a;font-weight:700">Atende 24 horas</span>':esc(p.horario||''))+(p.atendeLocal?' · vai até você':'')+'</small></div>'+
+      (p.h24?'<span style="color:#16a34a;font-weight:700">Atende 24 horas</span>':esc(p.horario||''))+(p.atendeLocal?' · vai até você':'')+'</small>'+pcAtdHtml(p)+'</div>'+
       (p.distKm!=null?'<div class="pckm">~'+pcKm(p.distKm)+'<small>do veículo</small></div>':'')+'<svg class="pcchev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></div>'+
     '<div class="pcdet" id="pcDet'+i+'"'+(i===pcAberto?'':' hidden')+'><div class="rtinfo">'+(p.categoria==='reboque'?(p.raioKm?'Saída inclui até '+p.raioKm+' km':''):p.atendeLocal&&p.raioKm?'Vai até você (até '+p.raioKm+' km)':'')+(p.ponto&&p.ponto.end?(p.atendeLocal&&p.raioKm?'<br>':'')+'📍 '+esc(p.ponto.end):'')+'</div>'+
     '<div class="pcserv">'+(p.servicos||[]).map(s=>'<div><span>'+esc(s.nome)+'</span><b>'+(s.sobConsulta||!(s.aPartir>0)?(p.categoria==='reboque'?'orçamento na hora':'sob consulta'):(p.categoria==='reboque'?'saída '+brl2(s.aPartir):'a partir de '+brl2(s.aPartir)))+(p.categoria==='reboque'&&s.kmExtra>0?'<small style="display:block;font-weight:500;opacity:.8">+ '+brl2(s.kmExtra)+' por km excedente</small>':'')+'</b></div>').join('') /* 26/10/2026: reboque mostra saída e km excedente */+

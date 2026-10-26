@@ -51,6 +51,9 @@ textarea.fld{height:70px;padding:10px 12px;resize:vertical}
 .cats button.troca{flex-direction:row;justify-content:center;padding:0 16px;color:var(--red);font-size:14px;border-style:dashed}
 .dois{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 /* 26/10/2026 (dono): opções viram chavinhas, em faixas com título e explicação */
+.atd{display:flex;flex-wrap:wrap;gap:8px;margin:2px 0 8px}
+.atd button{border:2px solid var(--line);background:var(--card2);color:var(--txt);border-radius:99px;padding:9px 14px;font:inherit;font-weight:700;font-size:14px;cursor:pointer}
+.atd button.on{border-color:var(--green);background:rgba(51,209,122,.14)}
 .chk{display:flex;align-items:center;gap:12px;margin:0 0 10px;padding:12px 14px;border-radius:14px;border:1px solid var(--line);background:var(--card2);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background .2s,border-color .2s}
 .chk span{flex:1;min-width:0}.chk b{display:block;font-size:15px}.chk small{display:block;font-size:12px;color:var(--mut);margin-top:2px;line-height:1.35}
 .chk input{appearance:none;-webkit-appearance:none;margin:0;flex:none;width:50px;height:28px;border-radius:99px;background:#c7ccd6;position:relative;cursor:pointer;transition:background .2s}
@@ -248,6 +251,9 @@ textarea.fld{height:70px;padding:10px 12px;resize:vertical}
       <label class="chk"><span><b>Atendo 24 horas</b><small>Inclusive de madrugada e fim de semana.</small></span><input type="checkbox" id="pf24"></label>
       <label class="l">Horário de atendimento</label>
       <input class="fld" id="pfHor" maxlength="60" placeholder="Ex.: Seg a Sáb, 8h às 20h" autocomplete="off">
+      <!-- 26/10/2026 (dono): o que o prestador atende (carro, moto, diesel) -->
+      <div id="pfAtendeBox"><label class="l" style="margin-top:6px">Atendo</label>
+        <div class="atd" id="pfAtende"><button type="button" data-atd="carro">🚗 Carro</button><button type="button" data-atd="moto">🏍️ Moto</button><button type="button" data-atd="diesel">🚚 Caminhão / diesel</button></div></div>
       <label class="l" style="margin-top:6px" id="pfServTit">Serviços e preços "a partir de"</label>
       <!-- 26/10/2026 (dono): REBOQUE — saída até X km, tipos (moto, passeio, utilitário, pesado) com valor da saída e km excedente -->
       <div id="pfReb" hidden>
@@ -349,7 +355,7 @@ function preencher(){
   $('pfNome').value=P.nome||''; $('pfResp').value=P.responsavel||''; $('pfDoc').value=P.doc||''; $('pfFone').value=fmtWpp(P.fone); $('pfPix').value=P.pix||'';
   mostrarBase(P.base); $('pfLoja').checked=!!P.lojaPublica; endSeg(); $('pfLocal').checked=!!P.atendeLocal; $('pfRaio').value=P.raioKm||''; $('pfDesl').value=P.deslocamento&&P.deslocamento.fixo?String(P.deslocamento.fixo).replace('.',','):'';
   $('pf24').checked=!!P.h24; $('pfHor').value=P.horario||''; $('pfObs').value=P.obs||'';
-  servDesenhar(P.status==='rascunho'&&P.categoria!=='reboque'?[SERV_VAZIO]:(P.servicos||[])); deslMostrar(); /* 26/10/2026 (dono): 1º cadastro começa com 1 linha em branco (ele escreve os serviços) */ $('pfSaidaKm').value=P.raioKm||''; rebDesenhar(P.categoria==='reboque'?P.servicos:[]); localReboque(catPerfil); $('bSalvar').textContent=P.status==='rascunho'||P.status==='recusado'?'Salvar e enviar para aprovação':'Salvar';
+  servDesenhar(P.status==='rascunho'&&P.categoria!=='reboque'?[SERV_VAZIO]:(P.servicos||[])); atendeMarcar(P.atende); deslMostrar(); /* 26/10/2026 (dono): 1º cadastro começa com 1 linha em branco (ele escreve os serviços) */ $('pfSaidaKm').value=P.raioKm||''; rebDesenhar(P.categoria==='reboque'?P.servicos:[]); localReboque(catPerfil); $('bSalvar').textContent=P.status==='rascunho'||P.status==='recusado'?'Salvar e enviar para aprovação':'Salvar';
 }
 function dicaServ(k){ const d=$('pfServDica'); if(!d) return; d.textContent=k==='reboque'?'Reboque: coloque o valor da SAÍDA (a partir de) de cada tipo. O km extra e o destino você combina com o cliente pelo WhatsApp. O cliente vê a distância até o veículo dele (sobre o seu endereço, veja o aviso verde acima).':'Escreva cada serviço que você faz e, se quiser, o menor preço. Se depende do modelo do carro, marque "sob consulta": o cliente pede o orçamento pelo WhatsApp, já com o modelo, ano e placa.' } /* 25/10/2026 (dono): reboquista pelo link */
 function trocarCat(k){ if(k===catPerfil) return; catPerfil=k; localReboque(k); nomeEx('pfNome',k); dicaServ(k); catsDesenhar($('pCats'),k,trocarCat); const atuais=servLer(true); if(!atuais.some(x=>x.aPartir!=null)) servDesenhar([SERV_VAZIO]); else servDesenhar(atuais) }
@@ -373,7 +379,10 @@ $('pfRebTipos').addEventListener('change',e=>{ if(!e.target.matches('[data-rbon]
 function rebDica(){ const d=$('rbDica'); if(d) d.classList.toggle('ok',!!document.querySelector('#pfRebTipos [data-rbon]:checked')) }
 function rebLer(){ return [...document.querySelectorAll('#pfRebTipos .rbt')].filter(c=>c.dataset.rbx!=null?c.querySelector('[data-rbn]').value.trim():c.querySelector('[data-rbon]').checked).map(c=>{ const n=c.dataset.rbx!=null?c.querySelector('[data-rbn]').value.trim():(REB_TIPOS.find(t=>t[0]===c.dataset.rbt)||[])[1];
   const nR=t=>{ t=String(t||'').trim(); return /,/.test(t)?numBR(t):Number(t)||0 }, v=nR(c.querySelector('[data-rbs]').value), k=nR(c.querySelector('[data-rbk]').value); return {nome:n,aPartir:v>0?v:null,sobConsulta:!(v>0),kmExtra:k>0?k:null} }) }
-function localReboque(k){ const reb=k==='reboque'; $('pfReb').hidden=!reb; $('pfServTit').textContent=reb?'Tabela do reboque':'Serviços e preços "a partir de"'; ['pfServDica','pfServ','bAddServ'].forEach(i=>$(i).hidden=reb); if(reb&&!$('pfRebTipos').children.length) rebDesenhar(P&&P.categoria==='reboque'?P.servicos:[]); $('pfRaioTit').textContent=reb?'Saída até (km)':'Atendo até (km)'; $('pfLocalBox').hidden=reb; $('pfDeslTaxa').hidden=reb; if(reb) $('pfLocal').checked=true; deslMostrar(); if(reb) $('pfDeslBox').hidden=true }
+$('pfAtende').onclick=e=>{ const b=e.target.closest('[data-atd]'); if(b) b.classList.toggle('on') };
+function atendeMarcar(l){ document.querySelectorAll('#pfAtende [data-atd]').forEach(b=>b.classList.toggle('on',(l||[]).includes(b.dataset.atd))) }
+const atendeLer=()=>[...document.querySelectorAll('#pfAtende [data-atd].on')].map(b=>b.dataset.atd);
+function localReboque(k){ const reb=k==='reboque'; $('pfAtendeBox').hidden=reb; $('pfReb').hidden=!reb; $('pfServTit').textContent=reb?'Tabela do reboque':'Serviços e preços "a partir de"'; ['pfServDica','pfServ','bAddServ'].forEach(i=>$(i).hidden=reb); if(reb&&!$('pfRebTipos').children.length) rebDesenhar(P&&P.categoria==='reboque'?P.servicos:[]); $('pfRaioTit').textContent=reb?'Saída até (km)':'Atendo até (km)'; $('pfLocalBox').hidden=reb; $('pfDeslTaxa').hidden=reb; if(reb) $('pfLocal').checked=true; deslMostrar(); if(reb) $('pfDeslBox').hidden=true }
 $('pfLocal').onchange=deslMostrar;
 const SERV_VAZIO={nome:'',aPartir:null,sobConsulta:false};
 const SERV_EX={chaveiro:'Ex.: Cópia de chave',borracheiro:'Ex.: Remendo de pneu',mecanico:'Ex.: Troca de óleo',eletricista:'Ex.: Troca de bateria',despachante:'Ex.: Transferência de veículo',lavajato:'Ex.: Lavagem completa'};
@@ -407,7 +416,8 @@ $('bAqui').onclick=()=>{ if(!navigator.geolocation){ toast('Seu celular não deu
 $('bSalvar').onclick=async()=>{
   $('pfErr').textContent=''; const b=$('bSalvar'); b.disabled=true;
   const perfil={nome:$('pfNome').value,responsavel:$('pfResp').value,doc:$('pfDoc').value,fone:$('pfFone').value,pix:$('pfPix').value,base,lojaPublica:$('pfLoja').checked,atendeLocal:catPerfil==='reboque'||$('pfLocal').checked,
-    raioKm:catPerfil==='reboque'?$('pfSaidaKm').value:$('pfRaio').value,deslocamento:{fixo:catPerfil==='reboque'?0:(numBR($('pfDesl').value)||0),porKm:0},h24:$('pf24').checked,horario:$('pfHor').value,obs:$('pfObs').value,servicos:catPerfil==='reboque'?rebLer():servLer(false)};
+    raioKm:catPerfil==='reboque'?$('pfSaidaKm').value:$('pfRaio').value,deslocamento:{fixo:catPerfil==='reboque'?0:(numBR($('pfDesl').value)||0),porKm:0},h24:$('pf24').checked,horario:$('pfHor').value,obs:$('pfObs').value,servicos:catPerfil==='reboque'?rebLer():servLer(false),atende:catPerfil==='reboque'?[]:atendeLer()};
+  if(catPerfil!=='reboque'&&!perfil.atende.length){ $('pfErr').textContent='Marque o que você atende: carro, moto ou caminhão / diesel.'; b.disabled=false; return }
   if(catPerfil==='reboque'&&!perfil.servicos.length){ $('pfErr').textContent='Ligue pelo menos um tipo de veículo que você reboca.'; b.disabled=false; return }
   try{ const j=await api('parcSalvar',{ptoken:TOK,categoria:catPerfil,perfil}); const antes=P.status; P=j.perfil; desenharTopo(); preencher(); cadModo(false);
     toast(antes!==P.status&&P.status==='analise'?'Enviado para aprovação! A gente avisa quando liberar.':'Salvo.',5000); window.scrollTo({top:0,behavior:'smooth'}) }
