@@ -1400,6 +1400,8 @@ body.hist-on #mapCar{display:none!important}
   #ruaBox{position:absolute;z-index:450;right:16px;bottom:16px;width:var(--ruaw);height:var(--ruah,200px);padding:0;border:1px solid var(--line);border-radius:20px;overflow:hidden;cursor:pointer;
     background:linear-gradient(135deg,rgba(56,225,230,.16),rgba(154,163,178,.22)),var(--card);color:var(--mut);box-shadow:0 18px 50px rgba(0,0,0,.30),0 2px 8px rgba(0,0,0,.12)}
   #ruaBox img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:none}
+  #ruaTeste{position:absolute;z-index:450;right:16px;bottom:calc(16px + var(--ruah,200px) + 4px);width:var(--ruaw)} /* 26/10/2026: aviso de teste em cima do quadro */
+  main:not(.comrua) #ruaTeste,main.cartmin #ruaTeste{display:none!important}
   #ruaBox.foto img{display:block}
   #ruaBox .rbmsg{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:12px;font-size:14px;font-weight:700;line-height:1.35}
   #ruaBox.foto .rbmsg{display:none}
@@ -1506,13 +1508,16 @@ body.hist-on #mapCar{display:none!important}
 /* 23/10/2026 (pedido do dono): vista da rua no CELULAR para clientes escolhidos (permissão "Vista da rua no celular").
    A foto ocupa o lugar de odômetro, combustível e faturas/loja; velocidade e bateria continuam. */
 .ruacel{display:none}
-/* 26/10/2026 (dono): aviso discreto de TESTE do Premium, passando devagar no alto da foto da rua */
-.rteste{display:none;position:absolute;left:0;right:0;top:0;height:22px;overflow:hidden;background:rgba(15,23,42,.62);z-index:3;pointer-events:none}
+/* 26/10/2026 (dono): aviso discreto de TESTE do Premium, passando devagar EM CIMA do quadro da vista da rua (fora da foto) */
+.rteste{display:none;overflow:hidden;height:18px;position:relative;pointer-events:none}
 .rteste .rtt{position:absolute;top:0;left:0;height:100%;display:flex;align-items:center;white-space:nowrap;animation:rtPassa 38s linear infinite}
-.rteste .rtt span{padding-right:48px;font-size:11.5px;font-weight:600;color:#fff;letter-spacing:.01em}
+.rteste .rtt span{padding-right:48px;font-size:11.5px;font-weight:600;color:var(--mut)}
 @keyframes rtPassa{from{transform:translateX(0)}to{transform:translateX(-50%)}}
-body.premteste .ruacel.foto .rteste,body.premteste .ruabox.foto .rteste{display:block}
-.ruacel .rteste{right:32px;border-bottom-right-radius:8px}
+#ruaCelTesteRow{display:none;grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,3fr);gap:8px;margin:-2px 0 3px}
+#ruaCelTesteRow .rteste{display:block;grid-column:3}
+body.premteste #sheet.comruacel:has(#ruaCel.foto) #ruaCelTesteRow{display:grid}
+body.premteste #ruaBox.foto + #ruaTeste{display:block}
+@media (max-width:899px){#ruaTeste{display:none!important}}
 #sheet.comruacel .vrua{display:none!important} /* no celular a foto fica só no quadro grande */
 #sheet.comruacel #sOdoBtn,#sheet.comruacel #sCombBtn,#sheet.comruacel #sLojaBtn,#sheet.comruacel #sFatBtn{display:none!important}
 #sheet.comruacel .actions.comodo #sOdoBtn,#sheet.comruacel .actions.comodo #sCombBtn{display:flex!important;flex-direction:column;align-items:flex-start;justify-content:center;min-height:52px;padding:6px 10px;margin:0} /* 26/10/2026 */
@@ -2967,7 +2972,7 @@ nav button.on .nemo.txt{color:var(--red2)}
   <div id="abaSelo" role="status"><span class="abaselotx">Aba <b id="abaSeloNome"></b></span><button type="button" id="abaSeloX" title="Mostrar todos os veículos" aria-label="Mostrar todos os veículos">&times;</button></div>
   <div class="vazio" id="vazio">Nenhum veículo selecionado<small><span class="vz-cel">Abra a aba Veículos para escolher.</span><span class="vz-pc">Escolha um veículo na lista ao lado.</span></small></div>
 
-  <button id="ruaBox" class="ruabox" type="button" aria-label="Vista da rua"><img id="ruaBoxImg" alt=""><span class="rbmsg" id="ruaBoxMsg"></span><span class="rbtag" id="ruaBoxTag"></span><span class="rteste" aria-hidden="true"><span class="rtt"></span></span><span class="rbgirar" id="ruaGirar">🔄 Girar 360°</span></button><!-- 20/10/2026: vista da rua grande, ao lado do cartão (computador) -->
+  <button id="ruaBox" class="ruabox" type="button" aria-label="Vista da rua"><img id="ruaBoxImg" alt=""><span class="rbmsg" id="ruaBoxMsg"></span><span class="rbtag" id="ruaBoxTag"></span><span class="rbgirar" id="ruaGirar">🔄 Girar 360°</span></button><div class="rteste" id="ruaTeste" aria-hidden="true"><span class="rtt"></span></div><!-- 20/10/2026: vista da rua grande, ao lado do cartão (computador) -->
   <button id="cartMini" type="button" title="Mostrar o cartão do veículo" aria-label="Mostrar o cartão do veículo"><span class="cmdot" id="cmDot"></span><b id="cmNome"></b><small id="cmSt"></small><span class="cmup"><svg viewBox="0 0 24 24"><path d="M6 15l6-6 6 6"/></svg></span></button>
   <section class="sheet" id="sheet">
     <button id="cartRecolher" type="button" title="Abaixar o cartão (mais mapa)" aria-label="Abaixar o cartão"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
@@ -2986,6 +2991,7 @@ nav button.on .nemo.txt{color:var(--red2)}
       </div>
     </div>
     <div class="banner" id="banner">Veículo bloqueado</div>
+    <div id="ruaCelTesteRow"><div class="rteste" aria-hidden="true"><span class="rtt"></span></div></div><!-- 26/10/2026 -->
     <div class="grid">
       <div class="stat" title="Velocidade"><span class="spdic" aria-label="Velocidade"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 17a8.5 8.5 0 1 1 15 0"/><path d="M12 13l4-4"/><circle cx="12" cy="13" r="1.3" fill="currentColor"/></svg></span><b id="sSpeed"></b></div>
       <div class="stat bv" id="sBvBox" title="Bateria do rastreador e voltagem do veículo"><div class="bvl"><i aria-label="Bateria">🔋</i><b id="sBat"></b></div><div class="bvl"><i aria-label="Voltagem">⚡</i><b id="sVolt"></b></div><small id="sVoltAge" hidden></small></div>
@@ -2993,7 +2999,7 @@ nav button.on .nemo.txt{color:var(--red2)}
       <button type="button" class="stat statbtn comb" id="sCombBtn" aria-label="Combustível" title="Toque para calcular o combustível"><span>Combustível</span><b id="sComb">—</b></button>
       <button type="button" class="stat statbtn loja" id="sLojaBtn" aria-label="Loja" title="Loja: tag de emergência, rastreador portátil e mais"><span>Loja</span><b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6h15l-1.5 9h-12z"/><path d="M6 6L5 3H2"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/></svg></b><em class="lojabadge" id="sLojaN" hidden></em></button>
       <!-- 15/10/2026 (pedido do dono): para o cliente, Faturas fica na frente no lugar da Loja (a Loja foi para o Mais) -->
-      <div class="ruacel" id="ruaCel" role="button" tabindex="0" aria-label="Vista da rua"><img id="ruaCelImg" alt=""><span class="rcmsg" id="ruaCelMsg"></span><span class="rctag" id="ruaCelTag"></span><span class="rteste" aria-hidden="true"><span class="rtt"></span></span><button type="button" class="rcgirar" id="ruaCelGirar">🔄 Girar 360°</button></div><!-- 23/10/2026: o Girar é um botão próprio (no iPhone o toque dentro do quadro abria o Google Maps) --><!-- 23/10/2026: vista da rua no celular (permissão por cliente) -->
+      <div class="ruacel" id="ruaCel" role="button" tabindex="0" aria-label="Vista da rua"><img id="ruaCelImg" alt=""><span class="rcmsg" id="ruaCelMsg"></span><span class="rctag" id="ruaCelTag"></span><button type="button" class="rcgirar" id="ruaCelGirar">🔄 Girar 360°</button></div><!-- 23/10/2026: o Girar é um botão próprio (no iPhone o toque dentro do quadro abria o Google Maps) --><!-- 23/10/2026: vista da rua no celular (permissão por cliente) -->
       <button type="button" class="stat statbtn loja fatatalho" id="sFatBtn" aria-label="Faturas" title="Faturas: mensalidades, PIX e segunda via" style="display:none"><span>Faturas</span><b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6M9 13h8M9 17h8"/></svg></b><em class="lojabadge" id="sFatN" hidden>!</em></button>
     </div>
     <div class="addr" id="addrRow"><strong id="vAddr"></strong><span id="vAgo"></span></div>
