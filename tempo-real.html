@@ -350,6 +350,19 @@ body.mapa-google #map .leaflet-top.leaflet-left .leaflet-control-attribution{mar
 .pnbusca{height:42px;margin:0 0 8px;font-size:14px}
 .pngrp{display:flex;align-items:center;gap:8px;margin:10px 0 8px;font-size:13px;font-weight:800;color:var(--mut)}.pngrp::after{content:'';flex:1;height:1px;background:var(--line)}.pngrp .n{font-weight:600}
 .pngrp[hidden]{display:none}
+/* 26/10/2026 (dono): no COMPUTADOR o painel e o "Socorro e serviços" ocupam quase a tela toda, com os cartões em colunas */
+@media (min-width:1024px) and (hover:hover){
+  #mDouradaAdm .box2.pnbox{max-width:min(1500px,95vw);height:92vh}
+  #draLista,#pnServLista,#paLista,#pnCliLista{display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:10px;align-items:start}
+  #draLista>*,#pnServLista>*,#paLista>*,#pnCliLista>*{margin:0!important}
+  #draLista>.pngrp,#pnServLista>.pngrp,#paLista>.pngrp,#pnCliLista>.pngrp,#draLista>.rtvz,#pnServLista>.rtvz,#paLista>.rtvz,#pnCliLista>.rtvz{grid-column:1/-1}
+  #paLista>.pngrp{margin:10px 0 0!important}
+  #mReboques .box2.rbbox{max-width:min(1400px,95vw);width:100%}
+  #mReboques #rbMapa{height:min(52vh,560px)}
+  #mReboques #rbLista{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:10px;align-items:start}
+  #mReboques #rbLista>*{margin:0!important}
+  #mReboques #rbLista>.pcdica,#mReboques #rbLista>.rtvz{grid-column:1/-1}
+}
 .pnst{display:inline-block;font-size:11px;font-weight:800;padding:2px 8px;border-radius:999px;background:var(--card2);color:var(--mut);margin-left:6px;vertical-align:1px}
 .pnst.and{background:rgba(245,184,61,.18);color:#b87800}.pnst.pag{background:rgba(22,163,74,.9);color:#fff}.pnst.ap{background:rgba(22,163,74,.14);color:#16a34a}.pnst.cc{background:rgba(225,29,72,.12);color:#e11d48}
 .pnsenha{margin-top:8px;background:rgba(224,168,0,.12);border:1px dashed rgba(224,168,0,.6);border-radius:12px;padding:10px 12px;font-size:13px}
