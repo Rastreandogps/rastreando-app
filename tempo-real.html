@@ -13532,9 +13532,13 @@ $('mMeuReboque').addEventListener('click',async e=>{
   }catch(err){ toast(err.message); b.disabled=false }
 });
 /* ---- administrador: pendências das fichas douradas ---- */
-async function drAdmContar(){ const b=$('aDouradaN'); if(!b||!ehAdmin) return; try{ const j=await drApi('douradaAdmLista'); const n=(j.lista||[]).length; b.textContent=n; b.classList.toggle('on',n>0) }catch(e){} }
+/* 26/10/2026 (dono): o número na ficha soma as pendências das fichas + os prestadores esperando aprovação */
+const ADM_N={dr:0,pc:0};
+function admBadge(){ const b=$('aDouradaN'); if(!b) return; const n=ADM_N.dr+ADM_N.pc; b.textContent=n||''; b.classList.toggle('on',n>0);
+  const a=$('aDourada'); if(a){ const t='Fichas douradas: pendências'+(ADM_N.pc?' · '+ADM_N.pc+' prestador'+(ADM_N.pc>1?'es':'')+' para aprovar':''); a.title=t; a.setAttribute('aria-label',t) } }
+async function drAdmContar(){ if(!$('aDouradaN')||!ehAdmin) return; try{ const j=await drApi('douradaAdmLista'); ADM_N.dr=(j.lista||[]).length; admBadge() }catch(e){} }
 async function drAdmCarregar(){ $('draLista').innerHTML='<div class="rtvz">Carregando...</div>';
-  try{ const j=await drApi('douradaAdmLista'); const l=j.lista||[]; $('aDouradaN').textContent=l.length; $('aDouradaN').classList.toggle('on',l.length>0);
+  try{ const j=await drApi('douradaAdmLista'); const l=j.lista||[]; ADM_N.dr=l.length; admBadge();
     $('draLista').innerHTML=l.length?l.map(p=>{
       const reb=p.tipo==='reboque'||p.tipo==='servico', pagar=reb?(p.fichasUsadas||p.fichas):p.valorPagar; /* 25/10/2026: serviço de parceiro paga igual ao reboque */
       return '<div class="rtit"><div class="rttopo"><div><b>'+esc((p.tipo==='servico'?drCatNome(p):(DR_TIPO[p.tipo]||p.tipo))+(reb&&p.reboque?' · '+p.reboque:''))+'</b><div class="rtinfo">Cliente: '+esc(p.cliente||'')+' ('+esc(p.login||'')+')<br>'+
@@ -13557,7 +13561,7 @@ $('draLista').addEventListener('click',async e=>{
     if(a.dataset.drarec){ a.textContent='Salvando...'; await drApi('douradaAdmDecidir',{pedido:a.dataset.drarec,decisao:'recusar'}); toast('Recusado. As fichas voltaram para o cliente.'); drAdmCarregar(); pnPainelCarregar(); return }
   }catch(err){ toast(err.message) }
 });
-$('aDourada').onclick=()=>pnAbrir('pend');
+$('aDourada').onclick=()=>pnAbrir(!ADM_N.dr&&ADM_N.pc?'parc':'pend'); /* 26/10/2026: só prestador esperando → abre direto na aba dos prestadores */
 /* ===== PAINEL do admin (25/10/2026, dono: "um dashboard completo, não um pop-upzinho") ===== */
 let PN={aba:'pend',fil:'todos',pfil:'todos',dados:null};
 /* excluir com certeza + contagem de 10 s (dono: "uma contagem de 10 segundos para excluir") */
@@ -13751,7 +13755,7 @@ $('pcDetCorpo').addEventListener('click',async e=>{ /* 26/10/2026: os botões ag
 /* ---- administrador: aprovar parceiros ---- */
 const PC_ST={analise:['Em análise','ag'],aprovado:['Aprovado','ok'],recusado:['Recusado','cc'],suspenso:['Suspenso','cc']};
 const PC_LINK='https://gps.rastreandogpsbr.com.br/parceiro.html';
-async function pcAdmContar(){ const b=$('aParcN'); if(!b||!ehAdmin) return; try{ const j=await rbApi('parcAdmLista'); b.textContent=j.pendentes||''; b.classList.toggle('on',(j.pendentes||0)>0) }catch(e){} }
+async function pcAdmContar(){ if(!ehAdmin) return; try{ const j=await rbApi('parcAdmLista'); ADM_N.pc=Number(j.pendentes||0); admBadge(); const b=$('aParcN'); if(b){ b.textContent=j.pendentes||''; b.classList.toggle('on',ADM_N.pc>0) } }catch(e){} }
 function pcAdmAbrir(){ pnAbrir('parc') }
 function pnNorm(t){ return String(t||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'') }
 function pnParcFiltrar(){ /* 25/10/2026 (dono): busca + categoria + situação; agrupado por categoria */
@@ -13769,7 +13773,7 @@ function pnParcCats(){ const cats=[['todas','Todas']].concat((typeof PC_CATS!=='
   $('pnParcCat').innerHTML=cats.map(([k,n])=>'<button type="button" data-c="'+k+'"'+(k===(PN.pcat||'todas')?' class="on"':'')+'>'+n+'</button>').join('') }
 $('pnParcCat').onclick=e=>{ const b=e.target.closest('[data-c]'); if(!b) return; PN.pcat=b.dataset.c; document.querySelectorAll('#pnParcCat button').forEach(x=>x.classList.toggle('on',x===b)); pnParcFiltrar() };
 async function pcAdmCarregar(){ $('paLista').innerHTML='<div class="rtvz">Carregando...</div>';
-  try{ const [j,rj]=await Promise.all([rbApi('parcAdmLista'),rbApi('reboqueAdmLista').catch(()=>({lista:[]}))]); const l=j.lista||[], rl=rj.lista||[]; { const bn=$('aParcN'); if(bn){ bn.textContent=j.pendentes||''; bn.classList.toggle('on',(j.pendentes||0)>0) } } /* 26/10/2026: o contador saiu do botão (virou aperto de mãos) */ $('pnNParc').hidden=!(j.pendentes||0); $('pnNParc').textContent=j.pendentes||'';
+  try{ const [j,rj]=await Promise.all([rbApi('parcAdmLista'),rbApi('reboqueAdmLista').catch(()=>({lista:[]}))]); const l=j.lista||[], rl=rj.lista||[]; { ADM_N.pc=Number(j.pendentes||0); admBadge(); const bn=$('aParcN'); if(bn){ bn.textContent=j.pendentes||''; bn.classList.toggle('on',(j.pendentes||0)>0) } } /* 26/10/2026: o contador saiu do botão (virou aperto de mãos) */ $('pnNParc').hidden=!(j.pendentes||0); $('pnNParc').textContent=j.pendentes||'';
     /* 25/10/2026 (dono): reboquistas no mesmo painel dos parceiros (eles têm login do app e rastreador; cadastro em "Meu reboque") */
     pnParcCats();
     const rebHtml=rl.map(r=>'<div class="rtit pnreb" data-pst="aprovado" data-pcat="reboque"><div class="rttopo"><div><b>'+esc(r.nome||'Reboquista')+'</b><div class="rtinfo">🚛 Reboquista (login do app) · '+(r.disponivel?'🟢 disponível':'⚪ invisível')+(r.sinalMs?' · sinal '+fmtHora(r.sinalMs):'')+'<br>'+
@@ -13817,7 +13821,7 @@ const PC_CONVITE=['🚀 Que tal divulgar seu trabalho para milhares de pessoas? 
 $('paWpp').onclick=()=>window.open('https://wa.me/?text='+encodeURIComponent(PC_CONVITE),'_blank','noopener');
 $('aParc').onclick=()=>rbAbrir(true); /* 26/10/2026: aperto de mãos = mapa dos prestadores (a lista de parceiros fica no painel da moeda) */
 
-setInterval(()=>{ if(ehAdmin && !document.hidden) drAdmContar() },300000);
+setInterval(()=>{ if(ehAdmin && !document.hidden){ drAdmContar(); pcAdmContar() } },300000);
 /* ===== PARA RETIRAR (18/10/2026, pedido do dono) =====
    Quem tem a permissão "Ver a lista Para retirar" (ex.: técnico) ganha o cartão "Para retirar" no Mais.
    A lista vem do servidor (veículos marcados pelo administrador), com a distância até o celular, do mais perto ao mais longe. */
