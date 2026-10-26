@@ -12999,7 +12999,7 @@ function rbAplicar(){
     pp=document.createElement('button'); pp.className='maiscard'; pp.id='maisParceiro'; pp.type='button';
     pp.innerHTML='<span class="mic t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m11 17 2 2a1 1 0 1 0 3-3"/><path d="m14 14 2.5 2.5a1 1 0 1 0 3-3l-3.88-3.88a3 3 0 0 0-4.24 0l-.88.88a1 1 0 1 1-3-3l2.81-2.81a5.79 5.79 0 0 1 7.06-.87l.47.28a2 2 0 0 0 1.42.25L21 4"/><path d="m21 3 1 11h-2"/><path d="M3 3 2 14l6.5 6.5a1 1 0 1 0 3-3"/><path d="M3 4h8"/></svg></span><b>Ofereça seu serviço</b><small>Reboque, chaveiro, mecânico e mais: apareça no mapa para os clientes</small>';
     pp.onclick=()=>{ /* 26/10/2026 (dono): abre FORA do app, numa guia do navegador */
-      const url=new URL('parceiro.html',location.href).href, inst=window.matchMedia&&matchMedia('(display-mode: standalone)').matches;
+      const url=new URL('parceiro.html?de=app',location.href).href, inst=window.matchMedia&&matchMedia('(display-mode: standalone)').matches;
       if(inst && /Android/i.test(navigator.userAgent)){ location.href='intent://'+url.replace(/^https?:\/\//,'')+'#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url='+encodeURIComponent(url)+';end'; return }
       const w=window.open(url,'_blank','noopener'); if(!w) location.href=url };
     grid.insertBefore(pp,$('maisConta'));

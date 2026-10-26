@@ -137,6 +137,14 @@ textarea.fld{height:70px;padding:10px 12px;resize:vertical}
 </style>
 </head>
 <body>
+<!-- 26/10/2026 (dono): aberto pelo app de rastreamento ("Ofereça seu serviço") dentro da janela do app, não havia como voltar -->
+<div id="voltarApp" hidden style="position:sticky;top:0;z-index:50;background:#14181f;color:#fff;padding:10px 14px;display:flex;align-items:center;gap:10px;font-weight:700;font-size:15px;cursor:pointer">
+  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>Voltar ao app Rastreando
+</div>
+<script>(function(){ try{
+  const q=new URLSearchParams(location.search), noApp=(window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone===true;
+  if(q.get('de')==='app'&&noApp){ const v=document.getElementById('voltarApp'); v.hidden=false; v.onclick=()=>{ if(history.length>1) history.back(); else location.href='tempo-real.html' } }
+}catch(e){} })();</script>
 <div class="wrap">
   <header>
     <img src="logo.jpeg" alt="">
