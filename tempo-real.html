@@ -3761,6 +3761,8 @@ nav button.on .nemo.txt{color:var(--red2)}
       <input class="fld" id="rnDono" maxlength="60" autocomplete="off" placeholder="Nome do dono (ex.: João da Silva)" style="margin:0 0 6px">
       <input class="fld" id="rnWpp" type="tel" inputmode="tel" autocomplete="off" placeholder="(21) 99999-8888" style="margin:0">
     </div>
+    <!-- 26/10/2026 (pedido do dono): só o administrador marca, veículo por veículo, se tem bloqueio -->
+    <div id="rnBloqBox" style="display:none;margin-top:10px"><label class="rnplck" style="height:auto;min-height:46px;padding:10px 12px;white-space:normal;line-height:1.3"><input type="checkbox" id="rnSemBloq"><span>Este veículo não tem bloqueio<br><small style="font-weight:400;color:var(--mut)">O cliente não vê o botão de bloquear neste veículo</small></span></label></div>
     <div id="rnOdoBox" style="display:none;margin-top:6px">
       <h3 style="font-size:15px;margin-bottom:6px">Odômetro (km)</h3>
       <div style="display:flex;gap:8px;align-items:center"><input class="fld" id="rnOdo" type="number" min="0" step="0.1" inputmode="decimal" style="margin:0;flex:1"><button type="button" class="btn btn-out" id="rnOdoZerar" style="flex:none;width:auto;padding:0 16px">Zerar</button></div>
@@ -5508,6 +5510,7 @@ function mesclar(ds,ps){
     v.imei = d.uniqueId || ''; v.fone = d.phone || ''; v.contato = d.contact || ''; v.raw = d;
     v.tag = ehTag(d) || (String((d.attributes&&d.attributes.tipoAparelho)||'')!=='rastreador' && !!v.tagSinal && !soDigitos(d.phone)); /* 16/10/2026 */
     v.wppVeic = String((d.attributes&&d.attributes.whatsapp)||'').replace(/\D/g,'');
+    v.semBloq = !!(d.attributes && (d.attributes.semBloqueio===true || d.attributes.semBloqueio==='true')); /* 26/10/2026: veículo sem bloqueio (marcado pelo administrador no lápis) */
     v.retDono = String((d.attributes&&d.attributes.retiradaDono)||''); /* 19/10/2026: dono do veículo para a retirada */ /* 18/10/2026: WhatsApp do cliente gravado no veículo (lápis do administrador) */
     v.retirado = String((d.attributes&&(d.attributes.paraRetirarEm||d.attributes.retiradoEm))||''); /* 18/10/2026: marcado "Para retirar" (menu ⋮ do administrador) */
     v.icone = veicIconeDe(d); v.iconeCor = icCorOk(d.attributes&&d.attributes.iconeCor) ? d.attributes.iconeCor : ''; /* 16/10/2026: ícone do veículo */
@@ -6379,6 +6382,7 @@ document.querySelectorAll('.modal').forEach(m=>{
 
 function abrirConfirmacao(acao){
   const v=ativo(); if(!v || cmdAndamento) return; /* 16/10/2026 (revisão): já tem comando em andamento */
+  if(!ehAdmin && v.semBloq){ toast('Este veículo não tem bloqueio.'); return } /* 26/10/2026 */
   if(!v.online && acao==='bloquear'){
     toast('Aparelho sem conexão com o servidor. Por segurança, o bloqueio não foi enviado.');
     return;
@@ -6860,7 +6864,7 @@ function textoCusto(){
   return '\n\nCusto: '+brl2(cobrCli.preco)+' por SMS, cobrado na sua próxima fatura. Até agora: '+cobrCli.pendentes+' SMS = '+brl2(cobrCli.valor)+'.';
 }
 function mostrarBotoesSms(){
-  const semBloq=!ehAdmin && permCli.semBloqueio===true;                                   /* 12/10/2026: Veículo sem bloqueio */
+  const semBloq=!ehAdmin && (permCli.semBloqueio===true || !!(cartao()||{}).semBloq); /* 12/10/2026: Veículo sem bloqueio (login); 26/10/2026: ou só este veículo */
   const sms=(ehAdmin||permCli.smsBloqueio) && !semBloq, rs=ehAdmin||permCli.reset;
   const row=$('admSmsRow'); if(!row) return;
   $('btnBlockSms').style.display=sms?'':'none'; $('btnUnblockSms').style.display=sms?'':'none'; $('btnResetSms').style.display=rs?'':'none';
@@ -7037,6 +7041,7 @@ $('btnRenome').onclick=e=>{
   $('rnImeiBox').style.display=(ehAdmin&&v.imei)?'flex':'none'; $('rnImei').textContent=ehAdmin?(v.imei||''):''; /* 16/10/2026 */
   $('rnWppBox').style.display=ehAdmin?'':'none'; $('rnWpp').value=ehAdmin?fmtWpp(v.wppVeic||''):''; $('rnWpp').dataset.ini=$('rnWpp').value; /* 18/10/2026 */
   $('rnDono').value=ehAdmin?(v.retDono||''):''; $('rnDono').dataset.ini=$('rnDono').value; /* 19/10/2026 */
+  $('rnBloqBox').style.display=(ehAdmin&&!v.tag)?'':'none'; $('rnSemBloq').checked=!!v.semBloq; $('rnSemBloq').dataset.ini=v.semBloq?'1':''; /* 26/10/2026 */
   $('rnOdoBox').style.display=ehAdmin?'':'none'; $('rnOdo').value=v.odo!=null?(v.odo/1000).toFixed(1):''; $('rnOdo').dataset.ini=$('rnOdo').value;
   abrir('mRenome');
 };
@@ -7054,6 +7059,16 @@ async function salvarWppVeic(v){ /* 18/10/2026: grava o WhatsApp do cliente no v
   if(!r.ok) throw new Error(await msgErro(r,'Não consegui salvar o WhatsApp'));
   try{ v.raw=await r.json() }catch(e){ v.raw=Object.assign({},v.raw,{attributes:at}) }
   v.wppVeic=n||''; v.retDono=dono; $('rnWpp').dataset.ini=$('rnWpp').value; $('rnDono').dataset.ini=$('rnDono').value; return true;
+}
+async function salvarSemBloq(v){ /* 26/10/2026: grava no veículo (atributo semBloqueio no Traccar) */
+  if(!ehAdmin || $('rnBloqBox').style.display==='none') return false;
+  const sem=$('rnSemBloq').checked; if(sem===!!$('rnSemBloq').dataset.ini) return false;
+  const at=Object.assign({},(v.raw&&v.raw.attributes)||{});
+  if(sem) at.semBloqueio=true; else delete at.semBloqueio;
+  const r=await api('/api/devices/'+v.id,{method:'PUT',headers:JSONH,body:JSON.stringify(Object.assign({},v.raw,{attributes:at}))});
+  if(!r.ok) throw new Error(await msgErro(r,'Não consegui salvar o bloqueio do veículo'));
+  try{ v.raw=await r.json() }catch(e){ v.raw=Object.assign({},v.raw,{attributes:at}) }
+  v.semBloq=sem; $('rnSemBloq').dataset.ini=sem?'1':''; return true;
 }
 async function salvarOdometro(v){
   if(!ehAdmin || $('rnOdo').value===$('rnOdo').dataset.ini) return false;
@@ -7096,13 +7111,14 @@ $('rnOk').onclick=async()=>{
   const placaMapa=podeNome?$('rnPlacaMapa').checked:null, mudouPlMapa=placaMapa!==null && placaMapa!==!!$('rnPlacaMapa').dataset.ini;
   $('rnOk').disabled=true;
   if(nome===v.nome && !mudouPlaca && !mudouPlMapa){
-    try{ const mudouMot=salvarMotorista(v); const mudouW=await salvarWppVeic(v); const mudou=await salvarOdometro(v); fechar(); toast(mudou?'Odômetro ajustado.':(mudouW?'WhatsApp salvo.':(mudouMot?'Motorista salvo.':'Nada mudou.'))); atualizar() }
+    try{ const mudouMot=salvarMotorista(v); const mudouW=await salvarWppVeic(v); const mudouB=await salvarSemBloq(v); const mudou=await salvarOdometro(v); fechar(); toast(mudou?'Odômetro ajustado.':(mudouB?(v.semBloq?'Marcado: veículo sem bloqueio.':'Marcado: veículo com bloqueio.'):(mudouW?'WhatsApp salvo.':(mudouMot?'Motorista salvo.':'Nada mudou.')))); atualizar() }
     catch(e){ if(!e.sessao){ $('rnErro').textContent=e.message||'Não consegui salvar.'; $('rnOk').disabled=false } }
     return;
   }
   try{
     salvarMotorista(v);
     await salvarWppVeic(v);
+    await salvarSemBloq(v);
     await salvarOdometro(v);
     const r=await fetch(DESB_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',
       body:JSON.stringify(Object.assign({acao:'renomear',nome:nome,token:lsGet('rg_token'),deviceId:v.id},mudouPlaca?{placa}:{},mudouPlMapa?{placaMapa}:{}))});
