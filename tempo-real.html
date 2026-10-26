@@ -12993,10 +12993,19 @@ function rbAplicar(){
     c.innerHTML='<span class="mic t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 15V8h9l4 4h4l1 3v2H3z"/><path d="M12 8v4h4"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/></svg></span><b>Socorro e serviços</b><small>Reboque, chaveiro, borracheiro, mecânico e mais</small>';
     c.onclick=rbAbrir; grid.insertBefore(c,$('maisConta'));
   }
+  /* 26/10/2026 (dono): qualquer cliente pode oferecer o próprio serviço (reboque, chaveiro, mecânico...) pelo app dos parceiros */
+  let pp=$('maisParceiro');
+  if(!ehAdmin && !pp){
+    pp=document.createElement('button'); pp.className='maiscard'; pp.id='maisParceiro'; pp.type='button';
+    pp.innerHTML='<span class="mic t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m11 17 2 2a1 1 0 1 0 3-3"/><path d="m14 14 2.5 2.5a1 1 0 1 0 3-3l-3.88-3.88a3 3 0 0 0-4.24 0l-.88.88a1 1 0 1 1-3-3l2.81-2.81a5.79 5.79 0 0 1 7.06-.87l.47.28a2 2 0 0 0 1.42.25L21 4"/><path d="m21 3 1 11h-2"/><path d="M3 3 2 14l6.5 6.5a1 1 0 1 0 3-3"/><path d="M3 4h8"/></svg></span><b>Ofereça seu serviço</b><small>Reboque, chaveiro, mecânico e mais: apareça no mapa para os clientes</small>';
+    pp.onclick=()=>{ const w=window.open('parceiro.html','_blank'); if(!w) location.href='parceiro.html' };
+    grid.insertBefore(pp,$('maisConta'));
+  }
+  if(ehAdmin && pp) pp.remove();
   let m=$('maisMeuReboque');
   if(pode && !m){
     m=document.createElement('div'); m.className='maiscard'; m.id='maisMeuReboque'; m.setAttribute('role','button'); m.tabIndex=0;
-    m.innerHTML='<label class="sw mrsw" id="mrSwBox" title="Disponível para chamados"><input type="checkbox" id="mrSw"><span></span></label><span class="mic t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg></span><b>Meu reboque</b><small>Sua base, seus valores e se está disponível</small>';
+    m.innerHTML='<label class="sw mrsw" id="mrSwBox" title="Disponível para chamados"><input type="checkbox" id="mrSw"><span></span></label><span class="mic t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg></span><b>Meu reboque com rastreador</b><small>Sua base, seus valores e se está disponível</small>';
     m.onclick=e=>{ if(e.target.closest('.mrsw')) return; mrAbrir() }; m.onkeydown=e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); mrAbrir() } };
     grid.insertBefore(m,$('maisConta'));
     $('mrSw').addEventListener('change',mrSwTrocar);
