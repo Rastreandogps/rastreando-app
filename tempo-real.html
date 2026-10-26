@@ -158,6 +158,33 @@ body.mapa-google #map .leaflet-top.leaflet-left .leaflet-control-attribution{mar
 .maiscard .mic.t{background:rgba(14,165,233,.14);color:#0ea5e9}
 .rbbox{display:flex;flex-direction:column;max-height:88vh;overflow:hidden}
 #rbMapa{height:min(30vh,230px);border-radius:14px;overflow:hidden;background:var(--card2);flex:none;margin-bottom:10px;position:relative;z-index:0}
+/* 26/10/2026 (dono): Socorro e serviços só com o mapa (a lista saiu; o prestador abre numa janela) */
+#mReboques #rbMapa{height:min(46vh,400px)}
+#mReboques #rbRola{min-height:0;flex:none}
+#mReboques #pcMais{display:none!important}
+.rbico{width:44px;height:30px;border-radius:15px;background:#fff;border:2px solid #0ea5e9;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.35);cursor:pointer}
+.rbico svg{width:36px;height:auto}
+.rbico.pc{border-color:#e3262f;border-style:dashed}
+.rbico.on{transform:scale(1.15);box-shadow:0 0 0 4px rgba(14,165,233,.25),0 2px 6px rgba(0,0,0,.35)}
+.pcdtopo .almx{width:38px;height:38px;flex:none;border-radius:50%;background:var(--card2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;cursor:pointer;align-self:flex-start}
+.pcdtopo .almx svg{width:18px;height:18px;fill:none;stroke:var(--txt);stroke-width:2.4;stroke-linecap:round}
+.pcdbox{display:flex;flex-direction:column;max-height:88vh;overflow:hidden}
+.pcdtopo{flex:none;display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.pcdic{flex:none;width:52px;height:52px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:26px;background:linear-gradient(180deg,#fff,var(--card2));border:1px solid var(--line);box-shadow:0 3px 0 rgba(15,23,42,.10),0 6px 12px rgba(15,23,42,.10)}
+.pcdic svg{max-width:44px;height:auto}
+.pcdtt{flex:1;min-width:0}.pcdtt b{display:block;font-size:17px;line-height:1.25}.pcdtt small{display:block;font-size:12.5px;color:var(--mut);margin-top:2px}
+.pcdrola{flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+.pcdcorpo{margin-bottom:10px}
+.pcdcorpo .pcserv{margin-top:4px;border-top:0}
+.pcdcorpo .pcserv>div{padding:9px 0;font-size:14px}
+.pcdcorpo .pcserv>div b{font-size:14px;text-align:right}
+.pcdcorpo .rtbt a{padding:12px 10px;font-size:14px}
+.pcdlin{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 8px}
+.pcdlin span{font-size:12px;font-weight:700;padding:5px 10px;border-radius:999px;background:var(--card2);border:1px solid var(--line);color:var(--txt)}
+.pcdlin span.ok{background:rgba(22,163,74,.12);border-color:rgba(22,163,74,.4);color:#16a34a}
+.pcdtit{font-size:12px;font-weight:800;letter-spacing:.3px;text-transform:uppercase;color:var(--mut);margin:6px 0 2px}
+.pcdaviso{font-size:12px;line-height:1.45;color:var(--mut);background:rgba(224,168,0,.10);border:1px solid rgba(224,168,0,.4);border-radius:12px;padding:10px 12px;margin-bottom:4px}
+.pcdaviso b{color:var(--txt)}
 #rbRola{flex:1 1 auto;min-height:120px;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;position:relative}
 /* 25/10/2026 (dono): "uma setinha mostrando ver mais" quando a lista não cabe */
 .pcmais{flex:none;display:flex;align-items:center;justify-content:center;gap:6px;width:100%;margin:6px 0 0;padding:7px 12px;border-radius:12px;background:rgba(227,38,47,.12);border:1px dashed rgba(227,38,47,.55);color:#e3262f;font-weight:800;font-size:13px}
@@ -3962,9 +3989,18 @@ nav button.on .nemo.txt{color:var(--red2)}
     <div class="rtsub" id="rbSub">Carregando...</div>
     <div id="rbMapa"></div>
     <div id="rbRola"><div id="rbLista"></div></div><button type="button" class="pcmais" id="pcMais" hidden></button>
-    <div class="rbnota" id="pcNota" hidden>Parceiros aprovados pela Rastreando GPS. Preços "a partir de"; o valor final é combinado com o parceiro. O serviço é do parceiro; a Rastreando só faz a ponte.</div>
-    <div class="rbnota" id="rbNota">Cada círculo é a <b>região</b> da base do reboque (o endereço exato não é mostrado). Os valores são <b>estimativas</b> feitas pelo app com a tabela de cada reboquista; pedágio e adicionais (noite, fim de semana, subsolo) são combinados direto com ele. O serviço é prestado pelo reboquista; a Rastreando GPS só faz a ponte.</div>
+    <!-- 26/10/2026 (dono): só o mapa; tocar no ícone abre a janela do prestador. Texto reforça que o prestador é independente -->
+    <div class="rbnota" id="pcNota" hidden>Cada círculo é a <b>região aproximada</b> do prestador (o endereço exato não é mostrado). Preços "a partir de": o valor final é combinado direto com ele. <b>O serviço é feito por um prestador independente</b>, que não é da Rastreando GPS: a Rastreando só faz a ponte e não se responsabiliza pelo serviço.</div>
+    <div class="rbnota" id="rbNota">Cada círculo é a <b>região aproximada</b> da base do reboque (o endereço exato não é mostrado). Os valores são <b>estimativas</b> feitas pelo app com a tabela de cada reboquista; pedágio e adicionais (noite, fim de semana, subsolo) são combinados direto com ele. <b>O serviço é feito por um prestador independente</b>, que não é da Rastreando GPS: a Rastreando só faz a ponte e não se responsabiliza pelo serviço.</div>
     <div class="rtacoes"><button class="btn btn-out" id="rbAtualizar" type="button">Atualizar</button><button class="btn btn-out" data-close type="button">Fechar</button></div>
+  </div>
+</div>
+<!-- 26/10/2026 (dono): janela do prestador, aberta ao tocar no ícone do mapa -->
+<div class="modal alsheet" id="mPcDet">
+  <div class="box2 pcdbox">
+    <div class="pcdtopo"><span class="pcdic" id="pcdIc"></span><div class="pcdtt"><b id="pcdNome"></b><small id="pcdSub"></small></div><button class="almx" id="pcdX" type="button" aria-label="Fechar" title="Fechar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <div class="pcdrola"><div class="rtit pcdcorpo" id="pcDetCorpo"></div>
+    <div class="pcdaviso"><b>Prestador independente.</b> O serviço é feito por ele, por conta própria; ele não é funcionário da Rastreando GPS. A Rastreando só faz a ponte e não se responsabiliza pelo serviço nem pelo valor combinado.</div></div>
   </div>
 </div>
 <div class="modal alsheet" id="mRbCota">
@@ -13173,22 +13209,24 @@ function rbDesenhar(){
   rbMapaPreparar(); rbCamada.clearLayers();
   const pts=[]; const v=rbCarroAtual;
   if(v&&v.pos){ L.marker(v.pos,{icon:L.divIcon({className:'',html:'<div class="rbcar" title="Seu veículo"></div>',iconSize:[14,14],iconAnchor:[7,7]}),interactive:false}).addTo(rbCamada); pts.push(v.pos) }
-  rbLista.forEach((r,i)=>{
+  rbLista.forEach((r,i)=>{ /* 26/10/2026 (dono): círculo da região + ícone do reboque no meio + só o primeiro nome; tocar abre a janela */
     const c=[r.regiao.lat,r.regiao.lon];
-    L.circle(c,{radius:r.regiao.raioM||2000,color:'#0ea5e9',weight:2,fillColor:'#0ea5e9',fillOpacity:.14}).addTo(rbCamada).bindTooltip(r.nome,{permanent:true,direction:'center',className:'rbtt'});
+    const circ=L.circle(c,{radius:r.regiao.raioM||2000,color:'#0ea5e9',weight:2,fillColor:'#0ea5e9',fillOpacity:.14}).addTo(rbCamada); circ.on('click',()=>pcDetAbrir('reb',i));
+    const mk=L.marker(c,{icon:L.divIcon({className:'',html:'<div class="rbico" id="rbIco'+i+'">'+PC_IC_REB+'</div>',iconSize:[44,30],iconAnchor:[22,15]})}).addTo(rbCamada).bindTooltip(pcNomeCurto(r.nome),{permanent:true,direction:'top',className:'rbtt',offset:[0,-14]});
+    mk.on('click',()=>pcDetAbrir('reb',i)); try{ mk.getTooltip().on('click',()=>pcDetAbrir('reb',i)) }catch(e){}
     pts.push(c);
   });
   if(pts.length){ try{ rbMapa.fitBounds(L.latLngBounds(pts).pad(0.25),{maxZoom:13}) }catch(e){} }
   else if(map){ try{ rbMapa.setView(map.getCenter(),11) }catch(e){} }
   if(!rbLista.length){ $('rbSub').textContent=''; $('rbLista').innerHTML='<div class="rtvz">Nenhum reboque disponível agora. Tente de novo mais tarde.</div>'; return }
   $('rbSub').textContent=rbLista.length+' reboque'+(rbLista.length>1?'s':'')+' disponíve'+(rbLista.length>1?'is':'l')+(v?' · seu veículo: '+v.nome:' · sem posição do seu veículo');
-  $('rbLista').innerHTML=rbLista.map((r,i)=>{
-    const menor=r.tabelas.reduce((m,t)=>m==null||t.saida<m?t.saida:m,null);
-    return '<div class="rtit"><div class="rttopo"><div><b>'+esc(r.nome)+'</b><div class="rtinfo">'+r.tabelas.map(t=>esc(t.nome)+(t.sobConsulta?': orçamento na hora':': saída '+brl2(t.saida)+(t.kmInc?' (até '+t.kmInc+' km)':'')+' + '+brl2(t.kmExtra)+'/km')).join('<br>') /* 26/10/2026: sem valor = orçamento na hora */+'</div></div>'+
-      '<div class="rtdist">'+(r.distKm!=null?'~'+r.distKm+' km<small>de você</small>':'<small>'+(r.sinal==='ok'?'disponível':'sinal fraco')+'</small>')+'</div></div>'+
-      '<div class="rtbt"><a href="#" data-rbcota="'+i+'" style="background:rgba(14,165,233,.14);border-color:rgba(14,165,233,.4);color:#0ea5e9">Ver valor</a>'+
-      (r.fone?'<a href="tel:+55'+esc(r.fone)+'">Ligar</a>':'')+(r.wpp?'<a class="wpp" href="https://wa.me/55'+esc(r.wpp)+'?text='+encodeURIComponent(rbMsg(r,null))+'" target="_blank" rel="noopener">WhatsApp</a>':'')+'</div></div>';
-  }).join('');
+  $('rbLista').innerHTML='<div class="pcdica">Toque no ícone no mapa para ver os valores e chamar.</div>'; /* 26/10/2026 (dono): a lista saiu; o reboque abre numa janela */
+}
+/* 26/10/2026 (dono): conteúdo da janela do reboquista (o mesmo que ficava na lista) */
+function rbDetHtml(r,i){
+  return '<div class="pcdtit">Valores</div><div class="pcserv">'+r.tabelas.map(t=>'<div><span>'+esc(t.nome)+'</span><b>'+(t.sobConsulta?'orçamento na hora':'saída '+brl2(t.saida)+(t.kmInc?' <small style="font-weight:500;opacity:.8">(até '+t.kmInc+' km)</small>':'')+'<small style="display:block;font-weight:500;opacity:.8">+ '+brl2(t.kmExtra)+' por km excedente</small>')+'</b></div>').join('')+'</div>'+
+    '<div class="rtbt"><a href="#" data-rbcota="'+i+'" style="background:rgba(14,165,233,.14);border-color:rgba(14,165,233,.4);color:#0ea5e9">Ver valor até o destino</a>'+
+    (r.fone?'<a href="tel:+55'+esc(r.fone)+'">Ligar</a>':'')+(r.wpp?'<a class="wpp" href="https://wa.me/55'+esc(r.wpp)+'?text='+encodeURIComponent(rbMsg(r,null))+'" target="_blank" rel="noopener">WhatsApp</a>':'')+'</div>';
 }
 function rbMsg(r,cota){ /* 25/10/2026 (pedido do dono): mensagem organizada em linhas, com emojis */
   const v=rbCarroAtual, L=[];
@@ -13208,7 +13246,7 @@ function rbMsg(r,cota){ /* 25/10/2026 (pedido do dono): mensagem organizada em l
   return L.join('\n');
 }
 $('rbAtualizar').onclick=rbCarregar;
-$('rbLista').addEventListener('click',e=>{ const a=e.target.closest('[data-rbcota]'); if(!a) return; e.preventDefault(); rbCotaAbrir(rbLista[+a.dataset.rbcota]) });
+$('pcDetCorpo').addEventListener('click',e=>{ const a=e.target.closest('[data-rbcota]'); if(!a) return; e.preventDefault(); rbCotaAbrir(rbLista[+a.dataset.rbcota]) });
 /* ---- Ver valor ---- */
 function rbCotaAbrir(r){
   if(!r) return; rbCota={reb:r,dest:null}; try{ if(drPode()) drCarregar(true) }catch(e){}
@@ -13604,12 +13642,12 @@ function pcDesenhar(nome,anexar){ /* anexar=true: junta aos reboquistas com rast
   if(anexar) rbLista.forEach(r=>{ if(r.regiao) pts.push([r.regiao.lat,r.regiao.lon]) });
   if(v&&v.pos&&!anexar){ L.marker(v.pos,{icon:L.divIcon({className:'',html:'<div class="rbcar" title="Seu veículo"></div>',iconSize:[14,14],iconAnchor:[7,7]}),interactive:false}).addTo(rbCamada); pts.push(v.pos) }
   const emo=(PC_CATS.find(c=>c[0]===pcCat)||[])[2]||'📍';
-  pcMarc=[]; pcAberto=pcLista.length===1?0:-1;
+  pcMarc=[]; pcAberto=-1;
   pcLista.forEach((p,i)=>{ let lay=null, c=null;
-    if(p.ponto){ c=[p.ponto.lat,p.ponto.lon]; lay=L.marker(c,{icon:L.divIcon({className:'',html:'<div class="pcpino" id="pcPino'+i+'">'+emo+'</div>',iconSize:[30,30],iconAnchor:[15,15]})}).addTo(rbCamada).bindTooltip(p.nome,{permanent:true,direction:'top',className:'rbtt pctt',offset:[0,-14]}) }
-    else if(p.regiao){ c=[p.regiao.lat,p.regiao.lon]; /* 25/10/2026 (dono): ícone da categoria no meio do círculo (o centro já é deslocado do endereço real) */
+    if(p.regiao){ /* 26/10/2026 (dono): sempre a região aproximada (nunca o ponto exato) */ c=[p.regiao.lat,p.regiao.lon]; /* 25/10/2026 (dono): ícone da categoria no meio do círculo (o centro já é deslocado do endereço real) */
       const circ=L.circle(c,{radius:p.regiao.raioM||1500,color:'#e3262f',weight:1.5,dashArray:'5 5',fillColor:'#e3262f',fillOpacity:.07}).addTo(rbCamada); circ.on('click',()=>pcSel(i,true));
-      lay=L.marker(c,{icon:L.divIcon({className:'',html:'<div class="pcpino reg" id="pcPino'+i+'">'+emo+'</div>',iconSize:[30,30],iconAnchor:[15,15]})}).addTo(rbCamada).bindTooltip(p.nome,{permanent:true,direction:'top',className:'rbtt pctt',offset:[0,-14]}); lay._circ=circ }
+      const ehReb=p.categoria==='reboque'; /* 26/10/2026 (dono): reboque com o ícone do reboque para todos */
+      lay=L.marker(c,{icon:L.divIcon({className:'',html:ehReb?'<div class="rbico pc" id="pcPino'+i+'">'+PC_IC_REB+'</div>':'<div class="pcpino reg" id="pcPino'+i+'">'+emo+'</div>',iconSize:ehReb?[44,30]:[30,30],iconAnchor:ehReb?[22,15]:[15,15]})}).addTo(rbCamada).bindTooltip(pcNomeCurto(p.nome),{permanent:true,direction:'top',className:'rbtt pctt',offset:[0,-14]}); lay._circ=circ }
     if(lay){ pts.push(c); lay.on('click',()=>pcSel(i,true)); try{ lay.getTooltip().on('click',()=>pcSel(i,true)) }catch(e){} }
     pcMarc.push({lay,c,circ:lay&&lay._circ?lay._circ:null});
   });
@@ -13619,17 +13657,16 @@ function pcDesenhar(nome,anexar){ /* anexar=true: junta aos reboquistas com rast
   const tot=pcLista.length+(anexar?rbLista.length:0);
   $('rbSub').textContent=tot+' '+String(nome).toLowerCase()+(tot>1?'s':'')+' disponíve'+(tot>1?'is':'l')+(v?' · perto de '+v.nome:'');
   const fichas=drPode()&&DR.dados&&DR.dados.ativo&&DR.dados.termoAceito;
-  const html=((pcLista.length>1&&!anexar)?'<div class="pcdica">Toque no mapa ou num nome para ver os serviços e chamar.</div>':'')+pcLista.map((p,i)=>'<div class="rtit pcit'+(i===pcAberto?' on':'')+'" id="pcIt'+i+'"><div class="pcrow" data-pcab="'+i+'"><div><b class="pcn">'+esc(p.nome)+'</b><small>'+
-      (p.h24?'<span style="color:#16a34a;font-weight:700">Atende 24 horas</span>':esc(p.horario||''))+(p.atendeLocal?' · vai até você':'')+'</small>'+pcAtdHtml(p)+'</div>'+
-      (p.distKm!=null?'<div class="pckm">~'+pcKm(p.distKm)+'<small>do veículo</small></div>':'')+'<svg class="pcchev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></div>'+
-    '<div class="pcdet" id="pcDet'+i+'"'+(i===pcAberto?'':' hidden')+'><div class="rtinfo">'+(p.categoria==='reboque'?(p.raioKm?'Saída inclui até '+p.raioKm+' km':''):p.atendeLocal&&p.raioKm?'Vai até você (até '+p.raioKm+' km)':'')+(p.ponto&&p.ponto.end?(p.atendeLocal&&p.raioKm?'<br>':'')+'📍 '+esc(p.ponto.end):'')+'</div>'+
-    '<div class="pcserv">'+(p.servicos||[]).map(s=>'<div><span>'+esc(s.nome)+'</span><b>'+(s.sobConsulta||!(s.aPartir>0)?(p.categoria==='reboque'?'orçamento na hora':'sob consulta'):(p.categoria==='reboque'?'saída '+brl2(s.aPartir):'a partir de '+brl2(s.aPartir)))+(p.categoria==='reboque'&&s.kmExtra>0?'<small style="display:block;font-weight:500;opacity:.8">+ '+brl2(s.kmExtra)+' por km excedente</small>':'')+'</b></div>').join('') /* 26/10/2026: reboque mostra saída e km excedente */+
+  PC_DET=pcLista.map((p,i)=>'<div class="pcdlin">'+(p.h24?'<span class="ok">Atende 24 horas</span>':(p.horario?'<span>🕒 '+esc(p.horario)+'</span>':''))+(p.atendeLocal?'<span>Vai até você</span>':'')+(p.atende||[]).map(k=>'<span>'+((k==='diesel'&&pcCat==='insulfilme')?'🚚 Caminhão':(PC_ATD[k]||k))+'</span>').join('')+'</div>'+
+    '<div class="pcdet" id="pcDet'+i+'"><div class="rtinfo">'+(p.categoria==='reboque'?(p.raioKm?'Saída inclui até '+p.raioKm+' km':''):p.atendeLocal&&p.raioKm?'Vai até você (até '+p.raioKm+' km)':'')+'</div>'+
+    '<div class="pcdtit">'+(p.categoria==='reboque'?'Valores':'Serviços e preços')+'</div>'+
+    '<div class="pcserv">'+(p.servicos||[]).map(s=>'<div><span>'+esc(s.nome)+'</span><b>'+(s.sobConsulta||!(s.aPartir>0)?(p.categoria==='reboque'?'orçamento na hora':'sob consulta'):(p.categoria==='reboque'?'saída '+brl2(s.aPartir):'a partir de '+brl2(s.aPartir)))+(p.categoria==='reboque'&&s.kmExtra>0?'<small style="display:block;font-weight:500;opacity:.8">+ '+brl2(s.kmExtra)+' por km excedente</small>':'')+'</b></div>').join('')+
       (p.atendeLocal&&p.deslocamento&&p.deslocamento.fixo?'<div><span>Deslocamento</span><b>'+brl2(p.deslocamento.fixo)+'</b></div>':'')+'</div>'+
-    (p.obs?'<div class="rtinfo" style="margin-top:6px">'+esc(p.obs)+'</div>':'')+
+    (p.obs?'<div class="rtinfo" style="margin-top:8px">'+esc(p.obs)+'</div>':'')+
     '<div class="rtbt"><a class="wpp" href="https://wa.me/55'+esc(p.wpp)+'?text='+encodeURIComponent(pcMsg(p))+'" target="_blank" rel="noopener">Pedir orçamento</a>'+(p.fone?'<a href="tel:+55'+esc(p.fone)+'">Ligar</a>':'')+
       (fichas?'<a href="#" data-pcpag="'+i+'" class="pcpagbt">'+DR_COIN+' Pagar com fichas</a>':'')+'</div></div>'+
-    '<div class="pcpag" id="pcPag'+i+'" hidden><label class="flbl">Valor combinado com o '+esc(String(nome).toLowerCase())+' (R$)</label><div class="rbcbusca"><input class="fld" data-pcval="'+i+'" inputmode="decimal" autocomplete="off" placeholder="0,00"><button class="btn btn-out" type="button" data-pcres="'+i+'">Reservar fichas</button></div><small>Você tem '+((DR.dados&&DR.dados.livres)||0)+' fichas livres. Elas ficam reservadas até o parceiro concluir.</small></div>'+
-  '</div>').join('');
+    '<div class="pcpag" id="pcPag'+i+'" hidden><label class="flbl">Valor combinado com o '+esc(String(nome).toLowerCase())+' (R$)</label><div class="rbcbusca"><input class="fld" data-pcval="'+i+'" inputmode="decimal" autocomplete="off" placeholder="0,00"><button class="btn btn-out" type="button" data-pcres="'+i+'">Reservar fichas</button></div><small>Você tem '+((DR.dados&&DR.dados.livres)||0)+' fichas livres. Elas ficam reservadas até o parceiro concluir.</small></div>');
+  const html=(anexar&&$('rbLista').querySelector('.pcdica'))?'':'<div class="pcdica">Toque no ícone no mapa para ver os serviços e chamar.</div>'; /* 26/10/2026 (dono): a lista saiu; o prestador abre numa janela */
   if(anexar) $('rbLista').insertAdjacentHTML('beforeend',html); else $('rbLista').innerHTML=html;
 }
 let pcMarc=[], pcAberto=-1;
@@ -13646,7 +13683,23 @@ function pcMaisAtualizar(){ /* mostra "Ver mais N" enquanto houver itens abaixo 
 })();
 function pcMarcar(){ pcMarc.forEach((m,i)=>{ if(!m.lay) return; const on=i===pcAberto;
   if(m.circ) m.circ.setStyle({weight:on?3:1.5,fillOpacity:on?.18:.07}); const el=$('pcPino'+i); if(el) el.classList.toggle('on',on) }) }
-function pcSel(i,doMapa){ /* 25/10/2026: abre o card do parceiro (pelo mapa ou pela lista); só um aberto por vez */
+/* 26/10/2026 (dono): no mapa aparece só o primeiro nome (o nome completo fica na janela) */
+const PC_GEN=new Set(['reboque','reboques','guincho','guinchos','auto','oficina','chaveiro','chaveiros','borracharia','borracheiro','mecanica','mecânica','mecanico','mecânico','eletrica','elétrica','eletricista','despachante','despachantes','car','som','insulfilme','centro','casa','loja','socorro','o','a','do','da','de','dos','das','e']);
+function pcNomeCurto(n){ const w=String(n||'').trim().split(/\s+/).filter(Boolean); if(!w.length) return ''; let k=0; while(k<w.length-1 && k<3 && PC_GEN.has(w[k].toLowerCase())) k++; const t=w.slice(0,k+1).join(' '); return t.length>22?t.slice(0,21)+'…':t }
+let PC_DET=[];
+function pcDetAbrir(tipo,i){
+  const reb=tipo==='reb', x=reb?rbLista[i]:pcLista[i]; if(!x) return;
+  const cat=reb?'reboque':(x.categoria||pcCat), c=PC_CATS.find(k=>k[0]===cat)||[], km=x.distKm!=null?' · ~'+pcKm(x.distKm)+' do veículo':'';
+  $('pcdIc').innerHTML=c[2]||'📍'; $('pcdNome').textContent=x.nome||'';
+  $('pcdSub').textContent=(c[1]||'Serviço')+km;
+  $('pcDetCorpo').innerHTML=reb?rbDetHtml(x,i):(PC_DET[i]||'');
+  document.querySelectorAll('#rbMapa .rbico.on,#rbMapa .pcpino.on').forEach(e=>e.classList.remove('on'));
+  const el=$(reb?'rbIco'+i:'pcPino'+i); if(el) el.classList.add('on');
+  if(!reb){ pcAberto=i; pcMarcar() }
+  abrir('mPcDet'); try{ $('mPcDet').querySelector('.pcdrola').scrollTop=0 }catch(e){}
+}
+$('pcdX').onclick=()=>{ $('mPcDet').classList.remove('show'); document.querySelectorAll('#rbMapa .rbico.on').forEach(e=>e.classList.remove('on')); pcAberto=-1; try{ pcMarcar() }catch(e){} };
+function pcSel(i,doMapa){ if(doMapa){ pcDetAbrir('pc',i); return } /* 26/10/2026: o mapa abre a janela */
   pcAberto=(pcAberto===i&&!doMapa)?-1:i;
   pcLista.forEach((p,k)=>{ const it=$('pcIt'+k), d=$('pcDet'+k); if(it) it.classList.toggle('on',k===pcAberto); if(d) d.hidden=k!==pcAberto });
   pcMarcar();
@@ -13662,7 +13715,7 @@ function pcMsg(p){
   L.push(''); L.push('📲 _Seu app de parceiro Rastreando:_ '+PC_LINK); /* 25/10/2026 (dono): o prestador acha o app pelo link da própria mensagem */
   return L.join('\n');
 }
-$('rbLista').addEventListener('click',async e=>{
+$('pcDetCorpo').addEventListener('click',async e=>{ /* 26/10/2026: os botões agora ficam na janela do prestador */
   const ab=e.target.closest('[data-pcab]'); if(ab){ pcSel(+ab.dataset.pcab,false); return }
   const a=e.target.closest('[data-pcpag]'); if(a){ e.preventDefault(); const bx=$('pcPag'+a.dataset.pcpag); bx.hidden=!bx.hidden; return }
   const r=e.target.closest('[data-pcres]'); if(!r) return;

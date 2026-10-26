@@ -256,7 +256,7 @@ textarea.fld{height:70px;padding:10px 12px;resize:vertical}
       <div class="ok" id="pfEndOk" hidden></div>
       <button class="linkbtn" id="bAqui" type="button">📍 Usar minha localização agora</button>
       <p class="aviso" id="pfEndSeg" style="border:1px solid rgba(22,163,74,.45);background:rgba(22,163,74,.08);border-radius:10px;padding:10px 12px;margin:8px 0"></p>
-      <label class="chk"><span><b>Loja aberta ao público</b><small>Ligado: o ponto exato aparece no mapa. Desligado: só uma região aproximada.</small></span><input type="checkbox" id="pfLoja"></label>
+      <label class="chk" hidden><!-- 26/10/2026 (dono): todos aparecem só pela região aproximada; a opção saiu da tela --><span><b>Loja aberta ao público</b><small>Ligado: o ponto exato aparece no mapa. Desligado: só uma região aproximada.</small></span><input type="checkbox" id="pfLoja"></label>
       <label class="chk" id="pfLocalBox"><span><b>Vou até o cliente</b><small>Atendo no local onde o veículo está.</small></span><input type="checkbox" id="pfLocal"></label>
       <div class="dois" id="pfDeslBox">
         <div><label class="l" id="pfRaioTit">Atendo até (km)</label><input class="fld" id="pfRaio" inputmode="numeric" autocomplete="off" placeholder="15"></div>
@@ -413,7 +413,7 @@ $('bAddServ').onclick=()=>{ if(document.querySelectorAll('#pfServ .serv').length
 function servLer(solto){ return [...document.querySelectorAll('#pfServ .serv')].map(r=>{ const sc=r.querySelector('[data-sc]').checked, v=r.querySelector('[data-sv]').value.trim(); const semPreco=!sc&&(v===''||!(numBR(v)>0)); return {nome:r.querySelector('[data-sn]').value.trim(),sobConsulta:sc||(!solto&&semPreco),aPartir:sc||semPreco?(solto?null:null):numBR(v)} }).filter(x=>x.nome) }
 /* endereço */
 /* 25/10/2026 (dono): texto para tranquilizar sobre a localização */
-function endSeg(){ const e=$('pfEndSeg'); if(!e) return; e.innerHTML=$('pfLoja').checked
+function endSeg(){ const e=$('pfEndSeg'); if(!e) return; e.innerHTML=false /* 26/10/2026: sempre região aproximada */
   ? '<b>📍 Loja aberta ao público:</b> o endereço exato aparece no mapa para os clientes da Rastreando encontrarem você.'
   : '<b>🔒 Fique tranquilo: seu endereço é protegido.</b><br>O cliente <b>nunca</b> vê o seu endereço nem o ponto exato. No mapa aparece só uma <b>área aproximada</b> (um círculo que de propósito não fica em cima do seu endereço), apenas para ele saber que você atende perto. O endereço serve só para o app mostrar a distância até o cliente.' }
 $('pfLoja').addEventListener('change',endSeg); endSeg();
