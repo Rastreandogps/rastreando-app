@@ -1532,6 +1532,9 @@ body.premteste #ruaBox.foto + #ruaTeste{display:block}
 @media (max-width:899px){#ruaTeste{display:none!important}}
 #sheet.comruacel .vrua{display:none!important} /* no celular a foto fica só no quadro grande */
 #sheet.comruacel #sOdoBtn,#sheet.comruacel #sCombBtn,#sheet.comruacel #sLojaBtn,#sheet.comruacel #sFatBtn{display:none!important}
+#odoRow{display:none}
+#sheet.comruacel #odoRow.on{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;margin-top:8px}
+#sheet.comruacel #odoRow #sOdoBtn,#sheet.comruacel #odoRow #sCombBtn{display:flex!important;flex-direction:column;align-items:flex-start;justify-content:center;min-height:56px;padding:8px 14px;margin:0}
 #sheet.comruacel .actions.comodo #sOdoBtn,#sheet.comruacel .actions.comodo #sCombBtn{display:flex!important;flex-direction:column;align-items:flex-start;justify-content:center;min-height:52px;padding:6px 10px;margin:0} /* 26/10/2026 */
 #sheet.comruacel .grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,3fr)}
 #sheet.comruacel .ruacel{display:block;position:relative;grid-column:3;grid-row:1;min-height:112px;padding:0;border:1px solid var(--line);border-radius:14px;overflow:hidden;cursor:pointer;
@@ -3029,6 +3032,7 @@ nav button.on .nemo.txt{color:var(--red2)}
       </button>
       <button class="btn btn-out" id="btnNavMini" type="button" aria-label="Navegar até o veículo" title="Navegar até o veículo (traçar rota)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5 19 20.5l-7-3.8-7 3.8z"/></svg></button><!-- 23/10/2026: com a vista da rua no celular, o Navegar sobe para cá e o "Ver a rua" sai -->
     </div>
+    <div class="odorow" id="odoRow"></div><!-- 26/10/2026: Odômetro e Combustível com a vista da rua no celular (veículo com bloqueio) -->
     <div class="actions dois" id="admSmsRow" style="display:none">
       <button class="btn" id="btnBlockSms">Bloquear SMS</button>
       <button class="btn" id="btnUnblockSms">Desbloquear SMS</button>
@@ -6900,8 +6904,11 @@ function mostrarBotoesSms(){
   const acts=$('btnBlock').parentElement; if(acts) acts.style.gridTemplateColumns=(podeApp?'minmax(0,1fr) ':'')+(n?'52px ':'')+(podeApp?'44px':'52px')+(sheet.classList.contains('comruacel')?(podeApp?' 44px':' 52px'):''); /* chave ocupa o lugar dos 2 botões; 23/10/2026: + Navegar com a vista da rua no celular */
   /* 26/10/2026 (dono): sem bloqueio + foto da rua no celular → Odômetro e Combustível voltam, no espaço vazio ao lado de Compartilhar */
   try{ const odoIn=!podeApp && sheet.classList.contains('comruacel') && !(cartao()||{}).tag, ob=$('sOdoBtn'), cb=$('sCombBtn'), gr=$('sLojaBtn').parentElement;
-    if(acts && odoIn){ if(ob.parentElement!==acts){ acts.insertBefore(cb,acts.firstChild); acts.insertBefore(ob,acts.firstChild) } acts.style.gridTemplateColumns='minmax(0,1fr) minmax(0,1fr) '+(n?'52px ':'')+'52px 52px'; acts.classList.add('comodo') }
-    else if(ob.parentElement!==gr){ gr.insertBefore(ob,$('sLojaBtn')); gr.insertBefore(cb,$('sLojaBtn')); if(acts) acts.classList.remove('comodo') } }catch(e){}
+    /* 26/10/2026 (dono): COM bloqueio + foto da rua no celular → Odômetro e Combustível numa linha própria, embaixo do Bloquear */
+    const odoBaixo=podeApp && sheet.classList.contains('comruacel') && !(cartao()||{}).tag, orow=$('odoRow');
+    if(acts && odoIn){ if(ob.parentElement!==acts){ acts.insertBefore(cb,acts.firstChild); acts.insertBefore(ob,acts.firstChild) } acts.style.gridTemplateColumns='minmax(0,1fr) minmax(0,1fr) '+(n?'52px ':'')+'52px 52px'; acts.classList.add('comodo'); orow.classList.remove('on') }
+    else if(odoBaixo){ if(ob.parentElement!==orow){ orow.appendChild(ob); orow.appendChild(cb) } if(acts) acts.classList.remove('comodo'); orow.classList.add('on') }
+    else { if(ob.parentElement!==gr){ gr.insertBefore(ob,$('sLojaBtn')); gr.insertBefore(cb,$('sLojaBtn')) } if(acts) acts.classList.remove('comodo'); orow.classList.remove('on') } }catch(e){}
   const semSinal=(()=>{ const c=cartao(); return !!(c && !c.pos) })();
   $('btnAncora').style.display=(!semSinal && (ehAdmin||permCli.cercaRapida))?'flex':'none';
   try{ mapaColuna() }catch(e){}
