@@ -12621,7 +12621,7 @@ const LOJA_SVG_WPP='<svg viewBox="0 0 24 24"><path d="M17.5 14.4c-.3-.1-1.8-.9-2
 function lojaLogin(){ return (lsGet('rg_email')||'').split('@')[0] }
 /* 23/10/2026 (decisão do dono): pacotes de giros da vista da rua 360°. Os valores que valem são os do servidor (LOJA_PRODUTOS). */
 const GIRO_PACS=[{k:'giros25',g:25,v:25.90},{k:'giros50',g:50,v:45.90},{k:'giros75',g:75,v:63.90},{k:'giros100',g:100,v:79.90}];
-const girosPodeComprar=()=>!ehAdmin && !!(permCli && (permCli.ruaCelular===true || permCli.frotista===true));
+const girosPodeComprar=()=>{ try{ return !ehAdmin && modFrota() && !!(permCli && (permCli.ruaCelular===true || permCli.frotista===true)) }catch(e){ return false } }; /* 26/10/2026 (dono): a loja só mostra giros para quem tem a vista da rua ATIVA (Premium, inclusive em teste) */
 function lojaGirosDesenhar(){
   const el=$('lojaGiros'); if(!el) return;
   if(!girosPodeComprar()){ el.innerHTML=''; return }
