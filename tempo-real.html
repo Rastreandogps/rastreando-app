@@ -345,6 +345,7 @@ body.mapa-google #map .leaflet-top.leaflet-left .leaflet-control-attribution{mar
 .pcpagbt{background:rgba(224,168,0,.14)!important;border-color:rgba(224,168,0,.45)!important;color:#a77400!important;display:inline-flex!important;align-items:center;justify-content:center;gap:5px}
 .pcpag{margin-top:10px;border-top:1px dashed rgba(224,168,0,.5);padding-top:8px}
 .pcpag small{display:block;font-size:12px;color:var(--mut);margin-top:2px}
+.pcttatd{margin-left:3px;font-size:12px;letter-spacing:1px}
 .pncard{cursor:pointer;position:relative}
 #mParcEd{align-items:center;padding:16px;z-index:1200} /* fica por cima da janela dos parceiros */
 #mParcEd .almx{width:38px;height:38px;flex:none;border-radius:50%;background:var(--card2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;cursor:pointer}
@@ -13795,12 +13796,17 @@ async function pcCarregar(){
   try{
     const extra={categoria:pcCat}; if(rbCarroAtual&&rbCarroAtual.pos){ extra.lat=rbCarroAtual.pos[0]; extra.lon=rbCarroAtual.pos[1] }
     const j=await rbApi('parcListar',extra); if(meu!==pcSeq) return; const vt=pcVeicTipo(rbCarroAtual), pr=p=>!vt||!(p.atende||[]).length?1:(p.atende.includes(vt)?0:2); /* 26/10/2026: quem atende o tipo do veículo vem primeiro */
-    pcLista=(j.lista||[]).slice().sort((a,b)=>(pr(a)-pr(b))||((a.distKm==null?1e9:a.distKm)-(b.distKm==null?1e9:b.distKm))); pcDesenhar(j.categoriaNome||nome);
+    pcLista=(j.lista||[]).slice().sort((a,b)=>(pr(a)-pr(b))||((a.distKm==null?1e9:a.distKm)-(b.distKm==null?1e9:b.distKm)));
+    /* 27/10/2026 (dono): quem não atende o tipo do veículo (ex.: só carro, e o veículo é moto) não aparece — evita chamar o prestador errado */
+    pcTipoFora=0; if(vt){ const n0=pcLista.length; pcLista=pcLista.filter(p=>!(p.atende||[]).length||p.atende.includes(vt)); pcTipoFora=n0-pcLista.length }
+    pcDesenhar(j.categoriaNome||nome);
   }catch(e){ if(meu!==pcSeq) return; $('rbSub').textContent=''; $('rbLista').innerHTML='<div class="rtvz">'+esc(e.message||'Não consegui carregar.')+'</div>' }
 }
 const pcKm=k=>k==null?'':(k<1?String(k).replace('.',','):Math.round(k))+' km';
 /* 26/10/2026 (dono): o prestador marca o que atende (carro, moto, caminhão/diesel); o tipo do veículo do cliente vem do ícone escolhido */
 const PC_ATD={carro:'🚗 Carro',moto:'🏍️ Moto',diesel:'🚚 Diesel'};
+let pcTipoFora=0; const PC_ATD_EMO={carro:'🚗',moto:'🏍️',diesel:'🚚'}; const pcAtdEmo=p=>(p.atende||[]).map(k=>PC_ATD_EMO[k]||'').join(''); /* 27/10/2026: no mapa, o nome vem com o que atende */
+const PC_TIPO_NOME={moto:'moto',carro:'carro',diesel:'caminhão'};
 function pcVeicTipo(v){ const ic=v&&v.icone||''; return !ic?'':/^moto/.test(ic)?'moto':/caminhao|prancha|onibus|truck/.test(ic)?'diesel':'carro' }
 const pcAtdHtml=p=>(p.atende||[]).length?'<span class="pcatd">'+p.atende.map(k=>(k==='diesel'&&(pcCat==='insulfilme'||pcCat==='pintura'))?'🚚 Caminhão':(PC_ATD[k]||k)) /* 26/10/2026: no insulfilme, sem "diesel" */.join(' · ')+'</span>':'';
 function pcDesenhar(nome,anexar){ /* anexar=true: junta aos reboquistas com rastreador já desenhados (chip Reboque) */
@@ -13814,16 +13820,17 @@ function pcDesenhar(nome,anexar){ /* anexar=true: junta aos reboquistas com rast
     if(p.regiao){ /* 26/10/2026 (dono): sempre a região aproximada (nunca o ponto exato) */ c=[p.regiao.lat,p.regiao.lon]; /* 25/10/2026 (dono): ícone da categoria no meio do círculo (o centro já é deslocado do endereço real) */
       const circ=L.circle(c,{radius:p.regiao.raioM||1500,color:'#e3262f',weight:1.5,dashArray:'5 5',fillColor:'#e3262f',fillOpacity:.07}).addTo(rbCamada); circ.on('click',()=>pcSel(i,true));
       const ehReb=p.categoria==='reboque'; /* 26/10/2026 (dono): reboque com o ícone do reboque para todos */
-      lay=L.marker(c,{icon:L.divIcon({className:'',html:ehReb?'<div class="rbico pc" id="pcPino'+i+'">'+PC_IC_REB+'</div>':'<div class="pcpino reg" id="pcPino'+i+'">'+emo+'</div>',iconSize:ehReb?[44,30]:[30,30],iconAnchor:ehReb?[22,15]:[15,15]})}).addTo(rbCamada).bindTooltip(pcNomeCurto(p.nome),{permanent:true,direction:'top',className:'rbtt pctt',offset:[0,-14]}); lay._circ=circ }
+      lay=L.marker(c,{icon:L.divIcon({className:'',html:ehReb?'<div class="rbico pc" id="pcPino'+i+'">'+PC_IC_REB+'</div>':'<div class="pcpino reg" id="pcPino'+i+'">'+emo+'</div>',iconSize:ehReb?[44,30]:[30,30],iconAnchor:ehReb?[22,15]:[15,15]})}).addTo(rbCamada).bindTooltip(pcNomeCurto(p.nome)+(pcAtdEmo(p)?' <span class="pcttatd">'+pcAtdEmo(p)+'</span>':''),{permanent:true,direction:'top',className:'rbtt pctt',offset:[0,-14]}); lay._circ=circ }
     if(lay){ pts.push(c); lay.on('click',()=>pcSel(i,true)); try{ lay.getTooltip().on('click',()=>pcSel(i,true)) }catch(e){} }
     pcMarc.push({lay,c,circ:lay&&lay._circ?lay._circ:null});
   });
   if(pts.length){ try{ rbMapa.fitBounds(L.latLngBounds(pts).pad(0.25),{maxZoom:14}) }catch(e){} }
   else if(map){ try{ rbMapa.setView(map.getCenter(),11) }catch(e){} }
   const PL={reboque:['reboque','reboques'],chaveiro:['chaveiro','chaveiros'],borracheiro:['borracheiro','borracheiros'],mecanico:['mecânico','mecânicos'],eletricista:['eletricista','eletricistas'],despachante:['despachante','despachantes'],insulfilme:['loja de insulfilme e multimídia','lojas de insulfilme e multimídia'],pintura:['oficina de pintura e lanternagem','oficinas de pintura e lanternagem'],lavajato:['lava-jato','lava-jatos']}[pcCat]||[String(nome).toLowerCase(),String(nome).toLowerCase()]; /* 27/10/2026 (revisão): plural certo */
-  if(!pcLista.length){ if(anexar) return; $('rbSub').textContent=''; $('rbLista').innerHTML='<div class="rtvz">Ainda não temos '+esc(PL[0])+' parceiro disponível perto de você.</div>'; return }
+  const vtN=PC_TIPO_NOME[pcVeicTipo(v)]||'';
+  if(!pcLista.length){ if(anexar) return; $('rbSub').textContent=''; $('rbLista').innerHTML='<div class="rtvz">Ainda não temos '+esc(PL[0])+' parceiro disponível perto de você'+(pcTipoFora&&vtN?' que atende '+esc(vtN):'')+'.</div>'; return }
   const tot=pcLista.length+(anexar?rbLista.length:0);
-  $('rbSub').textContent=tot+' '+esc(tot>1?PL[1]:PL[0])+' disponíve'+(tot>1?'is':'l')+(v?' · perto de '+v.nome:'');
+  $('rbSub').textContent=tot+' '+esc(tot>1?PL[1]:PL[0])+' disponíve'+(tot>1?'is':'l')+(vtN&&!anexar?' para '+vtN:'')+(v?' · perto de '+v.nome:'');
   const fichas=drPode()&&DR.dados&&DR.dados.ativo&&DR.dados.termoAceito;
   PC_DET=pcLista.map((p,i)=>'<div class="pcdlin">'+(p.h24?'<span class="ok">Atende 24 horas</span>':(p.horario?'<span>🕒 '+esc(p.horario)+'</span>':''))+(p.atendeLocal?'<span>Vai até você</span>':'')+(p.atende||[]).map(k=>'<span>'+((k==='diesel'&&(pcCat==='insulfilme'||pcCat==='pintura'))?'🚚 Caminhão':(PC_ATD[k]||k))+'</span>').join('')+'</div>'+
     '<div class="pcdet" id="pcDet'+i+'"><div class="rtinfo">'+(p.categoria==='reboque'?(p.raioKm?'Saída inclui até '+p.raioKm+' km':''):p.atendeLocal&&p.raioKm?'Vai até você (até '+p.raioKm+' km)':'')+'</div>'+
