@@ -113,6 +113,7 @@ textarea.fld{height:70px;padding:10px 12px;resize:vertical}
 #tEntrar .btn.pri:active,#tSenha .btn.pri:active{transform:translateY(3px);box-shadow:0 2px 0 #8f0f15,0 6px 12px rgba(201,22,31,.25)}
 #tEntrar .btn.pri::after,#tSenha .btn.pri::after{content:"→";font-size:20px;margin-left:4px}
 #tEntrar .err{text-align:center;font-weight:600}
+.qsv{margin:6px 0 12px 2px}.qsv b{display:block;font-size:19px;font-weight:900;letter-spacing:-.2px;color:var(--txt)}.qsv small{display:block;font-size:13px;color:var(--mut);margin-top:2px}
 
 .status{display:inline-block;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:800}
 .st-rascunho{background:rgba(154,163,178,.18);color:var(--mut)}
@@ -227,7 +228,7 @@ textarea.fld{height:70px;padding:10px 12px;resize:vertical}
     <div class="card">
       <div class="abas"><button type="button" class="on" data-aba="cad">Quero divulgar meu negócio</button><button type="button" data-aba="ent">Já tenho cadastro</button></div>
       <div id="fCad">
-        <label class="l">Qual serviço você oferece?</label>
+        <div class="qsv"><b>Qual serviço você oferece?</b><small>Toque na sua categoria</small></div><!-- 27/10/2026 (dono): título em destaque -->
         <div class="cats" id="cCats"></div>
         <label class="l">Nome do seu negócio</label>
         <input class="fld" id="cNome" maxlength="50" placeholder="Ex.: Chaveiro do Beto" autocomplete="organization">
