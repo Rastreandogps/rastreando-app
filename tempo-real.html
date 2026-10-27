@@ -13712,7 +13712,7 @@ $('draLista').addEventListener('click',async e=>{
     if(a.dataset.drarec){ a.textContent='Salvando...'; await drApi('douradaAdmDecidir',{pedido:a.dataset.drarec,decisao:'recusar'}); toast('Recusado. As fichas voltaram para o cliente.'); drAdmCarregar(); pnPainelCarregar(); return }
   }catch(err){ toast(err.message) }
 });
-$('aDourada').onclick=()=>pnAbrir(!ADM_N.dr&&ADM_N.pc?'parc':'pend'); /* 26/10/2026: só prestador esperando → abre direto na aba dos prestadores */
+$('aDourada').onclick=()=>pnAbrir('parc'); /* 27/10/2026 (dono): abre sempre nos prestadores primeiro */ /* 26/10/2026: só prestador esperando → abre direto na aba dos prestadores */
 /* ===== PAINEL do admin (25/10/2026, dono: "um dashboard completo, não um pop-upzinho") ===== */
 let PN={aba:'pend',fil:'todos',pfil:'todos',dados:null};
 /* excluir com certeza + contagem de 10 s (dono: "uma contagem de 10 segundos para excluir") */
