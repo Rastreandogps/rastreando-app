@@ -132,6 +132,7 @@
     <canvas id="overlay"></canvas>
     <div id="maskLayer"></div>
     <button id="btnMask" class="zbtn" style="position:absolute; left:60px; top:8px; padding:5px 10px; font-size:13px;">⬛ Ocultar</button>
+    <button id="btnDeitar" class="zbtn" title="Deitar a tela (horizontal)" style="position:absolute; left:168px; top:8px; padding:5px 10px; font-size:13px;">↻ Deitar</button><!-- 27/10/2026 (dono): a rotação automática não girava; este botão força a tela deitada -->
     <div id="maskAviso">Arraste para cobrir uma área · toque numa placa para cobri-la · toque numa área cinza para apagar</div>
     <div class="chip" id="fps">— fps</div>
     <div class="chip" id="motor">motor: —</div>
@@ -272,6 +273,7 @@
     <div style="display:flex; gap:8px;">
       <button class="hud-btn" id="hudMask">⬛ Ocultar</button>
       <button class="hud-btn" id="hudLanterna">🔦</button>
+      <button class="hud-btn" id="hudEmPe">↻ Em pé</button>
       <button class="hud-btn" id="hudSair">✕ Sair da tela cheia</button>
     </div>
   </div>
@@ -737,6 +739,21 @@
   window.addEventListener('resize', aoGirar);
   if(screen.orientation) screen.orientation.addEventListener('change', aoGirar);
   $('hudSair').onclick=()=>{ saiuManual=true; atualizaTelaCheia(); };
+  /* 27/10/2026 (dono: "não está deitando, a rotação está ativa"): dentro do app instalado o Android segue a trava "em pé" do app.
+     O botão entra em tela cheia e trava a tela deitada (funciona no Chrome do Android; no iPhone não existe esse recurso). */
+  async function forcarDeitado(){
+    const el=document.documentElement;
+    try{ if(!document.fullscreenElement && el.requestFullscreen) await el.requestFullscreen({navigationUI:'hide'}); }catch(e){}
+    try{ if(!(screen.orientation&&screen.orientation.lock)) throw new Error('x'); await screen.orientation.lock('landscape'); saiuManual=false; setTimeout(aoGirar,300) }
+    catch(e){ mostraErro('Este celular não deixou deitar a tela pela página. No iPhone não existe esse recurso; no Android, abra o leitor pelo Chrome (fora do app) com a rotação automática ligada.') }
+  }
+  async function voltarEmPe(){
+    try{ if(screen.orientation&&screen.orientation.lock) await screen.orientation.lock('portrait') }catch(e){}
+    try{ if(document.fullscreenElement) await document.exitFullscreen() }catch(e){}
+    try{ if(screen.orientation&&screen.orientation.lock) screen.orientation.lock('any').catch(()=>{}) }catch(e){}
+    setTimeout(aoGirar,300);
+  }
+  $('btnDeitar').onclick=forcarDeitado; $('hudEmPe').onclick=voltarEmPe;
   $('hudLanterna').onclick=()=>$('btnLanterna').click();
   $('hudParar').onclick=()=>$('btnStart').click();
 
