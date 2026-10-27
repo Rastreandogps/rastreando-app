@@ -321,7 +321,7 @@ body.mapa-google #map .leaflet-top.leaflet-left .leaflet-control-attribution{mar
 .pcpino{width:30px;height:30px;border-radius:50%;background:#fff;border:2px solid #e3262f;display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 2px 6px rgba(0,0,0,.35)}
 .rbtt.pctt{background:rgba(14,165,233,.9)} /* 26/10/2026 (dono): nomes todos em azul, igual o reboque */
 .leaflet-tooltip.rbaqui{background:rgba(255,255,255,.92);color:#2563eb;border:1px solid rgba(37,99,235,.35);border-radius:999px;padding:1px 8px;font-size:10.5px;font-weight:700;box-shadow:0 1px 4px rgba(0,0,0,.18)}
-.leaflet-tooltip.rbaqui::before{display:none}
+.leaflet-tooltip.rbaqui.leaflet-tooltip-top::before{display:block;border-top-color:#fff;margin-left:-6px;filter:drop-shadow(0 1px 0 rgba(37,99,235,.35))} /* pontinha apontando para a bolinha */
 /* 25/10/2026 (dono: "muito estático, quem fica embaixo não tem chance"): lista compacta; toque no mapa ou na linha abre o card */
 .pcdica{font-size:12px;color:var(--mut);margin:0 0 6px}
 .pcit{cursor:default;transition:border-color .2s}
@@ -13243,7 +13243,7 @@ function rbMapaPreparar(){
 function rbDesenhar(){
   rbMapaPreparar(); rbCamada.clearLayers();
   const pts=[]; const v=rbCarroAtual;
-  if(v&&v.pos){ L.marker(v.pos,{icon:L.divIcon({className:'',html:'<div class="rbcar" title="Seu veículo"></div>',iconSize:[14,14],iconAnchor:[7,7]}),interactive:false}).addTo(rbCamada).bindTooltip('Você está aqui',{permanent:true,direction:'bottom',className:'rbaqui',offset:[0,8]}); pts.push(v.pos) }
+  if(v&&v.pos){ L.marker(v.pos,{icon:L.divIcon({className:'',html:'<div class="rbcar" title="Seu veículo"></div>',iconSize:[14,14],iconAnchor:[7,7]}),interactive:false}).addTo(rbCamada).bindTooltip('Você está aqui',{permanent:true,direction:'top',className:'rbaqui',offset:[0,-9]}); pts.push(v.pos) }
   rbLista.forEach((r,i)=>{ /* 26/10/2026 (dono): círculo da região + ícone do reboque no meio + só o primeiro nome; tocar abre a janela */
     const c=[r.regiao.lat,r.regiao.lon];
     const circ=L.circle(c,{radius:r.regiao.raioM||2000,color:'#0ea5e9',weight:2,fillColor:'#0ea5e9',fillOpacity:.14}).addTo(rbCamada); circ.on('click',()=>pcDetAbrir('reb',i));
@@ -13679,7 +13679,7 @@ function pcDesenhar(nome,anexar){ /* anexar=true: junta aos reboquistas com rast
   rbMapaPreparar(); if(!anexar) rbCamada.clearLayers();
   const pts=[], v=rbCarroAtual;
   if(anexar) rbLista.forEach(r=>{ if(r.regiao) pts.push([r.regiao.lat,r.regiao.lon]) });
-  if(v&&v.pos&&!anexar){ L.marker(v.pos,{icon:L.divIcon({className:'',html:'<div class="rbcar" title="Seu veículo"></div>',iconSize:[14,14],iconAnchor:[7,7]}),interactive:false}).addTo(rbCamada).bindTooltip('Você está aqui',{permanent:true,direction:'bottom',className:'rbaqui',offset:[0,8]}); pts.push(v.pos) }
+  if(v&&v.pos&&!anexar){ L.marker(v.pos,{icon:L.divIcon({className:'',html:'<div class="rbcar" title="Seu veículo"></div>',iconSize:[14,14],iconAnchor:[7,7]}),interactive:false}).addTo(rbCamada).bindTooltip('Você está aqui',{permanent:true,direction:'top',className:'rbaqui',offset:[0,-9]}); pts.push(v.pos) }
   const emo=(PC_CATS.find(c=>c[0]===pcCat)||[])[2]||'📍';
   pcMarc=[]; pcAberto=-1;
   pcLista.forEach((p,i)=>{ let lay=null, c=null;
