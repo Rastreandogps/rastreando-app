@@ -1699,6 +1699,11 @@ body.premteste #ruaBox.foto + #ruaTeste{display:block}
 .smsult{flex-wrap:wrap;row-gap:1px}
 .smsult span{white-space:nowrap}
 main #sheet .smsult b{max-width:120px}
+/* 27/10/2026 (dono): no celular o "Aguardando sinal" e o GSM/GPS vazavam para fora — a coluna do meio encolhe e o aviso do SMS quebra linha */
+#sheet .dragzone .row>div:not(.stwrap){min-width:0;flex:1 1 auto}
+#sheet .dragzone .row>.stwrap{flex:none;max-width:44%}
+.smsult em{white-space:normal}
+#sheet .stwrap .status{white-space:nowrap}
 .chiprow b{color:var(--txt);font-weight:650;letter-spacing:.2px}
 .chiprow.sem b{color:var(--amber);font-weight:600}
 #btnCopiaChip{width:24px;height:24px;border-radius:7px;border:1px solid var(--line);background:var(--card2);color:var(--mut);display:inline-flex;align-items:center;justify-content:center;padding:0;cursor:pointer}
