@@ -44,7 +44,11 @@ header h1{font-size:18px;font-weight:800;letter-spacing:.3px}
 header small{display:block;color:var(--mut);font-size:12.5px;font-weight:500}
 html.comx header{padding-right:64px} /* 26/10/2026: espaço para o X */
 header .sair{margin-left:auto;background:none;border:1px solid var(--line);color:var(--mut);border-radius:10px;padding:8px 10px;font:inherit;font-size:13px;cursor:pointer}
-.capa{display:block;width:100%;height:auto;border-radius:16px;margin:0 0 12px;box-shadow:0 6px 18px rgba(15,23,42,.18)}
+.carr{position:relative;margin:0 0 12px;border-radius:16px;overflow:hidden;box-shadow:0 6px 18px rgba(15,23,42,.18);background:#0b1118}
+.carrtrilho{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;-webkit-overflow-scrolling:touch}.carrtrilho::-webkit-scrollbar{display:none}
+.carrtrilho img{flex:0 0 100%;width:100%;height:auto;aspect-ratio:1200/630;scroll-snap-align:center;display:block;cursor:pointer}
+.carrdots{position:absolute;left:0;right:0;bottom:8px;display:flex;justify-content:center;gap:6px;pointer-events:none}
+.carrdots i{width:7px;height:7px;border-radius:99px;background:rgba(255,255,255,.45);transition:width .25s,background .25s}.carrdots i.on{width:18px;background:#fff}
 .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:12px}
 .card h2{font-size:16px;margin-bottom:4px}
 .card p.sub{color:var(--mut);font-size:13px;line-height:1.45;margin-bottom:12px}
@@ -188,10 +192,16 @@ textarea.fld{height:70px;padding:10px 12px;resize:vertical}
 
   <!-- ===== ENTRAR / CADASTRAR ===== -->
   <section id="tEntrar">
-    <img class="capa" src="parceiro-capa.jpg" onclick="try{this.nextElementSibling.scrollIntoView({behavior:'smooth',block:'start'})}catch(e){}" style="cursor:pointer" alt="Coloque seu negócio no mapa da Rastreando GPS. De graça." width="1200" height="630"><!-- 27/10/2026 (dono): banner na entrada do app -->
+    <!-- 27/10/2026 (dono): carrossel de banners na entrada (passa sozinho; dá para arrastar); tocar leva ao cadastro -->
+    <div class="carr" id="carr" aria-label="Banners">
+      <div class="carrtrilho" id="carrT">
+        <img src="parceiro-capa.jpg" alt="Coloque seu negócio no mapa da Rastreando GPS. De graça." width="1200" height="630">
+        <img src="parceiro-capa-categorias.jpg" alt="Você trabalha com veículos? Seja parceiro da Rastreando GPS" width="1200" height="630" loading="lazy">
+        <img src="parceiro-capa-whatsapp.jpg" alt="O cliente chama você direto no WhatsApp" width="1200" height="630" loading="lazy">
+      </div>
+      <div class="carrdots" id="carrD"><i class="on"></i><i></i><i></i></div>
+    </div>
     <div class="card">
-      <h2>Apareça para quem precisa de você</h2>
-      <p class="sub">Clientes da Rastreando GPS veem os parceiros mais perto do veículo deles e chamam pelo WhatsApp. <b>O cadastro é grátis.</b> Depois que a gente aprovar, você já aparece no app. Vale para reboque, chaveiro, borracheiro, mecânico, eletricista, despachante, insulfilme e multimídia, pintura e lanternagem.</p>
       <div class="abas"><button type="button" class="on" data-aba="cad">Quero me cadastrar</button><button type="button" data-aba="ent">Já tenho cadastro</button></div>
       <div id="fCad">
         <label class="l">Qual serviço você oferece?</label>
@@ -543,5 +553,13 @@ setInterval(()=>{ if(P && !document.hidden){ carregarPedidos() } },60000);
 /* início */
 if(TOK) abrirPainel().catch(()=>sair(true));
 </script>
+<script>/* 27/10/2026 (dono): carrossel passando sozinho a cada 4 s; para quando a pessoa arrasta e volta depois */
+(function(){ try{ const t=document.getElementById('carrT'), d=[...document.querySelectorAll('#carrD i')]; if(!t) return;
+  let n=0, para=0; const ir=i=>{ n=(i+d.length)%d.length; t.scrollTo({left:n*t.clientWidth,behavior:'smooth'}) };
+  t.addEventListener('scroll',()=>{ const i=Math.round(t.scrollLeft/Math.max(1,t.clientWidth)); if(i!==n){ n=i } d.forEach((x,k)=>x.classList.toggle('on',k===n)) },{passive:true});
+  ['touchstart','pointerdown','wheel'].forEach(ev=>t.addEventListener(ev,()=>{ para=Date.now() },{passive:true}));
+  setInterval(()=>{ if(document.hidden||Date.now()-para<8000||!t.offsetParent) return; ir(n+1) },4000);
+  t.addEventListener('click',()=>{ try{ document.querySelector('#tEntrar .card').scrollIntoView({behavior:'smooth',block:'start'}) }catch(e){} });
+}catch(e){} })();</script>
 </body>
 </html>
