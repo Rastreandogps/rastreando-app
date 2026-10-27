@@ -378,6 +378,7 @@ body.mapa-google #map .leaflet-top.leaflet-left .leaflet-control-attribution{mar
 .pncard:not(.aberto) > .rtbt{display:none}
 .pncard .pnseta{position:absolute;right:2px;top:2px;font-size:20px;color:var(--mut);transition:transform .2s;line-height:1}
 .pncard.aberto .pnseta{transform:rotate(90deg)}
+.pclink.pcmini .pcadd{flex:none;height:32px;padding:0 12px;border-radius:9px;border:0;background:linear-gradient(135deg,#22b35e,#16a34a);color:#fff;font:inherit;font-size:12.5px;font-weight:800;cursor:pointer;margin-left:-6px}
 .pclink.pcmini{display:flex;align-items:center;gap:6px;padding:6px 6px 6px 12px;margin:2px 0 8px;border-radius:12px}
 .pclink.pcmini span{flex:1;min-width:0;font-size:12.5px;font-weight:700;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pclink.pcmini a{flex:none;width:36px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:9px;border:1px solid var(--line);background:var(--card);color:var(--txt);text-decoration:none}
@@ -4228,7 +4229,11 @@ details:not([open])>summary .ico.lix[data-a="deleq"],details:not([open])>summary
 <!-- 27/10/2026 (dono): admin edita o cadastro do parceiro -->
 <div class="modal" id="mParcEd">
   <div class="box2" style="max-width:560px;border-radius:18px">
-    <div class="almtopo" style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px"><h3 style="margin:0">Editar parceiro</h3><button class="almx" data-close type="button" aria-label="Fechar" title="Fechar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <div class="almtopo" style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px"><h3 style="margin:0" id="peTit">Editar parceiro</h3><button class="almx" data-close type="button" aria-label="Fechar" title="Fechar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <div id="peNovoBox" hidden><!-- 27/10/2026 (dono): adicionar prestador pelo admin -->
+      <label class="flbl" for="peCat">Categoria</label><select class="fld" id="peCat"></select>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div><label class="flbl" for="peWpp">WhatsApp</label><input class="fld" id="peWpp" type="tel" inputmode="tel" autocomplete="off" placeholder="(21) 99999-8888"></div><div><label class="flbl" for="peResp">Responsável</label><input class="fld" id="peResp" maxlength="50" autocomplete="off" placeholder="Nome da pessoa"></div></div>
+    </div>
     <label class="flbl" for="peNome">Nome do negócio</label><input class="fld" id="peNome" maxlength="50" autocomplete="off">
     <label class="flbl" for="peEnd">Endereço (de onde atende)</label>
     <div style="display:flex;gap:8px"><input class="fld" id="peEnd" placeholder="Rua, número, bairro, cidade ou CEP" autocomplete="off" style="flex:1;margin:0"><button type="button" class="btn btn-out" id="peBuscar" style="width:auto;padding:0 14px">Buscar</button></div>
@@ -4237,7 +4242,7 @@ details:not([open])>summary .ico.lix[data-a="deleq"],details:not([open])>summary
     <label class="flbl">Atende</label>
     <div class="peatd"><label><input type="checkbox" data-peatd="carro"><span>🚗 Carro</span></label><label><input type="checkbox" data-peatd="moto"><span>🏍️ Moto</span></label><label><input type="checkbox" data-peatd="diesel"><span id="peAtdDiesel">🚚 Caminhão / diesel</span></label></div>
     <label class="flbl" for="peHor">Horário</label><input class="fld" id="peHor" maxlength="60" autocomplete="off" placeholder="Ex.: Segunda a sábado, 8h às 18h">
-    <label class="rnplck" style="height:auto;min-height:40px;margin:6px 0 4px"><input type="checkbox" id="pe24"><span>Atende 24 horas</span></label>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:6px 0 4px"><label class="rnplck" style="height:auto;min-height:40px;margin:0"><input type="checkbox" id="pe24"><span>Atende 24 horas</span></label><label class="rnplck" style="height:auto;min-height:40px;margin:0"><input type="checkbox" id="peLocal"><span>Vai até o cliente</span></label></div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div><label class="flbl" for="pePix">Chave PIX</label><input class="fld" id="pePix" maxlength="80" autocomplete="off"></div><div><label class="flbl" for="peBanco">Banco</label><input class="fld" id="peBanco" maxlength="50" autocomplete="off"></div></div>
     <div class="ferr" id="peErro"></div>
     <div class="actions2"><button class="btn btn-out" data-close type="button">Cancelar</button><button class="btn btn-red" id="peSalvar" type="button">Salvar</button></div>
@@ -4258,7 +4263,7 @@ details:not([open])>summary .ico.lix[data-a="deleq"],details:not([open])>summary
         <div id="pnServLista"></div>
       </div>
       <div id="pnParc" hidden>
-        <div class="pclink pcmini" title="gps.rastreandogpsbr.com.br/parceiro.html"><span>🔗 Link de cadastro dos prestadores</span><a href="#" id="paCopiar" title="Copiar link" aria-label="Copiar link"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg></a><a href="#" class="wpp" id="paWpp" title="Mandar no WhatsApp" aria-label="Mandar no WhatsApp"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21l1.7-5A8.5 8.5 0 1 1 8 19.3z"/><path d="M9 10c0 3 2 5 5 5l1.2-1.2-2-1-1 .6c-.8-.4-1.4-1-1.8-1.8l.6-1-1-2z"/></svg></a></div>
+        <div class="pclink pcmini" title="gps.rastreandogpsbr.com.br/parceiro.html"><button type="button" class="pcadd" id="paAdd">＋ Adicionar prestador</button><span>🔗 Link de cadastro</span><a href="#" id="paCopiar" title="Copiar link" aria-label="Copiar link"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg></a><a href="#" class="wpp" id="paWpp" title="Mandar no WhatsApp" aria-label="Mandar no WhatsApp"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21l1.7-5A8.5 8.5 0 1 1 8 19.3z"/><path d="M9 10c0 3 2 5 5 5l1.2-1.2-2-1-1 .6c-.8-.4-1.4-1-1.8-1.8l.6-1-1-2z"/></svg></a></div>
         <input class="fld pnbusca" id="pnParcBusca" type="search" placeholder="Buscar parceiro: nome, bairro, WhatsApp, serviço..." autocomplete="off"><!-- 25/10/2026 (dono) -->
         <div class="pnfil" id="pnParcFil"><button type="button" data-f="todos" class="on">Todos</button><button type="button" data-f="analise">Em análise</button><button type="button" data-f="aprovado">Aprovados</button><button type="button" data-f="fora">Recusados/suspensos</button><button type="button" data-f="rascunho">Rascunhos</button></div>
         <div class="pnfil" id="pnParcCat"></div>
@@ -13970,13 +13975,26 @@ async function peBuscar(){ const q0=$('peEnd').value.trim(); if(q0.length<4){ $(
   if(!ops.length){ const pd=q.split(',').map(x=>x.trim()).filter(Boolean); if(pd.length>1){ const rg=pd.slice(1).join(', '); await t(peNomi,rg); await t(pePhoton,rg); soReg=ops.length>0 } }
   const v={}; ops=ops.filter(o=>o.end&&!v[o.end]&&(v[o.end]=1)).slice(0,6); window._peOps=ops;
   $('peOps').innerHTML=ops.length?(soReg?'<p>Não achei a rua exata; escolha o bairro (serve: o cliente vê só uma área aproximada).</p>':'<p>Toque no endereço certo:</p>')+ops.map((o,i)=>'<button type="button" class="op" data-peop="'+i+'">'+esc(o.end)+'</button>').join(''):'<p>'+(falhas>=2?'Não consegui buscar agora. Tente de novo.':'Não encontrei. Tente só bairro e cidade, ou o CEP.')+'</p>' }
-function peAbrir(id){ const p=paAdmLista.find(x=>x.id===id); if(!p) return; peId=id; peBase=p.base&&p.base.lat?{lat:p.base.lat,lon:p.base.lon,end:p.base.end||''}:null;
+function peAbrir(id){ const p=paAdmLista.find(x=>x.id===id); if(!p) return; peId=id; $('peTit').textContent='Editar parceiro'; $('peNovoBox').hidden=true; $('peLocal').checked=!!p.atendeLocal; peBase=p.base&&p.base.lat?{lat:p.base.lat,lon:p.base.lon,end:p.base.end||''}:null;
   document.querySelectorAll('#mParcEd [data-peatd]').forEach(x=>x.checked=(p.atende||[]).includes(x.dataset.peatd)); $('peAtdDiesel').textContent=(p.categoria==='insulfilme'||p.categoria==='pintura')?'🚚 Caminhão':'🚚 Caminhão / diesel'; $('peNome').value=p.nome||''; $('peHor').value=p.horario||''; $('pe24').checked=!!p.h24; $('pePix').value=p.pix||''; $('peBanco').value=p.banco||''; $('peEnd').value=''; $('peOps').innerHTML=''; $('peErro').textContent=''; peMostrar(); abrir('mParcEd') }
+function peNovo(){ peId=null; peBase=null; $('peTit').textContent='Adicionar prestador'; $('peNovoBox').hidden=false;
+  $('peCat').innerHTML='<option value="">Escolha...</option>'+PC_CATS.map(c=>'<option value="'+c[0]+'">'+esc(c[1])+'</option>').join('');
+  ['peWpp','peResp','peNome','peHor','pePix','peBanco','peEnd'].forEach(k=>$(k).value=''); $('pe24').checked=false; $('peLocal').checked=false;
+  document.querySelectorAll('#mParcEd [data-peatd]').forEach(x=>x.checked=false); $('peAtdDiesel').textContent='🚚 Caminhão / diesel'; $('peOps').innerHTML=''; $('peErro').textContent=''; peMostrar(); abrir('mParcEd') }
+$('peCat').onchange=()=>{ const k=$('peCat').value; $('peAtdDiesel').textContent=(k==='insulfilme'||k==='pintura')?'🚚 Caminhão':'🚚 Caminhão / diesel' };
+$('paAdd').onclick=peNovo;
 $('peBuscar').onclick=peBuscar; $('peEnd').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); peBuscar() } });
 $('peOps').onclick=e=>{ const b=e.target.closest('[data-peop]'); if(!b) return; peBase=window._peOps[+b.dataset.peop]; $('peOps').innerHTML=''; $('peEnd').value=''; peMostrar() };
 $('peSalvar').onclick=async()=>{ const b=$('peSalvar'); $('peErro').textContent=''; b.disabled=true;
   const dados={nome:$('peNome').value,horario:$('peHor').value,h24:$('pe24').checked,pix:$('pePix').value,banco:$('peBanco').value,atende:[...document.querySelectorAll('#mParcEd [data-peatd]:checked')].map(x=>x.dataset.peatd)}; if(peBase) dados.base=peBase;
-  try{ await rbApi('parcAdmEditar',{id:peId,dados}); $('mParcEd').classList.remove('show'); toast('Cadastro do parceiro atualizado.'); pcAbertos[peId]=1; pcAdmCarregar() }catch(err){ $('peErro').textContent=err.message||'Não consegui salvar.' } b.disabled=false }; var pcAbertos={}; /* 27/10/2026 (dono): cartões dos parceiros fechados; toque abre */
+  dados.atendeLocal=$('peLocal').checked;
+  try{
+    if(!peId){ dados.categoria=$('peCat').value; dados.whatsapp=$('peWpp').value; dados.responsavel=$('peResp').value;
+      if(!dados.categoria) throw new Error('Escolha a categoria.'); if(!peBase) throw new Error('Busque o endereço e toque na opção certa.');
+      const j=await rbApi('parcAdmCriar',{dados}); $('mParcEd').classList.remove('show'); pcAbertos[j.id]=1; pcAdmCarregar();
+      toast('Prestador adicionado e no ar. Senha provisória do app do parceiro: '+j.senha+' (WhatsApp '+fmtWpp(j.whatsapp)+')',15000) }
+    else { await rbApi('parcAdmEditar',{id:peId,dados}); $('mParcEd').classList.remove('show'); toast('Cadastro do parceiro atualizado.'); pcAbertos[peId]=1; pcAdmCarregar() }
+  }catch(err){ $('peErro').textContent=err.message||'Não consegui salvar.' } b.disabled=false }; var pcAbertos={}; /* 27/10/2026 (dono): cartões dos parceiros fechados; toque abre */
 async function pcAdmCarregar(){ $('paLista').innerHTML='<div class="rtvz">Carregando...</div>';
   try{ const [j,rj]=await Promise.all([rbApi('parcAdmLista'),rbApi('reboqueAdmLista').catch(()=>({lista:[]}))]); const l=j.lista||[], rl=rj.lista||[]; paAdmLista=l; { ADM_N.pc=Number(j.pendentes||0); admBadge(); const bn=$('aParcN'); if(bn){ bn.textContent=j.pendentes||''; bn.classList.toggle('on',(j.pendentes||0)>0) } } /* 26/10/2026: o contador saiu do botão (virou aperto de mãos) */ $('pnNParc').hidden=!(j.pendentes||0); $('pnNParc').textContent=j.pendentes||''; $('pnDepParcN').hidden=!(j.pendentes||0); $('pnDepParcN').textContent=j.pendentes||'';
     /* 25/10/2026 (dono): reboquistas no mesmo painel dos parceiros (eles têm login do app e rastreador; cadastro em "Meu reboque") */
