@@ -13800,7 +13800,7 @@ async function pcAdmCarregar(){ $('paLista').innerHTML='<div class="rtvz">Carreg
     l.forEach(p=>{ const st=PC_ST[p.status]||[p.status,'ag']; addCat(p.categoria||'outros', (p=>{
       return '<div class="rtit" data-pst="'+esc(p.status)+'" data-pcat="'+esc(p.categoria||'')+'"><div class="rttopo"><div><b>'+esc(p.nome)+'</b><div class="rtinfo">'+esc(p.categoriaNome)+' · <span class="ljst '+st[1]+'" style="display:inline-block">'+st[0]+'</span><br>'+
         'WhatsApp: '+esc(fmtWpp(p.whatsapp))+(p.responsavel?' · '+esc(p.responsavel):'')+(p.doc?' · doc '+esc(p.doc):'')+'<br>'+esc((p.base&&p.base.end)||'')+'<br>'+
-        (p.h24?'24 horas':esc(p.horario||''))+(p.atendeLocal?' · vai até o cliente'+(p.raioKm?' ('+p.raioKm+' km)':''):'')+(p.lojaPublica?' · loja aberta':'')+'<br>PIX: '+esc(p.pix||'—')+'<br>'+
+        (p.h24?'24 horas':esc(p.horario||''))+(p.atendeLocal?' · vai até o cliente'+(p.raioKm?' ('+p.raioKm+' km)':''):'')+(p.lojaPublica?' · loja aberta':'')+'<br>PIX: '+esc(p.pix||'—')+(p.banco?' · Banco: '+esc(p.banco):'')+'<br>'+
         (p.servicos||[]).map(s=>esc(s.nome)+': '+(s.sobConsulta||!(s.aPartir>0)?'sob consulta':brl2(s.aPartir))).join(' · ')+(p.status==='aprovado'?'<br>'+(p.disponivel?'🟢 disponível agora':'⚪ fechado')+' · '+(p.vistosHoje||0)+' '+((p.vistosHoje||0)===1?'visualização':'visualizações')+' hoje':'')+'</div></div></div>'+
         '<div class="rtbt"><a class="wpp" href="https://wa.me/55'+esc(p.whatsapp)+'" target="_blank" rel="noopener">WhatsApp</a>'+
         (p.status!=='aprovado'?'<a href="#" data-paap="'+p.id+'" style="background:rgba(22,163,74,.14);border-color:rgba(22,163,74,.4);color:#16a34a">Aprovar</a>':'')+

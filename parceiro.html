@@ -250,6 +250,7 @@ textarea.fld{height:70px;padding:10px 12px;resize:vertical}
         <div><label class="l">Telefone (opcional)</label><input class="fld" id="pfFone" inputmode="tel" autocomplete="off"></div>
         <div><label class="l">Chave PIX (para receber)</label><input class="fld" id="pfPix" maxlength="80" autocomplete="off"></div>
       </div>
+      <label class="l">Banco da chave PIX</label><input class="fld" id="pfBanco" maxlength="50" autocomplete="off" placeholder="Ex.: Nubank, Itaú, Caixa, Banco do Brasil"><!-- 26/10/2026 (dono): dupla confirmação do PIX -->
       </section>
       <section class="sec"><div class="sech"><span class="secic">📍</span><div><b>Onde você atende</b><small>Endereço da base e até onde você vai</small></div></div>
       <label class="l">Endereço de onde você atende</label>
@@ -373,7 +374,7 @@ $('pDisp').onchange=async()=>{
 };
 function preencher(){
   catPerfil=P.categoria; catsDesenhar($('pCats'),catPerfil,trocarCat); nomeEx('pfNome',catPerfil); dicaServ(catPerfil);
-  $('pfNome').value=P.nome||''; $('pfResp').value=P.responsavel||''; $('pfDoc').value=P.doc||''; $('pfFone').value=fmtWpp(P.fone); $('pfPix').value=P.pix||'';
+  $('pfNome').value=P.nome||''; $('pfResp').value=P.responsavel||''; $('pfDoc').value=P.doc||''; $('pfFone').value=fmtWpp(P.fone); $('pfPix').value=P.pix||''; $('pfBanco').value=P.banco||'';
   mostrarBase(P.base); $('pfLoja').checked=!!P.lojaPublica; endSeg(); $('pfLocal').checked=!!P.atendeLocal; $('pfRaio').value=P.raioKm||''; $('pfDesl').value=P.deslocamento&&P.deslocamento.fixo?String(P.deslocamento.fixo).replace('.',','):'';
   $('pf24').checked=!!P.h24; $('pfHor').value=P.horario||''; $('pfObs').value=P.obs||'';
   servDesenhar(P.status==='rascunho'&&P.categoria!=='reboque'?[SERV_VAZIO]:(P.servicos||[])); atendeMarcar(P.atende); deslMostrar(); /* 26/10/2026 (dono): 1º cadastro começa com 1 linha em branco (ele escreve os serviços) */ $('pfSaidaKm').value=P.raioKm||''; rebDesenhar(P.categoria==='reboque'?P.servicos:[]); localReboque(catPerfil); $('bSalvar').textContent=P.status==='rascunho'||P.status==='recusado'?'Salvar e enviar para aprovação':'Salvar';
@@ -436,8 +437,9 @@ $('bAqui').onclick=()=>{ if(!navigator.geolocation){ toast('Seu celular não deu
 /* salvar */
 $('bSalvar').onclick=async()=>{
   $('pfErr').textContent=''; const b=$('bSalvar'); b.disabled=true;
-  const perfil={nome:$('pfNome').value,responsavel:$('pfResp').value,doc:$('pfDoc').value,fone:$('pfFone').value,pix:$('pfPix').value,base,lojaPublica:$('pfLoja').checked,atendeLocal:catPerfil==='reboque'||$('pfLocal').checked,
+  const perfil={nome:$('pfNome').value,responsavel:$('pfResp').value,doc:$('pfDoc').value,fone:$('pfFone').value,pix:$('pfPix').value,banco:$('pfBanco').value,base,lojaPublica:$('pfLoja').checked,atendeLocal:catPerfil==='reboque'||$('pfLocal').checked,
     raioKm:catPerfil==='reboque'?$('pfSaidaKm').value:$('pfRaio').value,deslocamento:{fixo:catPerfil==='reboque'?0:(numBR($('pfDesl').value)||0),porKm:0},h24:$('pf24').checked,horario:$('pfHor').value,obs:$('pfObs').value,servicos:catPerfil==='reboque'?rebLer():servLer(false),atende:catPerfil==='reboque'?[]:atendeLer()};
+  if(perfil.pix.trim()&&!perfil.banco.trim()){ $('pfErr').textContent='Informe o banco da sua chave PIX.'; b.disabled=false; return } /* 26/10/2026 */
   if(catPerfil!=='reboque'&&!perfil.atende.length){ $('pfErr').textContent='Marque o que você atende: carro, moto ou '+(catPerfil==='insulfilme'?'caminhão.':'caminhão / diesel.'); b.disabled=false; return }
   if(catPerfil==='reboque'&&!perfil.servicos.length){ $('pfErr').textContent='Ligue pelo menos um tipo de veículo que você reboca.'; b.disabled=false; return }
   try{ const j=await api('parcSalvar',{ptoken:TOK,categoria:catPerfil,perfil}); const antes=P.status; P=j.perfil; desenharTopo(); preencher(); cadModo(false);
@@ -462,7 +464,7 @@ function cadResumo(){
     '<div class="lin"><span>Endereço</span><div>'+esc((P.base&&P.base.end)||'—')+(P.lojaPublica?'<br><small style="color:var(--mut)">Loja aberta: o ponto aparece no mapa</small>':'')+'</div></div>'+
     '<div class="lin"><span>Horário</span><div>'+(P.h24?'24 horas':esc(P.horario||'—'))+(P.atendeLocal?' · vai até o cliente'+(P.raioKm?' (até '+P.raioKm+' km)':''):'')+'</div></div>'+
     '<div class="lin"><span>Preços</span><div>'+(sv||'—')+'</div></div>'+
-    '<div class="lin"><span>PIX</span><div>'+esc(P.pix||'— cadastre para receber')+'</div></div>';
+    '<div class="lin"><span>PIX</span><div>'+esc(P.pix||'— cadastre para receber')+(P.pix&&P.banco?'<br><small style="color:var(--mut)">Banco: '+esc(P.banco)+'</small>':'')+'</div></div>';
 }
 $('bEditar').onclick=()=>{ cadModo(true); window.scrollTo({top:0,behavior:'smooth'}) };
 async function carregarPedidos(){
