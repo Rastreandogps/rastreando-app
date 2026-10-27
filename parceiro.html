@@ -475,12 +475,26 @@ function endSeg(){ const e=$('pfEndSeg'); if(!e) return; e.innerHTML=false /* 26
   : '<b>🔒 Fique tranquilo: seu endereço é protegido.</b><br>O cliente <b>nunca</b> vê o seu endereço nem o ponto exato. No mapa aparece só uma <b>área aproximada</b> (um círculo que de propósito não fica em cima do seu endereço), apenas para ele saber que você atende perto. O endereço serve só para o app mostrar a distância até o cliente.' }
 $('pfLoja').addEventListener('change',endSeg); endSeg();
 function mostrarBase(b){ base=b; $('pfEndOk').hidden=!b; if(b) $('pfEndOk').innerHTML='<b>Endereço:</b> '+esc(b.end||(b.lat.toFixed(5)+', '+b.lon.toFixed(5))) }
+/* 27/10/2026 (cliente reboquista não conseguia achar o endereço): a busca tenta vários caminhos — CEP (ViaCEP), texto arrumado,
+   2º serviço (Photon), sem o número e, no fim, só bairro/cidade (serve: o cliente vê só uma área aproximada) */
+const endCurto=t=>String(t||'').split(', Região')[0].split(',').map(x=>x.trim()).filter(Boolean).slice(0,4).join(', ');
+function endArrumar(q){ return q.replace(/\s+-\s+/g,', ').replace(/\b(n[ºo°]\.?|num\.?|número)\s*/gi,' ').replace(/^av\.?\s/i,'Avenida ').replace(/^r\.\s?/i,'Rua ').replace(/^rod\.?\s/i,'Rodovia ').replace(/\bcep:?\s*/gi,'').replace(/\s{2,}/g,' ').replace(/\s+,/g,',').trim() }
+async function geoNomi(q){ const r=await fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=6&countrycodes=br&accept-language=pt-BR&q='+encodeURIComponent(q)); if(!r.ok) throw new Error('n'+r.status); return (await r.json()).map(x=>({lat:+x.lat,lon:+x.lon,end:endCurto(x.display_name)})) }
+async function geoPhoton(q){ const r=await fetch('https://photon.komoot.io/api/?limit=6&lat=-22.79&lon=-43.31&q='+encodeURIComponent(q)); if(!r.ok) throw new Error('p'+r.status);
+  return ((await r.json()).features||[]).filter(f=>(f.properties||{}).countrycode==='BR').map(f=>{ const o=f.properties, ln=[o.street?(o.street+(o.housenumber?' '+o.housenumber:'')):o.name, o.district||o.locality, o.city||o.county, o.state].filter(Boolean); return {lat:f.geometry.coordinates[1],lon:f.geometry.coordinates[0],end:[...new Set(ln)].join(', ')} }) }
+async function geoCep(q){ const c=(q.match(/\b\d{5}-?\d{3}\b/)||[])[0]; if(!c) return null; const r=await fetch('https://viacep.com.br/ws/'+c.replace('-','')+'/json/'); const j=r.ok?await r.json():{}; if(!j||j.erro||!j.localidade) return null;
+  const num=(q.replace(c,'').match(/\b\d{1,5}\b/)||[])[0]; return [j.logradouro?(j.logradouro+(num?', '+num:'')):'', j.bairro, j.localidade, j.uf].filter(Boolean).join(', ') }
 async function buscarEnd(){
-  const q=$('pfEnd').value.trim(); if(q.length<4) return; $('pfEndOps').innerHTML='<p class="aviso">Buscando...</p>';
-  try{ const r=await fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=6&countrycodes=br&accept-language=pt-BR&q='+encodeURIComponent(q)); const l=r.ok?await r.json():[];
-    window._ops=l.map(x=>({lat:+x.lat,lon:+x.lon,end:String(x.display_name||'').split(', Região')[0].split(',').slice(0,4).join(',')}));
-    $('pfEndOps').innerHTML=l.length?window._ops.map((o,i)=>'<button type="button" class="op" data-op="'+i+'">'+esc(o.end)+'</button>').join(''):'<p class="aviso">Nada encontrado. Tente com número, bairro e cidade.</p>' }
-  catch(e){ $('pfEndOps').innerHTML='<p class="aviso">Não consegui buscar agora.</p>' }
+  const q0=$('pfEnd').value.trim(); if(q0.length<4){ $('pfEndOps').innerHTML='<p class="aviso">Digite a rua, o número, o bairro e a cidade (ou o CEP).</p>'; return }
+  $('pfEndOps').innerHTML='<p class="aviso">Buscando...</p>';
+  let ops=[], falhas=0, soRegiao=false; const tentar=async(f,q)=>{ if(ops.length||!q) return; try{ ops=await f(q) }catch(e){ falhas++ } };
+  let q=endArrumar(q0); try{ const c=await geoCep(q0); if(c) q=c }catch(e){ falhas++ }
+  await tentar(geoNomi,q); await tentar(geoPhoton,q);
+  const semNum=q.replace(/,?\s*\b\d{1,5}\b/g,'').replace(/\s{2,}/g,' ').trim(); if(semNum!==q){ await tentar(geoNomi,semNum); await tentar(geoPhoton,semNum) }
+  if(!ops.length){ const pd=q.split(',').map(x=>x.trim()).filter(Boolean); if(pd.length>1){ const reg=pd.slice(1).join(', '); await tentar(geoNomi,reg); await tentar(geoPhoton,reg); soRegiao=ops.length>0 } }
+  const vistos={}; ops=ops.filter(o=>o.end&&!vistos[o.end]&&(vistos[o.end]=1)).slice(0,6); window._ops=ops;
+  if(ops.length){ $('pfEndOps').innerHTML=(soRegiao?'<p class="aviso">Não achei a rua exata. Escolha o bairro abaixo: <b>serve</b>, porque o cliente só vê uma área aproximada.</p>':'<p class="aviso">Toque no seu endereço:</p>')+ops.map((o,i)=>'<button type="button" class="op" data-op="'+i+'">'+esc(o.end)+'</button>').join(''); return }
+  $('pfEndOps').innerHTML=falhas&&falhas>=2?'<p class="aviso">Não consegui buscar agora (internet ou serviço de mapa). Tente de novo ou toque em <b>📍 Usar minha localização agora</b> estando na sua base.</p>':'<p class="aviso">Não encontrei. Tente só <b>bairro e cidade</b> (ex.: Centro, Duque de Caxias), o <b>CEP</b>, ou toque em <b>📍 Usar minha localização agora</b> estando na sua base.</p>';
 }
 $('bEnd').onclick=buscarEnd; $('pfEnd').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); buscarEnd() } });
 $('pfEndOps').onclick=e=>{ const b=e.target.closest('[data-op]'); if(b){ mostrarBase(window._ops[+b.dataset.op]); $('pfEndOps').innerHTML=''; $('pfEnd').value='' } };
