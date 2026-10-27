@@ -6372,7 +6372,7 @@ function abrirPick(){
   if(veiculos.length<2) return;
   $('pickBusca').value='';
   $('pickBusca').placeholder = ehAdmin ? 'Buscar nome, placa, IMEI ou chip' : 'Buscar nome ou placa';
-  desenharPick(); abrir('mPick');
+  desenharPick(); abrir('mPick'); setTimeout(pickVV,0);
   const on=$('pickList').querySelector('.pitem.on'); if(on) try{ on.scrollIntoView({block:'nearest'}) }catch(e){}
   if(window.matchMedia && matchMedia('(pointer:fine)').matches) setTimeout(()=>{ try{ $('pickBusca').focus() }catch(e){} },60);
 }
@@ -6446,6 +6446,16 @@ $('pickList').addEventListener('click',e=>{
   escolherVeiculo(v,false);
 });
 $('mPick').addEventListener('click',e=>{ if(e.target===$('mPick')) fechar() });
+/* 27/10/2026 (dono): no celular, com o teclado aberto, a janela "Escolher veículo" fica sempre ACIMA do teclado (antes, ao filtrar, ela encolhia e ia para trás dele) */
+function pickVV(){
+  const m=$('mPick'), vv=window.visualViewport, l=$('pickList'); if(!m||!l) return;
+  if(!vv || !m.classList.contains('show') || window.matchMedia('(min-width:900px)').matches){ m.style.top=m.style.height=m.style.bottom=''; l.style.maxHeight=''; return }
+  m.style.top=vv.offsetTop+'px'; m.style.bottom='auto'; m.style.height=vv.height+'px';
+  const fixo=l.getBoundingClientRect().top-m.querySelector('.box2').getBoundingClientRect().top+90; /* topo da janela até a lista + botão Fechar */
+  l.style.maxHeight=Math.max(110,Math.min(vv.height*0.55+60,vv.height-fixo-12))+'px';
+}
+if(window.visualViewport){ visualViewport.addEventListener('resize',pickVV); visualViewport.addEventListener('scroll',pickVV) }
+$('pickBusca').addEventListener('focus',()=>setTimeout(pickVV,350));
 $('vPick').addEventListener('pointerdown',e=>{ if(veiculos.length>1) e.stopPropagation() });
 $('vPick').onclick=e=>{ e.stopPropagation(); abrirPick() };
 
