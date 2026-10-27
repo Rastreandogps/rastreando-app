@@ -175,7 +175,8 @@ body.mapa-google #map .leaflet-top.leaflet-left .leaflet-control-attribution{mar
 .rbbox{display:flex;flex-direction:column;max-height:88vh;overflow:hidden}
 #rbMapa{height:min(30vh,230px);border-radius:14px;overflow:hidden;background:var(--card2);flex:none;margin-bottom:10px;position:relative;z-index:0}
 /* 26/10/2026 (dono): Socorro e serviços só com o mapa (a lista saiu; o prestador abre numa janela) */
-#mReboques #rbMapa{height:min(46vh,400px)}
+#mReboques #rbMapa{height:min(46vh,400px);flex:1 1 auto;min-height:170px} /* 27/10/2026 (revisão): o mapa encolhe para caberem o aviso e os botões */
+#mReboques .box2.rbbox{overflow-y:auto}
 #mReboques #rbRola{min-height:0;flex:none}
 #mReboques #pcMais{display:none!important}
 .rbico{width:44px;height:30px;border-radius:15px;background:#fff;border:2px solid #0ea5e9;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.35);cursor:pointer}
@@ -417,7 +418,7 @@ body.mapa-google #map .leaflet-top.leaflet-left .leaflet-control-attribution{mar
   #draLista>.pngrp,#pnServLista>.pngrp,#paLista>.pngrp,#pnCliLista>.pngrp,#draLista>.rtvz,#pnServLista>.rtvz,#paLista>.rtvz,#pnCliLista>.rtvz{grid-column:1/-1}
   #paLista>.pngrp{margin:10px 0 0!important}
   #mReboques .box2.rbbox{max-width:min(1400px,95vw);width:100%}
-  #mReboques #rbMapa{height:min(52vh,560px)}
+  #mReboques #rbMapa{height:min(52vh,560px);min-height:220px}
   #mReboques #rbLista{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:10px;align-items:start}
   #mReboques #rbLista>*{margin:0!important}
   #mReboques #rbLista>.pcdica,#mReboques #rbLista>.rtvz{grid-column:1/-1}
@@ -13229,19 +13230,21 @@ async function mrSwTrocar(){
 function rbCarro(){ return ativo() || veiculos.find(v=>v.pos && v.visivel && !v.tag) || veiculos.find(v=>v.pos) || null }
 let pcAdmMapa=false; /* 26/10/2026 (dono): admin abre o mapa dos prestadores sem veículo */
 function rbAbrir(adm){ pcAdmMapa=adm===true; abrir('mReboques'); pcCatsDesenhar(); try{ if(drPode()) drCarregar(true) }catch(e){} rbCarregar() }
+let pcSeq=0; /* 27/10/2026 (revisão): resposta atrasada de outra categoria é ignorada */
 async function rbCarregar(){
   if(pcCat!=='reboque'){ $('rbAtualizar').disabled=true; await pcCarregar(); $('rbAtualizar').disabled=false; return } /* 25/10/2026: categorias de parceiros */
   $('rbSub').textContent='Procurando reboques disponíveis...'; $('rbAtualizar').disabled=true; $('rbLista').innerHTML='';
-  rbCarroAtual=pcAdmMapa?null:rbCarro();
+  rbCarroAtual=pcAdmMapa?null:rbCarro(); const meu=++pcSeq;
   try{
     const extra={}; if(rbCarroAtual&&rbCarroAtual.pos){ extra.lat=rbCarroAtual.pos[0]; extra.lon=rbCarroAtual.pos[1] }
     const [j,pj]=await Promise.all([rbApi('reboqueListar',extra),rbApi('parcListar',Object.assign({categoria:'reboque'},extra)).catch(()=>({lista:[]}))]);
+    if(meu!==pcSeq) return;
     rbLista=j.lista||[];
     rbDesenhar();
     /* 25/10/2026 (dono): reboquistas filiados pelo link do parceiro (sem rastreador) entram na mesma lista, com a base e o "a partir de" */
     pcLista=(pj.lista||[]).slice().sort((a,b)=>(a.distKm==null?1e9:a.distKm)-(b.distKm==null?1e9:b.distKm));
     if(pcLista.length){ if(!rbLista.length) $('rbLista').innerHTML=''; pcDesenhar('Reboque',true) }
-  }catch(e){ $('rbSub').textContent=''; $('rbLista').innerHTML='<div class="rtvz">'+esc(e.message||'Não consegui carregar.')+'</div>' }
+  }catch(e){ if(meu!==pcSeq) return; $('rbSub').textContent=''; $('rbLista').innerHTML='<div class="rtvz">'+esc(e.message||'Não consegui carregar.')+'</div>' }
   $('rbAtualizar').disabled=false;
 }
 function rbMapaPreparar(){
@@ -13674,12 +13677,12 @@ $('rbCats').addEventListener('click',e=>{ const b=e.target.closest('[data-pccat]
 async function pcCarregar(){
   const nome=(PC_CATS.find(c=>c[0]===pcCat)||[])[1]||'';
   $('rbSub').textContent='Procurando '+nome.toLowerCase()+' perto de você...'; $('rbLista').innerHTML='';
-  rbCarroAtual=pcAdmMapa?null:rbCarro();
+  rbCarroAtual=pcAdmMapa?null:rbCarro(); const meu=++pcSeq;
   try{
     const extra={categoria:pcCat}; if(rbCarroAtual&&rbCarroAtual.pos){ extra.lat=rbCarroAtual.pos[0]; extra.lon=rbCarroAtual.pos[1] }
-    const j=await rbApi('parcListar',extra); const vt=pcVeicTipo(rbCarroAtual), pr=p=>!vt||!(p.atende||[]).length?1:(p.atende.includes(vt)?0:2); /* 26/10/2026: quem atende o tipo do veículo vem primeiro */
+    const j=await rbApi('parcListar',extra); if(meu!==pcSeq) return; const vt=pcVeicTipo(rbCarroAtual), pr=p=>!vt||!(p.atende||[]).length?1:(p.atende.includes(vt)?0:2); /* 26/10/2026: quem atende o tipo do veículo vem primeiro */
     pcLista=(j.lista||[]).slice().sort((a,b)=>(pr(a)-pr(b))||((a.distKm==null?1e9:a.distKm)-(b.distKm==null?1e9:b.distKm))); pcDesenhar(j.categoriaNome||nome);
-  }catch(e){ $('rbSub').textContent=''; $('rbLista').innerHTML='<div class="rtvz">'+esc(e.message||'Não consegui carregar.')+'</div>' }
+  }catch(e){ if(meu!==pcSeq) return; $('rbSub').textContent=''; $('rbLista').innerHTML='<div class="rtvz">'+esc(e.message||'Não consegui carregar.')+'</div>' }
 }
 const pcKm=k=>k==null?'':(k<1?String(k).replace('.',','):Math.round(k))+' km';
 /* 26/10/2026 (dono): o prestador marca o que atende (carro, moto, caminhão/diesel); o tipo do veículo do cliente vem do ícone escolhido */
@@ -13703,9 +13706,10 @@ function pcDesenhar(nome,anexar){ /* anexar=true: junta aos reboquistas com rast
   });
   if(pts.length){ try{ rbMapa.fitBounds(L.latLngBounds(pts).pad(0.25),{maxZoom:14}) }catch(e){} }
   else if(map){ try{ rbMapa.setView(map.getCenter(),11) }catch(e){} }
-  if(!pcLista.length){ if(anexar) return; $('rbSub').textContent=''; $('rbLista').innerHTML='<div class="rtvz">Ainda não temos '+esc(String(nome).toLowerCase())+' parceiro disponível perto de você.</div>'; return }
+  const PL={reboque:['reboque','reboques'],chaveiro:['chaveiro','chaveiros'],borracheiro:['borracheiro','borracheiros'],mecanico:['mecânico','mecânicos'],eletricista:['eletricista','eletricistas'],despachante:['despachante','despachantes'],insulfilme:['loja de insulfilme e multimídia','lojas de insulfilme e multimídia'],pintura:['oficina de pintura e lanternagem','oficinas de pintura e lanternagem'],lavajato:['lava-jato','lava-jatos']}[pcCat]||[String(nome).toLowerCase(),String(nome).toLowerCase()]; /* 27/10/2026 (revisão): plural certo */
+  if(!pcLista.length){ if(anexar) return; $('rbSub').textContent=''; $('rbLista').innerHTML='<div class="rtvz">Ainda não temos '+esc(PL[0])+' parceiro disponível perto de você.</div>'; return }
   const tot=pcLista.length+(anexar?rbLista.length:0);
-  $('rbSub').textContent=tot+' '+String(nome).toLowerCase()+(tot>1?'s':'')+' disponíve'+(tot>1?'is':'l')+(v?' · perto de '+v.nome:'');
+  $('rbSub').textContent=tot+' '+esc(tot>1?PL[1]:PL[0])+' disponíve'+(tot>1?'is':'l')+(v?' · perto de '+v.nome:'');
   const fichas=drPode()&&DR.dados&&DR.dados.ativo&&DR.dados.termoAceito;
   PC_DET=pcLista.map((p,i)=>'<div class="pcdlin">'+(p.h24?'<span class="ok">Atende 24 horas</span>':(p.horario?'<span>🕒 '+esc(p.horario)+'</span>':''))+(p.atendeLocal?'<span>Vai até você</span>':'')+(p.atende||[]).map(k=>'<span>'+((k==='diesel'&&(pcCat==='insulfilme'||pcCat==='pintura'))?'🚚 Caminhão':(PC_ATD[k]||k))+'</span>').join('')+'</div>'+
     '<div class="pcdet" id="pcDet'+i+'"><div class="rtinfo">'+(p.categoria==='reboque'?(p.raioKm?'Saída inclui até '+p.raioKm+' km':''):p.atendeLocal&&p.raioKm?'Vai até você (até '+p.raioKm+' km)':'')+'</div>'+
@@ -13745,7 +13749,7 @@ function pcDetAbrir(tipo,i){
   $('pcDetCorpo').innerHTML=reb?rbDetHtml(x,i):(PC_DET[i]||'');
   document.querySelectorAll('#rbMapa .rbico.on,#rbMapa .pcpino.on').forEach(e=>e.classList.remove('on'));
   const el=$(reb?'rbIco'+i:'pcPino'+i); if(el) el.classList.add('on');
-  if(!reb){ pcAberto=i; pcMarcar() }
+  if(!reb){ pcAberto=i; pcMarcar() } else { pcAberto=-1; pcMarcar() } /* 27/10/2026 (revisão): tira o destaque do prestador aberto antes */
   abrir('mPcDet'); try{ $('mPcDet').querySelector('.pcdrola').scrollTop=0 }catch(e){}
 }
 $('pwX').onclick=()=>{ $('mParcWeb').classList.remove('show'); setTimeout(()=>{ try{ $('pwFrame').src='about:blank' }catch(e){} },250) }; /* 26/10/2026: fecha só a aba dos parceiros */

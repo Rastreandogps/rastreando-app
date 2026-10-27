@@ -366,7 +366,7 @@ async function api(acao,extra){
   if(!r.ok) throw new Error(j.erro||('Erro '+r.status));
   return j;
 }
-const numBR=s=>Number(String(s||'').replace(/\./g,'').replace(',','.'));
+const numBR=s=>{ s=String(s||'').trim(); if(/,/.test(s)) return Number(s.replace(/\./g,'').replace(',','.')); if(/^\d+\.\d{1,2}$/.test(s)) return Number(s); return Number(s.replace(/\./g,''))||0 }; /* 27/10/2026 (revisão): "89.90" é 89,90 (não 8990); "1.500" continua 1500 */
 const fmtWpp=t=>{ const d=String(t||'').replace(/\D/g,''); return d.length===11?'('+d.slice(0,2)+') '+d.slice(2,7)+'-'+d.slice(7):d.length===10?'('+d.slice(0,2)+') '+d.slice(2,6)+'-'+d.slice(6):d };
 /* 26/10/2026 (dono): depois de escolher, o quadro mostra só o serviço escolhido + "Trocar" */
 const catFoto=k=>'<img class="catfoto" src="cat-'+k+'.jpg" alt="" width="256" height="256">'; /* 27/10/2026 (dono): fotos no lugar dos desenhos */
@@ -379,7 +379,7 @@ function catsDesenhar(box,sel,fn){
     const b=ev.target.closest('[data-cat]'); if(!b) return; box.dataset.aberto='';
     if(b.dataset.cat===sel) catsDesenhar(box,sel,fn); else fn(b.dataset.cat) } }
 /* ---------- entrar / cadastrar ---------- */
-document.querySelector('.abas').onclick=e=>{ const b=e.target.closest('[data-aba]'); if(!b) return; document.querySelectorAll('.abas button').forEach(x=>x.classList.toggle('on',x===b)); $('fCad').hidden=b.dataset.aba!=='cad'; $('fEnt').hidden=b.dataset.aba!=='ent' };
+document.querySelector('.abas').onclick=e=>{ const b=e.target.closest('[data-aba]'); if(!b) return; document.querySelectorAll('#tEntrar .abas button').forEach(x=>x.classList.toggle('on',x===b)); $('fCad').hidden=b.dataset.aba!=='cad'; $('fEnt').hidden=b.dataset.aba!=='ent' };
 /* 26/10/2026 (dono): exemplo do nome muda conforme o serviço escolhido */
 const NOME_EX={pintura:'Funilaria do Carlos',insulfilme:'Car Som do Rafa',reboque:'Reboque do Zé',chaveiro:'Chaveiro do Beto',borracheiro:'Borracharia do Paulo',mecanico:'Oficina do Marcos',eletricista:'Auto Elétrica do Léo',despachante:'Despachante Silva',lavajato:'Lava-jato do Rafa'};
 function nomeEx(id,k){ const e=$(id); if(e) e.placeholder='Ex.: '+(NOME_EX[k]||'Chaveiro do Beto') }
@@ -400,14 +400,14 @@ $('bEnt').onclick=async()=>{
 $('bEsqueci').onclick=()=>{ const w=String($('eWpp').value||'').replace(/\D/g,''); const m='Olá! Esqueci a senha do meu app de parceiro da Rastreando GPS.'+(w?' Meu WhatsApp de cadastro é '+w+'.':'')+' Pode me mandar uma senha nova?'; window.open('https://wa.me/5521980886087?text='+encodeURIComponent(m),'_blank','noopener') };
 $('bSnSalvar').onclick=async()=>{ const a=$('snNova').value, b=$('snRep').value; $('snErr').textContent='';
   if(a.length<6){ $('snErr').textContent='A senha precisa ter pelo menos 6 caracteres.'; return } if(a!==b){ $('snErr').textContent='As duas senhas não são iguais.'; return }
-  const bt=$('bSnSalvar'); bt.disabled=true; try{ await api('parcSenhaNova',{ptoken:TOK,senha:a}); $('tSenha').hidden=true; toast('Senha salva!'); await abrirPainel() }catch(e){ $('snErr').textContent=e.message } bt.disabled=false };
+  const bt=$('bSnSalvar'); bt.disabled=true; try{ await api('parcSenhaNova',{ptoken:TOK,senha:a}); toast('Senha salva!'); await abrirPainel(); $('tSenha').hidden=true }catch(e){ $('snErr').textContent=e.message } bt.disabled=false };
 function sair(silencioso){ if(TOK && !silencioso) api('parcSair',{ptoken:TOK}).catch(()=>{}); TOK=null; lsDel('rg_parc_token'); P=null; $('tPainel').hidden=true; $('tSenha').hidden=true; $('tEntrar').hidden=false; $('bSair').hidden=true; if(silencioso) toast('Entre de novo.') }
 $('bSair').onclick=()=>sair(false);
 /* ---------- painel ---------- */
-const ST={rascunho:['Cadastro incompleto','Complete os dados abaixo e toque em Salvar para enviar para aprovação.'],analise:['Em análise','Recebemos o seu cadastro. Assim que a Rastreando aprovar, você já aparece para os clientes.'],aprovado:['Aprovado','Você está no app da Rastreando e já aparece para os clientes. Desligue "Disponível" quando estiver fechado.'],recusado:['Não aprovado','Confira o motivo, ajuste o cadastro e salve de novo para reenviar.'],suspenso:['Suspenso','Seu cadastro está suspenso. Fale com a Rastreando GPS pelo WhatsApp.']};
+const ST={rascunho:['Cadastro incompleto','Complete os dados abaixo e toque em Salvar para enviar para aprovação.'],analise:['Em análise','Recebemos o seu cadastro. Assim que a Rastreando aprovar, você já aparece para os clientes.'],aprovado:['Aprovado','Você está no app da Rastreando e já aparece para os clientes. Para ficar fechado por um tempo, fale com a nossa central.'],recusado:['Não aprovado','Confira o motivo, ajuste o cadastro e salve de novo para reenviar.'],suspenso:['Suspenso','Seu cadastro está suspenso. Fale com a Rastreando GPS pelo WhatsApp.']};
 async function abrirPainel(){
   const j=await api('parcVer',{ptoken:TOK}); P=j.perfil;
-  $('tEntrar').hidden=true; $('tPainel').hidden=false; $('bSair').hidden=false;
+  $('tEntrar').hidden=true; $('tSenha').hidden=true; $('tPainel').hidden=false; $('bSair').hidden=false;
   desenharTopo(); preencher(); cadModo(false); carregarPedidos();
 }
 function desenharTopo(){
@@ -433,7 +433,7 @@ function preencher(){
   servDesenhar(P.status==='rascunho'&&P.categoria!=='reboque'?[SERV_VAZIO]:(P.servicos||[])); atendeMarcar(P.atende); deslMostrar(); /* 26/10/2026 (dono): 1º cadastro começa com 1 linha em branco (ele escreve os serviços) */ $('pfSaidaKm').value=P.raioKm||''; rebDesenhar(P.categoria==='reboque'?P.servicos:[]); localReboque(catPerfil); $('bSalvar').textContent=P.status==='rascunho'||P.status==='recusado'?'Salvar e enviar para aprovação':'Salvar';
 }
 function dicaServ(k){ const d=$('pfServDica'); if(!d) return; d.textContent=k==='reboque'?'Reboque: coloque o valor da SAÍDA (a partir de) de cada tipo. O km extra e o destino você combina com o cliente pelo WhatsApp. O cliente vê a distância até o veículo dele (sobre o seu endereço, veja o aviso verde acima).':'Escreva cada serviço que você faz e, se quiser, o menor preço. Se depende do modelo do carro, marque "sob consulta": o cliente pede o orçamento pelo WhatsApp, já com o modelo, ano e placa.' } /* 25/10/2026 (dono): reboquista pelo link */
-function trocarCat(k){ if(k===catPerfil) return; catPerfil=k; localReboque(k); nomeEx('pfNome',k); dicaServ(k); catsDesenhar($('pCats'),k,trocarCat); const atuais=servLer(true); if(!atuais.some(x=>x.aPartir!=null)) servDesenhar([SERV_VAZIO]); else servDesenhar(atuais) }
+function trocarCat(k){ if(k===catPerfil) return; catPerfil=k; localReboque(k); nomeEx('pfNome',k); dicaServ(k); catsDesenhar($('pCats'),k,trocarCat); const atuais=servLer(true); if(!atuais.length) servDesenhar([SERV_VAZIO]); else servDesenhar(atuais) } /* 27/10/2026 (revisão): serviços só com nome não somem ao trocar */
 function deslMostrar(){ $('pfDeslBox').hidden=!$('pfLocal').checked }
 /* 26/10/2026 (dono): reboque sempre vai até o cliente — some a chave e a taxa de deslocamento (a saída já cobre) */
 const REB_TIPOS=[['moto','Moto'],['passeio','Carro de passeio'],['utilitario','Utilitário / SUV'],['pesado','Pesado']];
@@ -444,7 +444,7 @@ function rebDesenhar(servs){ const m={}; (servs||[]).forEach(x=>{ const t=rebTip
   $('pfRebTipos').innerHTML='<div class="rbdica" id="rbDica"><span>Ligue os serviços que você atende</span><i aria-hidden="true">⬇</i></div>'+REB_TIPOS.map(([k,n])=>{ const x=m[k];
     return '<div class="rbt'+(x?' on':'')+'" data-rbt="'+k+'"><label class="chk"><span><b>'+n+'</b></span><input type="checkbox" data-rbon'+(x?' checked':'')+'></label>'+
       '<div class="dois"'+(x?'':' hidden')+'><div><label class="l">Valor da saída (R$)</label><input class="fld" data-rbs inputmode="decimal" autocomplete="off" placeholder="Na hora" value="'+(x?brIn(x.aPartir):'')+'"></div>'+
-      '<div><label class="l">Km excedente (R$/km)</label><input class="fld" data-rbk inputmode="decimal" autocomplete="off" placeholder="0,00" value="'+(x?brIn(x.kmExtra):'')+'"></div></div></div>' }).join('')+(servs||[]).filter(x=>!rebTipoDe(x.nome)&&(x.aPartir>0||x.kmExtra>0)).map(rebOutroLinha).join('')+'<button class="linkbtn" type="button" data-rbadd>+ Adicionar outro tipo (máquinas, gerador, caçamba...)</button>'; rebDica() }
+      '<div><label class="l">Km excedente (R$/km)</label><input class="fld" data-rbk inputmode="decimal" autocomplete="off" placeholder="0,00" value="'+(x?brIn(x.kmExtra):'')+'"></div></div></div>' }).join('')+(servs||[]).filter(x=>!rebTipoDe(x.nome)&&String(x.nome||'').trim()).map(rebOutroLinha) /* 27/10/2026 (revisão): tipo sem valor (orçamento na hora) continua aparecendo */.join('')+'<button class="linkbtn" type="button" data-rbadd>+ Adicionar outro tipo (máquinas, gerador, caçamba...)</button>'; rebDica() }
 /* 26/10/2026 (dono): outros tipos (máquinas, gerador, caçamba...) */
 const rebOutroLinha=x=>'<div class="rbt on" data-rbx><div class="dois" style="grid-template-columns:1fr 44px;margin-top:0"><input class="fld" data-rbn maxlength="60" placeholder="Ex.: Transporte de gerador" value="'+esc(x&&x.nome||'')+'"><button type="button" class="rbrm" data-rbrm title="Excluir" aria-label="Excluir"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg></button></div>'+
   '<div class="dois"><div><label class="l">Valor da saída (R$)</label><input class="fld" data-rbs inputmode="decimal" autocomplete="off" placeholder="Na hora" value="'+(x?brIn(x.aPartir):'')+'"></div><div><label class="l">Km excedente (R$/km)</label><input class="fld" data-rbk inputmode="decimal" autocomplete="off" placeholder="0,00" value="'+(x?brIn(x.kmExtra):'')+'"></div></div></div>';
@@ -546,7 +546,7 @@ $('pPedidos').onclick=async e=>{
   if(r && !confirm('Não vai atender esse serviço? O cliente é avisado no app.')) return;
   b.disabled=true;
   try{ if(c){ const v=document.querySelector('[data-v="'+c.dataset.c+'"]').value; if(!(numBR(v)>0)){ toast('Digite o valor final do serviço.'); b.disabled=false; return }
-      const j=await api('parcConcluir',{ptoken:TOK,pedido:c.dataset.c,valor:v}); toast('Pronto! A Rastreando paga '+brl(j.fichasUsadas)+' por PIX até '+(j.prazoMs?diaBR(j.prazoMs):'2 dias úteis')+(j.cobrarDireto?'. Cobre '+brl(j.cobrarDireto)+' direto do cliente':'')+'.',7000) }
+      const j=await api('parcConcluir',{ptoken:TOK,pedido:c.dataset.c,valor:numBR(v)}); /* 27/10/2026 (revisão): número já entendido ("1.500" = 1500) */ toast('Pronto! A Rastreando paga '+brl(j.fichasUsadas)+' por PIX até '+(j.prazoMs?diaBR(j.prazoMs):'2 dias úteis')+(j.cobrarDireto?'. Cobre '+brl(j.cobrarDireto)+' direto do cliente':'')+'.',7000) }
     else { await api('parcConcluir',{ptoken:TOK,pedido:r.dataset.r,recusar:true}); toast('Ok, serviço recusado.') }
     carregarPedidos() }
   catch(err){ toast(err.message); b.disabled=false }
@@ -575,7 +575,7 @@ setInterval(()=>{ if(P && !document.hidden){ carregarPedidos() } },60000);
   if('serviceWorker' in navigator && location.protocol==='https:') navigator.serviceWorker.register('sw.js').catch(()=>{});
 })();
 /* início */
-if(TOK) abrirPainel().catch(()=>sair(true));
+if(TOK) abrirPainel().catch(e=>{ if(TOK) toast(e.message||'Sem conexão. Confira a internet.',6000) }); /* 27/10/2026 (revisão): sem internet não desloga (o 401 já desloga dentro de api) */
 </script>
 <script>/* 27/10/2026 (dono): carrossel passando sozinho a cada 4 s; para quando a pessoa arrasta e volta depois */
 (function(){ try{ const t=document.getElementById('carrT'), d=[...document.querySelectorAll('#carrD i')]; if(!t) return;
