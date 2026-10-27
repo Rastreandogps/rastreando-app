@@ -13817,7 +13817,7 @@ async function pcAdmCarregar(){ $('paLista').innerHTML='<div class="rtvz">Carreg
         (p.servicos||[]).map(s=>esc(s.nome)+': '+(s.sobConsulta||!(s.aPartir>0)?'sob consulta':brl2(s.aPartir))).join(' · ')+(p.status==='aprovado'?'<br>'+(p.disponivel?'🟢 disponível agora':'⚪ fechado')+' · '+(p.vistosHoje||0)+' '+((p.vistosHoje||0)===1?'visualização':'visualizações')+' hoje':'')+'</div></div></div>'+
         '<div class="rtbt"><a class="wpp" href="https://wa.me/55'+esc(p.whatsapp)+'" target="_blank" rel="noopener">WhatsApp</a>'+
         (p.status!=='aprovado'?'<a href="#" data-paap="'+p.id+'" style="background:rgba(22,163,74,.14);border-color:rgba(22,163,74,.4);color:#16a34a">Aprovar</a>':'')+
-        (p.status==='analise'?'<a href="#" data-pare="'+p.id+'">Recusar</a>':'')+(p.status==='aprovado'?'<a href="#" data-pasu="'+p.id+'">Suspender</a>':'')+'<a href="#" class="pnx" data-paex="'+p.id+'" data-pan2="'+esc(p.nome)+'">Excluir</a>'+
+        (p.status==='analise'?'<a href="#" data-pare="'+p.id+'">Recusar</a>':'')+(p.status==='aprovado'?'<a href="#" data-padisp="'+p.id+'" data-v="'+(p.disponivel?'0':'1')+'" style="'+(p.disponivel?'':'background:rgba(22,163,74,.14);border-color:rgba(22,163,74,.4);color:#16a34a')+'">'+(p.disponivel?'⚪ Deixar fechado':'🟢 Deixar disponível')+'</a><a href="#" data-pasu="'+p.id+'">Suspender</a>':'') /* 27/10/2026 (dono): só o admin liga/desliga */+'<a href="#" class="pnx" data-paex="'+p.id+'" data-pan2="'+esc(p.nome)+'">Excluir</a>'+
         '<a href="#" data-pasn="'+p.id+'" data-pan="'+esc(p.nome)+'" data-paw="'+esc(p.whatsapp)+'">Nova senha</a></div><div class="pnsenhabox" id="pnSn'+p.id+'"></div></div>' })(p)) });
     if(rebHtml) addCat('reboque',rebHtml);
     const ordem=(typeof PC_CATS!=='undefined'?PC_CATS:[]).map(c=>c[0]).concat(Object.keys(porCat).filter(k=>!PC_CATS.some(c=>c[0]===k)));
@@ -13837,6 +13837,8 @@ $('paLista').addEventListener('click',async e=>{
   const xr=e.target.closest('[data-pnxr]'); if(xr){ e.preventDefault(); pnExcluir('Excluir o cadastro de reboque?',xr.dataset.pan2+' sai da lista de reboques. A permissão de reboquista continua e ele pode cadastrar de novo.',async()=>{ await rbApi('reboqueAdmExcluir',{id:xr.dataset.pnxr}); pcAdmCarregar() }); return }
   const x=e.target.closest('[data-paex]'); /* 25/10/2026 (dono): apagar qualquer parceiro, com confirmação e contagem */
   if(x){ e.preventDefault(); pnExcluir('Excluir este parceiro?',x.dataset.pan2+' é apagado de vez e some para os clientes. Pedidos com fichas em aberto impedem a exclusão.',async()=>{ await rbApi('parcAdmExcluir',{id:x.dataset.paex}); pcAdmCarregar() }); return }
+  const dp=e.target.closest('[data-padisp]'); if(dp){ e.preventDefault(); const on=dp.dataset.v==='1'; dp.textContent='Salvando...';
+    try{ await rbApi('parcAdmDisponivel',{id:dp.dataset.padisp,disponivel:on}); toast(on?'Prestador disponível: aparece para os clientes.':'Prestador fechado: não aparece para os clientes.'); pcAdmCarregar() }catch(err){ toast(err.message); pcAdmCarregar() } return }
   const a=e.target.closest('[data-paap],[data-pare],[data-pasu]'); if(!a) return; e.preventDefault();
   const id=a.dataset.paap||a.dataset.pare||a.dataset.pasu, dec=a.dataset.paap?'aprovar':a.dataset.pare?'recusar':'suspender';
   let motivo=''; if(dec!=='aprovar'){ const inp=prompt(dec==='recusar'?'Motivo da recusa (o parceiro vê):':'Motivo da suspensão:',''); if(inp===null) return; motivo=inp }

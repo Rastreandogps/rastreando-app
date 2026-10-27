@@ -82,6 +82,7 @@ textarea.fld{height:70px;padding:10px 12px;resize:vertical}
 .dispbox b{display:block;font-size:15px}.dispbox small{display:block;font-size:12px;color:var(--mut);margin-top:1px}
 .dispbox.on{border-color:rgba(51,209,122,.55);background:rgba(51,209,122,.12)}.dispbox.on b{color:var(--green)}
 .dispbox.off{opacity:.6;cursor:not-allowed}
+.dispbox.semsw{cursor:default}.dispbox.semsw .sw{display:none}
 .sw input{opacity:0;width:0;height:0}
 .sw span{position:absolute;inset:0;border-radius:999px;background:#9aa3b2;transition:background .2s;cursor:pointer}
 .sw span::after{content:'';position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
@@ -214,7 +215,7 @@ textarea.fld{height:70px;padding:10px 12px;resize:vertical}
   <section id="tPainel" hidden>
     <div class="card">
       <div class="linha"><div><h2 id="pNome"></h2><span class="status" id="pStatus"></span></div></div>
-      <label class="dispbox" id="pDispBox"><span class="sw"><input type="checkbox" id="pDisp"><span></span></span><div><b id="pDispTxt">Disponível</b><small id="pDispSub">Os clientes veem você no app</small></div></label>
+      <label class="dispbox semsw" id="pDispBox"><!-- 27/10/2026 (dono): só o administrador liga/desliga; o prestador só vê a situação --><span class="sw"><input type="checkbox" id="pDisp"><span></span></span><div><b id="pDispTxt">Disponível</b><small id="pDispSub">Os clientes veem você no app</small></div></label>
       <p class="aviso" id="pStatusTxt" style="margin-top:10px"></p>
       <div class="vistos" id="pVistos"></div>
     </div>
@@ -362,12 +363,12 @@ function desenharTopo(){
   $('pNome').textContent=P.nome||'Seu negócio';
   $('pStatus').className='status st-'+P.status; $('pStatus').textContent=st[0];
   $('pStatusTxt').textContent=st[1]+(P.motivo?' Motivo: '+P.motivo:'');
-  $('pDisp').checked=!!P.disponivel; $('pDisp').disabled=P.status!=='aprovado'; $('pDispTxt').textContent=P.disponivel?'Disponível':'Fechado';
-  $('pDispSub').textContent=P.status!=='aprovado'?'Liga depois que a Rastreando aprovar':P.disponivel?'Os clientes veem você no app. Toque para fechar.':'Você não aparece para os clientes. Toque para abrir.';
+  $('pDisp').checked=!!P.disponivel; $('pDisp').disabled=true; $('pDispTxt').textContent=P.disponivel?'Disponível':'Fechado';
+  $('pDispSub').textContent=P.status!=='aprovado'?'Você aparece depois que a Rastreando aprovar':P.disponivel?'Os clientes veem você no app. Para mudar, fale com a nossa central: (21) 98088-6087':'Você não aparece para os clientes. Para mudar, fale com a nossa central: (21) 98088-6087';
   $('pDispBox').classList.toggle('on',!!P.disponivel&&P.status==='aprovado'); $('pDispBox').classList.toggle('off',P.status!=='aprovado');
   $('pVistos').textContent=P.status==='aprovado'?(P.vistosHoje?'👀 '+P.vistosHoje+' '+(P.vistosHoje>1?'vezes':'vez')+' que clientes viram você hoje':'Nenhum cliente viu você hoje ainda.'):'';
 }
-$('pDisp').onchange=async()=>{
+$('pDisp').onchange=async()=>{ $('pDisp').checked=!!(P&&P.disponivel); return; /* 27/10/2026: controle só do administrador */
   const on=$('pDisp').checked;
   try{ await api('parcDisponivel',{ptoken:TOK,disponivel:on}); P.disponivel=on; desenharTopo(); toast(on?'Você está disponível para os clientes.':'Você ficou fechado (não aparece).') }
   catch(e){ $('pDisp').checked=!on; toast(e.message) }
