@@ -2994,12 +2994,31 @@ nav button.on .nemo.txt{color:var(--red2)}
 </style>
 <style>
 /* 27/10/2026: nomes embaixo dos ícones do Admin, emergência separada em vermelho e lixeira só com o cartão aberto */
-.abar .aico[data-l]{width:auto;min-width:46px;height:auto;min-height:44px;padding:5px 5px 4px;flex-direction:column;gap:3px}
-.abar .aico[data-l]::after{content:attr(data-l);font-size:9.5px;font-weight:600;line-height:1;letter-spacing:.1px;white-space:nowrap;color:var(--mut)}
-.abar .aico[data-l] svg{width:18px;height:18px}
+#aview .abar .aico[data-l]{width:auto;min-width:62px;height:50px;min-height:50px;padding:6px 7px 5px;flex-direction:column;gap:4px}
+#aview .abar .aico[data-l]::after{content:attr(data-l);font-size:10px;font-weight:600;line-height:1;letter-spacing:.1px;white-space:nowrap;color:var(--mut)}
+#aview .abar .aico[data-l] svg{width:18px;height:18px}
+#aview .abar .aico.adr[data-l] .drcoin{width:20px;height:20px}
+/* 27/10/2026 (dono): busca com metade do tamanho no computador (os botões vão para a direita) e Equipamentos/Clientes com nome */
+@media (min-width:901px){
+  #aview .abar .search{flex:0 1 460px;margin-right:auto}
+  #aview .abar .atabs{padding:4px;gap:4px;border-radius:14px;background:var(--card2);border:1px solid var(--line)}
+  #aview .abar .atab{width:auto;height:42px;padding:0 14px;gap:7px;font-size:13.5px;font-weight:700;border-radius:11px;color:var(--mut)}
+  #aview .abar .atab#aTabEquip::after{content:"Equipamentos"}
+  #aview .abar .atab#aTabCli::after{content:"Clientes"}
+  #aview .abar .atab svg{width:18px;height:18px}
+  #aview .abar .atab.on{background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;box-shadow:0 4px 12px rgba(37,99,235,.3)}
+  #aview .abar .atab:not(.on):hover{background:var(--card);color:var(--txt)}
+}
+@media (max-width:900px){#aview .abar .atab.on{background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff}}
+/* 27/10/2026 (dono): gaveta dos veículos no cartão do cliente (mais de 2 veículos: fechada; toque em "N veículos" abre) */
+#aview .vchips .qtd[data-a="vchtog"]{cursor:pointer;background:rgba(37,99,235,.08);border-color:rgba(37,99,235,.3);color:#2f6fe4}
+#aview .vchips .qtd[data-a="vchtog"]:hover{background:rgba(37,99,235,.14)}
+#aview .vchips.vfech .vchip,#aview .vchips.vfech .vchsel{display:none}
+#aview details.cli.selmode .vchips.vfech .vchip{display:inline-flex}
+#aview details.cli:not([open]) .vchips:not(.vfech) .qtd[data-a="vchtog"] .qseta{transform:rotate(180deg)}
 .abar #aEmerg{color:#dc2626;border-color:rgba(220,38,38,.45);background:rgba(220,38,38,.07);margin-left:10px}
 .abar #aEmerg::after{color:#dc2626}
-@media (max-width:700px){.abar .aico[data-l]{min-width:42px;padding:4px 3px 3px}.abar .aico[data-l]::after{font-size:9px}.abar #aEmerg{margin-left:6px}}
+@media (max-width:700px){#aview .abar .aico[data-l]{min-width:46px;height:46px;min-height:46px;padding:4px 3px 3px}#aview .abar .aico[data-l]::after{font-size:9px}.abar #aEmerg{margin-left:6px}}
 details:not([open])>summary .ico.lix[data-a="deleq"],details:not([open])>summary .ico.lix[data-a="delcli"]{display:none}
 </style>
 </head>
@@ -10143,7 +10162,7 @@ function desenharClientes(fundo){
           '<div class="fi"><span class="fl">Financeiro</span><span class="fv"><span class="pill '+(fin.c||'neutro')+'">'+esc(fin.t)+'</span><button type="button" class="asbtn" data-a="assin" data-u="'+u.id+'" aria-label="Mensalidade no Asaas" title="Mensalidade: somar veículo ou tag na assinatura do Asaas"><svg viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z"/><path d="M14.5 10.5h-3a1.5 1.5 0 000 3h1.5a1.5 1.5 0 010 3H9.5M12 9v1.5M12 16.5V18"/></svg></button>'+(fm&&(fm.confiancaUsada||fm.nivel==='confianca')?'<button type="button" class="flink" data-a="zerar" data-u="'+u.id+'" title="Devolve ao cliente o direito de usar o Já paguei de novo">Zerar confiança</button>':'')+'</span></div>'+
           '<div class="fi largo"><span class="fl">Último acesso</span><span class="fv">'+valorAcesso(u)+'</span></div>'+
         '</div>'+
-        '<div class="vchips"><span class="qtd">'+ap.length+(ap.length===1?' veículo':' veículos')+' <span class="qseta">▾</span></span>'+
+        '<div class="vchips'+(ap.length>2&&!chipsAb[u.id]?' vfech':'')+'"><span class="qtd"'+(ap.length>2?' data-a="vchtog" data-u="'+u.id+'" title="Mostrar/esconder os veículos"':'')+'>'+ap.length+(ap.length===1?' veículo':' veículos')+' <span class="qseta">▾</span></span>'+
           ap.map(v=>'<span class="vchip qnomes" data-a="chipsel" data-u="'+u.id+'" data-d="'+v.id+'">'+esc(v.nome)+(v.placa?' <small>'+esc(v.placa)+'</small>':'')+'<button type="button" class="vchx" data-a="desvchip" data-u="'+u.id+'" data-d="'+v.id+'" aria-label="Desvincular '+esc(v.nome)+'" title="Desvincular este veículo">×</button></span>').join('')+
           (ap.length>1?'<button type="button" class="vchsel" data-a="selchips" data-u="'+u.id+'" aria-label="Selecionar vários para desvincular" title="Selecionar vários para desvincular"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M8 12l3 3 5-6"/></svg></button>'+
             '<span class="vchbar"><button type="button" class="vchok" data-a="desvsel" data-u="'+u.id+'" disabled>Desvincular 0</button><button type="button" class="vchno" data-a="selchips" data-u="'+u.id+'">Cancelar</button></span>':'')+'</div>'+
@@ -10181,12 +10200,14 @@ function copiar(txt){
   try{ document.execCommand('copy') }finally{ document.body.removeChild(ta) }
   return Promise.resolve();
 }
+var chipsAb={}; /* 27/10/2026: gavetas de veículos abertas (por cliente) */
 $('aList').addEventListener('click',e=>{
   const cc=e.target.closest('button[data-cpfcp]'); if(cc){ e.stopPropagation(); copiar(cc.dataset.cpfcp).then(()=>toast('CPF/CNPJ copiado: '+cc.dataset.cpfcp)).catch(()=>toast('Não foi possível copiar')); return } /* 21/10/2026 */
   if(selEq && abaAdmin==='equip'){ const d=e.target.closest('details.eq[data-id]'); if(d){ e.preventDefault(); e.stopPropagation(); const id=+d.dataset.id; if(selEq[id]) delete selEq[id]; else selEq[id]=true; desenharEquip(); return } }
   const b=e.target.closest('[data-a]'); if(!b) return;
   if(b.dataset.a==='chipsel' && !b.closest('details.cli.selmode')) return; // fora do modo seleção, tocar no veículo abre o cartão como antes
   if(b.closest('summary')) e.preventDefault(); // lápis e lixeira não abrem/fecham o cartão
+  if(b.dataset.a==='vchtog'){ e.stopPropagation(); const d=b.closest('details.cli'); if(d&&d.open){ d.open=false; return } const id=+b.dataset.u; chipsAb[id]=!chipsAb[id]; const w=b.closest('.vchips'); if(w) w.classList.toggle('vfech',!chipsAb[id]); return } /* 27/10/2026: gaveta dos veículos */
   /* 15/10/2026: desvincular pelo cartão fechado */
   if(b.dataset.a==='desvchip'){
     e.stopPropagation();
