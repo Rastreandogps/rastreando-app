@@ -359,6 +359,12 @@ const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;'
 const brl=n=>'R$ '+Number(n||0).toFixed(2).replace('.',',');
 const lsGet=k=>{ try{ return localStorage.getItem(k) }catch(e){ return null } }, lsSet=(k,v)=>{ try{ localStorage.setItem(k,v) }catch(e){} }, lsDel=k=>{ try{ localStorage.removeItem(k) }catch(e){} };
 let TOK=lsGet('rg_parc_token'), P=null, catCad='', catPerfil='', base=null;
+/* 27/10/2026 (dono): de onde veio o cadastro (anúncio da Meta, app, convite). O clique no anúncio traz "fbclid" ou utm no link; fica guardado até o cadastro */
+const ORIGEM=(()=>{ try{ const q=new URLSearchParams(location.search), ref=document.referrer||'', us=q.get('utm_source')||'';
+  let o=(q.get('fbclid')||/facebook|instagram|meta|^fb$|^ig$/i.test(us)||/facebook\.com|instagram\.com/i.test(ref))?'anuncio':(q.get('de')==='aba'||q.get('de')==='app')?'app':q.get('v')?'convite':'';
+  const ant=JSON.parse(lsGet('rg_parc_origem')||'null');
+  if(o==='anuncio'||(o&&!ant)){ const v={o,camp:(q.get('utm_campaign')||'').slice(0,60),ms:Date.now()}; lsSet('rg_parc_origem',JSON.stringify(v)); return v }
+  return ant||(o?{o,camp:'',ms:Date.now()}:null) }catch(e){ return null } })();
 function toast(m,ms){ const t=$('toast'); t.textContent=m; t.classList.add('show'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),ms||3500) }
 async function api(acao,extra){
   let r; try{ r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',body:JSON.stringify(Object.assign({acao},extra||{}))}) }catch(e){ throw new Error('Sem conexão. Confira a internet.') }
@@ -388,7 +394,7 @@ function escolherCad(k){ catCad=k; catsDesenhar($('cCats'),k,escolherCad); nomeE
 $('bCad').onclick=async()=>{
   $('cErr').textContent=''; if(!catCad){ $('cErr').textContent='Escolha o tipo de serviço.'; return }
   const b=$('bCad'); b.disabled=true;
-  try{ const j=await api('parcCadastrar',{categoria:catCad,nome:$('cNome').value,whatsapp:$('cWpp').value,senha:$('cSenha').value}); TOK=j.ptoken; lsSet('rg_parc_token',TOK); await abrirPainel(); toast('Cadastro criado! Agora complete os dados e toque em Salvar.',5000) }
+  try{ const j=await api('parcCadastrar',{categoria:catCad,nome:$('cNome').value,whatsapp:$('cWpp').value,senha:$('cSenha').value,origem:ORIGEM}); TOK=j.ptoken; lsSet('rg_parc_token',TOK); await abrirPainel(); toast('Cadastro criado! Agora complete os dados e toque em Salvar.',5000) }
   catch(e){ $('cErr').textContent=e.message }
   b.disabled=false;
 };
