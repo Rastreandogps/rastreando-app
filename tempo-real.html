@@ -13787,7 +13787,7 @@ $('pcDetCorpo').addEventListener('click',async e=>{ /* 26/10/2026: os botões ag
 });
 /* ---- administrador: aprovar parceiros ---- */
 const PC_ST={analise:['Em análise','ag'],aprovado:['Aprovado','ok'],recusado:['Recusado','cc'],suspenso:['Suspenso','cc']};
-const PC_LINK='https://gps.rastreandogpsbr.com.br/parceiro.html';
+const PC_LINK='https://gps.rastreandogpsbr.com.br/parceiro.html?v=2'; /* 27/10/2026: ?v=2 faz o WhatsApp buscar a capa nova */
 async function pcAdmContar(){ if(!ehAdmin) return; try{ const j=await rbApi('parcAdmLista'); ADM_N.pc=Number(j.pendentes||0); admBadge(); const b=$('aParcN'); if(b){ b.textContent=j.pendentes||''; b.classList.toggle('on',ADM_N.pc>0) } }catch(e){} }
 function pcAdmAbrir(){ pnAbrir('parc') }
 function pnNorm(t){ return String(t||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'') }
