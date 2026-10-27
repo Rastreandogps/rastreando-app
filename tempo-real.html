@@ -4197,7 +4197,7 @@ details:not([open])>summary .ico.lix[data-a="deleq"],details:not([open])>summary
       <div id="pnParc" hidden>
         <div class="pclink"><b>Link de cadastro para mandar aos prestadores</b><small>gps.rastreandogpsbr.com.br/parceiro.html</small><div class="rtbt"><a href="#" id="paCopiar">Copiar link</a><a href="#" class="wpp" id="paWpp">Mandar no WhatsApp</a></div></div>
         <input class="fld pnbusca" id="pnParcBusca" type="search" placeholder="Buscar parceiro: nome, bairro, WhatsApp, serviço..." autocomplete="off"><!-- 25/10/2026 (dono) -->
-        <div class="pnfil" id="pnParcFil"><button type="button" data-f="todos" class="on">Todos</button><button type="button" data-f="analise">Em análise</button><button type="button" data-f="aprovado">Aprovados</button><button type="button" data-f="fora">Recusados/suspensos</button></div>
+        <div class="pnfil" id="pnParcFil"><button type="button" data-f="todos" class="on">Todos</button><button type="button" data-f="analise">Em análise</button><button type="button" data-f="aprovado">Aprovados</button><button type="button" data-f="fora">Recusados/suspensos</button><button type="button" data-f="rascunho">Rascunhos</button></div>
         <div class="pnfil" id="pnParcCat"></div>
         <div id="paLista"></div>
       </div>
@@ -13856,7 +13856,7 @@ $('pcDetCorpo').addEventListener('click',async e=>{ /* 26/10/2026: os botões ag
   catch(err){ toast(err.message); r.disabled=false }
 });
 /* ---- administrador: aprovar parceiros ---- */
-const PC_ST={analise:['Em análise','ag'],aprovado:['Aprovado','ok'],recusado:['Recusado','cc'],suspenso:['Suspenso','cc']};
+const PC_ST={analise:['Em análise','ag'],aprovado:['Aprovado','ok'],recusado:['Recusado','cc'],suspenso:['Suspenso','cc'],rascunho:['Rascunho (não enviou)','cc']}; /* 27/10/2026: rascunhos aparecem para poder excluir */
 const PC_LINK='https://gps.rastreandogpsbr.com.br/parceiro.html?v=2'; /* 27/10/2026: ?v=2 faz o WhatsApp buscar a capa nova */
 async function pcAdmContar(){ if(!ehAdmin) return; try{ const j=await rbApi('parcAdmLista'); ADM_N.pc=Number(j.pendentes||0); admBadge(); const b=$('aParcN'); if(b){ b.textContent=j.pendentes||''; b.classList.toggle('on',ADM_N.pc>0) } }catch(e){} }
 function pcAdmAbrir(){ pnAbrir('parc') }
