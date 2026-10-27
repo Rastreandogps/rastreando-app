@@ -400,6 +400,14 @@ body.mapa-google #map .leaflet-top.leaflet-left .leaflet-control-attribution{mar
 .pnres small{display:block;font-size:10.5px;color:var(--mut);line-height:1.25}
 .pnres b{display:block;font-size:16px;font-weight:900;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pnres .vm b{color:var(--red2)}.pnres .ok b{color:#16a34a}.pnres .au b{color:#e0a800}
+.pndep{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 10px;flex:none}
+.pndep button{height:46px;border-radius:13px;border:1px solid var(--line);background:var(--card2);color:var(--mut);font:inherit;font-weight:800;font-size:14.5px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px}
+.pndep button.on{background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;border-color:transparent;box-shadow:0 6px 16px rgba(37,99,235,.28)}
+.pndep .n{display:inline-flex;min-width:20px;height:20px;padding:0 6px;border-radius:10px;background:#dc2626;color:#fff;font-size:11.5px;align-items:center;justify-content:center;border:2px solid #fff}
+.pndep .n[hidden],.pnabas .n[hidden]{display:none} /* bolinha vazia/"0" não aparece mais */
+#mDouradaAdm.depparc #pnRes,#mDouradaAdm.depparc #pnAbas{display:none}
+#mDouradaAdm #pnAbas button[data-pn="parc"]{display:none}
+#mDouradaAdm .pnabas{grid-template-columns:repeat(3,1fr)}
 .pnabas{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;background:var(--card2);border-radius:12px;padding:4px;margin-bottom:8px;flex:none}
 .pnabas button{height:38px;border:none;border-radius:9px;background:none;color:var(--mut);font:inherit;font-weight:700;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px}
 .pnabas button.on{background:var(--card);color:var(--txt);box-shadow:0 1px 3px rgba(0,0,0,.2)}
@@ -4183,6 +4191,7 @@ details:not([open])>summary .ico.lix[data-a="deleq"],details:not([open])>summary
 <div class="modal alsheet" id="mDouradaAdm">
   <div class="box2 pnbox">
     <div class="almtopo"><h3>Serviços, fichas e parceiros</h3><button class="almx" data-close type="button" aria-label="Fechar" title="Fechar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <div class="pndep" id="pnDep"><button type="button" data-dep="fichas" class="on">🪙 Fichas e serviços<span class="n" id="pnDepFichN" hidden></span></button><button type="button" data-dep="parc">🤝 Parceiros<span class="n" id="pnDepParcN" hidden></span></button></div><!-- 27/10/2026 (dono): dois departamentos -->
     <div class="pnres" id="pnRes"></div>
     <div class="pnabas" id="pnAbas"><button type="button" data-pn="pend" class="on">Pendências<span class="n" id="pnNPend" hidden></span></button><button type="button" data-pn="serv">Histórico</button><button type="button" data-pn="parc">Parceiros<span class="n" id="pnNParc" hidden></span></button><button type="button" data-pn="cli">Clientes</button></div>
     <div class="pnrola" id="pnRola">
@@ -13679,7 +13688,8 @@ $('pnexSim').onclick=()=>{ const b=$('pnexSim'); if(b.disabled) return; const fn
     clearInterval(PNX.timer); b.disabled=true; b.textContent='Excluindo...';
     try{ await fn(); toast('Excluído.'); }catch(err){ toast(err.message) } pnExcluirFechar() },1000) };
 function drAdmAbrir(){ pnAbrir('pend') }
-function pnAba(a){ PN.aba=a; document.querySelectorAll('#pnAbas button').forEach(b=>b.classList.toggle('on',b.dataset.pn===a)); ['pend','serv','parc','cli'].forEach(k=>{ $('pn'+k[0].toUpperCase()+k.slice(1)).hidden=k!==a }); $('pnRola').scrollTop=0 }
+function pnAba(a){ PN.aba=a; const dp=a==='parc'; $('mDouradaAdm').classList.toggle('depparc',dp); document.querySelectorAll('#pnDep button').forEach(b=>b.classList.toggle('on',(b.dataset.dep==='parc')===dp)); if(!dp) PN.abaFich=a; document.querySelectorAll('#pnAbas button').forEach(b=>b.classList.toggle('on',b.dataset.pn===a)); ['pend','serv','parc','cli'].forEach(k=>{ $('pn'+k[0].toUpperCase()+k.slice(1)).hidden=k!==a }); $('pnRola').scrollTop=0 }
+$('pnDep').onclick=e=>{ const b=e.target.closest('[data-dep]'); if(b) pnAba(b.dataset.dep==='parc'?'parc':(PN.abaFich||'pend')) }; /* 27/10/2026 */
 $('pnAbas').onclick=e=>{ const b=e.target.closest('[data-pn]'); if(b) pnAba(b.dataset.pn) };
 $('pnFil').onclick=e=>{ const b=e.target.closest('[data-f]'); if(!b) return; PN.fil=b.dataset.f; document.querySelectorAll('#pnFil button').forEach(x=>x.classList.toggle('on',x===b)); pnServDesenhar() };
 $('pnParcFil').onclick=e=>{ const b=e.target.closest('[data-f]'); if(!b) return; PN.pfil=b.dataset.f; document.querySelectorAll('#pnParcFil button').forEach(x=>x.classList.toggle('on',x===b)); pnParcFiltrar() };
@@ -13693,7 +13703,7 @@ async function pnPainelCarregar(){
       '<div><small>Serviços concluídos no mês</small><b>'+(r.servicosMes||0)+'</b></div>'+
       '<div><small>Fichas em circulação</small><b>'+brl2(r.fichasEmCirculacao||0)+'</b></div>'+
       '<div><small>Clientes com fichas</small><b>'+(r.clientesComFichas||0)+'</b></div>';
-    const np=(j.lista||[]).filter(p=>['pendente','aprovado'].includes(p.estado)||(p.estado==='concluido'&&!p.pagoParceiro)).length; $('pnNPend').hidden=!np; $('pnNPend').textContent=np;
+    const np=(j.lista||[]).filter(p=>['pendente','aprovado'].includes(p.estado)||(p.estado==='concluido'&&!p.pagoParceiro)).length; $('pnNPend').hidden=!np; $('pnNPend').textContent=np; $('pnDepFichN').hidden=!np; $('pnDepFichN').textContent=np;
     pnServDesenhar(); pnCliDesenhar();
   }catch(e){ $('pnServLista').innerHTML='<div class="rtvz">'+esc(e.message)+'</div>'; $('pnCliLista').innerHTML='' }
 }
@@ -13876,7 +13886,7 @@ function pnParcCats(){ const cats=[['todas','Todas']].concat((typeof PC_CATS!=='
   $('pnParcCat').innerHTML=cats.map(([k,n])=>'<button type="button" data-c="'+k+'"'+(k===(PN.pcat||'todas')?' class="on"':'')+'>'+n+'</button>').join('') }
 $('pnParcCat').onclick=e=>{ const b=e.target.closest('[data-c]'); if(!b) return; PN.pcat=b.dataset.c; document.querySelectorAll('#pnParcCat button').forEach(x=>x.classList.toggle('on',x===b)); pnParcFiltrar() };
 async function pcAdmCarregar(){ $('paLista').innerHTML='<div class="rtvz">Carregando...</div>';
-  try{ const [j,rj]=await Promise.all([rbApi('parcAdmLista'),rbApi('reboqueAdmLista').catch(()=>({lista:[]}))]); const l=j.lista||[], rl=rj.lista||[]; { ADM_N.pc=Number(j.pendentes||0); admBadge(); const bn=$('aParcN'); if(bn){ bn.textContent=j.pendentes||''; bn.classList.toggle('on',(j.pendentes||0)>0) } } /* 26/10/2026: o contador saiu do botão (virou aperto de mãos) */ $('pnNParc').hidden=!(j.pendentes||0); $('pnNParc').textContent=j.pendentes||'';
+  try{ const [j,rj]=await Promise.all([rbApi('parcAdmLista'),rbApi('reboqueAdmLista').catch(()=>({lista:[]}))]); const l=j.lista||[], rl=rj.lista||[]; { ADM_N.pc=Number(j.pendentes||0); admBadge(); const bn=$('aParcN'); if(bn){ bn.textContent=j.pendentes||''; bn.classList.toggle('on',(j.pendentes||0)>0) } } /* 26/10/2026: o contador saiu do botão (virou aperto de mãos) */ $('pnNParc').hidden=!(j.pendentes||0); $('pnNParc').textContent=j.pendentes||''; $('pnDepParcN').hidden=!(j.pendentes||0); $('pnDepParcN').textContent=j.pendentes||'';
     /* 25/10/2026 (dono): reboquistas no mesmo painel dos parceiros (eles têm login do app e rastreador; cadastro em "Meu reboque") */
     pnParcCats();
     const rebHtml=rl.map(r=>'<div class="rtit pnreb" data-pst="aprovado" data-pcat="reboque"><div class="rttopo"><div><b>'+esc(r.nome||'Reboquista')+'</b><div class="rtinfo">🚛 Reboquista (login do app) · '+(r.disponivel?'🟢 disponível':'⚪ invisível')+(r.sinalMs?' · sinal '+fmtHora(r.sinalMs):'')+'<br>'+
