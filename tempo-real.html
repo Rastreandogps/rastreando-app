@@ -346,6 +346,14 @@ body.mapa-google #map .leaflet-top.leaflet-left .leaflet-control-attribution{mar
 .pcpag{margin-top:10px;border-top:1px dashed rgba(224,168,0,.5);padding-top:8px}
 .pcpag small{display:block;font-size:12px;color:var(--mut);margin-top:2px}
 .pncard{cursor:pointer;position:relative}
+#mParcEd{align-items:center;padding:16px}
+#mParcEd .almx{width:38px;height:38px;flex:none;border-radius:50%;background:var(--card2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;cursor:pointer}
+#mParcEd .almx svg{width:18px;height:18px;fill:none;stroke:var(--txt);stroke-width:2.4;stroke-linecap:round}
+.pnwpp{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;margin-left:8px;vertical-align:-6px;border-radius:50%;background:rgba(37,211,102,.14);border:1px solid rgba(37,211,102,.45);color:#16a34a}
+.pnwpp svg{width:15px;height:15px}
+#mParcEd .peops .op{display:block;width:100%;text-align:left;padding:10px 12px;margin:6px 0 0;border-radius:10px;border:1px solid var(--line);background:var(--card2);color:var(--txt);font:inherit;font-size:13.5px;cursor:pointer}
+#mParcEd .peops p,#mParcEd .peok{font-size:13px;color:var(--mut);margin:6px 0 0}
+#mParcEd .peok b{color:var(--txt)}
 .pncard .rttopo{position:relative;padding-right:22px}
 .pncard .pnmais{display:none}
 .pncard.aberto .pnmais{display:inline}
@@ -4199,6 +4207,22 @@ details:not([open])>summary .ico.lix[data-a="deleq"],details:not([open])>summary
   </div>
 </div>
 <!-- 25/10/2026 (dono): PAINEL completo de serviços, fichas e parceiros (no lugar dos pop-ups "pendências" e "Parceiros") -->
+<!-- 27/10/2026 (dono): admin edita o cadastro do parceiro -->
+<div class="modal" id="mParcEd">
+  <div class="box2" style="max-width:560px;border-radius:18px">
+    <div class="almtopo" style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px"><h3 style="margin:0">Editar parceiro</h3><button class="almx" data-close type="button" aria-label="Fechar" title="Fechar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <label class="flbl" for="peNome">Nome do negócio</label><input class="fld" id="peNome" maxlength="50" autocomplete="off">
+    <label class="flbl" for="peEnd">Endereço (de onde atende)</label>
+    <div style="display:flex;gap:8px"><input class="fld" id="peEnd" placeholder="Rua, número, bairro, cidade ou CEP" autocomplete="off" style="flex:1;margin:0"><button type="button" class="btn btn-out" id="peBuscar" style="width:auto;padding:0 14px">Buscar</button></div>
+    <div id="peOps" class="peops"></div>
+    <div id="peEndOk" class="peok"></div>
+    <label class="flbl" for="peHor">Horário</label><input class="fld" id="peHor" maxlength="60" autocomplete="off" placeholder="Ex.: Segunda a sábado, 8h às 18h">
+    <label class="rnplck" style="height:auto;min-height:40px;margin:6px 0 4px"><input type="checkbox" id="pe24"><span>Atende 24 horas</span></label>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div><label class="flbl" for="pePix">Chave PIX</label><input class="fld" id="pePix" maxlength="80" autocomplete="off"></div><div><label class="flbl" for="peBanco">Banco</label><input class="fld" id="peBanco" maxlength="50" autocomplete="off"></div></div>
+    <div class="ferr" id="peErro"></div>
+    <div class="actions2"><button class="btn btn-out" data-close type="button">Cancelar</button><button class="btn btn-red" id="peSalvar" type="button">Salvar</button></div>
+  </div>
+</div>
 <div class="modal alsheet" id="mDouradaAdm">
   <div class="box2 pnbox">
     <div class="almtopo"><h3 id="pnTit">Fichas e serviços</h3><div class="pndep" id="pnDep"><button type="button" data-dep="fichas" class="on" title="Fichas e serviços" aria-label="Fichas e serviços">🪙<span class="n" id="pnDepFichN" hidden></span></button><button type="button" data-dep="parc" title="Parceiros" aria-label="Parceiros">🤝<span class="n" id="pnDepParcN" hidden></span></button></div><!-- 27/10/2026 (dono): dois departamentos, só ícones --><button class="almx" data-close type="button" aria-label="Fechar" title="Fechar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
@@ -13895,24 +13919,50 @@ $('pnParcBusca').addEventListener('input',pnParcFiltrar);
 function pnParcCats(){ const cats=[['todas','Todas']].concat((typeof PC_CATS!=='undefined'?PC_CATS:[]).map(c=>[c[0],c[2]+' '+c[1]]));
   $('pnParcCat').innerHTML=cats.map(([k,n])=>'<button type="button" data-c="'+k+'"'+(k===(PN.pcat||'todas')?' class="on"':'')+'>'+n+'</button>').join('') }
 $('pnParcCat').onclick=e=>{ const b=e.target.closest('[data-c]'); if(!b) return; PN.pcat=b.dataset.c; document.querySelectorAll('#pnParcCat button').forEach(x=>x.classList.toggle('on',x===b)); pnParcFiltrar() };
-var pcAbertos={}; /* 27/10/2026 (dono): cartões dos parceiros fechados; toque abre */
+var paAdmLista=[], peBase=null, peId=null;
+/* 27/10/2026 (dono): editar parceiro pelo admin — mesma busca de endereço do app do parceiro (vários caminhos, sem nome de comunidade) */
+const PE_FORA=/\b(favela|comunidade|morro|complexo|ocupa[cç][aã]o|invas[aã]o|aglomerado)\b/i;
+const peLimpo=a=>{ const v={}; return a.map(x=>String(x||'').trim()).filter(x=>x&&!PE_FORA.test(x)&&!/^\d{5}-?\d{3}$/.test(x)&&!v[x]&&(v[x]=1)) };
+const peCurto=t=>peLimpo(String(t||'').split(', Região')[0].split(',')).slice(0,4).join(', ');
+function peArrumar(q){ return q.replace(/\s+-\s+/g,', ').replace(/\b(n[ºo°]\.?|num\.?|número)\s*/gi,' ').replace(/^av\.?\s/i,'Avenida ').replace(/^r\.\s?/i,'Rua ').replace(/^rod\.?\s/i,'Rodovia ').replace(/\bcep:?\s*/gi,'').replace(/\s{2,}/g,' ').replace(/\s+,/g,',').trim() }
+async function peNomi(q){ const r=await fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=6&countrycodes=br&accept-language=pt-BR&q='+encodeURIComponent(q)); if(!r.ok) throw new Error('n'); return (await r.json()).map(x=>({lat:+x.lat,lon:+x.lon,end:peCurto(x.display_name)})) }
+async function pePhoton(q){ const r=await fetch('https://photon.komoot.io/api/?limit=6&lat=-22.79&lon=-43.31&q='+encodeURIComponent(q)); if(!r.ok) throw new Error('p');
+  return ((await r.json()).features||[]).filter(f=>(f.properties||{}).countrycode==='BR').map(f=>{ const o=f.properties; return {lat:f.geometry.coordinates[1],lon:f.geometry.coordinates[0],end:peLimpo([o.street?(o.street+(o.housenumber?' '+o.housenumber:'')):(o.osm_key==='highway'?o.name:''),o.district||o.locality,o.city||o.county,o.state]).join(', ')} }) }
+async function peCep(q){ const c=(q.match(/\b\d{5}-?\d{3}\b/)||[])[0]; if(!c) return null; const r=await fetch('https://viacep.com.br/ws/'+c.replace('-','')+'/json/'); const j=r.ok?await r.json():{}; if(!j||j.erro||!j.localidade) return null;
+  const num=(q.replace(c,'').match(/\b\d{1,5}\b/)||[])[0]; return [j.logradouro?(j.logradouro+(num?', '+num:'')):'',j.bairro,j.localidade,j.uf].filter(Boolean).join(', ') }
+function peMostrar(){ $('peEndOk').innerHTML=peBase?'📍 <b>'+esc(peBase.end||(peBase.lat.toFixed(5)+', '+peBase.lon.toFixed(5)))+'</b>':'<i>Sem endereço ainda: busque e toque na opção.</i>' }
+async function peBuscar(){ const q0=$('peEnd').value.trim(); if(q0.length<4){ $('peOps').innerHTML='<p>Digite a rua, o número, o bairro e a cidade (ou o CEP).</p>'; return } $('peOps').innerHTML='<p>Buscando...</p>';
+  const cc=q0.match(/^\s*(-?\d{1,2}[.,]\d+)\s*[,; ]\s*(-?\d{1,3}[.,]\d+)\s*$/); if(cc){ peBase={lat:+cc[1].replace(',','.'),lon:+cc[2].replace(',','.'),end:''}; try{ const r=await fetch('https://nominatim.openstreetmap.org/reverse?format=jsonv2&accept-language=pt-BR&lat='+peBase.lat+'&lon='+peBase.lon); const j=await r.json(), a=j.address||{}; peBase.end=peLimpo([a.road?(a.road+(a.house_number?', '+a.house_number:'')):'',a.suburb||a.city_district,a.city||a.town||a.village||a.municipality,a.state]).join(', ') }catch(e){} $('peOps').innerHTML=''; peMostrar(); return }
+  let ops=[], falhas=0, soReg=false; const t=async(f,q)=>{ if(ops.length||!q) return; try{ ops=await f(q) }catch(e){ falhas++ } };
+  let q=peArrumar(q0); try{ const c=await peCep(q0); if(c) q=c }catch(e){ falhas++ }
+  await t(peNomi,q); await t(pePhoton,q); const sn=q.replace(/,?\s*\b\d{1,5}\b/g,'').replace(/\s{2,}/g,' ').trim(); if(sn!==q){ await t(peNomi,sn); await t(pePhoton,sn) }
+  if(!ops.length){ const pd=q.split(',').map(x=>x.trim()).filter(Boolean); if(pd.length>1){ const rg=pd.slice(1).join(', '); await t(peNomi,rg); await t(pePhoton,rg); soReg=ops.length>0 } }
+  const v={}; ops=ops.filter(o=>o.end&&!v[o.end]&&(v[o.end]=1)).slice(0,6); window._peOps=ops;
+  $('peOps').innerHTML=ops.length?(soReg?'<p>Não achei a rua exata; escolha o bairro (serve: o cliente vê só uma área aproximada).</p>':'<p>Toque no endereço certo:</p>')+ops.map((o,i)=>'<button type="button" class="op" data-peop="'+i+'">'+esc(o.end)+'</button>').join(''):'<p>'+(falhas>=2?'Não consegui buscar agora. Tente de novo.':'Não encontrei. Tente só bairro e cidade, ou o CEP.')+'</p>' }
+function peAbrir(id){ const p=paAdmLista.find(x=>x.id===id); if(!p) return; peId=id; peBase=p.base&&p.base.lat?{lat:p.base.lat,lon:p.base.lon,end:p.base.end||''}:null;
+  $('peNome').value=p.nome||''; $('peHor').value=p.horario||''; $('pe24').checked=!!p.h24; $('pePix').value=p.pix||''; $('peBanco').value=p.banco||''; $('peEnd').value=''; $('peOps').innerHTML=''; $('peErro').textContent=''; peMostrar(); abrir('mParcEd') }
+$('peBuscar').onclick=peBuscar; $('peEnd').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); peBuscar() } });
+$('peOps').onclick=e=>{ const b=e.target.closest('[data-peop]'); if(!b) return; peBase=window._peOps[+b.dataset.peop]; $('peOps').innerHTML=''; $('peEnd').value=''; peMostrar() };
+$('peSalvar').onclick=async()=>{ const b=$('peSalvar'); $('peErro').textContent=''; b.disabled=true;
+  const dados={nome:$('peNome').value,horario:$('peHor').value,h24:$('pe24').checked,pix:$('pePix').value,banco:$('peBanco').value}; if(peBase) dados.base=peBase;
+  try{ await rbApi('parcAdmEditar',{id:peId,dados}); $('mParcEd').classList.remove('show'); toast('Cadastro do parceiro atualizado.'); pcAbertos[peId]=1; pcAdmCarregar() }catch(err){ $('peErro').textContent=err.message||'Não consegui salvar.' } b.disabled=false }; var pcAbertos={}; /* 27/10/2026 (dono): cartões dos parceiros fechados; toque abre */
 async function pcAdmCarregar(){ $('paLista').innerHTML='<div class="rtvz">Carregando...</div>';
-  try{ const [j,rj]=await Promise.all([rbApi('parcAdmLista'),rbApi('reboqueAdmLista').catch(()=>({lista:[]}))]); const l=j.lista||[], rl=rj.lista||[]; { ADM_N.pc=Number(j.pendentes||0); admBadge(); const bn=$('aParcN'); if(bn){ bn.textContent=j.pendentes||''; bn.classList.toggle('on',(j.pendentes||0)>0) } } /* 26/10/2026: o contador saiu do botão (virou aperto de mãos) */ $('pnNParc').hidden=!(j.pendentes||0); $('pnNParc').textContent=j.pendentes||''; $('pnDepParcN').hidden=!(j.pendentes||0); $('pnDepParcN').textContent=j.pendentes||'';
+  try{ const [j,rj]=await Promise.all([rbApi('parcAdmLista'),rbApi('reboqueAdmLista').catch(()=>({lista:[]}))]); const l=j.lista||[], rl=rj.lista||[]; paAdmLista=l; { ADM_N.pc=Number(j.pendentes||0); admBadge(); const bn=$('aParcN'); if(bn){ bn.textContent=j.pendentes||''; bn.classList.toggle('on',(j.pendentes||0)>0) } } /* 26/10/2026: o contador saiu do botão (virou aperto de mãos) */ $('pnNParc').hidden=!(j.pendentes||0); $('pnNParc').textContent=j.pendentes||''; $('pnDepParcN').hidden=!(j.pendentes||0); $('pnDepParcN').textContent=j.pendentes||'';
     /* 25/10/2026 (dono): reboquistas no mesmo painel dos parceiros (eles têm login do app e rastreador; cadastro em "Meu reboque") */
     pnParcCats();
-    const rebHtml=rl.map(r=>'<div class="rtit pnreb pncard'+(pcAbertos['r'+r.id]?' aberto':'')+'" data-pk="r'+r.id+'" data-pst="aprovado" data-pcat="reboque"><div class="rttopo"><div><b>'+esc(r.nome||'Reboquista')+'</b><div class="rtinfo">🚛 Reboquista (login do app)<br>'+
+    const rebHtml=rl.map(r=>'<div class="rtit pnreb pncard'+(pcAbertos['r'+r.id]?' aberto':'')+'" data-pk="r'+r.id+'" data-pst="aprovado" data-pcat="reboque"><div class="rttopo"><div><b>'+esc(r.nome||'Reboquista')+'</b>'+(r.wpp?'<a class="pnwpp" href="https://wa.me/55'+esc(r.wpp)+'" target="_blank" rel="noopener" title="Abrir conversa no WhatsApp" aria-label="Abrir conversa no WhatsApp">'+ICO_WPP+'</a>':'')+'<div class="rtinfo">🚛 Reboquista (login do app)<br>'+
         (r.wpp?'WhatsApp: '+esc(fmtWpp(r.wpp)):'')+(r.fone?' · tel '+esc(fmtWpp(r.fone)):'')+'<br>Base: '+esc((r.base&&r.base.end)||'—')+'<span class="pnmais"><br>'+(r.disponivel?'🟢 disponível':'⚪ invisível')+(r.sinalMs?' · sinal '+fmtHora(r.sinalMs):'')+'<br>'+
         (r.tabelas||[]).map(t=>esc(t.nome||t.tipo)+': '+(t.sobConsulta?'orçamento na hora':brl2(t.saida)+' até '+t.kmInc+' km + '+brl2(t.kmExtra)+'/km')).join(' · ')+'<br>PIX: '+esc(r.pix||'—')+' · '+(r.vistosHoje||0)+' consultas hoje</span></div></div><span class="pnseta">›</span></div>'+
         '<div class="rtbt">'+(r.wpp?'<a class="wpp" href="https://wa.me/55'+esc(r.wpp)+'" target="_blank" rel="noopener">WhatsApp</a>':'')+'<a href="#" data-pnperm="'+r.id+'">Permissões / fichas</a><a href="#" class="pnx" data-pnxr="'+r.id+'" data-pan2="'+esc(r.nome||'Reboquista')+'">Excluir</a></div></div>').join('');
     const porCat={}; const addCat=(k,h)=>{ (porCat[k]=porCat[k]||[]).push(h) };
     l.forEach(p=>{ const st=PC_ST[p.status]||[p.status,'ag']; addCat(p.categoria||'outros', (p=>{
-      return '<div class="rtit pncard'+(pcAbertos[p.id]?' aberto':'')+'" data-pk="'+p.id+'" data-pst="'+esc(p.status)+'" data-pcat="'+esc(p.categoria||'')+'"><div class="rttopo"><div><b>'+esc(p.nome)+'</b><div class="rtinfo">'+esc(p.categoriaNome)+' · <span class="ljst '+st[1]+'" style="display:inline-block">'+st[0]+'</span><br>'+
+      return '<div class="rtit pncard'+(pcAbertos[p.id]?' aberto':'')+'" data-pk="'+p.id+'" data-pst="'+esc(p.status)+'" data-pcat="'+esc(p.categoria||'')+'"><div class="rttopo"><div><b>'+esc(p.nome)+'</b>'+(p.whatsapp?'<a class="pnwpp" href="https://wa.me/55'+esc(p.whatsapp)+'" target="_blank" rel="noopener" title="Abrir conversa no WhatsApp" aria-label="Abrir conversa no WhatsApp">'+ICO_WPP+'</a>':'')+'<div class="rtinfo">'+esc(p.categoriaNome)+' · <span class="ljst '+st[1]+'" style="display:inline-block">'+st[0]+'</span><br>'+
         'WhatsApp: '+esc(fmtWpp(p.whatsapp))+'<br>'+(esc((p.base&&p.base.end)||'')||'<i>sem endereço</i>')+'<span class="pnmais">'+(p.responsavel?'<br>Responsável: '+esc(p.responsavel):'')+(p.doc?' · doc '+esc(p.doc):'')+'<br>'+
         (p.h24?'24 horas':esc(p.horario||''))+(p.atendeLocal?' · vai até o cliente'+(p.raioKm?' ('+p.raioKm+' km)':''):'')+(p.lojaPublica?' · loja aberta':'')+'<br>PIX: '+esc(p.pix||'—')+(p.banco?' · Banco: '+esc(p.banco):'')+'<br>'+
         (p.servicos||[]).map(s=>esc(s.nome)+': '+(s.sobConsulta||!(s.aPartir>0)?'sob consulta':brl2(s.aPartir))).join(' · ')+(p.status==='aprovado'?'<br>'+(p.disponivel?'🟢 disponível agora':'⚪ fechado')+' · '+(p.vistosHoje||0)+' '+((p.vistosHoje||0)===1?'visualização':'visualizações')+' hoje':'')+'</span></div></div><span class="pnseta">›</span></div>'+
         '<div class="rtbt"><a class="wpp" href="https://wa.me/55'+esc(p.whatsapp)+'" target="_blank" rel="noopener">WhatsApp</a>'+
         (p.status!=='aprovado'?'<a href="#" data-paap="'+p.id+'" style="background:rgba(22,163,74,.14);border-color:rgba(22,163,74,.4);color:#16a34a">Aprovar</a>':'')+
-        (p.status==='analise'?'<a href="#" data-pare="'+p.id+'">Recusar</a>':'')+(p.status==='aprovado'?'<a href="#" data-padisp="'+p.id+'" data-v="'+(p.disponivel?'0':'1')+'" style="'+(p.disponivel?'':'background:rgba(22,163,74,.14);border-color:rgba(22,163,74,.4);color:#16a34a')+'">'+(p.disponivel?'⚪ Deixar fechado':'🟢 Deixar disponível')+'</a><a href="#" data-pasu="'+p.id+'">Suspender</a>':'') /* 27/10/2026 (dono): só o admin liga/desliga */+'<a href="#" class="pnx" data-paex="'+p.id+'" data-pan2="'+esc(p.nome)+'">Excluir</a>'+
+        (p.status==='analise'?'<a href="#" data-pare="'+p.id+'">Recusar</a>':'')+(p.status==='aprovado'?'<a href="#" data-padisp="'+p.id+'" data-v="'+(p.disponivel?'0':'1')+'" style="'+(p.disponivel?'':'background:rgba(22,163,74,.14);border-color:rgba(22,163,74,.4);color:#16a34a')+'">'+(p.disponivel?'⚪ Deixar fechado':'🟢 Deixar disponível')+'</a><a href="#" data-pasu="'+p.id+'">Suspender</a>':'') /* 27/10/2026 (dono): só o admin liga/desliga */+'<a href="#" data-paed="'+p.id+'">✏️ Editar</a><a href="#" class="pnx" data-paex="'+p.id+'" data-pan2="'+esc(p.nome)+'">Excluir</a>'+
         '<a href="#" data-pasn="'+p.id+'" data-pan="'+esc(p.nome)+'" data-paw="'+esc(p.whatsapp)+'">Nova senha</a></div><div class="pnsenhabox" id="pnSn'+p.id+'"></div></div>' })(p)) });
     if(rebHtml) addCat('reboque',rebHtml);
     const ordem=(typeof PC_CATS!=='undefined'?PC_CATS:[]).map(c=>c[0]).concat(Object.keys(porCat).filter(k=>!PC_CATS.some(c=>c[0]===k)));
@@ -13921,6 +13971,7 @@ async function pcAdmCarregar(){ $('paLista').innerHTML='<div class="rtvz">Carreg
   }catch(e){ $('paLista').innerHTML='<div class="rtvz">'+esc(e.message)+'</div>' }
 }
 $('paLista').addEventListener('click',async e=>{
+  { const ed=e.target.closest('[data-paed]'); if(ed){ e.preventDefault(); peAbrir(ed.dataset.paed); return } }
   { const c=e.target.closest('.pncard'); if(c && !e.target.closest('a,button,input,select,textarea,.pnsenhabox')){ const k=c.dataset.pk, on=!c.classList.contains('aberto'); c.classList.toggle('aberto',on); if(on) pcAbertos[k]=1; else delete pcAbertos[k]; return } }
   const pm=e.target.closest('[data-pnperm]'); if(pm){ e.preventDefault(); fechar(); try{ abrirPermissoes(Number(pm.dataset.pnperm)) }catch(err){ toast('Abra o cliente no Admin e toque em Permissões.') } return }
   const sn=e.target.closest('[data-pasn]'); /* 25/10/2026 (dono): senha provisória para quem esqueceu */
