@@ -474,19 +474,26 @@ function endSeg(){ const e=$('pfEndSeg'); if(!e) return; e.innerHTML=false /* 26
   ? '<b>📍 Loja aberta ao público:</b> o endereço exato aparece no mapa para os clientes da Rastreando encontrarem você.'
   : '<b>🔒 Fique tranquilo: seu endereço é protegido.</b><br>O cliente <b>nunca</b> vê o seu endereço nem o ponto exato. No mapa aparece só uma <b>área aproximada</b> (um círculo que de propósito não fica em cima do seu endereço), apenas para ele saber que você atende perto. O endereço serve só para o app mostrar a distância até o cliente.' }
 $('pfLoja').addEventListener('change',endSeg); endSeg();
-function mostrarBase(b){ base=b; $('pfEndOk').hidden=!b; if(b) $('pfEndOk').innerHTML='<b>Endereço:</b> '+esc(b.end||(b.lat.toFixed(5)+', '+b.lon.toFixed(5))) }
+function mostrarBase(b){ try{ if(b&&b.end) b.end=endLimpo(String(b.end).split(',')).join(', ') }catch(e){} base=b; $('pfEndOk').hidden=!b; if(b) $('pfEndOk').innerHTML='<b>Endereço:</b> '+esc(b.end||(b.lat.toFixed(5)+', '+b.lon.toFixed(5))) }
 /* 27/10/2026 (cliente reboquista não conseguia achar o endereço): a busca tenta vários caminhos — CEP (ViaCEP), texto arrumado,
    2º serviço (Photon), sem o número e, no fim, só bairro/cidade (serve: o cliente vê só uma área aproximada) */
-const endCurto=t=>String(t||'').split(', Região')[0].split(',').map(x=>x.trim()).filter(Boolean).slice(0,4).join(', ');
+/* 27/10/2026 (dono): nomes de comunidade (favela, morro, complexo...) que o mapa grátis coloca no endereço não aparecem */
+const END_FORA=/\b(favela|comunidade|morro|complexo|ocupa[cç][aã]o|invas[aã]o|aglomerado)\b/i;
+const endLimpo=a=>{ const v={}; return a.map(x=>String(x||'').trim()).filter(x=>x&&!END_FORA.test(x)&&!/^\d{5}-?\d{3}$/.test(x)&&!v[x]&&(v[x]=1)) };
+const endCurto=t=>endLimpo(String(t||'').split(', Região')[0].split(',')).slice(0,4).join(', ');
 function endArrumar(q){ return q.replace(/\s+-\s+/g,', ').replace(/\b(n[ºo°]\.?|num\.?|número)\s*/gi,' ').replace(/^av\.?\s/i,'Avenida ').replace(/^r\.\s?/i,'Rua ').replace(/^rod\.?\s/i,'Rodovia ').replace(/\bcep:?\s*/gi,'').replace(/\s{2,}/g,' ').replace(/\s+,/g,',').trim() }
 async function geoNomi(q){ const r=await fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=6&countrycodes=br&accept-language=pt-BR&q='+encodeURIComponent(q)); if(!r.ok) throw new Error('n'+r.status); return (await r.json()).map(x=>({lat:+x.lat,lon:+x.lon,end:endCurto(x.display_name)})) }
 async function geoPhoton(q){ const r=await fetch('https://photon.komoot.io/api/?limit=6&lat=-22.79&lon=-43.31&q='+encodeURIComponent(q)); if(!r.ok) throw new Error('p'+r.status);
-  return ((await r.json()).features||[]).filter(f=>(f.properties||{}).countrycode==='BR').map(f=>{ const o=f.properties, ln=[o.street?(o.street+(o.housenumber?' '+o.housenumber:'')):o.name, o.district||o.locality, o.city||o.county, o.state].filter(Boolean); return {lat:f.geometry.coordinates[1],lon:f.geometry.coordinates[0],end:[...new Set(ln)].join(', ')} }) }
+  return ((await r.json()).features||[]).filter(f=>(f.properties||{}).countrycode==='BR').map(f=>{ const o=f.properties, ln=[o.street?(o.street+(o.housenumber?' '+o.housenumber:'')):(o.osm_key==='highway'?o.name:''), o.district||o.locality, o.city||o.county, o.state]; return {lat:f.geometry.coordinates[1],lon:f.geometry.coordinates[0],end:endLimpo(ln).join(', ')} }) }
 async function geoCep(q){ const c=(q.match(/\b\d{5}-?\d{3}\b/)||[])[0]; if(!c) return null; const r=await fetch('https://viacep.com.br/ws/'+c.replace('-','')+'/json/'); const j=r.ok?await r.json():{}; if(!j||j.erro||!j.localidade) return null;
   const num=(q.replace(c,'').match(/\b\d{1,5}\b/)||[])[0]; return [j.logradouro?(j.logradouro+(num?', '+num:'')):'', j.bairro, j.localidade, j.uf].filter(Boolean).join(', ') }
+async function endDoPonto(lat,lon){ const r=await fetch('https://nominatim.openstreetmap.org/reverse?format=jsonv2&accept-language=pt-BR&lat='+lat+'&lon='+lon); const j=await r.json(); const a=j.address||{};
+  const rua=a.road?(a.road+(a.house_number?', '+a.house_number:'')):''; const l=endLimpo([rua,a.suburb||a.city_district,a.city||a.town||a.village||a.municipality,a.state]); return l.length?l.join(', '):endCurto(j.display_name) }
 async function buscarEnd(){
   const q0=$('pfEnd').value.trim(); if(q0.length<4){ $('pfEndOps').innerHTML='<p class="aviso">Digite a rua, o número, o bairro e a cidade (ou o CEP).</p>'; return }
   $('pfEndOps').innerHTML='<p class="aviso">Buscando...</p>';
+  const cc=q0.match(/^\s*(-?\d{1,2}[.,]\d+)\s*[,; ]\s*(-?\d{1,3}[.,]\d+)\s*$/); /* coordenadas digitadas/coladas */
+  if(cc){ const b={lat:+cc[1].replace(',','.'),lon:+cc[2].replace(',','.'),end:''}; try{ b.end=await endDoPonto(b.lat,b.lon) }catch(e){} mostrarBase(b); $('pfEndOps').innerHTML=''; $('pfEnd').value=''; return }
   let ops=[], falhas=0, soRegiao=false; const tentar=async(f,q)=>{ if(ops.length||!q) return; try{ ops=await f(q) }catch(e){ falhas++ } };
   let q=endArrumar(q0); try{ const c=await geoCep(q0); if(c) q=c }catch(e){ falhas++ }
   await tentar(geoNomi,q); await tentar(geoPhoton,q);
@@ -500,7 +507,7 @@ $('bEnd').onclick=buscarEnd; $('pfEnd').addEventListener('keydown',e=>{ if(e.key
 $('pfEndOps').onclick=e=>{ const b=e.target.closest('[data-op]'); if(b){ mostrarBase(window._ops[+b.dataset.op]); $('pfEndOps').innerHTML=''; $('pfEnd').value='' } };
 $('bAqui').onclick=()=>{ if(!navigator.geolocation){ toast('Seu celular não deu a localização.'); return } toast('Pegando a sua localização...');
   navigator.geolocation.getCurrentPosition(async p=>{ const b={lat:p.coords.latitude,lon:p.coords.longitude,end:''};
-    try{ const r=await fetch('https://nominatim.openstreetmap.org/reverse?format=jsonv2&accept-language=pt-BR&lat='+b.lat+'&lon='+b.lon); const j=await r.json(); b.end=String(j.display_name||'').split(', Região')[0].split(',').slice(0,4).join(',') }catch(e){}
+    try{ b.end=await endDoPonto(b.lat,b.lon) }catch(e){}
     mostrarBase(b); toast('Localização marcada.') },()=>toast('Não consegui a localização. Permita o acesso ou digite o endereço.'),{enableHighAccuracy:true,timeout:12000}) };
 /* salvar */
 $('bSalvar').onclick=async()=>{
