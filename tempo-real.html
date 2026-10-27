@@ -369,7 +369,7 @@ body.mapa-google #map .leaflet-top.leaflet-left .leaflet-control-attribution{mar
 #mParcEd .peops .op{display:block;width:100%;text-align:left;padding:10px 12px;margin:6px 0 0;border-radius:10px;border:1px solid var(--line);background:var(--card2);color:var(--txt);font:inherit;font-size:13.5px;cursor:pointer}
 #mParcEd .peops p,#mParcEd .peok{font-size:13px;color:var(--mut);margin:6px 0 0}
 #mParcEd .peok b{color:var(--txt)}
-#mParcEd .peatd{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:2px 0 6px}
+#mParcEd .peatd{display:grid;grid-template-columns:repeat(auto-fit,minmax(96px,1fr));gap:6px;margin:2px 0 6px}
 #mParcEd .peatd label{display:flex;align-items:center;gap:6px;min-height:42px;padding:6px 10px;border-radius:11px;border:1px solid var(--line);background:var(--card2);font-size:13px;font-weight:700;cursor:pointer}
 #mParcEd .peatd label:has(input:checked){border-color:rgba(37,99,235,.55);background:rgba(37,99,235,.10);color:#2f6fe4}
 .pncard .rttopo{position:relative;padding-right:22px}
@@ -4240,7 +4240,7 @@ details:not([open])>summary .ico.lix[data-a="deleq"],details:not([open])>summary
     <div id="peOps" class="peops"></div>
     <div id="peEndOk" class="peok"></div>
     <label class="flbl">Atende</label>
-    <div class="peatd"><label><input type="checkbox" data-peatd="carro"><span>🚗 Carro</span></label><label><input type="checkbox" data-peatd="moto"><span>🏍️ Moto</span></label><label><input type="checkbox" data-peatd="diesel"><span id="peAtdDiesel">🚚 Caminhão / diesel</span></label></div>
+    <div class="peatd"><label><input type="checkbox" data-peatd="carro"><span>🚗 Carro</span></label><label><input type="checkbox" data-peatd="moto"><span>🏍️ Moto</span></label><label id="peAtdUtil" hidden><input type="checkbox" data-peatd="utilitario"><span>🚙 Utilitário</span></label><label><input type="checkbox" data-peatd="diesel"><span id="peAtdDiesel">🚚 Pesados</span></label></div>
     <label class="flbl" for="peHor">Horário</label><input class="fld" id="peHor" maxlength="60" autocomplete="off" placeholder="Ex.: Segunda a sábado, 8h às 18h">
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:6px 0 4px"><label class="rnplck" style="height:auto;min-height:40px;margin:0"><input type="checkbox" id="pe24"><span>Atende 24 horas</span></label><label class="rnplck" style="height:auto;min-height:40px;margin:0"><input type="checkbox" id="peLocal"><span>Vai até o cliente</span></label></div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div><label class="flbl" for="pePix">Chave PIX</label><input class="fld" id="pePix" maxlength="80" autocomplete="off"></div><div><label class="flbl" for="peBanco">Banco</label><input class="fld" id="peBanco" maxlength="50" autocomplete="off"></div></div>
@@ -13830,14 +13830,14 @@ async function pcCarregar(){
 }
 const pcKm=k=>k==null?'':(k<1?String(k).replace('.',','):Math.round(k))+' km';
 /* 26/10/2026 (dono): o prestador marca o que atende (carro, moto, caminhão/diesel); o tipo do veículo do cliente vem do ícone escolhido */
-const PC_ATD={carro:'🚗 Carro',moto:'🏍️ Moto',diesel:'🚚 Diesel'};
-let pcTipoFora=0; const PC_ATD_EMO={carro:'🚗',moto:'🏍️',diesel:'🚚'}; const pcAtdEmo=p=>(p.atende||[]).map(k=>PC_ATD_EMO[k]||'').join(''); /* 27/10/2026: no mapa, o nome vem com o que atende */
-const PC_TIPO_NOME={moto:'moto',carro:'carro',diesel:'caminhão'};
-const pcDieselNome=()=>(pcCat==='insulfilme'||pcCat==='pintura')?'Caminhão':'Diesel';
-const pcAtdEtq=p=>{ const a=p.atende||[]; if(!a.length) return ''; return ' <span class="pcttatd">'+(a.length===1?PC_ATD_EMO[a[0]]+' '+(a[0]==='moto'?'MOTO':a[0]==='carro'?'CARRO':pcDieselNome().toUpperCase()):a.map(k=>PC_ATD_EMO[k]).join(' '))+'</span>' }; /* 27/10/2026 (dono): deixar claro no mapa se é de moto, carro ou caminhão */
-const pcAtdBig=p=>{ const a=p.atende||[]; if(!a.length) return ''; const nm=k=>k==='moto'?'Moto':k==='carro'?'Carro':pcDieselNome(); return '<div class="pcatdbig'+(a.length===1?' so so-'+a[0]:'')+'"><span class="pcab-ico">'+a.map(k=>PC_ATD_EMO[k]).join('')+'</span><span><small>'+(a.length===1?'Atende só':'Atende')+'</small><b>'+a.map(nm).join(' · ')+'</b></span></div>' };
+const PC_ATD={carro:'🚗 Carro',moto:'🏍️ Moto',utilitario:'🚙 Utilitário',diesel:'🚚 Pesados'}; /* 27/10/2026 (dono): "diesel" virou "Pesados"; utilitário para reboque */
+let pcTipoFora=0; const PC_ATD_EMO={carro:'🚗',moto:'🏍️',utilitario:'🚙',diesel:'🚚'}; const pcAtdEmo=p=>(p.atende||[]).map(k=>PC_ATD_EMO[k]||'').join(''); /* 27/10/2026: no mapa, o nome vem com o que atende */
+const PC_TIPO_NOME={moto:'moto',carro:'carro',diesel:'pesado'};
+const pcDieselNome=()=>'Pesados';
+const pcAtdEtq=p=>{ const a=p.atende||[]; if(!a.length) return ''; return ' <span class="pcttatd">'+(a.length===1?PC_ATD_EMO[a[0]]+' '+(a[0]==='moto'?'MOTO':a[0]==='carro'?'CARRO':a[0]==='utilitario'?'UTILITÁRIO':'PESADOS'):a.map(k=>PC_ATD_EMO[k]).join(' '))+'</span>' }; /* 27/10/2026 (dono): deixar claro no mapa se é de moto, carro ou caminhão */
+const pcAtdBig=p=>{ const a=p.atende||[]; if(!a.length) return ''; const nm=k=>k==='moto'?'Moto':k==='carro'?'Carro':k==='utilitario'?'Utilitário':'Pesados'; return '<div class="pcatdbig'+(a.length===1?' so so-'+a[0]:'')+'"><span class="pcab-ico">'+a.map(k=>PC_ATD_EMO[k]).join('')+'</span><span><small>'+(a.length===1?'Atende só':'Atende')+'</small><b>'+a.map(nm).join(' · ')+'</b></span></div>' };
 function pcVeicTipo(v){ const ic=v&&v.icone||''; return !ic?'':/^moto/.test(ic)?'moto':/caminhao|prancha|onibus|truck/.test(ic)?'diesel':'carro' }
-const pcAtdHtml=p=>(p.atende||[]).length?'<span class="pcatd">'+p.atende.map(k=>(k==='diesel'&&(pcCat==='insulfilme'||pcCat==='pintura'))?'🚚 Caminhão':(PC_ATD[k]||k)) /* 26/10/2026: no insulfilme, sem "diesel" */.join(' · ')+'</span>':'';
+const pcAtdHtml=p=>(p.atende||[]).length?'<span class="pcatd">'+p.atende.map(k=>(PC_ATD[k]||k)) /* 26/10/2026: no insulfilme, sem "diesel" */.join(' · ')+'</span>':'';
 function pcDesenhar(nome,anexar){ /* anexar=true: junta aos reboquistas com rastreador já desenhados (chip Reboque) */
   rbMapaPreparar(); if(!anexar) rbCamada.clearLayers();
   const pts=[], v=rbCarroAtual;
@@ -13976,12 +13976,12 @@ async function peBuscar(){ const q0=$('peEnd').value.trim(); if(q0.length<4){ $(
   const v={}; ops=ops.filter(o=>o.end&&!v[o.end]&&(v[o.end]=1)).slice(0,6); window._peOps=ops;
   $('peOps').innerHTML=ops.length?(soReg?'<p>Não achei a rua exata; escolha o bairro (serve: o cliente vê só uma área aproximada).</p>':'<p>Toque no endereço certo:</p>')+ops.map((o,i)=>'<button type="button" class="op" data-peop="'+i+'">'+esc(o.end)+'</button>').join(''):'<p>'+(falhas>=2?'Não consegui buscar agora. Tente de novo.':'Não encontrei. Tente só bairro e cidade, ou o CEP.')+'</p>' }
 function peAbrir(id){ const p=paAdmLista.find(x=>x.id===id); if(!p) return; peId=id; $('peTit').textContent='Editar parceiro'; $('peNovoBox').hidden=true; $('peLocal').checked=!!p.atendeLocal; peBase=p.base&&p.base.lat?{lat:p.base.lat,lon:p.base.lon,end:p.base.end||''}:null;
-  document.querySelectorAll('#mParcEd [data-peatd]').forEach(x=>x.checked=(p.atende||[]).includes(x.dataset.peatd)); $('peAtdDiesel').textContent=(p.categoria==='insulfilme'||p.categoria==='pintura')?'🚚 Caminhão':'🚚 Caminhão / diesel'; $('peNome').value=p.nome||''; $('peHor').value=p.horario||''; $('pe24').checked=!!p.h24; $('pePix').value=p.pix||''; $('peBanco').value=p.banco||''; $('peEnd').value=''; $('peOps').innerHTML=''; $('peErro').textContent=''; peMostrar(); abrir('mParcEd') }
+  document.querySelectorAll('#mParcEd [data-peatd]').forEach(x=>x.checked=(p.atende||[]).includes(x.dataset.peatd)); $('peAtdUtil').hidden=p.categoria!=='reboque'; $('peNome').value=p.nome||''; $('peHor').value=p.horario||''; $('pe24').checked=!!p.h24; $('pePix').value=p.pix||''; $('peBanco').value=p.banco||''; $('peEnd').value=''; $('peOps').innerHTML=''; $('peErro').textContent=''; peMostrar(); abrir('mParcEd') }
 function peNovo(){ peId=null; peBase=null; $('peTit').textContent='Adicionar prestador'; $('peNovoBox').hidden=false;
   $('peCat').innerHTML='<option value="">Escolha...</option>'+PC_CATS.map(c=>'<option value="'+c[0]+'">'+esc(c[1])+'</option>').join('');
   ['peWpp','peResp','peNome','peHor','pePix','peBanco','peEnd'].forEach(k=>$(k).value=''); $('pe24').checked=false; $('peLocal').checked=false;
-  document.querySelectorAll('#mParcEd [data-peatd]').forEach(x=>x.checked=false); $('peAtdDiesel').textContent='🚚 Caminhão / diesel'; $('peOps').innerHTML=''; $('peErro').textContent=''; peMostrar(); abrir('mParcEd') }
-$('peCat').onchange=()=>{ const k=$('peCat').value; $('peAtdDiesel').textContent=(k==='insulfilme'||k==='pintura')?'🚚 Caminhão':'🚚 Caminhão / diesel' };
+  document.querySelectorAll('#mParcEd [data-peatd]').forEach(x=>x.checked=false); $('peAtdUtil').hidden=true; $('peOps').innerHTML=''; $('peErro').textContent=''; peMostrar(); abrir('mParcEd') }
+$('peCat').onchange=()=>{ $('peAtdUtil').hidden=$('peCat').value!=='reboque' };
 $('paAdd').onclick=peNovo;
 $('peBuscar').onclick=peBuscar; $('peEnd').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); peBuscar() } });
 $('peOps').onclick=e=>{ const b=e.target.closest('[data-peop]'); if(!b) return; peBase=window._peOps[+b.dataset.peop]; $('peOps').innerHTML=''; $('peEnd').value=''; peMostrar() };

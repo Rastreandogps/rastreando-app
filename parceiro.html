@@ -327,7 +327,7 @@ textarea.fld{height:70px;padding:10px 12px;resize:vertical}
       <section class="sec"><div class="sech"><span class="secic">🛠️</span><div><b>Serviços e preços</b><small>O que você faz e quanto cobra</small></div></div>
       <!-- 26/10/2026 (dono): o que o prestador atende (carro, moto, diesel) -->
       <div id="pfAtendeBox"><label class="l" style="margin-top:6px">Atendo</label>
-        <div class="atd" id="pfAtende"><button type="button" data-atd="carro">🚗 Carro</button><button type="button" data-atd="moto">🏍️ Moto</button><button type="button" data-atd="diesel">🚚 Caminhão / diesel</button></div></div>
+        <div class="atd" id="pfAtende"><button type="button" data-atd="carro">🚗 Carro</button><button type="button" data-atd="moto">🏍️ Moto</button><button type="button" data-atd="diesel">🚚 Pesados</button></div></div>
       <label class="l" style="margin-top:6px" id="pfServTit">Serviços e preços "a partir de"</label>
       <!-- 26/10/2026 (dono): REBOQUE — saída até X km, tipos (moto, passeio, utilitário, pesado) com valor da saída e km excedente -->
       <div id="pfReb" hidden>
@@ -458,7 +458,7 @@ function rebLer(){ return [...document.querySelectorAll('#pfRebTipos .rbt')].fil
 $('pfAtende').onclick=e=>{ const b=e.target.closest('[data-atd]'); if(b) b.classList.toggle('on') };
 function atendeMarcar(l){ document.querySelectorAll('#pfAtende [data-atd]').forEach(b=>b.classList.toggle('on',(l||[]).includes(b.dataset.atd))) }
 const atendeLer=()=>[...document.querySelectorAll('#pfAtende [data-atd].on')].map(b=>b.dataset.atd);
-function localReboque(k){ const reb=k==='reboque'; { const bd=document.querySelector('#pfAtende [data-atd="diesel"]'); if(bd) bd.textContent=(k==='insulfilme'||k==='pintura')?'🚚 Caminhão':'🚚 Caminhão / diesel' } /* 26/10/2026 (dono): no insulfilme, sem a palavra diesel */ $('pfAtendeBox').hidden=reb; $('pfReb').hidden=!reb; $('pfServTit').textContent=reb?'Tabela do reboque':'Serviços e preços "a partir de"'; ['pfServDica','pfServ','bAddServ'].forEach(i=>$(i).hidden=reb); if(reb&&!$('pfRebTipos').children.length) rebDesenhar(P&&P.categoria==='reboque'?P.servicos:[]); $('pfRaioTit').textContent=reb?'Saída até (km)':'Atendo até (km)'; $('pfLocalBox').hidden=reb; $('pfDeslTaxa').hidden=reb; if(reb) $('pfLocal').checked=true; deslMostrar(); if(reb) $('pfDeslBox').hidden=true }
+function localReboque(k){ const reb=k==='reboque'; { const bd=document.querySelector('#pfAtende [data-atd="diesel"]'); if(bd) bd.textContent='🚚 Pesados' } /* 26/10/2026 (dono): no insulfilme, sem a palavra diesel */ $('pfAtendeBox').hidden=reb; $('pfReb').hidden=!reb; $('pfServTit').textContent=reb?'Tabela do reboque':'Serviços e preços "a partir de"'; ['pfServDica','pfServ','bAddServ'].forEach(i=>$(i).hidden=reb); if(reb&&!$('pfRebTipos').children.length) rebDesenhar(P&&P.categoria==='reboque'?P.servicos:[]); $('pfRaioTit').textContent=reb?'Saída até (km)':'Atendo até (km)'; $('pfLocalBox').hidden=reb; $('pfDeslTaxa').hidden=reb; if(reb) $('pfLocal').checked=true; deslMostrar(); if(reb) $('pfDeslBox').hidden=true }
 $('pfLocal').onchange=deslMostrar;
 const SERV_VAZIO={nome:'',aPartir:null,sobConsulta:false};
 const SERV_EX={pintura:'Ex.: Pintura de para-choque',insulfilme:'Ex.: Insulfilme completo',chaveiro:'Ex.: Cópia de chave',borracheiro:'Ex.: Remendo de pneu',mecanico:'Ex.: Troca de óleo',eletricista:'Ex.: Troca de bateria',despachante:'Ex.: Transferência de veículo',lavajato:'Ex.: Lavagem completa'};
@@ -515,7 +515,7 @@ $('bSalvar').onclick=async()=>{
   const perfil={nome:$('pfNome').value,responsavel:$('pfResp').value,doc:$('pfDoc').value,fone:$('pfFone').value,pix:$('pfPix').value,banco:$('pfBanco').value,base,lojaPublica:$('pfLoja').checked,atendeLocal:catPerfil==='reboque'||$('pfLocal').checked,
     raioKm:catPerfil==='reboque'?$('pfSaidaKm').value:$('pfRaio').value,deslocamento:{fixo:catPerfil==='reboque'?0:(numBR($('pfDesl').value)||0),porKm:0},h24:$('pf24').checked,horario:$('pfHor').value,obs:$('pfObs').value,servicos:catPerfil==='reboque'?rebLer():servLer(false),atende:catPerfil==='reboque'?[]:atendeLer()};
   if(perfil.pix.trim()&&!perfil.banco.trim()){ $('pfErr').textContent='Informe o banco da sua chave PIX.'; b.disabled=false; return } /* 26/10/2026 */
-  if(catPerfil!=='reboque'&&!perfil.atende.length){ $('pfErr').textContent='Marque o que você atende: carro, moto ou '+((catPerfil==='insulfilme'||catPerfil==='pintura')?'caminhão.':'caminhão / diesel.'); b.disabled=false; return }
+  if(catPerfil!=='reboque'&&!perfil.atende.length){ $('pfErr').textContent='Marque o que você atende: carro, moto ou pesados.'; b.disabled=false; return }
   if(catPerfil==='reboque'&&!perfil.servicos.length){ $('pfErr').textContent='Ligue pelo menos um tipo de veículo que você reboca.'; b.disabled=false; return }
   try{ const j=await api('parcSalvar',{ptoken:TOK,categoria:catPerfil,perfil}); const antes=P.status; P=j.perfil; desenharTopo(); preencher(); cadModo(false);
     toast(antes!==P.status&&P.status==='analise'?'Enviado para aprovação! A gente avisa quando liberar.':'Salvo.',5000); window.scrollTo({top:0,behavior:'smooth'}) }
