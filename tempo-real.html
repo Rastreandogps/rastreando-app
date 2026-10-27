@@ -2466,7 +2466,7 @@ nav button.on .nemo.txt{color:var(--red2)}
 #aList{display:flex;flex-direction:column;gap:12px}
 #aList > details{margin:0;flex:none}
 @media (min-width:900px){#aList{flex-direction:row;flex-wrap:wrap;align-content:flex-start;align-items:flex-start;gap:16px}#aList > details{width:calc(50% - 8px)}#aList > .vempty{width:100%}}
-@media (min-width:1400px){#aList > details{width:calc((100% - 32px) / 3)}} /* 27/10/2026: telas grandes = 3 colunas */
+@media (min-width:1400px){#aList > details{width:calc((100% - 32px) / 3)}#aview .vtop,#aview .vlist{max-width:1760px}} /* 27/10/2026: telas grandes = 3 colunas, usando a largura da tela (cartões não ficam estreitos) */
 #aview details.cli summary{padding:16px 16px 14px 16px;align-items:flex-start;position:relative;display:block}
 #aview details.cli .cinfo{width:100%}
 #aview details.cli .ctopo{padding-right:152px;min-height:42px}
