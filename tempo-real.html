@@ -4133,8 +4133,8 @@ details:not([open])>summary .ico.lix[data-a="deleq"],details:not([open])>summary
     <div id="rbMapa"></div>
     <div id="rbRola"><div id="rbLista"></div></div><button type="button" class="pcmais" id="pcMais" hidden></button>
     <!-- 26/10/2026 (dono): só o mapa; tocar no ícone abre a janela do prestador. Texto reforça que o prestador é independente -->
-    <div class="rbnota" id="pcNota" hidden>Cada círculo é a <b>região aproximada</b> do prestador (o endereço exato não é mostrado). Preços "a partir de": o valor final é combinado direto com ele.<div class="rbresp">⚠️ <b>A Rastreando GPS não se responsabiliza pelo serviço.</b> Ele é feito por um prestador independente, que não é da Rastreando; a gente só faz a ponte.</div></div>
-    <div class="rbnota" id="rbNota">Cada círculo é a <b>região aproximada</b> da base do reboque (o endereço exato não é mostrado). Os valores são <b>estimativas</b> feitas pelo app com a tabela de cada reboquista; pedágio e adicionais (noite, fim de semana, subsolo) são combinados direto com ele.<div class="rbresp">⚠️ <b>A Rastreando GPS não se responsabiliza pelo serviço.</b> Ele é feito por um prestador independente, que não é da Rastreando; a gente só faz a ponte.</div></div>
+    <div class="rbnota" id="pcNota" hidden><!-- 27/10/2026 (dono): texto explicativo saiu para o mapa ficar maior --><div class="rbresp">⚠️ <b>A Rastreando GPS não se responsabiliza pelo serviço.</b> Ele é feito por um prestador independente, que não é da Rastreando; a gente só faz a ponte.</div></div>
+    <div class="rbnota" id="rbNota"><!-- 27/10/2026 (dono): texto explicativo saiu para o mapa ficar maior --><div class="rbresp">⚠️ <b>A Rastreando GPS não se responsabiliza pelo serviço.</b> Ele é feito por um prestador independente, que não é da Rastreando; a gente só faz a ponte. Valores estimados: pedágio e adicionais são combinados com ele.</div></div>
     <div class="rtacoes"><button class="btn btn-out" id="rbAtualizar" type="button">Atualizar</button><button class="btn btn-out" data-close type="button">Fechar</button></div>
   </div>
 </div>
@@ -13400,8 +13400,8 @@ function rbDesenhar(){
   if(pts.length){ try{ rbMapa.fitBounds(L.latLngBounds(pts).pad(0.25),{maxZoom:13}) }catch(e){} }
   else if(map){ try{ rbMapa.setView(map.getCenter(),11) }catch(e){} }
   if(!rbLista.length){ $('rbSub').textContent=''; $('rbLista').innerHTML='<div class="rtvz">Nenhum reboque disponível agora. Tente de novo mais tarde.</div>'; return }
-  $('rbSub').textContent=rbLista.length+' reboque'+(rbLista.length>1?'s':'')+' disponíve'+(rbLista.length>1?'is':'l')+(v?' · seu veículo: '+v.nome:' · sem posição do seu veículo');
-  $('rbLista').innerHTML='<div class="pcdica">Toque no ícone no mapa para ver os valores e chamar.</div>'; /* 26/10/2026 (dono): a lista saiu; o reboque abre numa janela */
+  $('rbSub').textContent='Toque no prestador mais próximo e fale direto com ele.'; /* 27/10/2026 (dono) */
+  $('rbLista').innerHTML=''; /* 26/10/2026 (dono): a lista saiu; o reboque abre numa janela */
 }
 /* 26/10/2026 (dono): conteúdo da janela do reboquista (o mesmo que ficava na lista) */
 function rbDetHtml(r,i){
@@ -13853,7 +13853,7 @@ function pcDesenhar(nome,anexar){ /* anexar=true: junta aos reboquistas com rast
   const vtN=PC_TIPO_NOME[pcVeicTipo(v)]||'';
   if(!pcLista.length){ if(anexar) return; $('rbSub').textContent=''; $('rbLista').innerHTML='<div class="rtvz">Ainda não temos '+esc(PL[0])+' parceiro disponível perto de você'+(pcTipoFora&&vtN?' que atende '+esc(vtN):'')+'.</div>'; return }
   const tot=pcLista.length+(anexar?rbLista.length:0);
-  $('rbSub').textContent=tot+' '+esc(tot>1?PL[1]:PL[0])+' disponíve'+(tot>1?'is':'l')+(v?' · perto de '+v.nome:'');
+  $('rbSub').textContent='Toque no prestador mais próximo e fale direto com ele.'; /* 27/10/2026 (dono) */
   const fichas=drPode()&&DR.dados&&DR.dados.ativo&&DR.dados.termoAceito;
   PC_DET=pcLista.map((p,i)=>'<div class="pcdlin">'+(p.h24?'<span class="ok">Atende 24 horas</span>':(p.horario?'<span>🕒 '+esc(p.horario)+'</span>':''))+(p.atendeLocal?'<span>Vai até você</span>':'')+'</div>'+pcAtdBig(p)+
     '<div class="pcdet" id="pcDet'+i+'"><div class="rtinfo">'+(p.categoria==='reboque'?(p.raioKm?'Saída inclui até '+p.raioKm+' km':''):p.atendeLocal&&p.raioKm?'Vai até você (até '+p.raioKm+' km)':'')+'</div>'+
@@ -13864,7 +13864,7 @@ function pcDesenhar(nome,anexar){ /* anexar=true: junta aos reboquistas com rast
     '<div class="rtbt"><a class="wpp" href="https://wa.me/55'+esc(p.wpp)+'?text='+encodeURIComponent(pcMsg(p))+'" target="_blank" rel="noopener">Pedir orçamento</a>'+(p.fone?'<a href="tel:+55'+esc(p.fone)+'">Ligar</a>':'')+
       (fichas?'<a href="#" data-pcpag="'+i+'" class="pcpagbt">'+DR_COIN+' Pagar com fichas</a>':'')+'</div></div>'+
     '<div class="pcpag" id="pcPag'+i+'" hidden><label class="flbl">Valor combinado com o '+esc(String(nome).toLowerCase())+' (R$)</label><div class="rbcbusca"><input class="fld" data-pcval="'+i+'" inputmode="decimal" autocomplete="off" placeholder="0,00"><button class="btn btn-out" type="button" data-pcres="'+i+'">Reservar fichas</button></div><small>Você tem '+((DR.dados&&DR.dados.livres)||0)+' fichas livres. Elas ficam reservadas até o parceiro concluir.</small></div>');
-  const html=(anexar&&$('rbLista').querySelector('.pcdica'))?'':'<div class="pcdica">Toque no ícone no mapa para ver os serviços e chamar.</div>'; /* 26/10/2026 (dono): a lista saiu; o prestador abre numa janela */
+  const html=''; /* 26/10/2026 (dono): a lista saiu; o prestador abre numa janela */
   if(anexar) $('rbLista').insertAdjacentHTML('beforeend',html); else $('rbLista').innerHTML=html;
 }
 let pcMarc=[], pcAberto=-1;
