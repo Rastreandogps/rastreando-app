@@ -355,6 +355,9 @@ body.mapa-google #map .leaflet-top.leaflet-left .leaflet-control-attribution{mar
 #mParcEd .peops .op{display:block;width:100%;text-align:left;padding:10px 12px;margin:6px 0 0;border-radius:10px;border:1px solid var(--line);background:var(--card2);color:var(--txt);font:inherit;font-size:13.5px;cursor:pointer}
 #mParcEd .peops p,#mParcEd .peok{font-size:13px;color:var(--mut);margin:6px 0 0}
 #mParcEd .peok b{color:var(--txt)}
+#mParcEd .peatd{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:2px 0 6px}
+#mParcEd .peatd label{display:flex;align-items:center;gap:6px;min-height:42px;padding:6px 10px;border-radius:11px;border:1px solid var(--line);background:var(--card2);font-size:13px;font-weight:700;cursor:pointer}
+#mParcEd .peatd label:has(input:checked){border-color:rgba(37,99,235,.55);background:rgba(37,99,235,.10);color:#2f6fe4}
 .pncard .rttopo{position:relative;padding-right:22px}
 .pncard .pnmais{display:none}
 .pncard.aberto .pnmais{display:inline}
@@ -4217,6 +4220,8 @@ details:not([open])>summary .ico.lix[data-a="deleq"],details:not([open])>summary
     <div style="display:flex;gap:8px"><input class="fld" id="peEnd" placeholder="Rua, número, bairro, cidade ou CEP" autocomplete="off" style="flex:1;margin:0"><button type="button" class="btn btn-out" id="peBuscar" style="width:auto;padding:0 14px">Buscar</button></div>
     <div id="peOps" class="peops"></div>
     <div id="peEndOk" class="peok"></div>
+    <label class="flbl">Atende</label>
+    <div class="peatd"><label><input type="checkbox" data-peatd="carro"><span>🚗 Carro</span></label><label><input type="checkbox" data-peatd="moto"><span>🏍️ Moto</span></label><label><input type="checkbox" data-peatd="diesel"><span id="peAtdDiesel">🚚 Caminhão / diesel</span></label></div>
     <label class="flbl" for="peHor">Horário</label><input class="fld" id="peHor" maxlength="60" autocomplete="off" placeholder="Ex.: Segunda a sábado, 8h às 18h">
     <label class="rnplck" style="height:auto;min-height:40px;margin:6px 0 4px"><input type="checkbox" id="pe24"><span>Atende 24 horas</span></label>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div><label class="flbl" for="pePix">Chave PIX</label><input class="fld" id="pePix" maxlength="80" autocomplete="off"></div><div><label class="flbl" for="peBanco">Banco</label><input class="fld" id="peBanco" maxlength="50" autocomplete="off"></div></div>
@@ -13947,11 +13952,11 @@ async function peBuscar(){ const q0=$('peEnd').value.trim(); if(q0.length<4){ $(
   const v={}; ops=ops.filter(o=>o.end&&!v[o.end]&&(v[o.end]=1)).slice(0,6); window._peOps=ops;
   $('peOps').innerHTML=ops.length?(soReg?'<p>Não achei a rua exata; escolha o bairro (serve: o cliente vê só uma área aproximada).</p>':'<p>Toque no endereço certo:</p>')+ops.map((o,i)=>'<button type="button" class="op" data-peop="'+i+'">'+esc(o.end)+'</button>').join(''):'<p>'+(falhas>=2?'Não consegui buscar agora. Tente de novo.':'Não encontrei. Tente só bairro e cidade, ou o CEP.')+'</p>' }
 function peAbrir(id){ const p=paAdmLista.find(x=>x.id===id); if(!p) return; peId=id; peBase=p.base&&p.base.lat?{lat:p.base.lat,lon:p.base.lon,end:p.base.end||''}:null;
-  $('peNome').value=p.nome||''; $('peHor').value=p.horario||''; $('pe24').checked=!!p.h24; $('pePix').value=p.pix||''; $('peBanco').value=p.banco||''; $('peEnd').value=''; $('peOps').innerHTML=''; $('peErro').textContent=''; peMostrar(); abrir('mParcEd') }
+  document.querySelectorAll('#mParcEd [data-peatd]').forEach(x=>x.checked=(p.atende||[]).includes(x.dataset.peatd)); $('peAtdDiesel').textContent=(p.categoria==='insulfilme'||p.categoria==='pintura')?'🚚 Caminhão':'🚚 Caminhão / diesel'; $('peNome').value=p.nome||''; $('peHor').value=p.horario||''; $('pe24').checked=!!p.h24; $('pePix').value=p.pix||''; $('peBanco').value=p.banco||''; $('peEnd').value=''; $('peOps').innerHTML=''; $('peErro').textContent=''; peMostrar(); abrir('mParcEd') }
 $('peBuscar').onclick=peBuscar; $('peEnd').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); peBuscar() } });
 $('peOps').onclick=e=>{ const b=e.target.closest('[data-peop]'); if(!b) return; peBase=window._peOps[+b.dataset.peop]; $('peOps').innerHTML=''; $('peEnd').value=''; peMostrar() };
 $('peSalvar').onclick=async()=>{ const b=$('peSalvar'); $('peErro').textContent=''; b.disabled=true;
-  const dados={nome:$('peNome').value,horario:$('peHor').value,h24:$('pe24').checked,pix:$('pePix').value,banco:$('peBanco').value}; if(peBase) dados.base=peBase;
+  const dados={nome:$('peNome').value,horario:$('peHor').value,h24:$('pe24').checked,pix:$('pePix').value,banco:$('peBanco').value,atende:[...document.querySelectorAll('#mParcEd [data-peatd]:checked')].map(x=>x.dataset.peatd)}; if(peBase) dados.base=peBase;
   try{ await rbApi('parcAdmEditar',{id:peId,dados}); $('mParcEd').classList.remove('show'); toast('Cadastro do parceiro atualizado.'); pcAbertos[peId]=1; pcAdmCarregar() }catch(err){ $('peErro').textContent=err.message||'Não consegui salvar.' } b.disabled=false }; var pcAbertos={}; /* 27/10/2026 (dono): cartões dos parceiros fechados; toque abre */
 async function pcAdmCarregar(){ $('paLista').innerHTML='<div class="rtvz">Carregando...</div>';
   try{ const [j,rj]=await Promise.all([rbApi('parcAdmLista'),rbApi('reboqueAdmLista').catch(()=>({lista:[]}))]); const l=j.lista||[], rl=rj.lista||[]; paAdmLista=l; { ADM_N.pc=Number(j.pendentes||0); admBadge(); const bn=$('aParcN'); if(bn){ bn.textContent=j.pendentes||''; bn.classList.toggle('on',(j.pendentes||0)>0) } } /* 26/10/2026: o contador saiu do botão (virou aperto de mãos) */ $('pnNParc').hidden=!(j.pendentes||0); $('pnNParc').textContent=j.pendentes||''; $('pnDepParcN').hidden=!(j.pendentes||0); $('pnDepParcN').textContent=j.pendentes||'';
@@ -13964,7 +13969,7 @@ async function pcAdmCarregar(){ $('paLista').innerHTML='<div class="rtvz">Carreg
     const porCat={}; const addCat=(k,h)=>{ (porCat[k]=porCat[k]||[]).push(h) };
     l.forEach(p=>{ const st=PC_ST[p.status]||[p.status,'ag']; addCat(p.categoria||'outros', (p=>{
       return '<div class="rtit pncard'+(pcAbertos[p.id]?' aberto':'')+'" data-pk="'+p.id+'" data-pst="'+esc(p.status)+'" data-pcat="'+esc(p.categoria||'')+'"><div class="rttopo"><div><b>'+esc(p.nome)+'</b>'+(p.whatsapp?'<a class="pnwpp" href="https://wa.me/55'+esc(p.whatsapp)+'" target="_blank" rel="noopener" title="Abrir conversa no WhatsApp" aria-label="Abrir conversa no WhatsApp">'+ICO_WPP+'</a>':'')+'<div class="rtinfo">'+esc(p.categoriaNome)+' · <span class="ljst '+st[1]+'" style="display:inline-block">'+st[0]+'</span><br>'+
-        'WhatsApp: '+esc(fmtWpp(p.whatsapp))+'<br>'+(esc((p.base&&p.base.end)||'')||'<i>sem endereço</i>')+'<span class="pnmais">'+(p.responsavel?'<br>Responsável: '+esc(p.responsavel):'')+(p.doc?' · doc '+esc(p.doc):'')+'<br>'+
+        'WhatsApp: '+esc(fmtWpp(p.whatsapp))+((p.atende||[]).length?' · '+pcAtdEmo(p):' · <i>sem tipo de veículo</i>')+'<br>'+(esc((p.base&&p.base.end)||'')||'<i>sem endereço</i>')+'<span class="pnmais">'+(p.responsavel?'<br>Responsável: '+esc(p.responsavel):'')+(p.doc?' · doc '+esc(p.doc):'')+'<br>'+
         (p.h24?'24 horas':esc(p.horario||''))+(p.atendeLocal?' · vai até o cliente'+(p.raioKm?' ('+p.raioKm+' km)':''):'')+(p.lojaPublica?' · loja aberta':'')+'<br>PIX: '+esc(p.pix||'—')+(p.banco?' · Banco: '+esc(p.banco):'')+'<br>'+
         (p.servicos||[]).map(s=>esc(s.nome)+': '+(s.sobConsulta||!(s.aPartir>0)?'sob consulta':brl2(s.aPartir))).join(' · ')+(p.status==='aprovado'?'<br>'+(p.disponivel?'🟢 disponível agora':'⚪ fechado')+' · '+(p.vistosHoje||0)+' '+((p.vistosHoje||0)===1?'visualização':'visualizações')+' hoje':'')+'</span></div></div><span class="pnseta">›</span></div>'+
         '<div class="rtbt"><a class="wpp" href="https://wa.me/55'+esc(p.whatsapp)+'" target="_blank" rel="noopener">WhatsApp</a>'+
