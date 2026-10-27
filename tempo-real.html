@@ -2839,6 +2839,29 @@ nav button.on .nemo.txt{color:var(--red2)}
 #mPerm .pmvl{font-size:14px;font-weight:600}
 #mPerm .pmval .fld{width:auto;flex:1;min-width:150px;margin:0;height:40px}
 #mPerm .pmval .fld.hora{flex:none;width:110px;min-width:0}
+/* 27/10/2026 (pedido do dono): permissões em tela grande, por seções, com chave liga/desliga */
+#mPerm .box2{max-width:1040px;padding:22px 22px 16px}
+#mPerm .pmsub{font-size:13px;color:var(--mut);margin:0 0 14px}
+#mPerm .pmgrid{display:grid;grid-template-columns:1fr;gap:14px}
+@media (min-width:900px){#mPerm .pmgrid{grid-template-columns:1fr 1fr}#mPerm .pmlarga{grid-column:1/-1}}
+#mPerm .pmsec{background:var(--card2);border:1px solid var(--line);border-radius:16px;padding:12px 12px 4px}
+#mPerm .pmsec h4{font-size:13px;font-weight:800;letter-spacing:.3px;text-transform:uppercase;color:var(--mut);margin:2px 4px 10px}
+#mPerm .fchk.pmit{display:flex;align-items:center;gap:12px;margin:0 0 8px;padding:11px 12px;background:var(--card);border:1px solid var(--line);border-radius:12px;cursor:pointer;transition:border-color .15s,background .15s}
+#mPerm .fchk.pmit input{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none}
+#mPerm .pmtx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+#mPerm .pmtx b{font-size:14.5px;font-weight:700;color:var(--txt)}
+#mPerm .pmtx small{font-size:12.5px;color:var(--mut);line-height:1.35}
+#mPerm .pmsw{flex:none;position:relative;width:44px;height:26px;border-radius:13px;background:#cbd5e1;transition:background .2s}
+#mPerm .pmsw::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:left .2s}
+#mPerm .pmit input:checked ~ .pmsw{background:#16a34a}
+#mPerm .pmit input:checked ~ .pmsw::after{left:21px}
+#mPerm .pmit:has(input:checked){border-color:rgba(22,163,74,.45);background:linear-gradient(0deg,rgba(22,163,74,.06),rgba(22,163,74,.06)),var(--card)}
+#mPerm .pmit.pmalerta input:checked ~ .pmsw{background:#dc2626}
+#mPerm .pmit.pmalerta:has(input:checked){border-color:rgba(220,38,38,.45);background:linear-gradient(0deg,rgba(220,38,38,.06),rgba(220,38,38,.06)),var(--card)}
+#mPerm .pmit input:focus-visible ~ .pmsw{outline:2px solid var(--cyan);outline-offset:2px}
+#mPerm .pmsec .pmfichas{margin:0 0 8px}
+#mPerm .pmsec .pmval{border-top:0;padding-top:0;margin:0 0 6px}
+#mPerm .actions2{position:sticky;bottom:-16px;background:var(--card);padding:10px 0 4px;margin-top:4px;border-top:1px solid var(--line)}
 #mPerm .pmval .linkbtn{margin:0;padding:0 4px}
 #mPerm .pmvh{font-size:12.5px;color:var(--mut);margin:4px 0 8px;line-height:1.4}
 /* vínculo de vários clientes no equipamento */
@@ -3785,31 +3808,43 @@ details:not([open])>summary .ico.lix[data-a="deleq"],details:not([open])>summary
 <div class="modal" id="mPerm">
   <div class="box2">
     <h3 id="pmTitulo">Permissões do app</h3>
-    <p style="font-size:13px;color:var(--mut);margin:0 0 10px">Escolha o que aparece no app deste cliente.</p>
-    <label class="fchk"><input type="checkbox" id="pmSemBloq"> <b>Veículo sem bloqueio</b> (este cliente não tem relé de bloqueio: somem Bloquear/Desbloquear, SMS de bloqueio e cerca que bloqueia)</label>
-    <label class="fchk" id="pmAppRow"><input type="checkbox" id="pmApp"> Bloquear e desbloquear pelo app (desmarque para quem só pode ver o veículo, como motorista ou familiar)</label>
-    <label class="fchk" id="pmCercaBloqRow"><input type="checkbox" id="pmCercaBloq"> Criar cerca e âncora que bloqueiam o veículo automaticamente</label>
-    <label class="fchk" id="pmSmsRow"><input type="checkbox" id="pmSms"> Bloquear e desbloquear por SMS (pela plataforma, R$ 0,20 cada)</label>
-    <label class="fchk"><input type="checkbox" id="pmReset"> Botão de reset (RESET#), pela plataforma (R$ 0,20) ou pelo celular dele (grátis)</label>
-    <label class="fchk"><input type="checkbox" id="pmNome"> Editar o nome do veículo</label>
-    <label class="fchk"><input type="checkbox" id="pmIcone"> Trocar o ícone do veículo no mapa (ligado de fábrica)</label>
-    <label class="fchk"><input type="checkbox" id="pmAncora"> Cerca rápida (botão da âncora no veículo)</label>
-    <label class="fchk"><input type="checkbox" id="pmEu"> Ver a posição do próprio celular no mapa (botão Minha posição)</label>
-    <label class="fchk"><input type="checkbox" id="pmRetirar"> Ver a lista <b>Para retirar</b> (para técnico: veículos marcados para retirada, pelo mais perto, com o nome e o WhatsApp do cliente)</label>
-    <label class="fchk"><input type="checkbox" id="pmPlacas"> <b>Leitor de placas</b> (abre o leitor pela câmera do celular, na aba Mais; só com o login deste cliente)</label><!-- 23/10/2026 -->
-    <label class="fchk"><input type="checkbox" id="pmRuaCel"> <b>Vista da rua no celular</b> (no cartão do veículo, a foto da rua toma o lugar de odômetro, combustível e faturas)</label><!-- 23/10/2026 -->
-    <label class="fchk"><input type="checkbox" id="pmDourada"> <b>Fichas douradas</b> (crédito de R$ 1 por ficha para os parceiros do app: aporte no boleto, adição avulsa e venda a R$ 0,94; ainda em teste)</label><!-- 25/10/2026 -->
-    <label class="fchk"><input type="checkbox" id="pmReboque"> <b>Reboquista</b> (ganha o cartão "Meu reboque" na aba Mais: base, valores e Disponível/Invisível; os clientes veem só a região do reboque)</label><!-- 25/10/2026 -->
-    <label class="fchk"><input type="checkbox" id="pmFichas"> Cobrar fichas no compartilhar localização (1 ficha por link; o cliente compra pacotes por PIX no app)</label>
+    <p class="pmsub">Escolha o que aparece no app deste cliente. Ligado = verde.</p>
+    <div class="pmgrid">
+    <section class="pmsec"><h4>🔒 Bloqueio</h4>
+      <label class="fchk pmit pmalerta"><input type="checkbox" id="pmSemBloq"><span class="pmtx"><b>Veículo sem bloqueio</b><small>Este cliente não tem relé: somem Bloquear/Desbloquear, SMS de bloqueio e cerca que bloqueia</small></span><span class="pmsw" aria-hidden="true"></span></label>
+      <label class="fchk pmit" id="pmAppRow"><input type="checkbox" id="pmApp"><span class="pmtx"><b>Bloquear e desbloquear pelo app</b><small>Desmarque para quem só pode ver o veículo, como motorista ou familiar</small></span><span class="pmsw" aria-hidden="true"></span></label>
+      <label class="fchk pmit" id="pmCercaBloqRow"><input type="checkbox" id="pmCercaBloq"><span class="pmtx"><b>Cerca e âncora que bloqueiam</b><small>Criar cerca e âncora que bloqueiam o veículo automaticamente</small></span><span class="pmsw" aria-hidden="true"></span></label>
+      <label class="fchk pmit" id="pmSmsRow"><input type="checkbox" id="pmSms"><span class="pmtx"><b>Bloquear e desbloquear por SMS</b><small>Pela plataforma, R$ 0,20 cada</small></span><span class="pmsw" aria-hidden="true"></span></label>
+      <label class="fchk pmit"><input type="checkbox" id="pmReset"><span class="pmtx"><b>Botão de reset (RESET#)</b><small>Pela plataforma (R$ 0,20) ou pelo celular dele (grátis)</small></span><span class="pmsw" aria-hidden="true"></span></label>
+    </section>
+    <section class="pmsec"><h4>🚗 Veículo e mapa</h4>
+      <label class="fchk pmit"><input type="checkbox" id="pmNome"><span class="pmtx"><b>Editar o nome do veículo</b><small>O cliente muda o nome que aparece no app</small></span><span class="pmsw" aria-hidden="true"></span></label>
+      <label class="fchk pmit"><input type="checkbox" id="pmIcone"><span class="pmtx"><b>Trocar o ícone no mapa</b><small>Ligado de fábrica</small></span><span class="pmsw" aria-hidden="true"></span></label>
+      <label class="fchk pmit"><input type="checkbox" id="pmAncora"><span class="pmtx"><b>Cerca rápida</b><small>Botão da âncora no veículo</small></span><span class="pmsw" aria-hidden="true"></span></label>
+      <label class="fchk pmit"><input type="checkbox" id="pmEu"><span class="pmtx"><b>Minha posição</b><small>Ver a posição do próprio celular no mapa</small></span><span class="pmsw" aria-hidden="true"></span></label>
+      <label class="fchk pmit"><input type="checkbox" id="pmRuaCel"><span class="pmtx"><b>Vista da rua no celular</b><small>No cartão do veículo, a foto da rua toma o lugar de odômetro, combustível e faturas</small></span><span class="pmsw" aria-hidden="true"></span></label>
+    </section>
+    <section class="pmsec"><h4>🛠️ Ferramentas</h4>
+      <label class="fchk pmit"><input type="checkbox" id="pmRetirar"><span class="pmtx"><b>Lista Para retirar</b><small>Para técnico: veículos marcados para retirada, pelo mais perto, com o nome e o WhatsApp do cliente</small></span><span class="pmsw" aria-hidden="true"></span></label>
+      <label class="fchk pmit"><input type="checkbox" id="pmPlacas"><span class="pmtx"><b>Leitor de placas</b><small>Abre o leitor pela câmera do celular, na aba Mais; só com o login deste cliente</small></span><span class="pmsw" aria-hidden="true"></span></label>
+      <label class="fchk pmit"><input type="checkbox" id="pmReboque"><span class="pmtx"><b>Reboquista</b><small>Ganha o cartão "Meu reboque" na aba Mais: base, valores e Disponível/Invisível; os clientes veem só a região do reboque</small></span><span class="pmsw" aria-hidden="true"></span></label>
+    </section>
+    <section class="pmsec"><h4>🪙 Fichas e extras</h4>
+      <label class="fchk pmit"><input type="checkbox" id="pmDourada"><span class="pmtx"><b>Fichas douradas</b><small>Crédito de R$ 1 por ficha para os parceiros do app: aporte no boleto, adição avulsa e venda a R$ 0,94; ainda em teste</small></span><span class="pmsw" aria-hidden="true"></span></label>
+      <label class="fchk pmit"><input type="checkbox" id="pmFichas"><span class="pmtx"><b>Cobrar fichas no compartilhar</b><small>1 ficha por link; o cliente compra pacotes por PIX no app</small></span><span class="pmsw" aria-hidden="true"></span></label>
     <div class="pmfichas" id="pmLogoBox"><span class="sp">🖼️ Logo do cliente: <b id="pmLogoSt">—</b></span><button type="button" id="pmLogoAbrir">Ver / enviar logo</button></div>
     <div class="pmfichas" id="pmModBox"><span class="sp">⭐ Premium (odômetro/mapa): <b id="pmModSt">—</b></span><input class="fld" id="pmModDias" type="text" inputmode="numeric" maxlength="3" value="30" autocomplete="off" title="Dias de teste grátis"><button type="button" data-mf="dar">Liberar dias</button><button type="button" data-mf="boleto" style="background:#7c3aed" title="Premium incluído na mensalidade: fica ativo sem prazo até você tirar">♾️ No boleto</button><button type="button" data-mf="0" style="background:#64748b">Tirar</button></div>
     <div class="pmfichas pmdr" id="pmDrBox" hidden><span class="sp"><span class="drcoin" style="width:18px;height:18px;vertical-align:-4px"></span> Fichas douradas: <b id="pmDrSaldo">—</b></span><input class="fld" id="pmDrQ" type="text" inputmode="numeric" placeholder="+50" autocomplete="off" aria-label="Fichas douradas para lançar"><input class="fld pmdrmot" id="pmDrMot" type="text" maxlength="60" placeholder="Motivo (ex.: teste)" autocomplete="off" aria-label="Motivo"><button type="button" id="pmDrLancar">Lançar</button></div><!-- 25/10/2026 (dono): creditar/retirar fichas douradas à mão -->
     <div class="pmfichas" id="pmGiroBox"><span class="sp">🔄 Giros extras da vista da rua: <b id="pmGiroSaldo">—</b></span><input class="fld" id="pmGiroQ" type="text" inputmode="numeric" placeholder="+10" autocomplete="off" aria-label="Giros para lançar"><button type="button" id="pmGiroLancar">Lançar</button></div><!-- 25/10/2026 (pedido do dono): giros de cortesia de volta -->
     <div class="pmfichas" id="pmFichasBox"><span class="sp">Saldo: <b id="pmFichasSaldo">—</b> fichas</span><input class="fld" id="pmFichasQ" type="text" inputmode="numeric" placeholder="+10" autocomplete="off" aria-label="Fichas para lançar"><button type="button" id="pmFichasLancar">Lançar</button></div>
+    </section>
+    <section class="pmsec pmlarga"><h4>🗺️ Mapa e acesso</h4>
     <div class="pmval pmmapa"><span class="pmvl">Mapa do app</span><select class="fld" id="pmMapa"><option value="gratis">Grátis (padrão)</option><option value="google">Google Maps</option></select></div>
     <p class="pmvh">Todo cliente começa com o mapa grátis. Se ele reclamar do mapa, troque para o Google aqui (custa por uso; vale na próxima vez que ele abrir o app).</p>
     <div class="pmval"><span class="pmvl">Acesso válido até</span><input class="fld" type="date" id="pmValidade"><input class="fld hora" type="time" id="pmHora" value="23:59" step="60"><button type="button" class="linkbtn" id="pmSemVal">Sem validade</button></div>
     <p class="pmvh" id="pmValTxt"></p>
+    </section>
+    </div>
     <div id="pmCob" style="background:var(--card2);border-radius:12px;padding:10px 12px;font-size:13.5px;margin:4px 0 10px"></div>
     <div class="ferr" id="pmErro"></div>
     <div class="actions2">
