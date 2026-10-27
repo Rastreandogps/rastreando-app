@@ -382,7 +382,7 @@ function catsDesenhar(box,sel,fn){
 /* ---------- entrar / cadastrar ---------- */
 document.querySelector('.abas').onclick=e=>{ const b=e.target.closest('[data-aba]'); if(!b) return; document.querySelectorAll('#tEntrar .abas button').forEach(x=>x.classList.toggle('on',x===b)); $('fCad').hidden=b.dataset.aba!=='cad'; $('fEnt').hidden=b.dataset.aba!=='ent' };
 /* 26/10/2026 (dono): exemplo do nome muda conforme o serviço escolhido */
-const NOME_EX={pintura:'Funilaria do Carlos',insulfilme:'Car Som do Rafa',reboque:'Reboque do Zé',chaveiro:'Chaveiro do Beto',borracheiro:'Borracharia do Paulo',mecanico:'Oficina do Marcos',eletricista:'Auto Elétrica do Léo',despachante:'Despachante Silva',lavajato:'Lava-jato do Rafa'};
+const NOME_EX={pintura:'Funilaria do Carlos',insulfilme:'Car Som do Rafa',reboque:'Expresso Reboques 24h',chaveiro:'Chaveiro do Beto',borracheiro:'Borracharia do Paulo',mecanico:'Oficina do Marcos',eletricista:'Auto Elétrica do Léo',despachante:'Despachante Silva',lavajato:'Lava-jato do Rafa'};
 function nomeEx(id,k){ const e=$(id); if(e) e.placeholder='Ex.: '+(NOME_EX[k]||'Chaveiro do Beto') }
 function escolherCad(k){ catCad=k; catsDesenhar($('cCats'),k,escolherCad); nomeEx('cNome',k) } catsDesenhar($('cCats'),'',escolherCad);
 $('bCad').onclick=async()=>{
