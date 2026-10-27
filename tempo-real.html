@@ -212,6 +212,12 @@ body.mapa-google #map .leaflet-top.leaflet-left .leaflet-control-attribution{mar
 .rbresp b{color:#e3262f}
 /* 26/10/2026 (dono): todas as categorias à vista (sem rolar para o lado) */
 #mReboques .pccats{flex-wrap:wrap;overflow:visible;gap:6px}
+#mReboques .pccats:has(.pcfoto){display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+#mReboques .pccat.pcfoto{flex-direction:column;justify-content:center;gap:2px;padding:5px 3px 6px;border-radius:12px;background:#fff;border:2px solid #e5e7eb;color:#111827;box-shadow:0 1px 4px rgba(15,23,42,.08);white-space:normal;min-width:0}
+#mReboques .pccat.pcfoto img{width:100%;max-width:64px;height:38px;object-fit:contain;mix-blend-mode:multiply;display:block}
+#mReboques .pccat.pcfoto b{font-size:11px;font-weight:800;line-height:1.15;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+#mReboques .pccat.pcfoto.on{border-color:#e3262f;background:#fff1f1;color:#b91c1c;box-shadow:0 0 0 2px rgba(227,38,47,.18)}
+@media (min-width:700px){#mReboques .pccat.pcfoto img{height:46px;max-width:80px}#mReboques .pccat.pcfoto b{font-size:12px}}
 #mReboques .pccat{padding:7px 11px;font-size:12.5px}
 #mReboques .pccat span{font-size:14px}
 .pcdaviso{font-size:12px;line-height:1.45;color:var(--mut);background:rgba(224,168,0,.10);border:1px solid rgba(224,168,0,.4);border-radius:12px;padding:10px 12px;margin-bottom:4px}
@@ -13797,7 +13803,9 @@ function pcCatsDesenhar(){
   const reb=!ehAdmin && !!(permCli&&permCli.reboquista);
   const cats=PC_CATS.filter(c=>!(reb&&c[0]==='reboque'));
   if(!cats.some(c=>c[0]===pcCat)) pcCat=cats[0][0];
-  $('rbCats').innerHTML=cats.map(([k,n,e])=>'<button type="button" class="pccat'+(k===pcCat?' on':'')+'" data-pccat="'+k+'"><span>'+e+'</span>'+n+'</button>').join('');
+  /* 27/10/2026 (dono): mesmas fotos do app do parceiro, em miniatura */
+  const CURTO={insulfilme:'Insulfilme',pintura:'Pintura',eletricista:'Eletricista',despachante:'Despachante',borracheiro:'Borracheiro'};
+  $('rbCats').innerHTML=cats.map(([k,n,e])=>'<button type="button" class="pccat pcfoto'+(k===pcCat?' on':'')+'" data-pccat="'+k+'" title="'+esc(n)+'" aria-label="'+esc(n)+'"><img src="cat-'+k+'.jpg" alt="" loading="lazy"><b>'+esc(CURTO[k]||n)+'</b></button>').join('');
   $('rbNota').hidden=pcCat!=='reboque'; $('pcNota').hidden=pcCat==='reboque';
 }
 $('rbCats').addEventListener('click',e=>{ const b=e.target.closest('[data-pccat]'); if(!b||b.dataset.pccat===pcCat) return; pcCat=b.dataset.pccat; pcCatsDesenhar(); rbCarregar() });
