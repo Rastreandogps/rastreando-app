@@ -8510,7 +8510,17 @@ $('btnNavMini').onclick=()=>$('btnNav').onclick();
 $('rgMais').onclick=()=>{ fechar(); lojaGirosAbrir() };
 $('btnRua').onclick=()=>{
   const v=ativo(); if(!v) return;
-  window.open('https://www.google.com/maps/@?api=1&map_action=pano&viewpoint='+v.pos[0].toFixed(6)+','+v.pos[1].toFixed(6),'_blank','noopener');
+  const ll=v.pos[0].toFixed(6)+','+v.pos[1].toFixed(6), web='https://www.google.com/maps/@?api=1&map_action=pano&viewpoint='+ll;
+  /* 28/10/2026 (dono): no iPhone com o app instalado, abrir em nova janela deixava uma tela branca com um X ao voltar.
+     Agora tenta abrir direto no app Google Maps; se ele não abrir em 1,5 s (não instalado), abre o site como antes. */
+  const ios=/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+  if(ios){
+    let saiu=false; const marca=()=>{ if(document.hidden) saiu=true }; document.addEventListener('visibilitychange',marca);
+    location.href='comgooglemaps://?center='+ll+'&mapmode=streetview';
+    setTimeout(()=>{ document.removeEventListener('visibilitychange',marca); if(!saiu && !document.hidden) window.open(web,'_blank','noopener') },1500);
+    return;
+  }
+  window.open(web,'_blank','noopener');
 };
 /* ===== COMPARTILHAR LOCALIZAÇÃO (11/10/2026) =====
    Gera um link com validade (de 5 minutos até 7 dias) para a página compartilhar.html, que mostra SÓ a posição
