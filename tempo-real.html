@@ -965,6 +965,8 @@ body.foramapa #map .leaflet-control-attribution,body.foramapa #map .gmlogo{displ
 .icpick button.on{border-color:#0b5fff;background:rgba(11,95,255,.1)}
 .icpick .icv{height:36px;display:flex;align-items:center;justify-content:center}
 .icpick small{font-size:11px;font-weight:700}
+.icpick button{min-width:0}.icpick small{text-align:center;line-height:1.15;font-size:10.5px;letter-spacing:-.2px} /* 28/10/2026: nomes compridos não vazam */
+.icestilo{display:flex;align-items:center;gap:6px;margin:0 0 8px;font-size:12px;font-weight:700;color:var(--mut,#64748b)}.icestilo button{padding:5px 12px;border-radius:999px;border:1.5px solid var(--line);background:var(--card2);color:var(--txt);font:inherit;font-weight:700;cursor:pointer}.icestilo button.on{border-color:#0b5fff;background:rgba(11,95,255,.1);color:#0b5fff} /* 28/10/2026 */
 .iccores{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;font-size:13px;color:var(--mut)}
 .iccores button{width:28px;height:28px;border-radius:50%;border:2px solid var(--line);cursor:pointer;box-shadow:inset 0 0 0 1px rgba(15,23,42,.15)}
 .iccores button.on{border-color:#0b5fff;box-shadow:0 0 0 2px rgba(11,95,255,.35)}
@@ -5153,7 +5155,27 @@ const VEIC_ICONES={
     '<rect x="-5" y="18" width="10" height="7" rx="1.2" fill="#cbd5e1" stroke="rgba(15,23,42,.3)" stroke-width=".7"/>'+icLan([-9.4,5.6],40,3.8)+
     icReboque(c,-42,30)},
 };
-const VEIC_ORDEM=['carro','suv','compacto','moto','motoesp','motobau','picape','van','caminhao','onibus','guincho','prancha','pranchacarro','vasculhante','munck','reboque','reboqueonibus','carreta'];
+/* 28/10/2026: tipos novos (no estilo "Simples" usam o desenho de um parecido) */
+VEIC_ICONES.rodoviario=Object.assign({},VEIC_ICONES.onibus,{n:'Rodoviário'});
+VEIC_ICONES.tanque=Object.assign({},VEIC_ICONES.caminhao,{n:'Tanque',cor:'#cbd5e1'});
+VEIC_ICONES.retro=Object.assign({},VEIC_ICONES.munck,{n:'Retro',cor:'#facc15'});
+VEIC_ICONES.carregadeira=Object.assign({},VEIC_ICONES.vasculhante,{n:'Pá mecânica',cor:'#facc15'});
+VEIC_ICONES.escavadeira=Object.assign({},VEIC_ICONES.munck,{n:'Escavadeira',cor:'#facc15'});
+const VEIC_ORDEM=['carro','suv','compacto','moto','motoesp','motobau','picape','van','caminhao','onibus','rodoviario','guincho','prancha','pranchacarro','vasculhante','tanque','munck','reboque','reboqueonibus','carreta','retro','carregadeira','escavadeira'];
+/* ===== ÍCONES REALISTAS (28/10/2026, pedido do dono) =====
+   Fotos vistas de cima (pasta icv/, WebP leve). Cada tipo tem algumas cores; a cor escolhida antes (qualquer uma)
+   vira a foto de cor mais parecida, então quem já tinha ícone não precisa fazer nada. Tipo sem foto usa o desenho antigo.
+   Estilo "Simples" (desenho antigo, cor livre) fica guardado no aparelho: rg_icreal = '0'. */
+const IC_NOMES={branco:'#f8fafc',prata:'#cbd5e1',preto:'#1f2937',vermelho:'#dc2626',azul:'#2563eb',amarelo:'#facc15'};
+const IC_REAL={carro:['branco','preto','prata','vermelho','azul'],compacto:['branco','preto','prata','vermelho','azul'],suv:['branco','preto','prata','vermelho','azul'],picape:['branco','preto','prata','vermelho','azul'],
+  moto:['preto','vermelho','azul','branco'],motoesp:['preto','vermelho','azul','branco'],motobau:['preto','vermelho','azul','branco'],van:['branco','amarelo','vermelho','azul','preto'],
+  onibus:['branco','azul','vermelho'],rodoviario:['branco','azul','vermelho'],tanque:['prata','branco'],caminhao:['branco'],guincho:['branco'],prancha:['branco'],pranchacarro:['branco'],
+  vasculhante:['branco'],munck:['branco'],reboque:['branco'],carreta:['branco'],retro:['amarelo'],carregadeira:['amarelo'],escavadeira:['amarelo']};
+const IC_REAL_TAM={moto:46,motoesp:46,motobau:48,carro:48,compacto:46,suv:50,picape:52,van:52}; /* em unidades do desenho (círculo = 50) */
+const icRealOn=()=>lsGet('rg_icreal')!=='0';
+function icHex(h){ h=String(h||'').replace('#',''); return [0,2,4].map(i=>parseInt(h.substr(i,2),16)||0) }
+function icCorReal(tipo,cor){ const l=IC_REAL[tipo]; if(!l) return ''; const T=VEIC_ICONES[tipo]||{}; const c=icHex(icCorOk(cor)?cor:(T.cor||'#f8fafc'));
+  let m=l[0],d=1e9; l.forEach(n=>{ const x=icHex(IC_NOMES[n]); const e=(x[0]-c[0])**2+(x[1]-c[1])**2+(x[2]-c[2])**2; if(e<d){d=e;m=n} }); return m }
 const VEIC_CORES=[['Branco','#f8fafc'],['Prata','#cbd5e1'],['Preto','#1f2937'],['Vermelho','#dc2626'],['Azul','#2563eb'],['Verde','#16a34a'],['Amarelo','#facc15']];
 function icCorOk(c){ return /^#[0-9a-f]{6}$/i.test(String(c||'')) }
 function veicIconeDe(d){ const a=(d&&d.attributes)||{}; return VEIC_ICONES[a.icone] ? a.icone : '' }
@@ -5175,6 +5197,10 @@ function icReboque(c,y0,corpo){
 /* svg do veículo para o marcador: anel (não gira), veículo (gira, classe vgir), cadeado (não gira) */
 function veicSvg(tipo,cor,mini){
   const T=VEIC_ICONES[tipo]; if(!T) return carSvg;
+  if(icRealOn() && IC_REAL[tipo]){ const t=IC_REAL_TAM[tipo]||56, n=icCorReal(tipo,cor);
+    return '<svg viewBox="-30 -30 60 60" width="'+(mini?40:54)+'" height="'+(mini?40:54)+'">'+(mini?'':'<circle class="anelv" r="25" stroke-width="2.4"/>')+
+      '<g class="vgir"><image href="icv/'+tipo+'-'+n+'.webp" x="'+(-t/2)+'" y="'+(-t/2)+'" width="'+t+'" height="'+t+'"/></g>'+
+      (mini?'':'<g class="cadb" transform="translate(19,-19)"><circle r="8.5" fill="#dc2626" stroke="#fff" stroke-width="2"/><path d="M-2.8 -.6V-2.6A2.8 2.8 0 0 1 2.8 -2.6V-.6" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/><rect x="-4" y="-.8" width="8" height="5.6" rx="1.3" fill="#fff"/></g>')+'</svg>' }
   const c=icCorOk(cor)?cor:T.cor, sc=T.esc||Math.min(1,48/T.L); /* esc: moto desenhada maior */
   return '<svg viewBox="-30 -30 60 60" width="'+(mini?40:54)+'" height="'+(mini?40:54)+'">'+(mini?'':'<circle class="anelv" r="25" stroke-width="2.4"/>')+
     '<g class="vgir"><g transform="scale('+sc+')">'+T.d(c)+'</g></g>'+
@@ -5206,7 +5232,7 @@ function rotularMarcador(v){
   }catch(e){}
 }
 function icTrocar(v){ /* o ícone mudou (cadastro ou virou tag): refaz o desenho do marcador sem recriar */
-  if(!v.marker) return; const k=(v.tag?'tag':(v.icone||''))+'|'+(v.iconeCor||''); if(k===v.icoChave) return; v.icoChave=k;
+  if(!v.marker) return; const k=(v.tag?'tag':(v.icone||''))+'|'+(v.iconeCor||'')+'|'+icRealOn(); if(k===v.icoChave) return; v.icoChave=k;
   try{ const ic=v.marker.options.icon; ic.options.html=carHtml(v)+'<div class="'+rotuloClasse(v)+'">'+rotuloHtml(v)+'</div>'; v.marker.setIcon(ic) }catch(e){}
 }
 function criarMarcador(v){
@@ -5214,7 +5240,7 @@ function criarMarcador(v){
     className:'',iconSize:[44,44],iconAnchor:[22,22],
     html:carHtml(v)+'<div class="'+rotuloClasse(v)+'">'+rotuloHtml(v)+'</div>'
   })});
-  v.rotuloNome=v.nome+'|'+(v.placaMapa?v.placa:''); v.icoChave=(v.tag?'tag':(v.icone||''))+'|'+(v.iconeCor||'');
+  v.rotuloNome=v.nome+'|'+(v.placaMapa?v.placa:''); v.icoChave=(v.tag?'tag':(v.icone||''))+'|'+(v.iconeCor||'')+'|'+icRealOn();
   v.marker.on('click',()=>{ selId = v.id; recolhido = false; atualizar(); });
   if(v.visivel && abaMostra(v)) v.marker.addTo(map);
 }
@@ -10706,7 +10732,12 @@ function icPickPintar(elIc,elCor,eqIcone,eqIcCor){
   const corAtual=eqIcCor||(VEIC_ICONES[eqIcone]?VEIC_ICONES[eqIcone].cor:'');
   elIc.innerHTML='<button type="button" data-ic=""'+(eqIcone?'':' class="on"')+' title="Setinha (padrão)"><span class="icv"><svg viewBox="0 0 44 44" width="34" height="34"><circle cx="22" cy="22" r="18" fill="#fff" stroke="#e0a020" stroke-width="2.5"/><path d="M22 8 L31 32 L22 27 L13 32 Z" fill="#f0a800" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></svg></span><small>Setinha</small></button>'+
     VEIC_ORDEM.map(k=>'<button type="button" data-ic="'+k+'"'+(eqIcone===k?' class="on"':'')+'><span class="icv">'+veicSvg(k,eqIcone===k?corAtual:'',true)+'</span><small>'+VEIC_ICONES[k].n+'</small></button>').join('');
+  { const real=icRealOn(); let st=elIc.parentNode.querySelector('.icestilo'); if(!st){ st=document.createElement('div'); st.className='icestilo'; elIc.parentNode.insertBefore(st,elIc) }
+    st.innerHTML='<span>Estilo:</span><button type="button" data-icest="1"'+(real?' class="on"':'')+'>Realista</button><button type="button" data-icest="0"'+(real?'':' class="on"')+'>Simples</button>';
+    st.onclick=e=>{ const b=e.target.closest('[data-icest]'); if(!b) return; lsSet('rg_icreal',b.dataset.icest); veiculos.forEach(v=>{ try{ icTrocar(v) }catch(_){} }); icPickPintar(elIc,elCor,eqIcone,eqIcCor) }; }
   elCor.style.display=eqIcone?'':'none';
+  if(eqIcone && icRealOn() && IC_REAL[eqIcone]){ const ns=IC_REAL[eqIcone], at=icCorReal(eqIcone,corAtual);
+    elCor.innerHTML=ns.length>1?('<span>Cor:</span>'+ns.map(n=>'<button type="button" data-cor="'+IC_NOMES[n]+'" title="'+n+'" aria-label="'+n+'"'+(at===n?' class="on"':'')+' style="background:'+IC_NOMES[n]+'"></button>').join('')):'<span>Cor única neste modelo</span>'; return }
   elCor.innerHTML=eqIcone?('<span>Cor:</span>'+VEIC_CORES.map(([n,c])=>'<button type="button" data-cor="'+c+'" title="'+n+'" aria-label="'+n+'"'+(corAtual.toLowerCase()===c?' class="on"':'')+' style="background:'+c+'"></button>').join('')):'';
 }
 $('eIcone').addEventListener('click',e=>{ const b=e.target.closest('[data-ic]'); if(!b) return; eqIcone=b.dataset.ic; if(!eqIcone) eqIcCor=''; icPickDesenhar() });
