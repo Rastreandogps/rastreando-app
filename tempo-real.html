@@ -3076,6 +3076,22 @@ nav button.on .nemo.txt{color:var(--red2)}
 @media (max-width:700px){#aview .abar .aico[data-l]{min-width:46px;height:46px;min-height:46px;padding:4px 3px 3px}#aview .abar .aico[data-l]::after{font-size:9px}.abar #aEmerg{margin-left:6px}}
 details:not([open])>summary .ico.lix[data-a="deleq"],details:not([open])>summary .ico.lix[data-a="delcli"]{display:none}
 </style>
+<style>/* 28/10/2026 (dono): botões do cartão com ícones realistas (pasta icv/). Para voltar: apagar este bloco. */
+#sheet .vign.on,#sheet .vign.off{background:center/100% 100% no-repeat;border:0}
+#sheet .vign.on{background-image:url(icv/ui-chave-on.webp);box-shadow:0 0 12px rgba(34,197,94,.55)}
+#sheet .vign.off{background-image:url(icv/ui-chave-off.webp);box-shadow:0 0 8px rgba(220,38,38,.35)}
+#sheet .vign.on svg,#sheet .vign.off svg{display:none}
+main #sheet .vname .vign.on,main #sheet .vname .vign.off{width:34px;height:34px}
+main #sheet #btnRenome,main #sheet #btnIcone,main #sheet #btnRuaVer.adm{background:center/100% 100% no-repeat;border:0;box-shadow:0 2px 5px rgba(0,0,0,.18);border-radius:9px}
+main #sheet #btnRenome{background-image:url(icv/ui-editar.webp)}
+main #sheet #btnIcone{background-image:url(icv/ui-icone.webp)}
+main #sheet #btnRuaVer.adm{background-image:url(icv/ui-camera.webp)}
+main #sheet #btnRenome,main #sheet #btnIcone,main #sheet #btnRuaVer.adm{width:32px;height:32px;margin-left:6px}
+main #sheet #btnRenome svg,main #sheet #btnIcone svg,main #sheet #btnRuaVer.adm svg{display:none}
+main #sheet #btnRuaVer.adm:not(.on){opacity:.45;filter:grayscale(.6)}
+main #sheet #btnRuaVer.adm.on{box-shadow:0 0 0 2px #22d3ee,0 2px 5px rgba(0,0,0,.18)}
+main #sheet #btnRuaVer.adm::after{display:none}
+</style>
 </head>
 <body>
 
