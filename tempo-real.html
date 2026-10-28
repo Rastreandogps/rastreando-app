@@ -3081,6 +3081,7 @@ details:not([open])>summary .ico.lix[data-a="deleq"],details:not([open])>summary
 #sheet .vign.on{background-image:url(icv/ui-chave-on.webp?v=5);box-shadow:0 0 12px rgba(34,197,94,.55)}
 #sheet .vign.off{background-image:url(icv/ui-chave-off.webp?v=5);box-shadow:0 0 8px rgba(220,38,38,.35)}
 #sheet .vign.on svg,#sheet .vign.off svg{display:none}
+#sheet .vign.velha{opacity:.6;animation:none;box-shadow:none} /* 28/10/2026: última ignição conhecida (sem conexão) */
 main #sheet .vname .vign.on,main #sheet .vname .vign.off{width:34px;height:34px}
 main #sheet #btnRenome,main #sheet #btnIcone,main #sheet #btnRuaVer.adm{background:center/100% 100% no-repeat;border:0;box-shadow:0 2px 5px rgba(0,0,0,.18);border-radius:9px}
 main #sheet #btnRenome{background-image:url(icv/ui-editar.webp)}
@@ -5692,14 +5693,14 @@ async function completarStatus(v){
     let mudou=false;
     for(const {p,t} of lista){
       const a=p.attributes||{};
-      if(typeof a.ignition==='boolean' && t>(v.igEm||0)){ v.ign=a.ignition; v.igEm=t; mudou=true }
+      if(typeof a.ignition==='boolean' && t>(v.igEm||0)){ v.ign=a.ignition; v.igEm=t; v.ignUlt=a.ignition; v.ignUltEm=t; mudou=true }
       if(a.batteryLevel!=null && !isNaN(a.batteryLevel) && t>(v.batEm||0)){ v.bat=Math.round(a.batteryLevel); v.batEm=t; mudou=true }
       const vv=a.power!=null?a.power:a.adc1;
       if(vv!=null && !isNaN(vv) && Number(vv)>0 && t>(v.voltEm||0)){ v.volt=Number(vv); v.voltEm=t; mudou=true }
     }
     if(v.ign!==null && !fresco(v.igEm,VALIDADE_ST)) v.ign=null;
     /* 25/10/2026: a bateria NÃO expira mais; fica a última lida (a data de "Atualizado" mostra que é antiga) */
-    if(mudou){ lsSet('rg_st_'+v.id,JSON.stringify({ign:v.ign,igEm:v.igEm,bat:v.bat,batEm:v.batEm,volt:v.volt,voltEm:v.voltEm})); atualizar() }
+    if(mudou){ lsSet('rg_st_'+v.id,JSON.stringify({ign:v.ign,igEm:v.igEm,ignUlt:v.ignUlt,ignUltEm:v.ignUltEm,bat:v.bat,batEm:v.batEm,volt:v.volt,voltEm:v.voltEm})); atualizar() }
   }catch(e){ if(e.sessao) throw e }
 }
 
@@ -5710,13 +5711,14 @@ const fresco=(em,max)=>!!em && Date.now()-em<max;
 function lerUltimos(v){
   let c={}; try{ c=JSON.parse(lsGet('rg_st_'+v.id)||'{}')||{} }catch(e){}
   if(typeof c.ign==='boolean' && fresco(c.igEm,VALIDADE_ST)){ v.ign=c.ign; v.igEm=c.igEm }
+  if(typeof c.ignUlt==='boolean'){ v.ignUlt=c.ignUlt; v.ignUltEm=c.ignUltEm||0 } else if(typeof c.ign==='boolean'){ v.ignUlt=c.ign; v.ignUltEm=c.igEm||0 } /* 28/10/2026: última ignição conhecida, mesmo velha */
   if(typeof c.bat==='number'){ v.bat=c.bat; v.batEm=c.batEm||0 } /* 25/10/2026: última bateria, mesmo sem conexão */
   if(typeof c.volt==='number'){ v.volt=c.volt; v.voltEm=c.voltEm||0 }
 }
 function guardarUltimos(v,p,a){
   const agora=Date.now(); let mudou=false;
   if(p.id!==v.stPosId){ v.stPosId=p.id; /* 16/10/2026 (revisão): só posição nova renova a hora; aparelho parado há dias não fica "ignição ligada" para sempre */
-  if(typeof a.ignition==='boolean'){ v.ign=a.ignition; v.igEm=agora; mudou=true }
+  if(typeof a.ignition==='boolean'){ v.ign=a.ignition; v.igEm=agora; v.ignUlt=a.ignition; v.ignUltEm=agora; mudou=true }
   if(a.batteryLevel!=null && !isNaN(a.batteryLevel)){ v.bat=Math.round(a.batteryLevel); v.batEm=agora; mudou=true }
   /* voltagem da bateria externa (do veículo/fonte). O J16 manda no campo adc1; "power" é o nome padrão do Traccar em outros modelos. */
   const vv = a.power!=null ? a.power : a.adc1;
@@ -5727,7 +5729,7 @@ function guardarUltimos(v,p,a){
   }
   }
   if(v.ign!==null && !fresco(v.igEm,VALIDADE_ST)) v.ign=null;
-  if(mudou) lsSet('rg_st_'+v.id,JSON.stringify({ign:v.ign,igEm:v.igEm,bat:v.bat,batEm:v.batEm,volt:v.volt,voltEm:v.voltEm}));
+  if(mudou) lsSet('rg_st_'+v.id,JSON.stringify({ign:v.ign,igEm:v.igEm,ignUlt:v.ignUlt,ignUltEm:v.ignUltEm,bat:v.bat,batEm:v.batEm,volt:v.volt,voltEm:v.voltEm}));
 }
 /* ===== TAGS (K-TAG, 16/10/2026, pedido do dono) =====
    A tag não tem GPS nem chip: um celular que passa perto vê a tag e o sistema do fornecedor manda a posição para nós
@@ -6092,7 +6094,8 @@ function atualizar(){
     } else cr.style.display='none';
     $('vStatus').textContent=txt; $('vStatus').className='status '+cls;
     $('sSpeed').textContent=sp?'—':v.vel+' km/h';
-    { const ig=$('vIgn'); ig.className='vign '+(v.ign===null?'nd':(v.ign?'on':'off')); ig.title=v.ign===null?'Ignição: sem informação':(v.ign?'Ignição ligada':'Ignição desligada'); ig.setAttribute('aria-label',ig.title) }
+    { const ig=$('vIgn'), vel=v.ign===null && typeof v.ignUlt==='boolean', iv=vel?v.ignUlt:v.ign; /* 28/10/2026 (dono): sem conexão, mostra a ÚLTIMA ignição conhecida (meio apagada) */
+      ig.className='vign '+(iv===null||iv===undefined?'nd':(iv?'on':'off'))+(vel?' velha':''); ig.title=(iv===null||iv===undefined)?'Ignição: sem informação':((iv?'Ignição ligada':'Ignição desligada')+(vel?' (última informação'+(v.ignUltEm?', '+horaAtual(v.ignUltEm):'')+')':'')); ig.setAttribute('aria-label',ig.title) }
     try{ cbQuadro(v) }catch(e){}
     $('sBat').textContent=v.bat===null?'—':v.bat+'%';
     $('sVolt').textContent=v.volt===null?'—':v.volt.toFixed(1).replace('.',',')+' V';
