@@ -3092,6 +3092,19 @@ main #sheet #btnRenome svg,main #sheet #btnIcone svg,main #sheet #btnRuaVer.adm 
 main #sheet #btnRuaVer.adm:not(.on){opacity:.45;filter:grayscale(.6)}
 main #sheet #btnRuaVer.adm.on{box-shadow:0 0 0 2px #22d3ee,0 2px 5px rgba(0,0,0,.18)}
 main #sheet #btnRuaVer.adm::after{display:none}
+/* 28/10/2026: cards de velocidade, bateria, odômetro, combustível, loja e faturas com ícones realistas */
+#sheet .grid .spdic svg{display:none}
+#sheet .grid .spdic{display:block;width:34px;height:34px;margin:0 auto 3px;background:url(icv/st-vel.webp) center/contain no-repeat}
+#sBvBox::before,#sOdoBtn::before,#sCombBtn::before{content:"";display:block;width:34px;height:30px;margin:0 auto 3px;background:center/contain no-repeat;flex:none}
+#sBvBox::before{background-image:url(icv/st-bat.webp)}
+#sOdoBtn::before{background-image:url(icv/st-odo.webp)}
+#sCombBtn::before{background-image:url(icv/st-comb.webp)}
+#sLojaBtn b svg,#sFatBtn b svg{display:none}
+#sLojaBtn b,#sFatBtn b{display:block;width:34px;height:34px;margin:2px auto 0;background:center/contain no-repeat}
+#sLojaBtn b{background-image:url(icv/st-loja.webp)}
+#sFatBtn b{background-image:url(icv/st-fat.webp)}
+#sheet #sLojaBtn,#sheet #sFatBtn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}#sLojaBtn b,#sFatBtn b{order:-1}
+#sFatBtn[style*="none"]{display:none!important}
 /* 28/10/2026: navegar, ver a rua, SMS e compartilhar com ícones realistas */
 #sheet #btnShare,#sheet #btnNavMini,#sheet #btnSmsMenu{background:center/contain no-repeat!important;border:0!important;box-shadow:0 2px 6px rgba(0,0,0,.2)!important}
 #sheet #btnShare{background-image:url(icv/ui-compartilhar.webp)!important}
