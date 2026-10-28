@@ -3093,6 +3093,13 @@ main #sheet #btnRenome svg,main #sheet #btnIcone svg,main #sheet #btnRuaVer.adm 
 main #sheet #btnRuaVer.adm:not(.on){opacity:.45;filter:grayscale(.6)}
 main #sheet #btnRuaVer.adm.on{box-shadow:0 0 0 2px #22d3ee,0 2px 5px rgba(0,0,0,.18)}
 main #sheet #btnRuaVer.adm::after{display:none}
+/* 28/10/2026: barra do Admin com ícones realistas (Atualizar e Fichas continuam como estavam) */
+#aview #aImportar svg{display:none}#aview #aImportar::before{content:"";display:block;width:30px;height:30px;background:url(icv/ad-importar.webp) center/contain no-repeat;flex:none}
+#aview #aSmsMassa svg{display:none}#aview #aSmsMassa::before{content:"";display:block;width:30px;height:30px;background:url(icv/ad-sms.webp) center/contain no-repeat;flex:none}
+#aview #aSmsFat svg{display:none}#aview #aSmsFat::before{content:"";display:block;width:30px;height:30px;background:url(icv/ad-boleto.webp) center/contain no-repeat;flex:none}
+#aview #aPlacas svg{display:none}#aview #aPlacas::before{content:"";display:block;width:30px;height:30px;background:url(icv/ad-placas.webp) center/contain no-repeat;flex:none}
+#aview #aParc svg{display:none}#aview #aParc::before{content:"";display:block;width:30px;height:30px;background:url(icv/ad-prest.webp) center/contain no-repeat;flex:none}
+#aview #aEmerg svg{display:none}#aview #aEmerg::before{content:"";display:block;width:30px;height:30px;background:url(icv/ad-emerg.webp) center/contain no-repeat;flex:none}
 /* 28/10/2026: abas de baixo com ícones realistas */
 nav button[data-tab="Mapa"] .nemo{background:url(icv/ab-mapa.webp) center/contain no-repeat;font-size:0!important;color:transparent!important;width:28px;height:26px;margin:0 auto}nav button[data-tab="Mapa"] .nemo svg{display:none!important}
 nav button[data-tab="Veículos"] .nemo{background:url(icv/ab-veic.webp) center/contain no-repeat;font-size:0!important;color:transparent!important;width:28px;height:26px;margin:0 auto}nav button[data-tab="Veículos"] .nemo svg{display:none!important}
