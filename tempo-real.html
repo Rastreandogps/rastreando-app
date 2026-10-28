@@ -3093,6 +3093,7 @@ main #sheet #btnRenome svg,main #sheet #btnIcone svg,main #sheet #btnRuaVer.adm 
 main #sheet #btnRuaVer.adm:not(.on){opacity:.45;filter:grayscale(.6)}
 main #sheet #btnRuaVer.adm.on{box-shadow:0 0 0 2px #22d3ee,0 2px 5px rgba(0,0,0,.18)}
 main #sheet #btnRuaVer.adm::after{display:none}
+#vUpd .upl{display:flex;align-items:center;justify-content:flex-end;gap:5px;white-space:nowrap;color:var(--mut);font-weight:500}#vUpd .upl .upic{width:14px;height:14px;flex:none}#vUpd .upl.ruim{color:#ea7a2a;font-weight:600} /* 28/10/2026 */
 /* 28/10/2026: seletor Equipamentos/Clientes em pílula, ativo em azul */
 #aview .abar .atabs,#aview .atabs{border-radius:999px!important;padding:4px!important;background:linear-gradient(180deg,#f8fafc,#eef2f7)!important;border:1px solid #dbe2ea!important;box-shadow:0 2px 8px rgba(15,23,42,.10)}
 #aview .abar .atab,#aview .atab{border-radius:999px!important}
@@ -6145,8 +6146,12 @@ function atualizar(){
     $('sVolt').classList.toggle('velha',!!$('sVoltAge').textContent);
     /* dois horários: GSM = último contato do rastreador com o servidor; GPS = última posição de satélite */
     const ult = v.ultimo || v.fix, gpsVelhoT = v.gpsT && Date.now()-v.gpsT>600000;
-    $('vUpd').innerHTML = (ult ? 'GSM '+horaAtual(ult) : '')+
-      '<br><span style="'+(!v.gpsT||gpsVelhoT?'color:var(--amber);font-weight:600':'')+'">GPS '+(v.gpsT ? horaAtual(v.gpsT) : 'sem sinal')+'</span>';
+    { /* 28/10/2026 (dono): GSM e GPS com ícone pequeno; GSM cinza, GPS laranja quando sem sinal ou velho */
+      const gOk=!!ult && Date.now()-ult<VALIDADE_ST, pOk=!!v.gpsT && !gpsVelhoT;
+      const icG='<svg class="upic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 20v-2"/><path d="M9 20v-5"/><path d="M14 20v-8"'+(gOk?'':' opacity=".35"')+'/><path d="M19 20V8"'+(gOk?'':' opacity=".35"')+'/></svg>';
+      const icP='<svg class="upic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 7l4 4-6 6-4-4z"/><path d="M15 5l2-2 4 4-2 2"/><path d="M5 15l-2 2 4 4 2-2"/><path d="M4 11a5 5 0 0 0 4 4"/><path d="M3 7a9 9 0 0 0 9 9" opacity=".6"/></svg>';
+      $('vUpd').innerHTML = (ult ? '<span class="upl gsm">'+icG+'GSM '+horaAtual(ult)+'</span>' : '')+
+        '<span class="upl gps'+(pOk?'':' ruim')+'">'+icP+(v.gpsT ? (pOk?'GPS ':'GPS ')+horaAtual(v.gpsT) : 'GPS sem sinal')+'</span>'; }
     /* 14/10/2026 (pedido do dono: clientes estranhavam "GPS sem sinal"): o CLIENTE vê só a hora da última atualização. O administrador continua vendo GSM e GPS. */
     if(!ehAdmin) $('vUpd').textContent = ult ? 'Atualizado '+horaAtual(ult) : '';
     if(v.tag) $('vUpd').textContent = v.fix ? 'Vista às '+horaAtual(v.fix) : ''; /* 16/10/2026 */
