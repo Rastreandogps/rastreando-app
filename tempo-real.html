@@ -5170,7 +5170,7 @@ const IC_NOMES={branco:'#f8fafc',prata:'#cbd5e1',preto:'#1f2937',vermelho:'#dc26
 const IC_REAL={carro:['branco','preto','prata','vermelho','azul'],compacto:['branco','preto','prata','vermelho','azul'],suv:['branco','preto','prata','vermelho','azul'],picape:['branco','preto','prata','vermelho','azul'],
   moto:['preto','vermelho','azul','branco'],motoesp:['preto','vermelho','azul','branco'],motobau:['preto','vermelho','azul','branco'],van:['branco','amarelo','vermelho','azul','preto'],
   onibus:['branco','azul','vermelho'],rodoviario:['branco','azul','vermelho'],tanque:['prata','branco'],caminhao:['branco'],guincho:['branco'],prancha:['branco'],pranchacarro:['branco'],
-  vasculhante:['branco'],munck:['branco'],reboque:['branco'],carreta:['branco'],retro:['amarelo'],carregadeira:['amarelo'],escavadeira:['amarelo']};
+  vasculhante:['branco'],munck:['branco'],reboque:['branco'],reboqueonibus:['branco'],carreta:['branco'],retro:['amarelo'],carregadeira:['amarelo'],escavadeira:['amarelo']};
 const IC_REAL_TAM={moto:46,motoesp:46,motobau:48,carro:48,compacto:46,suv:50,picape:52,van:52}; /* em unidades do desenho (círculo = 50) */
 const icRealOn=()=>lsGet('rg_icreal')!=='0';
 function icHex(h){ h=String(h||'').replace('#',''); return [0,2,4].map(i=>parseInt(h.substr(i,2),16)||0) }
