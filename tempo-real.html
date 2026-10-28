@@ -3091,6 +3091,16 @@ main #sheet #btnRenome svg,main #sheet #btnIcone svg,main #sheet #btnRuaVer.adm 
 main #sheet #btnRuaVer.adm:not(.on){opacity:.45;filter:grayscale(.6)}
 main #sheet #btnRuaVer.adm.on{box-shadow:0 0 0 2px #22d3ee,0 2px 5px rgba(0,0,0,.18)}
 main #sheet #btnRuaVer.adm::after{display:none}
+/* 28/10/2026: navegar, ver a rua, SMS e compartilhar com ícones realistas */
+#sheet #btnShare,#sheet #btnNavMini,#sheet #btnSmsMenu{background:center/contain no-repeat!important;border:0!important;box-shadow:0 2px 6px rgba(0,0,0,.2)!important}
+#sheet #btnShare{background-image:url(icv/ui-compartilhar.webp)!important}
+#sheet #btnNavMini{background-image:url(icv/ui-navegar.webp)!important}
+#sheet #btnSmsMenu{background-image:url(icv/ui-sms.webp)!important}
+#sheet #btnShare svg,#sheet #btnNavMini svg,#sheet #btnSmsMenu svg,#sheet #btnSmsMenu span{visibility:hidden}
+#sheet .navic.nv,#sheet .navic.st{background:center/100% 100% no-repeat!important;border:0!important;box-shadow:0 2px 5px rgba(0,0,0,.18)!important;color:transparent!important}
+#sheet .navic.nv{background-image:url(icv/ui-navegar.webp)!important}
+#sheet .navic.st{background-image:url(icv/ui-rua.webp)!important}
+#sheet .navic.nv svg,#sheet .navic.st svg{visibility:hidden}
 </style>
 </head>
 <body>
