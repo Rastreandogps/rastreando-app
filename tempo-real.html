@@ -3093,6 +3093,13 @@ main #sheet #btnRenome svg,main #sheet #btnIcone svg,main #sheet #btnRuaVer.adm 
 main #sheet #btnRuaVer.adm:not(.on){opacity:.45;filter:grayscale(.6)}
 main #sheet #btnRuaVer.adm.on{box-shadow:0 0 0 2px #22d3ee,0 2px 5px rgba(0,0,0,.18)}
 main #sheet #btnRuaVer.adm::after{display:none}
+/* 28/10/2026: seletor Equipamentos/Clientes em pílula, ativo em azul */
+#aview .abar .atabs,#aview .atabs{border-radius:999px!important;padding:4px!important;background:linear-gradient(180deg,#f8fafc,#eef2f7)!important;border:1px solid #dbe2ea!important;box-shadow:0 2px 8px rgba(15,23,42,.10)}
+#aview .abar .atab,#aview .atab{border-radius:999px!important}
+#aview .atab.on{background:linear-gradient(180deg,#3b8bff,#0b5fff)!important;color:#fff!important;box-shadow:0 2px 10px rgba(11,95,255,.45),inset 0 1px 0 rgba(255,255,255,.35)!important}
+#aview .atab:not(.on){color:#334155!important}
+:root:not([data-tema="claro"]) #aview .abar .atabs,:root:not([data-tema="claro"]) #aview .atabs{background:linear-gradient(180deg,rgba(255,255,255,.10),rgba(255,255,255,.04))!important;border-color:rgba(255,255,255,.14)!important}
+:root:not([data-tema="claro"]) #aview .atab:not(.on){color:#cbd5e1!important}
 /* 28/10/2026: barra do Admin com ícones realistas (Atualizar e Fichas continuam como estavam) */
 #aview #aImportar svg{display:none}#aview #aImportar::before{content:"";display:block;width:36px;height:36px;margin:-3px 0 -3px;background:url(icv/ad-importar.webp?v=3) center/contain no-repeat;flex:none}
 #aview #aSmsMassa svg{display:none}#aview #aSmsMassa::before{content:"";display:block;width:30px;height:30px;background:url(icv/ad-sms.webp) center/contain no-repeat;flex:none}
@@ -9745,7 +9752,7 @@ $('fList').addEventListener('click',async e=>{
 });
 
 /* ===== ÁREA DO ADMINISTRADOR ===== */
-let ehAdmin=false, usuarios=[], abaAdmin='equip', editandoId=null, cpfsMapa={}, cpfUserId=null;
+let ehAdmin=false, usuarios=[], abaAdmin=(()=>{ try{ return localStorage.getItem('rg_abaadm')==='cli'?'cli':'equip' }catch(e){ return 'equip' } })() /* 28/10/2026 (dono): lembra a última aba do Admin */, editandoId=null, cpfsMapa={}, cpfUserId=null;
 const JSONH={'Content-Type':'application/json'};
 const soDigitos = s => String(s==null?'':s).replace(/\D/g,'');
 function fmtFone(f){
@@ -10372,8 +10379,8 @@ function desenharClientes(fundo){
   }).join('') || '<div class="vempty">Nenhum cliente ainda.</div>';
 }
 $('aList').addEventListener('toggle',e=>{ const d=e.target; if(d.dataset && d.dataset.u) abertos[d.dataset.u]=d.open; if(d.classList && d.classList.contains('eq')) abertosEq[d.dataset.id]=d.open },true);
-$('aTabEquip').onclick=()=>{abaAdmin='equip';desenharAdmin()};
-$('aTabCli').onclick=()=>{abaAdmin='cli';desenharAdmin(); if(finVelho()) carregarFin(true); carregarAcessos()};
+$('aTabEquip').onclick=()=>{abaAdmin='equip';lsSet('rg_abaadm','equip');desenharAdmin()};
+$('aTabCli').onclick=()=>{abaAdmin='cli';lsSet('rg_abaadm','cli');desenharAdmin(); if(finVelho()) carregarFin(true); carregarAcessos()};
 /* 21/10/2026: se o navegador mesmo assim preencher com o e-mail do login, apaga (sem mexer no que a pessoa digitou) */
 function aBuscaLimparAutofill(){
   const b=$('aSearch'); if(!b || !b.value || document.activeElement===b) return false;
