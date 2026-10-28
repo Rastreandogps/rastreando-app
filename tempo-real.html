@@ -5308,7 +5308,7 @@ $('btnGrupo').onclick=()=>{
 };
 map.on('zoomstart',()=>{ if(grp.aberto){ grp.aberto=null; grp.linhas.clearLayers(); veiculos.forEach(v=>{ const el=v.marker&&v.marker.getElement&&v.marker.getElement(); if(el){ el.classList.remove('grpabre'); el.style.translate='' } }) } });
 map.on('click',()=>grpFechar());
-setInterval(()=>{ if(document.visibilityState==='visible' && Date.now()-grp.t>900) agruparAgora() },1000);
+setInterval(()=>{ if(document.visibilityState==='visible' && Date.now()-grp.t>900 && !(typeof mapaMexe!=='undefined' && mapaMexe)) agruparAgora() },1000); /* 28/10/2026: não junta durante o arraste */
 
 /* ===== MINHA POSIÇÃO (só administrador): bolinha azul + distância até o veículo =====
    A posição do celular fica só no navegador: não é enviada para servidor nenhum. */
@@ -5841,22 +5841,41 @@ function deslizePos(v){
     } }
   return {ll:ul.ll,r:ul.r};
 }
+/* 28/10/2026 (dono: "com todos os veículos o mapa trava ao arrastar"): o laço de animação ficou mais leve.
+   - enquanto o dedo arrasta ou dá zoom no mapa, os veículos não são redesenhados (voltam na hora que solta);
+   - veículo fora da tela não é redesenhado a cada quadro (só a posição final);
+   - cor e giro da setinha são conferidos 5x por segundo (antes: em todo quadro, para todos os veículos);
+   - os elementos do marcador ficam guardados (antes eram procurados de novo em todo quadro). */
+let mapaMexe=false, mapaMexeEm=0, animAparUlt=0;
+map.on('dragstart zoomstart',()=>{ mapaMexe=true; mapaMexeEm=performance.now() });
+map.on('moveend zoomend',()=>{ mapaMexe=false });
+function animEls(v){
+  const el=v.marker._icon||null;
+  if(v._icoEl!==el){ v._icoEl=el; v._carEl=el?el.querySelector('.car'):null; v._girEl=(v._carEl&&v._carEl.classList.contains('veic'))?v._carEl.querySelector('.vgir'):null }
+  return v._carEl;
+}
 function animar(now){
-  if(arrastando){ requestAnimationFrame(animar); return } /* 16/10/2026: dedo no cartão: o mapa espera (fica liso) */
-  const dz=deslizeLigado();
+  if(mapaMexe && now-mapaMexeEm>6000) mapaMexe=false; /* trava de segurança: nunca fica parado para sempre */
+  if(arrastando || mapaMexe){ requestAnimationFrame(animar); return } /* 16/10/2026: dedo no cartão: o mapa espera (fica liso). 28/10: dedo no mapa também */
+  const dz=deslizeLigado(), apar=now-animAparUlt>200, sel=selId;
+  if(apar) animAparUlt=now;
+  let bb=null; try{ bb=map.getBounds().pad(0.25) }catch(e){}
   veiculos.forEach(v=>{
     if(!v.marker) return;
     v._rumoVis=null;
     const dp=dz && !v.bloq ? deslizePos(v) : null;
-    if(dp){ v.pos=dp.ll; v.marker.setLatLng(v.pos); v._rumoVis=dp.r; v.de=null; v.para=null }
+    const naTela=!bb || !v.pos || bb.contains(v.pos) || v.id===sel;
+    if(dp){ v.pos=dp.ll; if(naTela) v.marker.setLatLng(v.pos); else v._fora=true; v._rumoVis=dp.r; v.de=null; v.para=null }
     else if(v.de && v.para){
       const f=Math.min(1,(now-v.t0)/INTERVALO);
       v.pos=[v.de[0]+(v.para[0]-v.de[0])*f, v.de[1]+(v.para[1]-v.de[1])*f];
-      v.marker.setLatLng(v.pos);
+      if(naTela || f>=1) v.marker.setLatLng(v.pos); else v._fora=true;
       if(f>=1){ v.de=null; v.para=null }
     }
-    const el=v.marker.getElement();
-    if(el){const c=el.querySelector('.car');if(c){const ang='rotate('+(v._rumoVis!=null?v._rumoVis:v.rumo)+'deg)';if(c.classList.contains('veic')){const g=c.querySelector('.vgir');if(g&&g.style.transform!==ang)g.style.transform=ang;if(c.style.transform)c.style.transform=''}else c.style.transform=(v.bloq||v.tag)?'none':ang;const cor=v.tag?(v.fix&&Date.now()-v.fix<TAG_VELHA_MS?'c-tag':'c-tag c-tagvelha'):v.bloq?'c-bloq':corSeta(v);if(c.dataset.cor!==cor){c.classList.remove('c-mov','c-par','c-sem','c-bloq','c-tag','c-tagvelha');cor.split(' ').forEach(k=>c.classList.add(k));c.dataset.cor=cor}}}
+    if(naTela && v._fora){ v._fora=false; if(v.pos) v.marker.setLatLng(v.pos) } /* voltou para a tela: põe no lugar certo */
+    if(!(apar || v.id===sel) || !naTela) return;
+    const c=animEls(v);
+    if(c){const ang='rotate('+(v._rumoVis!=null?v._rumoVis:v.rumo)+'deg)';if(v._girEl){const g=v._girEl;if(g.style.transform!==ang)g.style.transform=ang;if(c.style.transform)c.style.transform=''}else{const tr=(v.bloq||v.tag)?'none':ang;if(c.style.transform!==tr)c.style.transform=tr}const cor=v.tag?(v.fix&&Date.now()-v.fix<TAG_VELHA_MS?'c-tag':'c-tag c-tagvelha'):v.bloq?'c-bloq':corSeta(v);if(c.dataset.cor!==cor){c.classList.remove('c-mov','c-par','c-sem','c-bloq','c-tag','c-tagvelha');cor.split(' ').forEach(k=>c.classList.add(k));c.dataset.cor=cor}}
   });
   const a=ativo();
   if(seguir && a) centralizar(a.pos);
