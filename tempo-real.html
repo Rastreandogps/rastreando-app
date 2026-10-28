@@ -9650,11 +9650,12 @@ function desenharFaturas(){
         (f.descricao?'<div class="fo">'+esc(f.descricao)+'</div>':'')+'</div>'+bad+'</div><div class="bts">'+pix+ver+'</div></div>';
     }).join('');
   }
+  const hAbertas=h; /* 28/10/2026 (dono): com fatura vencida, o boleto vem primeiro e o plano anual depois */
   if(d.pagas.length){
     h+='<div class="fsec">PAGAS RECENTEMENTE</div>';
     h+=d.pagas.map(f=>'<div class="fcard"><div class="ft"><div><div class="fv" style="font-size:16px">'+brl(f.valor)+'</div><div class="fd">Vencimento '+dmy(f.vencimento)+(f.pagoEm?' · pago em '+dmy(f.pagoEm):'')+'</div></div><span class="fbad p">Paga</span></div></div>').join('');
   }
-  L.innerHTML=anualHtml()+h;
+  L.innerHTML = rs.qtdVencidas>0 ? hAbertas+anualHtml()+h.slice(hAbertas.length) : anualHtml()+h;
   if(!ehAdmin && !anualInfo && !anualBuscando) anualCarregar();
 }
 /* 19/10/2026 (decisão do dono): PLANO ANUAL — paga 10, usa 12, no PIX. O servidor calcula pela mensalidade do cliente. */
