@@ -6428,9 +6428,10 @@ let vFiltro='todos';
 function desenharLista(){
   try{ if(ladoLigado()) ladoDesenhar() }catch(e){}
   const q=$('vSearch').value.trim().toLowerCase();
+  if(q) buscaCliGarantir(desenharLista);
   const tem=temTags(); $('vFil').style.display=tem?'':'none'; if(!tem) vFiltro='todos'; /* 16/10/2026: filtro só aparece se houver tag */
   abasDesenhar();
-  const lista=veiculos.filter(v=>abaMostra(v) && (vFiltro==='todos'||(vFiltro==='tag'?v.tag:!v.tag)) && (!q||v.nome.toLowerCase().includes(q)||v.placa.toLowerCase().includes(q)));
+  const lista=veiculos.filter(v=>abaMostra(v) && (vFiltro==='todos'||(vFiltro==='tag'?v.tag:!v.tag)) && (!q||v.nome.toLowerCase().includes(q)||v.placa.toLowerCase().includes(q)||buscaCliTxt(v).includes(q))); /* 28/10/2026: também pelo nome do cliente */
   const naAba=!!abaAtiva();
   $('vList').innerHTML = lista.map(v=>{
     const [t,c]=status(v);
@@ -6557,19 +6558,28 @@ $('vSearch').addEventListener('input',desenharLista);
 function abrirPick(){
   if(veiculos.length<2) return;
   $('pickBusca').value='';
-  $('pickBusca').placeholder = ehAdmin ? 'Buscar nome, placa, IMEI ou chip' : 'Buscar nome ou placa';
+  $('pickBusca').placeholder = ehAdmin ? 'Buscar nome, placa, cliente, IMEI ou chip' : 'Buscar nome ou placa';
   desenharPick(); abrir('mPick'); setTimeout(pickVV,0);
   const on=$('pickList').querySelector('.pitem.on'); if(on) try{ on.scrollIntoView({block:'nearest'}) }catch(e){}
   if(window.matchMedia && matchMedia('(pointer:fine)').matches) setTimeout(()=>{ try{ $('pickBusca').focus() }catch(e){} },60);
 }
+/* 28/10/2026: texto do cliente do veículo para a busca (administrador: nome do cliente, contato, dono da retirada) */
+let buscaCliPedido=false;
+function buscaCliGarantir(redesenhar){ /* administrador no celular: a lista de clientes ainda não veio (só vinha ao abrir o Admin) */
+  if(!ehAdmin || buscaCliPedido || (usuarios.length && Object.keys(vinculos).length)) return; buscaCliPedido=true;
+  (async()=>{ try{ if(!usuarios.length) await carregarUsuarios(); if(!Object.keys(vinculos).length) await carregarVinculos() }catch(e){} try{ redesenhar&&redesenhar() }catch(e){} })();
+}
+function buscaCliTxt(v){ try{ return (String(v.contato||'')+' '+(ehAdmin?(rotuloCliente(v)||'')+' '+(v.retDono||''):'')).toLowerCase() }catch(e){ return '' } }
 /* aparelhos da lista (já filtrados pela busca) */
 function listaPick(){
   const q=$('pickBusca').value.trim().toLowerCase(), qa=q.replace(/[^a-z0-9]/g,''), qd=soDigitos(q);
+  if(q) buscaCliGarantir(desenharPick);
   return veiculos.slice().sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR')).filter(v=>{
     if(!q) return true;
     if(String(v.nome||'').toLowerCase().includes(q)) return true;
     if(qa && String(v.placa||'').toLowerCase().replace(/[^a-z0-9]/g,'').includes(qa)) return true;
     if(ehAdmin && qd.length>=3 && (soDigitos(v.imei).includes(qd) || soDigitos(v.fone).includes(qd))) return true;
+    if(buscaCliTxt(v).includes(q)) return true; /* 28/10/2026 (dono): igual ao computador, acha pelo nome do cliente/empresa */
     return false;
   });
 }
