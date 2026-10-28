@@ -363,9 +363,10 @@ body.mapa-google #map .leaflet-top.leaflet-left .leaflet-control-attribution{mar
 .pnorig{display:inline-block;margin-left:4px;padding:1px 8px;border-radius:999px;font-size:11px;font-weight:800;background:var(--card2);border:1px solid var(--line);color:var(--mut)}
 .pnorig.anu{background:rgba(124,58,237,.12);border-color:rgba(124,58,237,.45);color:#7c3aed}
 .pncard{cursor:pointer;position:relative}
-#mParcEd{align-items:center;padding:16px;z-index:1200} /* fica por cima da janela dos parceiros */
+#mParcEd,#mParcImp{align-items:center;padding:16px;z-index:1200} /* fica por cima da janela dos parceiros */
 #mParcEd .almx{width:38px;height:38px;flex:none;border-radius:50%;background:var(--card2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;cursor:pointer}
 #mParcEd .almx svg{width:18px;height:18px;fill:none;stroke:var(--txt);stroke-width:2.4;stroke-linecap:round}
+.pimtx{font-size:13px;color:var(--mut);margin:0 0 10px}.pimgr{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:10px}.pimatd{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13.5px;margin:4px 0 10px}.pimatd label{display:inline-flex;gap:5px;align-items:center}#piTxt{width:100%;box-sizing:border-box;font:12.5px/1.4 ui-monospace,monospace;resize:vertical}.pimprev{max-height:240px;overflow:auto;margin:8px 0;font-size:13px}.pimprev .pr{display:flex;justify-content:space-between;gap:10px;padding:6px 8px;border-bottom:1px solid var(--line)}.pimprev .pr b{min-width:0;overflow-wrap:anywhere}.pimprev .pr i{font-style:normal;white-space:nowrap;color:var(--mut)}.pimprev .pr.ok i{color:#16a34a}.pimprev .pr.er i{color:var(--red2,#dc2626)}@media(max-width:520px){.pimgr{grid-template-columns:1fr}} /* 28/10/2026 */
 .pnwpp{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;margin-left:8px;vertical-align:-6px;border-radius:50%;background:rgba(37,211,102,.14);border:1px solid rgba(37,211,102,.45);color:#16a34a}
 .pnwpp svg{width:15px;height:15px}
 #mParcEd .peops .op{display:block;width:100%;text-align:left;padding:10px 12px;margin:6px 0 0;border-radius:10px;border:1px solid var(--line);background:var(--card2);color:var(--txt);font:inherit;font-size:13.5px;cursor:pointer}
@@ -4304,6 +4305,19 @@ nav button:not(.on) .nemo{filter:saturate(.85)}
 </div>
 <!-- 25/10/2026 (dono): PAINEL completo de serviços, fichas e parceiros (no lugar dos pop-ups "pendências" e "Parceiros") -->
 <!-- 27/10/2026 (dono): admin edita o cadastro do parceiro -->
+<div class="modal" id="mParcImp"><!-- 28/10/2026 (dono): importar prestadores em massa -->
+  <div class="box2" style="max-width:640px;border-radius:18px">
+    <div class="almtopo" style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px"><h3 style="margin:0">Importar prestadores</h3><button class="almx" data-close type="button" aria-label="Fechar" title="Fechar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <p class="pimtx">Cole uma linha por prestador, no formato <b>nome ; WhatsApp ; endereço ; latitude ; longitude</b>. A página dos reboques tem o botão que copia a lista pronta.</p>
+    <div class="pimgr"><div><label class="flbl" for="piCat">Categoria de todos</label><select class="fld" id="piCat"></select></div>
+    <div><label class="flbl">Atende</label><div class="pimatd"><label><input type="checkbox" data-piatd="carro" checked> Carro</label><label><input type="checkbox" data-piatd="moto" checked> Moto</label><label><input type="checkbox" data-piatd="utilitario"> Utilitário</label><label><input type="checkbox" data-piatd="diesel"> Pesados</label></div></div></div>
+    <div class="pimatd"><label><input type="checkbox" id="pi24" checked> 24 horas</label><label><input type="checkbox" id="piLocal" checked> Vai até o cliente</label><label><input type="checkbox" id="piFechado"> Entrar como fechado (não aparece para os clientes)</label></div>
+    <textarea class="fld" id="piTxt" rows="7" placeholder="Reboque Exemplo 24h ; 21999998888 ; Rua Exemplo, 10 - Centro, Duque de Caxias - RJ ; -22.78 ; -43.30"></textarea>
+    <div id="piPrev" class="pimprev"></div>
+    <div class="ferro" id="piErro"></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-out" id="piConf" type="button">Conferir lista</button><button class="btn" id="piIr" type="button" style="background:#16a34a;color:#fff;border:0" disabled>Importar</button></div>
+  </div>
+</div>
 <div class="modal" id="mParcEd">
   <div class="box2" style="max-width:560px;border-radius:18px">
     <div class="almtopo" style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px"><h3 style="margin:0" id="peTit">Editar parceiro</h3><button class="almx" data-close type="button" aria-label="Fechar" title="Fechar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
@@ -4340,7 +4354,7 @@ nav button:not(.on) .nemo{filter:saturate(.85)}
         <div id="pnServLista"></div>
       </div>
       <div id="pnParc" hidden>
-        <div class="pclink pcmini" title="gps.rastreandogpsbr.com.br/parceiro.html"><button type="button" class="pcadd" id="paAdd">＋ Adicionar prestador</button><span>🔗 Link de cadastro</span><a href="#" id="paCopiar" title="Copiar link" aria-label="Copiar link"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg></a><a href="#" class="wpp" id="paWpp" title="Mandar no WhatsApp" aria-label="Mandar no WhatsApp"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21l1.7-5A8.5 8.5 0 1 1 8 19.3z"/><path d="M9 10c0 3 2 5 5 5l1.2-1.2-2-1-1 .6c-.8-.4-1.4-1-1.8-1.8l.6-1-1-2z"/></svg></a></div>
+        <div class="pclink pcmini" title="gps.rastreandogpsbr.com.br/parceiro.html"><button type="button" class="pcadd" id="paAdd">＋ Adicionar prestador</button><button type="button" class="pcadd" id="paImp">⇪ Importar lista</button><span>🔗 Link de cadastro</span><a href="#" id="paCopiar" title="Copiar link" aria-label="Copiar link"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg></a><a href="#" class="wpp" id="paWpp" title="Mandar no WhatsApp" aria-label="Mandar no WhatsApp"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21l1.7-5A8.5 8.5 0 1 1 8 19.3z"/><path d="M9 10c0 3 2 5 5 5l1.2-1.2-2-1-1 .6c-.8-.4-1.4-1-1.8-1.8l.6-1-1-2z"/></svg></a></div>
         <input class="fld pnbusca" id="pnParcBusca" type="search" placeholder="Buscar parceiro: nome, bairro, WhatsApp, serviço..." autocomplete="off"><!-- 25/10/2026 (dono) -->
         <div class="pnfil" id="pnParcFil"><button type="button" data-f="todos" class="on">Todos</button><button type="button" data-f="analise">Em análise</button><button type="button" data-f="aprovado">Aprovados</button><button type="button" data-f="fora">Recusados/suspensos</button><button type="button" data-f="rascunho">Rascunhos</button></div>
         <div class="pnfil" id="pnParcCat"></div>
@@ -14141,6 +14155,31 @@ function peNovo(){ peId=null; peBase=null; $('peTit').textContent='Adicionar pre
   document.querySelectorAll('#mParcEd [data-peatd]').forEach(x=>x.checked=false); $('peAtdUtil').hidden=true; $('peOps').innerHTML=''; $('peErro').textContent=''; peMostrar(); abrir('mParcEd') }
 $('peCat').onchange=()=>{ $('peAtdUtil').hidden=$('peCat').value!=='reboque' };
 $('paAdd').onclick=peNovo;
+/* ===== 28/10/2026 (dono): IMPORTAR PRESTADORES EM MASSA — cada linha vira um parcAdmCriar (mesmo cadastro do "Adicionar prestador") ===== */
+let piLinhas=[];
+function piLer(){ return $('piTxt').value.split(/\r?\n/).map(l=>l.trim()).filter(Boolean).map((l,i)=>{ const c=l.split(/\s*[;\t]\s*/);
+  const nome=(c[0]||'').slice(0,50), w=String(c[1]||'').replace(/\D/g,'').replace(/^55(?=\d{10,11}$)/,''), end=c[2]||'', lat=parseFloat(String(c[3]||'').replace(',','.')), lon=parseFloat(String(c[4]||'').replace(',','.'));
+  let erro=''; if(nome.length<2) erro='sem nome'; else if(!/^\d{10,11}$/.test(w)) erro='WhatsApp inválido'; else if(!(Math.abs(lat)<=90&&Math.abs(lon)<=180&&lat&&lon)) erro='sem latitude/longitude';
+  return {i,nome,w,end,lat,lon,erro,st:''} }) }
+function piPintar(){ $('piPrev').innerHTML=piLinhas.map(x=>'<div class="pr'+(x.st==='ok'?' ok':(x.erro||x.st==='er')?' er':'')+'"><b>'+esc(x.nome||'(sem nome)')+' · '+esc(x.w||'')+'</b><i>'+esc(x.st==='ok'?'✓ cadastrado':x.st==='er'?x.msg:x.erro?x.erro:x.st==='...'?'enviando...':'pronto')+'</i></div>').join('');
+  const n=piLinhas.filter(x=>!x.erro&&x.st!=='ok'&&x.msg!=='já cadastrado').length; $('piIr').disabled=!n; $('piIr').textContent=n?'Importar '+n:'Importar' }
+$('paImp').onclick=()=>{ $('piCat').innerHTML=PC_CATS.map(c=>'<option value="'+c[0]+'"'+(c[0]==='reboque'?' selected':'')+'>'+esc(c[1])+'</option>').join(''); $('piErro').textContent=''; piLinhas=[]; piPintar(); abrir2('mParcImp') };
+function abrir2(id){ $(id).classList.add('show') }
+$('mParcImp').addEventListener('click',e=>{ if(e.target.closest('[data-close]')||e.target.id==='mParcImp') $('mParcImp').classList.remove('show') });
+$('piConf').onclick=()=>{ piLinhas=piLer(); $('piErro').textContent=piLinhas.length?'':'Cole pelo menos uma linha.'; piPintar() };
+$('piTxt').addEventListener('input',()=>{ piLinhas=piLer(); piPintar() });
+$('piIr').onclick=async()=>{ const b=$('piIr'); b.disabled=true; $('piConf').disabled=true;
+  const cat=$('piCat').value, atende=[...document.querySelectorAll('#mParcImp [data-piatd]:checked')].map(x=>x.dataset.piatd), h24=$('pi24').checked, local=$('piLocal').checked, fechado=$('piFechado').checked;
+  let ok=0, er=0;
+  for(const x of piLinhas){ if(x.erro||x.st==='ok'||x.msg==='já cadastrado') continue; x.st='...'; piPintar();
+    try{ const j=await rbApi('parcAdmCriar',{dados:{categoria:cat,whatsapp:x.w,nome:x.nome,base:{lat:x.lat,lon:x.lon,end:x.end.slice(0,140)},atende:cat==='reboque'?atende:atende.filter(a=>a!=='utilitario'),atendeLocal:local,h24,horario:h24?'24 horas':''}});
+      if(fechado) try{ await rbApi('parcAdmDisponivel',{id:j.id,disponivel:false}) }catch(_){}
+      x.st='ok'; ok++ }
+    catch(e){ x.st='er'; x.msg=/já tem cadastro/i.test(e.message||'')?'já cadastrado':(e.message||'erro'); er++ }
+    piPintar() }
+  $('piConf').disabled=false; toast(ok+' prestador'+(ok===1?'':'es')+' cadastrado'+(ok===1?'':'s')+(er?' · '+er+' com aviso (veja a lista)':'')+'.',6000); try{ pcAdmCarregar() }catch(_){}
+};
+
 $('peBuscar').onclick=peBuscar; $('peEnd').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); peBuscar() } });
 $('peOps').onclick=e=>{ const b=e.target.closest('[data-peop]'); if(!b) return; peBase=window._peOps[+b.dataset.peop]; $('peOps').innerHTML=''; $('peEnd').value=''; peMostrar() };
 $('peSalvar').onclick=async()=>{ const b=$('peSalvar'); $('peErro').textContent=''; b.disabled=true;
