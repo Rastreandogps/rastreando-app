@@ -13570,8 +13570,9 @@ function rbDesenhar(){
 function rbDetHtml(r,i){
   return '<div class="pcdtit">Valores</div><div class="pcserv">'+r.tabelas.map(t=>'<div><span>'+esc(t.nome)+'</span><b>'+(t.sobConsulta?'orçamento na hora':'saída '+brl2(t.saida)+(t.kmInc?' <small style="font-weight:500;opacity:.8">(até '+t.kmInc+' km)</small>':'')+'<small style="display:block;font-weight:500;opacity:.8">+ '+brl2(t.kmExtra)+' por km excedente</small>')+'</b></div>').join('')+'</div>'+
     '<div class="rtbt"><a href="#" data-rbcota="'+i+'" style="background:rgba(14,165,233,.14);border-color:rgba(14,165,233,.4);color:#0ea5e9">Ver valor até o destino</a>'+
-    (r.fone?'<a href="tel:+55'+esc(r.fone)+'">Ligar</a>':'')+(r.wpp?'<a class="wpp" href="https://wa.me/55'+esc(r.wpp)+'?text='+encodeURIComponent(rbMsg(r,null))+'" target="_blank" rel="noopener">WhatsApp</a>':'')+'</div>';
+    (r.fone?'<a href="tel:+55'+esc(r.fone)+'">Ligar</a>':'')+(r.wpp?'<a class="wpp" href="https://wa.me/55'+esc(r.wpp)+'" target="_blank" rel="noopener">WhatsApp</a>':'')+'</div>';
 }
+/* 28/10/2026 (dono): o WhatsApp do prestador abre SEM mensagem pronta; rbMsg/pcMsg ficam guardadas para voltar se quiser */
 function rbMsg(r,cota){ /* 25/10/2026 (pedido do dono): mensagem organizada em linhas, com emojis */
   const v=rbCarroAtual, L=[];
   L.push('Olá, '+r.nome+'! 👋');
@@ -13625,7 +13626,7 @@ $('rbcCalc').onclick=async()=>{
     const j=await rbApi('reboqueCotar',{reboqueId:r.id,origem:{lat:v.pos[0],lon:v.pos[1]},destino:{lat:rbCota.dest.lat,lon:rbCota.dest.lon}});
     $('rbcOut').innerHTML='<div class="rbval"><div class="rbvkm">Percurso estimado (base → seu veículo → destino → base): <b>'+j.km+' km</b>'+(j.minutos!=null?' · chega até você em <b>~'+j.minutos+' min</b>':'')+(j.aviso?'<br>'+esc(j.aviso):'')+'</div>'+
       j.valores.map(x=>x.sobConsulta?'<div class="rbvl"><div>'+esc(x.nome)+'<small>o reboquista passa o valor pelo WhatsApp</small></div><b>Orçamento na hora</b></div>':'<div class="rbvl"><div>'+esc(x.nome)+'<small>saída '+brl2(x.saida)+(x.kmInc?' até '+x.kmInc+' km':'')+(x.kmExtras?' + '+x.kmExtras+' km × '+brl2(x.kmExtra):'')+'</small></div><b>'+brl2(x.total)+'</b></div>').join('')+
-      '<div class="rtbt">'+(j.fone?'<a href="tel:+55'+esc(j.fone)+'">Ligar</a>':'')+(j.wpp?'<a class="wpp" href="https://wa.me/55'+esc(j.wpp)+'?text='+encodeURIComponent(rbMsg(r,j))+'" target="_blank" rel="noopener">Chamar no WhatsApp</a>':'')+'</div>'+
+      '<div class="rtbt">'+(j.fone?'<a href="tel:+55'+esc(j.fone)+'">Ligar</a>':'')+(j.wpp?'<a class="wpp" href="https://wa.me/55'+esc(j.wpp)+'" target="_blank" rel="noopener">Chamar no WhatsApp</a>':'')+'</div>'+
       '<div class="rbnota">Valor estimado pelo app. Pedágio, noite, fim de semana e subsolo são combinados com o reboquista.</div>'+(typeof drBotoesCota==='function'?drBotoesCota(j):'')+'</div>';
     window._rbcJ=j;
   }catch(e){ $('rbcOut').innerHTML='<div class="rtvz">'+esc(e.message||'Não consegui calcular.')+'</div>' }
@@ -14024,7 +14025,7 @@ function pcDesenhar(nome,anexar){ /* anexar=true: junta aos reboquistas com rast
     '<div class="pcserv">'+(p.servicos||[]).map(s=>'<div><span>'+esc(s.nome)+'</span><b>'+(s.sobConsulta||!(s.aPartir>0)?(p.categoria==='reboque'?'orçamento na hora':'sob consulta'):(p.categoria==='reboque'?'saída '+brl2(s.aPartir):'a partir de '+brl2(s.aPartir)))+(p.categoria==='reboque'&&s.kmExtra>0?'<small style="display:block;font-weight:500;opacity:.8">+ '+brl2(s.kmExtra)+' por km excedente</small>':'')+'</b></div>').join('')+
       (p.atendeLocal&&p.deslocamento&&p.deslocamento.fixo?'<div><span>Deslocamento</span><b>'+brl2(p.deslocamento.fixo)+'</b></div>':'')+'</div>'+
     (p.obs?'<div class="rtinfo" style="margin-top:8px">'+esc(p.obs)+'</div>':'')+
-    '<div class="rtbt"><a class="wpp" href="https://wa.me/55'+esc(p.wpp)+'?text='+encodeURIComponent(pcMsg(p))+'" target="_blank" rel="noopener">Pedir orçamento</a>'+(p.fone?'<a href="tel:+55'+esc(p.fone)+'">Ligar</a>':'')+
+    '<div class="rtbt"><a class="wpp" href="https://wa.me/55'+esc(p.wpp)+'" target="_blank" rel="noopener">Pedir orçamento</a>'+(p.fone?'<a href="tel:+55'+esc(p.fone)+'">Ligar</a>':'')+
       (fichas?'<a href="#" data-pcpag="'+i+'" class="pcpagbt">'+DR_COIN+' Pagar com fichas</a>':'')+'</div></div>'+
     '<div class="pcpag" id="pcPag'+i+'" hidden><label class="flbl">Valor combinado com o '+esc(String(nome).toLowerCase())+' (R$)</label><div class="rbcbusca"><input class="fld" data-pcval="'+i+'" inputmode="decimal" autocomplete="off" placeholder="0,00"><button class="btn btn-out" type="button" data-pcres="'+i+'">Reservar fichas</button></div><small>Você tem '+((DR.dados&&DR.dados.livres)||0)+' fichas livres. Elas ficam reservadas até o parceiro concluir.</small></div>');
   const html=''; /* 26/10/2026 (dono): a lista saiu; o prestador abre numa janela */
