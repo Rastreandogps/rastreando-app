@@ -5229,17 +5229,22 @@ VEIC_ICONES.tanque=Object.assign({},VEIC_ICONES.caminhao,{n:'Tanque',cor:'#cbd5e
 VEIC_ICONES.retro=Object.assign({},VEIC_ICONES.munck,{n:'Retro',cor:'#facc15'});
 VEIC_ICONES.carregadeira=Object.assign({},VEIC_ICONES.vasculhante,{n:'Pá mecânica',cor:'#facc15'});
 VEIC_ICONES.escavadeira=Object.assign({},VEIC_ICONES.munck,{n:'Escavadeira',cor:'#facc15'});
-const VEIC_ORDEM=['carro','suv','compacto','moto','motoesp','motobau','picape','van','caminhao','onibus','rodoviario','guincho','prancha','pranchacarro','vasculhante','tanque','munck','reboque','reboqueonibus','carreta','retro','carregadeira','escavadeira'];
+VEIC_ICONES.naked=Object.assign({},VEIC_ICONES.moto,{n:'Naked',cor:'#1f2937'});
+VEIC_ICONES.trail=Object.assign({},VEIC_ICONES.moto,{n:'Trail',cor:'#cbd5e1'});
+VEIC_ICONES.bigtrail=Object.assign({},VEIC_ICONES.moto,{n:'Big trail',cor:'#f8fafc'});
+VEIC_ICONES.scooter=Object.assign({},VEIC_ICONES.moto,{n:'Scooter',cor:'#f8fafc'});
+VEIC_ICONES.scooteradv=Object.assign({},VEIC_ICONES.moto,{n:'Scooter ADV',cor:'#1f2937'});
+const VEIC_ORDEM=['carro','suv','compacto','moto','motoesp','motobau','naked','trail','bigtrail','scooter','scooteradv','picape','van','caminhao','onibus','rodoviario','guincho','prancha','pranchacarro','vasculhante','tanque','munck','reboque','reboqueonibus','carreta','retro','carregadeira','escavadeira'];
 /* ===== ÍCONES REALISTAS (28/10/2026, pedido do dono) =====
    Fotos vistas de cima (pasta icv/, WebP leve). Cada tipo tem algumas cores; a cor escolhida antes (qualquer uma)
    vira a foto de cor mais parecida, então quem já tinha ícone não precisa fazer nada. Tipo sem foto usa o desenho antigo.
    Estilo "Simples" (desenho antigo, cor livre) fica guardado no aparelho: rg_icreal = '0'. */
-const IC_NOMES={branco:'#f8fafc',prata:'#cbd5e1',preto:'#1f2937',vermelho:'#dc2626',azul:'#2563eb',amarelo:'#facc15'};
+const IC_NOMES={verde:'#4d5b3a',branco:'#f8fafc',prata:'#cbd5e1',preto:'#1f2937',vermelho:'#dc2626',azul:'#2563eb',amarelo:'#facc15'};
 const IC_REAL={carro:['branco','preto','prata','vermelho','azul'],compacto:['branco','preto','prata','vermelho','azul'],suv:['branco','preto','prata','vermelho','azul'],picape:['branco','preto','prata','vermelho','azul'],
-  moto:['preto','vermelho','azul','branco'],motoesp:['preto','vermelho','azul','branco'],motobau:['preto','vermelho','azul','branco'],van:['branco','amarelo','vermelho','azul','preto'],
+  moto:['preto','vermelho','azul','branco'],motoesp:['preto','vermelho','azul','branco'],motobau:['preto','vermelho','azul','branco'],naked:['preto','vermelho'],trail:['prata','azul'],bigtrail:['branco','prata'],scooter:['branco','preto'],scooteradv:['preto','verde'],van:['branco','amarelo','vermelho','azul','preto'],
   onibus:['branco','azul','vermelho'],rodoviario:['branco','azul','vermelho'],tanque:['prata','branco'],caminhao:['branco'],guincho:['branco'],prancha:['branco'],pranchacarro:['branco'],
   vasculhante:['branco'],munck:['branco'],reboque:['branco'],reboqueonibus:['branco'],carreta:['branco'],retro:['amarelo'],carregadeira:['amarelo'],escavadeira:['amarelo']};
-const IC_REAL_TAM={moto:46,motoesp:46,motobau:48,carro:48,compacto:46,suv:50,picape:52,van:52}; /* em unidades do desenho (círculo = 50) */
+const IC_REAL_TAM={moto:46,motoesp:46,motobau:48,naked:46,trail:48,bigtrail:50,scooter:48,scooteradv:48,carro:48,compacto:46,suv:50,picape:52,van:52}; /* em unidades do desenho (círculo = 50) */
 const icRealOn=()=>lsGet('rg_icreal')!=='0';
 function icHex(h){ h=String(h||'').replace('#',''); return [0,2,4].map(i=>parseInt(h.substr(i,2),16)||0) }
 function icCorReal(tipo,cor){ const l=IC_REAL[tipo]; if(!l) return ''; const T=VEIC_ICONES[tipo]||{}; const c=icHex(icCorOk(cor)?cor:(T.cor||'#f8fafc'));
