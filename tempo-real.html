@@ -179,6 +179,22 @@ body.mapa-google #map .leaflet-top.leaflet-left .leaflet-control-attribution{mar
 #mReboques .box2.rbbox{overflow-y:auto}
 #mReboques #rbRola{min-height:0;flex:none}
 #mReboques #pcMais{display:none!important}
+/* 28/10/2026 (dono): sem Atualizar/Fechar embaixo (o X fica em cima); categorias minimizam; mapa maior; alerta pulsando */
+#mReboques .rtacoes{display:none!important}
+#mReboques #rbCats[hidden]{display:none!important}
+#mReboques #rbMapa{height:min(50vh,440px)}
+#mReboques.catsmin #rbMapa{height:min(66vh,640px)}
+.pctroca{flex:none;display:flex;align-items:center;gap:10px;padding:6px 8px;margin-bottom:8px;border-radius:12px;background:#fff1f1;border:2px solid #e3262f}
+.pctroca[hidden]{display:none}
+.pctroca img{width:52px;height:32px;object-fit:contain;mix-blend-mode:multiply;flex:none}
+.pctroca b{flex:1;min-width:0;font-size:14px;font-weight:800;color:#b91c1c;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pctroca button{flex:none;display:flex;align-items:center;gap:5px;padding:7px 11px;border-radius:10px;background:#fff;border:1.5px solid #e3262f;color:#e3262f;font-weight:800;font-size:12.5px;cursor:pointer}
+.pctroca button svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.rbresp.curto{display:flex;align-items:center;gap:9px;margin-top:4px;padding:7px 10px;font-size:11.5px;line-height:1.35}
+.pcalerta{flex:none;width:24px;height:24px;display:flex;border-radius:50%;animation:pcAlerta 1.4s ease-in-out infinite}
+.pcalerta svg{width:24px;height:24px}
+@keyframes pcAlerta{0%,100%{transform:scale(1);filter:drop-shadow(0 0 0 rgba(227,38,47,0))}50%{transform:scale(1.18);filter:drop-shadow(0 0 6px rgba(227,38,47,.9))}}
+@media (prefers-reduced-motion:reduce){.pcalerta{animation:none}}
 .rbico{width:44px;height:30px;border-radius:15px;background:#fff;border:2px solid #0ea5e9;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.35);cursor:pointer}
 .rbico svg{width:36px;height:auto}
 .rbico.pc{border-color:#0ea5e9} /* 26/10/2026: tudo azul, igual o reboque */
@@ -469,6 +485,7 @@ body.mapa-google #map .leaflet-top.leaflet-left .leaflet-control-attribution{mar
   #paLista>.pngrp{margin:10px 0 0!important}
   #mReboques .box2.rbbox{max-width:min(1400px,95vw);width:100%}
   #mReboques #rbMapa{height:min(52vh,560px);min-height:220px}
+  #mReboques.catsmin #rbMapa{height:min(70vh,760px)}
   #mReboques #rbLista{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:10px;align-items:start}
   #mReboques #rbLista>*{margin:0!important}
   #mReboques #rbLista>.pcdica,#mReboques #rbLista>.rtvz{grid-column:1/-1}
@@ -4210,12 +4227,13 @@ nav button:not(.on) .nemo{filter:saturate(.85)}
   <div class="box2 rbbox">
     <div class="almtopo"><h3>Socorro e serviços</h3><button class="almx" data-close type="button" aria-label="Fechar" title="Fechar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
     <div class="pccats" id="rbCats"></div><!-- 25/10/2026: categorias de parceiros -->
+    <div class="pctroca" id="pcTroca" hidden></div><!-- 28/10/2026 (dono): depois de escolher, as categorias minimizam e o mapa cresce -->
     <div class="rtsub" id="rbSub">Carregando...</div>
     <div id="rbMapa"></div>
     <div id="rbRola"><div id="rbLista"></div></div><button type="button" class="pcmais" id="pcMais" hidden></button>
     <!-- 26/10/2026 (dono): só o mapa; tocar no ícone abre a janela do prestador. Texto reforça que o prestador é independente -->
-    <div class="rbnota" id="pcNota" hidden><!-- 27/10/2026 (dono): texto explicativo saiu para o mapa ficar maior --><div class="rbresp">⚠️ <b>A Rastreando GPS não se responsabiliza pelo serviço.</b> Ele é feito por um prestador independente, que não é da Rastreando; a gente só faz a ponte.</div></div>
-    <div class="rbnota" id="rbNota"><!-- 27/10/2026 (dono): texto explicativo saiu para o mapa ficar maior --><div class="rbresp">⚠️ <b>A Rastreando GPS não se responsabiliza pelo serviço.</b> Ele é feito por um prestador independente, que não é da Rastreando; a gente só faz a ponte. Valores estimados: pedágio e adicionais são combinados com ele.</div></div>
+    <div class="rbnota" id="pcNota" hidden><!-- 28/10/2026 (dono): aviso curto, com o alerta pulsando em vermelho (o texto completo está na janela do prestador) --><div class="rbresp curto"><span class="pcalerta" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3L2 21h20L12 3z" fill="#e3262f"/><path d="M12 10v5" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/><circle cx="12" cy="18" r="1.3" fill="#fff"/></svg></span><span><b>A Rastreando GPS não se responsabiliza pelo serviço.</b> Prestador independente; a gente só faz a ponte.</span></div></div>
+    <div class="rbnota" id="rbNota"><!-- 28/10/2026 (dono): aviso curto, com o alerta pulsando em vermelho --><div class="rbresp curto"><span class="pcalerta" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3L2 21h20L12 3z" fill="#e3262f"/><path d="M12 10v5" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/><circle cx="12" cy="18" r="1.3" fill="#fff"/></svg></span><span><b>A Rastreando GPS não se responsabiliza pelo serviço.</b> Prestador independente; pedágio e adicionais combinados com ele.</span></div></div>
     <div class="rtacoes"><button class="btn btn-out" id="rbAtualizar" type="button">Atualizar</button><button class="btn btn-out" data-close type="button">Fechar</button></div>
   </div>
 </div>
@@ -13539,7 +13557,7 @@ async function mrSwTrocar(){
 /* o carro do cliente que entra na conta: o selecionado; senão, o primeiro com posição */
 function rbCarro(){ return ativo() || veiculos.find(v=>v.pos && v.visivel && !v.tag) || veiculos.find(v=>v.pos) || null }
 let pcAdmMapa=false; /* 26/10/2026 (dono): admin abre o mapa dos prestadores sem veículo */
-function rbAbrir(adm){ pcAdmMapa=adm===true; abrir('mReboques'); pcCatsDesenhar(); try{ if(drPode()) drCarregar(true) }catch(e){} rbCarregar() }
+function rbAbrir(adm){ pcAdmMapa=adm===true; pcCatsMin=false; abrir('mReboques'); pcCatsDesenhar(); try{ if(drPode()) drCarregar(true) }catch(e){} rbCarregar() }
 let pcSeq=0; /* 27/10/2026 (revisão): resposta atrasada de outra categoria é ignorada */
 async function rbCarregar(){
   if(pcCat!=='reboque'){ $('rbAtualizar').disabled=true; await pcCarregar(); $('rbAtualizar').disabled=false; return } /* 25/10/2026: categorias de parceiros */
@@ -13987,8 +14005,19 @@ function pcCatsDesenhar(){
   const CURTO={insulfilme:'Insulfilme',pintura:'Pintura',eletricista:'Eletricista',despachante:'Despachante',borracheiro:'Borracheiro'};
   $('rbCats').innerHTML=cats.map(([k,n,e])=>'<button type="button" class="pccat pcfoto'+(k===pcCat?' on':'')+'" data-pccat="'+k+'" title="'+esc(n)+'" aria-label="'+esc(n)+'"><img src="cat-'+k+'.jpg" alt="" loading="lazy"><b>'+esc(CURTO[k]||n)+'</b></button>').join('');
   $('rbNota').hidden=pcCat!=='reboque'; $('pcNota').hidden=pcCat==='reboque';
+  pcCatsMinAplicar();
 }
-$('rbCats').addEventListener('click',e=>{ const b=e.target.closest('[data-pccat]'); if(!b||b.dataset.pccat===pcCat) return; pcCat=b.dataset.pccat; pcCatsDesenhar(); rbCarregar() });
+/* 28/10/2026 (dono): ao escolher o prestador, as categorias somem e fica um botão "Trocar prestador"; o mapa ganha o espaço */
+let pcCatsMin=false;
+function pcCatsMinAplicar(){
+  const c=(PC_CATS.find(x=>x[0]===pcCat)||[])[1]||'';
+  $('rbCats').hidden=pcCatsMin; $('pcTroca').hidden=!pcCatsMin; $('mReboques').classList.toggle('catsmin',pcCatsMin);
+  if(pcCatsMin) $('pcTroca').innerHTML='<img src="cat-'+pcCat+'.jpg" alt=""><b>'+esc(c)+'</b><button type="button" id="pcTrocaBt"><svg viewBox="0 0 24 24"><path d="M4 8h13l-3-3M20 16H7l3 3"/></svg>Trocar prestador</button>';
+  setTimeout(()=>{ try{ rbMapa&&rbMapa.invalidateSize() }catch(e){} },60);
+}
+$('pcTroca').addEventListener('click',e=>{ if(!e.target.closest('#pcTrocaBt')) return; pcCatsMin=false; pcCatsMinAplicar() });
+$('rbMapa').addEventListener('click',e=>{ if(!pcCatsMin&&e.target.closest('.rbico,.pcpino')){ pcCatsMin=true; pcCatsMinAplicar() } },true);
+$('rbCats').addEventListener('click',e=>{ const b=e.target.closest('[data-pccat]'); if(!b) return; pcCatsMin=true; if(b.dataset.pccat===pcCat){ pcCatsMinAplicar(); return } pcCat=b.dataset.pccat; pcCatsDesenhar(); rbCarregar() });
 async function pcCarregar(){
   const nome=(PC_CATS.find(c=>c[0]===pcCat)||[])[1]||'';
   $('rbSub').textContent='Procurando '+nome.toLowerCase()+' perto de você...'; $('rbLista').innerHTML='';
