@@ -881,7 +881,7 @@ details.eq .einfo .t{font-size:15px;font-weight:650;white-space:nowrap;overflow:
 details.eq .einfo .s{font-size:12.5px;color:var(--mut);margin-top:2px}
 details.eq .einfo .s b{color:var(--txt);font-weight:600;letter-spacing:.02em}
 details.eq .einfo .s .chipcp{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;margin-left:5px;padding:0;border:1px solid var(--bd,#d6dde3);border-radius:6px;background:transparent;color:var(--mut);vertical-align:middle;cursor:pointer} details.eq .einfo .s .chipcp svg{width:13px;height:13px} details.eq .einfo .s .chipcp:active{transform:scale(.9)} /* 29/10/2026 */
-details.eq .einfo .s .chip55{width:auto;min-width:26px;padding:0 4px;font-size:11px;font-weight:800;letter-spacing:0;color:var(--mut)}
+details.eq .einfo .s .chip55{color:#dc2626;border-color:#f3b1b1} details.eq .einfo .s .chip55 svg{width:13px;height:13px} /* 29/10/2026 (dono): X vermelho no lugar do 55, */
 details.eq .einfo .s .chip55.on{background:#dc2626;border-color:#dc2626;color:#fff}
 #c55Box{position:fixed;right:max(14px,env(safe-area-inset-right,0px));bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:3000;width:min(360px,calc(100vw - 28px));background:#fff;color:#14202b;border:2px solid #dc2626;border-radius:14px;box-shadow:0 8px 28px rgba(0,0,0,.28);padding:10px 12px;font-size:13px}
 #c55Box .c55t{display:flex;align-items:center;justify-content:space-between;gap:8px;font-weight:800;color:#b91c1c;cursor:pointer}
@@ -10202,7 +10202,7 @@ function cartaoEquip(v,userId){
   return '<details class="eq" data-id="'+v.id+'"'+(abertosEq[v.id]?' open':'')+'><summary>'+
     '<div class="etopo"><span class="eav">'+ICO_EQ+'</span>'+
     '<div class="einfo"><div class="t">'+esc(v.nome)+' '+estEquipHtml(v)+'</div>'+
-    '<div class="s">'+(v.placa?'Placa: <b>'+esc(v.placa)+'</b> · ':'')+'Chip: '+(v.fone?'<b>'+esc(soDigitos(v.fone))+'</b><button class="chipcp" type="button" data-a="copiar" aria-label="Copiar número do chip" title="Copiar número">'+ICO_COP+'</button><button class="chipcp chip55'+(c55Tem(v.fone)?' on':'')+'" type="button" data-a="chip55" aria-label="Juntar este chip na lista para cancelar" title="Juntar na lista de chips para cancelar (55numero,)">55,</button>':'não cadastrado')+'</div>'+ /* 29/10/2026 (dono): número tudo junto + copiar pequeno */
+    '<div class="s">'+(v.placa?'Placa: <b>'+esc(v.placa)+'</b> · ':'')+'Chip: '+(v.fone?'<b>'+esc(soDigitos(v.fone))+'</b><button class="chipcp" type="button" data-a="copiar" aria-label="Copiar número do chip" title="Copiar número">'+ICO_COP+'</button><button class="chipcp chip55'+(c55Tem(v.fone)?' on':'')+'" type="button" data-a="chip55" aria-label="Juntar este chip na lista para cancelar" title="Juntar na lista de chips para cancelar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>':'não cadastrado')+'</div>'+ /* 29/10/2026 (dono): número tudo junto + copiar pequeno */
     '</div></div><div class="eclis2">'+pills+'</div>'+
     '<span class="eacoes">'+
       (v.fone?'<button class="ico cop" data-a="copiar" aria-label="Copiar número do chip" title="Copiar número">'+ICO_COP+'</button>':'')+
