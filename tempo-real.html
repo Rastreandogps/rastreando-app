@@ -879,6 +879,7 @@ details.eq .einfo{flex:1;min-width:0}
 details.eq .einfo .t{font-size:15px;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 details.eq .einfo .s{font-size:12.5px;color:var(--mut);margin-top:2px}
 details.eq .einfo .s b{color:var(--txt);font-weight:600;letter-spacing:.02em}
+details.eq .einfo .s .chipcp{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;margin-left:5px;padding:0;border:1px solid var(--bd,#d6dde3);border-radius:6px;background:transparent;color:var(--mut);vertical-align:middle;cursor:pointer} details.eq .einfo .s .chipcp svg{width:13px;height:13px} details.eq .einfo .s .chipcp:active{transform:scale(.9)} /* 29/10/2026 */
 details.eq .corpo{padding:0 14px 12px;border-top:1px solid var(--line)}
 details.eq .corpo .s{font-size:12px;color:var(--mut);margin-top:8px;word-break:break-all}
 details.eq .bts,details.cli .bts{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
@@ -10190,7 +10191,7 @@ function cartaoEquip(v,userId){
   return '<details class="eq" data-id="'+v.id+'"'+(abertosEq[v.id]?' open':'')+'><summary>'+
     '<div class="etopo"><span class="eav">'+ICO_EQ+'</span>'+
     '<div class="einfo"><div class="t">'+esc(v.nome)+' '+estEquipHtml(v)+'</div>'+
-    '<div class="s">'+(v.placa?'Placa: <b>'+esc(v.placa)+'</b> · ':'')+'Chip: '+(v.fone?'<b>'+esc(fmtFone(v.fone))+'</b>':'não cadastrado')+'</div>'+
+    '<div class="s">'+(v.placa?'Placa: <b>'+esc(v.placa)+'</b> · ':'')+'Chip: '+(v.fone?'<b>'+esc(soDigitos(v.fone))+'</b><button class="chipcp" type="button" data-a="copiar" aria-label="Copiar número do chip" title="Copiar número">'+ICO_COP+'</button>':'não cadastrado')+'</div>'+ /* 29/10/2026 (dono): número tudo junto + copiar pequeno */
     '</div></div><div class="eclis2">'+pills+'</div>'+
     '<span class="eacoes">'+
       (v.fone?'<button class="ico cop" data-a="copiar" aria-label="Copiar número do chip" title="Copiar número">'+ICO_COP+'</button>':'')+
