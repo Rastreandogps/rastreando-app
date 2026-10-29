@@ -881,6 +881,16 @@ details.eq .einfo .t{font-size:15px;font-weight:650;white-space:nowrap;overflow:
 details.eq .einfo .s{font-size:12.5px;color:var(--mut);margin-top:2px}
 details.eq .einfo .s b{color:var(--txt);font-weight:600;letter-spacing:.02em}
 details.eq .einfo .s .chipcp{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;margin-left:5px;padding:0;border:1px solid var(--bd,#d6dde3);border-radius:6px;background:transparent;color:var(--mut);vertical-align:middle;cursor:pointer} details.eq .einfo .s .chipcp svg{width:13px;height:13px} details.eq .einfo .s .chipcp:active{transform:scale(.9)} /* 29/10/2026 */
+details.eq .einfo .s .chip55{width:auto;min-width:26px;padding:0 4px;font-size:11px;font-weight:800;letter-spacing:0;color:var(--mut)}
+details.eq .einfo .s .chip55.on{background:#dc2626;border-color:#dc2626;color:#fff}
+#c55Box{position:fixed;right:max(14px,env(safe-area-inset-right,0px));bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:3000;width:min(360px,calc(100vw - 28px));background:#fff;color:#14202b;border:2px solid #dc2626;border-radius:14px;box-shadow:0 8px 28px rgba(0,0,0,.28);padding:10px 12px;font-size:13px}
+#c55Box .c55t{display:flex;align-items:center;justify-content:space-between;gap:8px;font-weight:800;color:#b91c1c;cursor:pointer}
+#c55Box .c55t span{font-weight:600;color:#64748b;font-size:12px}
+#c55Box textarea{width:100%;box-sizing:border-box;height:74px;margin:8px 0;font:12px/1.4 ui-monospace,monospace;border:1px solid #e2e8f0;border-radius:8px;padding:6px;resize:vertical;background:#f8fafc;color:#14202b;word-break:break-all}
+#c55Box .c55b{display:flex;gap:8px} #c55Box .c55b button{flex:1;border:0;border-radius:9px;padding:9px;font-weight:800;cursor:pointer}
+#c55Box .c55cp{background:#dc2626;color:#fff} #c55Box .c55lp{background:#f1f5f9;color:#334155}
+#c55Box.min textarea,#c55Box.min .c55b{display:none}
+body.dark #c55Box,[data-tema=escuro] #c55Box{background:#1b232b;color:#e8eef2} body.dark #c55Box textarea{background:#11181e;color:#e8eef2;border-color:#2a353e}
 details.eq .corpo{padding:0 14px 12px;border-top:1px solid var(--line)}
 details.eq .corpo .s{font-size:12px;color:var(--mut);margin-top:8px;word-break:break-all}
 details.eq .bts,details.cli .bts{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
@@ -10192,7 +10202,7 @@ function cartaoEquip(v,userId){
   return '<details class="eq" data-id="'+v.id+'"'+(abertosEq[v.id]?' open':'')+'><summary>'+
     '<div class="etopo"><span class="eav">'+ICO_EQ+'</span>'+
     '<div class="einfo"><div class="t">'+esc(v.nome)+' '+estEquipHtml(v)+'</div>'+
-    '<div class="s">'+(v.placa?'Placa: <b>'+esc(v.placa)+'</b> · ':'')+'Chip: '+(v.fone?'<b>'+esc(soDigitos(v.fone))+'</b><button class="chipcp" type="button" data-a="copiar" aria-label="Copiar número do chip" title="Copiar número">'+ICO_COP+'</button>':'não cadastrado')+'</div>'+ /* 29/10/2026 (dono): número tudo junto + copiar pequeno */
+    '<div class="s">'+(v.placa?'Placa: <b>'+esc(v.placa)+'</b> · ':'')+'Chip: '+(v.fone?'<b>'+esc(soDigitos(v.fone))+'</b><button class="chipcp" type="button" data-a="copiar" aria-label="Copiar número do chip" title="Copiar número">'+ICO_COP+'</button><button class="chipcp chip55'+(c55Tem(v.fone)?' on':'')+'" type="button" data-a="chip55" aria-label="Juntar este chip na lista para cancelar" title="Juntar na lista de chips para cancelar (55numero,)">55,</button>':'não cadastrado')+'</div>'+ /* 29/10/2026 (dono): número tudo junto + copiar pequeno */
     '</div></div><div class="eclis2">'+pills+'</div>'+
     '<span class="eacoes">'+
       (v.fone?'<button class="ico cop" data-a="copiar" aria-label="Copiar número do chip" title="Copiar número">'+ICO_COP+'</button>':'')+
@@ -10588,6 +10598,7 @@ $('aList').addEventListener('click',e=>{
     $('desvErro').textContent=''; $('desvSalvar').disabled=false;
     abrir('mDesv'); return;
   }
+  if(b.dataset.a==='chip55'){ c55Alternar(v.fone); return } /* 29/10/2026 (dono) */
   if(b.dataset.a==='copiar') copiar(soDigitos(v.fone)).then(()=>toast('Número copiado')).catch(()=>toast('Não foi possível copiar'));
   else if(b.dataset.a==='editar') abrirEquip(id);
   else if(/^cfg(ip|apn|reset|imediato|fabrica)$/.test(b.dataset.a)) smsConfig(v, b.dataset.a.slice(3));
@@ -14732,6 +14743,22 @@ $('emLista').addEventListener('click',async e=>{
     try{ if(typeof mapaGoogleLigar==='function' && gmPref==='google') mapaGoogleLigar() }catch(e){} /* refaz o mapa do Google no tema novo */
   });
 })();
+</script>
+<div id="c55Box" hidden><div class="c55t" id="c55Tit">Chips para cancelar (<b id="c55N">0</b>) <span>tocar para recolher</span></div>
+<textarea id="c55Txt" readonly></textarea>
+<div class="c55b"><button type="button" class="c55cp" id="c55Cp">Copiar tudo</button><button type="button" class="c55lp" id="c55Lp">Limpar lista</button></div></div>
+<script>/* 29/10/2026 (dono): botão "55," junta chips para cancelar em massa na Smart (formato 55numero,55numero). Fica guardado neste aparelho. */
+function c55Ler(){ try{ return JSON.parse(localStorage.getItem('rg_chips55')||'[]') }catch(e){ return [] } }
+function c55Num(f){ let d=String(f||'').replace(/\D/g,''); if(d.length===10||d.length===11) d='55'+d; return d }
+function c55Tem(f){ const n=c55Num(f); return !!n && c55Ler().includes(n) }
+function c55Gravar(l){ try{ localStorage.setItem('rg_chips55',JSON.stringify(l)) }catch(e){} c55Pintar() }
+function c55Alternar(f){ const n=c55Num(f); if(!n) return; const l=c55Ler(), i=l.indexOf(n); if(i>=0){ l.splice(i,1); toast('Tirado da lista: '+n) } else { l.push(n); toast('Na lista para cancelar ('+l.length+'): '+n) } c55Gravar(l) }
+function c55Pintar(){ const l=c55Ler(), bx=document.getElementById('c55Box'); if(!bx) return; bx.hidden=!l.length; document.getElementById('c55N').textContent=l.length; document.getElementById('c55Txt').value=l.join(',');
+  document.querySelectorAll('[data-a="chip55"]').forEach(b=>{ const d=b.closest('[data-id]'); const v=d&&typeof veiculos!=='undefined'?veiculos.find(x=>x.id===+d.dataset.id):null; b.classList.toggle('on',!!(v&&l.includes(c55Num(v.fone)))) }) }
+document.getElementById('c55Tit').onclick=()=>document.getElementById('c55Box').classList.toggle('min');
+document.getElementById('c55Cp').onclick=async()=>{ const t=document.getElementById('c55Txt').value; try{ await copiar(t); toast('Copiado: '+c55Ler().length+' chip(s). Cole na Smart.') }catch(e){ const x=document.getElementById('c55Txt'); x.focus(); x.select(); toast('Texto selecionado: copie com Ctrl+C') } };
+document.getElementById('c55Lp').onclick=()=>{ c55Gravar([]); toast('Lista de chips limpa.') };
+c55Pintar();
 </script>
 </body>
 </html>
