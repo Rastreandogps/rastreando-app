@@ -4335,8 +4335,8 @@ nav button:not(.on) .nemo{filter:saturate(.85)}
     <textarea class="fld" id="piTxt" rows="7" placeholder="Reboque Exemplo 24h ; 21999998888 ; Rua Exemplo, 10 - Centro, Duque de Caxias - RJ ; -22.78 ; -43.30"></textarea>
     <div id="piPrev" class="pimprev"></div>
     <div class="ferro" id="piErro"></div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-out" id="piConf" type="button">Conferir lista</button><button class="btn" id="piIr" type="button" style="background:#16a34a;color:#fff;border:0" disabled>Importar</button><button class="btn btn-out" id="piMover" type="button" title="Para quem já está cadastrado: troca a categoria para a escolhida acima">⇄ Mudar para esta categoria</button></div>
-    <p class="pimtx" style="margin-top:6px">Importou na categoria errada? Cole a mesma lista, escolha a categoria certa e toque em <b>⇄ Mudar para esta categoria</b>. Nada é apagado.</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-out" id="piConf" type="button">Conferir lista</button><button class="btn" id="piIr" type="button" style="background:#16a34a;color:#fff;border:0" disabled>Importar</button><button class="btn btn-out" id="piMover" type="button" title="Para quem já está cadastrado: troca a categoria para a escolhida acima">⇄ Mudar para esta categoria</button><button class="btn btn-out" id="piAtdFix" type="button" title="Para quem já está cadastrado: troca o Atende para o marcado acima">🚗 Corrigir o Atende</button></div>
+    <p class="pimtx" style="margin-top:6px">Importou na categoria errada? Cole a mesma lista, escolha a categoria certa e toque em <b>⇄ Mudar para esta categoria</b>. Marcou o Atende errado? Cole a lista, marque o Atende certo e toque em <b>🚗 Corrigir o Atende</b>. Nada é apagado.</p>
   </div>
 </div>
 <div class="modal" id="mParcEd">
@@ -14229,6 +14229,23 @@ $('piMover').onclick=async()=>{ piLinhas=piLer(); const cat=$('piCat').value, no
     try{ await rbApi('parcAdmEditar',{id:p.id,dados:{categoria:cat}}); x.st='ok'; x.okTx='✓ mudado para '+nomeCat; ok++ }catch(e){ x.st='er'; x.msg=e.message||'erro' }
     piPintar() }
   b.disabled=false; toast(ok+' mudado'+(ok===1?'':'s')+' para '+nomeCat+(ja?' · '+ja+' já estava'+(ja===1?'':'m'):'')+(nao?' · '+nao+' não encontrado'+(nao===1?'':'s'):'')+'.',7000); try{ pcAdmCarregar() }catch(_){}
+};
+/* 29/10/2026 (dono): corrigir o "Atende" de quem já foi importado (acha pelo WhatsApp; só troca o Atende) */
+$('piAtdFix').onclick=async()=>{ piLinhas=piLer(); const atd0=[...document.querySelectorAll('#mParcImp [data-piatd]:checked')].map(x=>x.dataset.piatd);
+  if(!piLinhas.length){ $('piErro').textContent='Cole a lista primeiro.'; return }
+  const NOME={carro:'Carro',moto:'Moto',utilitario:'Utilitário',diesel:'Pesados'};
+  const b=$('piAtdFix'); b.disabled=true; $('piIr').disabled=true; $('piErro').textContent=''; let lista=[];
+  try{ lista=(await rbApi('parcAdmLista')).lista||[] }catch(e){ $('piErro').textContent='Não consegui carregar os prestadores. Tente de novo.'; b.disabled=false; return }
+  const porW={}; lista.forEach(p=>{ porW[String(p.whatsapp||'').replace(/\D/g,'')]=p });
+  let ok=0, ja=0, nao=0;
+  for(const x of piLinhas){ if(!/^\d{10,11}$/.test(x.w)){ x.st='er'; x.msg='WhatsApp inválido'; continue }
+    const p=porW[x.w]; if(!p){ x.st='er'; x.msg='não está cadastrado'; nao++; piPintar(); continue }
+    const atd=p.categoria==='reboque'?atd0:atd0.filter(a=>a!=='utilitario'), tx=atd.length?atd.map(a=>NOME[a]).join(' · '):'nenhum';
+    const atual=(p.atende||[]).slice().sort().join(','); if(atual===atd.slice().sort().join(',')){ x.st='ok'; x.okTx='✓ já estava: '+tx; ja++; piPintar(); continue }
+    x.st='...'; piPintar();
+    try{ await rbApi('parcAdmEditar',{id:p.id,dados:{atende:atd}}); x.st='ok'; x.okTx='✓ agora atende: '+tx; ok++ }catch(e){ x.st='er'; x.msg=e.message||'erro' }
+    piPintar() }
+  b.disabled=false; toast(ok+' corrigido'+(ok===1?'':'s')+(ja?' · '+ja+' já estava'+(ja===1?'':'m')+' certo'+(ja===1?'':'s'):'')+(nao?' · '+nao+' não encontrado'+(nao===1?'':'s'):'')+'.',7000); try{ pcAdmCarregar() }catch(_){}
 };
 $('peBuscar').onclick=peBuscar; $('peEnd').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); peBuscar() } });
 $('peOps').onclick=e=>{ const b=e.target.closest('[data-peop]'); if(!b) return; peBase=window._peOps[+b.dataset.peop]; $('peOps').innerHTML=''; $('peEnd').value=''; peMostrar() };
