@@ -7372,7 +7372,7 @@ const SMS_CARD=[
   {t:'nob',nome:'Plataforma NOB',desc:'Transfere o aparelho para a NOB',cls:'aviso'}, /* 14/10/2026 (pedido do dono) */
   {t:'gpsOn',nome:'GPS desliga c/ ignição',desc:'Ativar a economia da bateria',cls:''}, /* 14/10/2026 (pedido do dono) */
   {t:'gpsOff',nome:'GPS sempre ligado',desc:'Desativar a economia do GPS',cls:''},
-  {t:'catalogo',nome:'Catálogo',desc:'Outros comandos (timer, sono, alarmes…)',cls:''} /* 14/10/2026 */
+  {t:'catalogo',nome:'Catálogo / comando livre',desc:'Outros comandos ou digite qualquer comando (ex.: Suntech)',cls:''} /* 14/10/2026 */
 ];
 function abrirCartaoSms(){
   const v=cartao(); if(!v || !ehAdmin) return;
@@ -11058,7 +11058,7 @@ $('eSalvar').onclick=async ()=>{
   const erro=m=>{ $('eErro').textContent=m };
   const nome=$('eNome').value.trim(), imei=soDigitos($('eImei').value), fone=sem55($('eFone').value);
   if(!nome) return erro('Informe o nome do veículo ou equipamento.');
-  if(!editandoId && imei.length!==15) return erro('O IMEI precisa ter 15 números.');
+  if(!editandoId && imei.length!==15 && !(imei.length>=9&&imei.length<=10)) return erro('O IMEI precisa ter 15 números (ou o identificador do Suntech, com 9 ou 10).'); /* 29/10/2026: Suntech usa ID de 9/10 dígitos */
   if(fone && fone.length<10) return erro('O número do chip precisa ter DDD e o número.');
   /* placa: só letras e números, maiúsculas (padrão antigo ABC1234 ou Mercosul ABC1D23) */
   const placa=$('ePlaca').value.toUpperCase().replace(/[^A-Z0-9]/g,'');
@@ -11585,7 +11585,7 @@ async function imConferir(){
   const clientes=usuarios.filter(u=>!u.administrator);
   r.linhas.forEach(l=>{
     const e=[];
-    if(l.imei.length!==15) e.push(l.imei?'IMEI com '+l.imei.length+' números (precisa de 15)':'falta o IMEI');
+    if(l.imei.length!==15 && !(l.imei.length>=9&&l.imei.length<=10)) e.push(l.imei?'IMEI com '+l.imei.length+' números (precisa de 15, ou 9/10 no Suntech)':'falta o IMEI'); /* 29/10/2026: Suntech */
     else if(imeisSrv.has(l.imei)) e.push('IMEI já cadastrado em "'+imeisSrv.get(l.imei)+'"');
     else if(contI[l.imei]>1) e.push('IMEI repetido na lista');
     if(l.chip){
