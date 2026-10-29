@@ -3817,6 +3817,13 @@ nav button:not(.on) .nemo{filter:saturate(.85)}
         <div class="imwrap" id="imCorpo"></div>
         <div class="improg" id="imProg"></div>
         <div class="imsms" id="imSms" style="display:none">
+          <div id="imVinc" style="margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--line)"><!-- 29/10/2026 (dono): vincular depois, em massa -->
+            <h4>Vincular a um cliente</h4>
+            <p style="margin-bottom:6px">Esqueceu o cliente? Escolha aqui e vincule de uma vez os equipamentos marcados na lista.</p>
+            <input class="fld" id="imVBusca" type="search" placeholder="Buscar cliente (nome, login ou telefone)" autocomplete="off" style="margin-bottom:6px">
+            <div style="display:flex;gap:8px;flex-wrap:wrap"><select class="fld" id="imVCli" style="flex:1;min-width:200px"></select><button class="btn btn-out" id="imVOk" type="button" style="flex:none">Vincular</button></div>
+            <small id="imVMsg" style="display:block;margin-top:6px;color:var(--mut)"></small>
+          </div>
           <h4>Enviar a configuração por SMS</h4>
           <p style="margin-bottom:4px">Para os equipamentos cadastrados agora que têm chip. Sai pelo servidor (SMS Market).</p>
           <label><input type="checkbox" id="imSApn" checked><span>APN<small>APN,ss.vivo.com.br,vivo,vivo#</small></span></label>
@@ -11273,7 +11280,7 @@ function imAbrirLote(id){
   imLinhas=l.linhas||[]; imCriados=l.criados||[]; imForaSms=new Set((l.envio&&l.envio.fora)||[]);
   IM_TIPOS.forEach(x=>{ $(x[0]).checked=x[1]==='livre'?!!(l.tipos&&l.tipos.indexOf('livre')>=0):(!l.tipos || l.tipos.indexOf(x[1])>=0) });
   $('imTit').textContent='Terminar configuração';
-  $('imP2').style.display=''; $('imSms').style.display='';
+  $('imP2').style.display=''; $('imSms').style.display=''; imVBuscaReset();
   $('imProg').textContent='Salvo em '+imQuando(l.quando)+'. Os equipamentos já estão cadastrados; falta enviar o SMS.';
   imDesenhar(); imContar();
   $('imVoltar').textContent='Cancelar'; $('imOk').textContent='Enviar SMS';
@@ -11629,9 +11636,27 @@ function imDesenhar(){
 }
 /* 14/10/2026 (pedido do dono): quais equipamentos ficam FORA do envio do SMS (todos vêm marcados; dá para tirar um ou outro) */
 let imForaSms=new Set();
+function imVBuscaReset(){ try{ $('imVBusca').value=''; $('imVMsg').textContent=''; $('imVCli').innerHTML=''; imVPreencher() }catch(e){} }
 function imAlvosSms(){ return imCriados.filter(x=>x.chip && !imForaSms.has(String(x.id))) }
-$('imCorpo').addEventListener('change',e=>{ const c=e.target.closest('.imck'); if(!c) return; if(c.checked) imForaSms.delete(c.dataset.dev); else imForaSms.add(c.dataset.dev); c.closest('.imli').classList.toggle('fora',!c.checked); imContar() });
-function imMarcarTodos(sim){ imForaSms=new Set(sim?[]:imCriados.filter(x=>x.chip).map(x=>String(x.id))); imDesenhar(); imContar() }
+/* 29/10/2026 (dono): vincular a um cliente depois de cadastrar (marcados na lista; sem chip também entram) */
+function imVAlvos(){ return imCriados.filter(x=>!imForaSms.has(String(x.id))) }
+function imVPreencher(){ const q=imNorm($('imVBusca').value), qd=q.replace(/\D/g,'');
+  const cs=imClientes().filter(u=>{ if(!q) return true; const t=imNorm((u.name||'')+' '+loginDe(u)); return t.indexOf(q)>=0 || (qd.length>=4 && String(u.phone||'').replace(/\D/g,'').indexOf(qd)>=0) });
+  const atual=$('imVCli').value;
+  $('imVCli').innerHTML='<option value="">'+(cs.length?'Escolha o cliente ('+cs.length+')':'Nenhum cliente encontrado')+'</option>'+cs.map(u=>'<option value="'+u.id+'"'+(String(u.id)===atual?' selected':'')+'>'+esc((u.name||loginDe(u))+' ('+loginDe(u).replace(EMAIL_FALSO,'')+')')+'</option>').join('');
+  if(cs.length===1) $('imVCli').value=String(cs[0].id);
+  const n=imVAlvos().length; $('imVOk').textContent='Vincular '+n; $('imVOk').disabled=!n }
+$('imVBusca').addEventListener('input',imVPreencher);
+$('imVOk').onclick=async()=>{ const uid=+$('imVCli').value, u=usuarios.find(x=>x.id===uid); const alvos=imVAlvos();
+  if(!u){ $('imVMsg').textContent='Escolha o cliente primeiro.'; return } if(!alvos.length) return;
+  const b=$('imVOk'); b.disabled=true; let ok=0, er=0;
+  for(const a of alvos){ $('imVMsg').textContent='Vinculando '+(ok+er+1)+' de '+alvos.length+'...';
+    try{ await vincular(uid,a.id); ok++ }catch(e){ er++ } }
+  $('imVMsg').textContent=ok+' vinculado'+(ok===1?'':'s')+' a '+(u.name||loginDe(u))+(er?' · '+er+' com erro (tente de novo)':'')+'.';
+  toast(ok+' equipamento'+(ok===1?'':'s')+' vinculado'+(ok===1?'':'s')+' a '+(u.name||loginDe(u))+'.',5000);
+  b.disabled=false; vinculos={}; try{ desenharAdmin(); carregarVinculos() }catch(_){} }
+$('imCorpo').addEventListener('change',e=>{ const c=e.target.closest('.imck'); if(!c) return; if(c.checked) imForaSms.delete(c.dataset.dev); else imForaSms.add(c.dataset.dev); c.closest('.imli').classList.toggle('fora',!c.checked); imContar(); try{ imVPreencher() }catch(_){} });
+function imMarcarTodos(sim){ imForaSms=new Set(sim?[]:imCriados.filter(x=>x.chip).map(x=>String(x.id))); imDesenhar(); imContar(); try{ imVPreencher() }catch(_){} }
 /* 13/10/2026 (pedido do dono): buscar na lista da prévia pelo IMEI, chip ou nome (só esconde; não muda o que será cadastrado) */
 function imFiltrar(){
   const i=$('imBusca'); if(!i) return;
@@ -11675,7 +11700,7 @@ async function imCadastrar(){
   imDesenhar();
   buscando=false; try{ await buscarSeguro() }catch(e){} vinculos={}; desenharAdmin(); carregarVinculos();
   if(comChip){
-    $('imSms').style.display=''; imContar();
+    $('imSms').style.display=''; imVBuscaReset(); imContar();
     $('imVoltar').textContent='Salvar'; $('imOk').disabled=false; $('imOk').textContent='Enviar SMS';
   } else { $('imOk').style.display='none'; $('imAcoes').classList.add('um'); $('imVoltar').textContent='Fechar' }
 }
