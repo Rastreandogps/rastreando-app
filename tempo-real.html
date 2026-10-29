@@ -14,7 +14,7 @@ try{ if(localStorage.getItem('rg_token')||sessionStorage.getItem('rgv_rg_token')
       var q=(m[1]?'phone='+m[1]+(txt!=null?'&':''):'')+(txt!=null?'text='+encodeURIComponent(txt):'');
       /* no computador vai direto para o WhatsApp Web (a página intermediária do WhatsApp é que estragava os emojis);
          no celular continua abrindo o aplicativo */
-      return (ehCelular()?'https://api.whatsapp.com/send?':'https://web.whatsapp.com/send?')+q;
+      return (ehCelular()?'https://api.whatsapp.com/send?':'whatsapp://send?')+q; /* 29/10/2026 (dono): no computador abre o APLICATIVO do WhatsApp já aberto, não o WhatsApp Web */
     }catch(e){ return u }
   }
   function ehCelular(){ var ua=navigator.userAgent||''; return /Android|iPhone|iPad|iPod|Mobile/i.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints>1) }
@@ -22,8 +22,9 @@ try{ if(localStorage.getItem('rg_token')||sessionStorage.getItem('rgv_rg_token')
   /* 21/10/2026 (pedido do dono): no computador, todo envio pelo WhatsApp usa a MESMA aba do WhatsApp Web (aba "rg_whatsapp"),
      em vez de abrir uma aba nova a cada vez */
   var ABA='rg_whatsapp', ehWeb=function(x){ return /^https:\/\/web\.whatsapp\.com\//.test(String(x||'')) };
-  var wo=window.open; window.open=function(u){ var a=Array.prototype.slice.call(arguments); a[0]=conv(u); if(ehWeb(a[0])) return wo.call(window,a[0],ABA); return wo.apply(window,a) };
-  document.addEventListener('click',function(e){ var a=e.target&&e.target.closest&&e.target.closest('a[href*="wa.me/"]'); if(!a) return; a.href=conv(a.href); if(ehWeb(a.href)){ a.target=ABA; a.removeAttribute('rel') } },true);
+  var ehApp=function(x){ return /^whatsapp:\/\//.test(String(x||'')) };
+  var wo=window.open; window.open=function(u){ var a=Array.prototype.slice.call(arguments); a[0]=conv(u); if(ehApp(a[0])){ window.location.href=a[0]; return null } if(ehWeb(a[0])) return wo.call(window,a[0],ABA); return wo.apply(window,a) };
+  document.addEventListener('click',function(e){ var a=e.target&&e.target.closest&&e.target.closest('a[href*="wa.me/"]'); if(!a) return; a.href=conv(a.href); if(ehApp(a.href)){ a.removeAttribute('target'); a.removeAttribute('rel') } else if(ehWeb(a.href)){ a.target=ABA; a.removeAttribute('rel') } },true);
 })();
 </script>
 <meta charset="UTF-8">
