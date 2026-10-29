@@ -3188,6 +3188,30 @@ nav button:not(.on) .nemo{filter:saturate(.85)}
 #sheet .navic.nv{background-image:url(icv/ui-navegar.webp)!important}
 #sheet .navic.st{background-image:url(icv/ui-rua.webp)!important}
 #sheet .navic.nv svg,#sheet .navic.st svg{visibility:hidden}
+/* 29/10/2026 (pedido do dono): computador com tela baixa (notebook) -> cartão do veículo mais enxuto, sobra mais mapa.
+   Placa e IMEI na mesma linha, SMS em uma linha só, quadros de baixo com o ícone ao lado do número. Celular não muda. */
+@media (min-width:900px) and (max-height:1000px){
+  main #sheet .handlewrap{padding:5px 0 4px}
+  main #sheet .dragzone .row::before{width:38px;height:38px;background-size:19px}
+  main #sheet .vname{font-size:17px}
+  main #sheet .plate{display:inline-flex;align-items:center;margin-top:1px}
+  main #sheet .plate.vimei{margin-left:12px}
+  main #sheet .chiprow{margin-top:1px}
+  main #sheet .chiprow[style*="flex"]{display:flex!important}
+  main #sheet .smsult.on{flex-wrap:nowrap;margin-top:1px;max-width:100%;overflow:hidden}
+  main #sheet .smsult.on em{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+  main #sheet .dragzone{padding-bottom:6px}
+  main #sheet .grid .stat{display:grid!important;grid-auto-flow:column;grid-template-rows:auto auto;align-items:center;align-content:center;justify-content:center;column-gap:8px;row-gap:0;padding:6px 6px}
+  main #sheet .grid .stat::before,main #sheet .grid .stat .spdic,#sheet #sLojaBtn b,#sheet #sFatBtn b{grid-row:1 / span 2;margin:0!important;width:26px!important;height:26px!important}
+  main #sheet .grid .stat:has(.spdic) b,#sheet #sLojaBtn span,#sheet #sFatBtn span{grid-row:1 / span 2}
+  main #sheet .grid .stat b{margin:0;font-size:14.5px}
+  main #sheet .grid .stat.bv .bvl{justify-content:flex-start}
+  main #sheet .grid .stat.bv .bvl b{font-size:13px}
+  main #sheet .grid .statbtn::after{top:3px;right:5px}
+  main #sheet .grid .statbtn{padding-right:14px}
+  main #sheet #addrRow{padding:7px 14px 7px 16px}
+  main #sheet #addrRow strong{font-size:13px}
+}
 </style>
 </head>
 <body>
