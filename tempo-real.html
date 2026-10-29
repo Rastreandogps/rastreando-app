@@ -3822,6 +3822,8 @@ nav button:not(.on) .nemo{filter:saturate(.85)}
           <label><input type="checkbox" id="imSApn" checked><span>APN<small>APN,ss.vivo.com.br,vivo,vivo#</small></span></label>
           <label><input type="checkbox" id="imSIp" checked><span>IP e Porta<small>SERVER,1,tcp.rastreandogpsbr.com.br,5023,0# · o rastreador deixa de aparecer na plataforma antiga</small></span></label>
           <label><input type="checkbox" id="imSImed" checked><span class="perigo">Bloqueio imediato<small>SZCS#SOURCE_OFF_TYPE=1 · corta em qualquer velocidade</small></span></label>
+          <label><input type="checkbox" id="imSLivre"><span>Mensagem livre<small>Digite abaixo. Uma linha = um SMS. Use {ID} para entrar o IMEI/identificador de cada equipamento.</small></span></label><!-- 29/10/2026 (dono) -->
+          <textarea class="fld" id="imLivreTxt" rows="3" style="width:100%;font:13px/1.4 ui-monospace,monospace;margin:2px 0 6px" placeholder="Ex.: ST300NTW;{ID};02;0;iot4u.br;arqia;arqia;tcp.rastreandogpsbr.com.br;5011;;;;"></textarea>
           <div class="imconta" id="imConta"></div>
         </div>
       </div>
@@ -11268,7 +11270,7 @@ function imAbrirLote(id){
   const l=imSalvosLer().find(x=>x.id===id); if(!l){ imMostrarSalvos(); return }
   imPrepararModal(); imFase='feito'; imLoteAtual=id; imReaberto=true;
   imLinhas=l.linhas||[]; imCriados=l.criados||[]; imForaSms=new Set((l.envio&&l.envio.fora)||[]);
-  IM_TIPOS.forEach(x=>{ $(x[0]).checked=!l.tipos || l.tipos.indexOf(x[1])>=0 });
+  IM_TIPOS.forEach(x=>{ $(x[0]).checked=x[1]==='livre'?!!(l.tipos&&l.tipos.indexOf('livre')>=0):(!l.tipos || l.tipos.indexOf(x[1])>=0) });
   $('imTit').textContent='Terminar configuração';
   $('imP2').style.display=''; $('imSms').style.display='';
   $('imProg').textContent='Salvo em '+imQuando(l.quando)+'. Os equipamentos já estão cadastrados; falta enviar o SMS.';
@@ -11659,7 +11661,7 @@ async function imCadastrar(){
       const d=await r.json();
       if(l.user){ try{ await vincular(l.user.id,d.id) }catch(e){ if(e.sessao) throw e; l.vincFalhou=true } }
       for(const mu of (l.user?(l.maisUsers||[]):[])){ try{ await vincular(mu.id,d.id) }catch(e){ if(e.sessao) throw e; l.vincFalhou=true } } /* 20/10/2026: os outros clientes também */
-      l.estado='feito'; l.devId=d.id; imCriados.push({id:d.id,nome:l.nome,chip:l.chip});
+      l.estado='feito'; l.devId=d.id; imCriados.push({id:d.id,nome:l.nome,chip:l.chip,imei:l.imei});
     }catch(e){ if(e.sessao){ imOcupado=false; return } l.estado='falhou'; l.falha=e.message||'erro' }
     imDesenhar();
   }
@@ -11676,14 +11678,20 @@ async function imCadastrar(){
     $('imVoltar').textContent='Salvar'; $('imOk').disabled=false; $('imOk').textContent='Enviar SMS';
   } else { $('imOk').style.display='none'; $('imAcoes').classList.add('um'); $('imVoltar').textContent='Fechar' }
 }
-const IM_TIPOS=[['imSApn','apn','APN'],['imSIp','ip','IP e Porta'],['imSImed','imediato','Bloqueio imediato']];
+const IM_TIPOS=[['imSApn','apn','APN'],['imSIp','ip','IP e Porta'],['imSImed','imediato','Bloqueio imediato'],['imSLivre','livre','Mensagem livre']];
+/* 29/10/2026 (dono): mensagem livre na importação (ex.: Suntech). Cada linha = 1 SMS; {ID} vira o IMEI/identificador. */
+function imLivreLinhas(){ return String(($('imLivreTxt')||{}).value||'').split(/\r?\n/).map(x=>x.trim()).filter(Boolean) }
+function imLivreOk(){ const ls=imLivreLinhas(); return ls.length>0 && ls.length<=5 && ls.every(x=>/^[A-Za-z0-9#=,.:;_\-+*{}]{2,100}$/.test(x.replace(/\{ID\}/g,'0000000000'))) }
 function imContar(){
-  const n=imAlvosSms().length, t=IM_TIPOS.filter(x=>$(x[0]).checked).length, total=n*t;
+  const livre=$('imSLivre').checked, livreBom=!livre||imLivreOk();
+  const n=imAlvosSms().length, t=IM_TIPOS.filter(x=>x[1]!=='livre'&&$(x[0]).checked).length+(livre?imLivreLinhas().length:0), total=livreBom?n*t:0;
+  if(livre&&!livreBom){ $('imConta').innerHTML='<b class="perigo">Mensagem livre: escreva o comando (até 5 linhas, sem espaço, até 100 caracteres cada).</b>'; if(imFase==='feito') $('imOk').disabled=true; return }
   $('imConta').innerHTML=total?(n+(n===1?' equipamento':' equipamentos')+(imForaSms.size?' (marcados)':'')+' × '+t+' SMS = <b>'+total+' SMS</b> (cerca de R$ '+(total*0.10).toFixed(2).replace('.',',')+').'+
     (total>100?' <b class="perigo">Passa do limite de 100 SMS do administrador por dia: o que passar será recusado; mande o resto amanhã.</b>':'')+' Envio em etapas: primeiro APN para todos, espera 30 s, IP e Porta, espera 30 s, Bloqueio imediato. Pode fechar a tela que continua.'):(n?'Marque pelo menos um SMS.':'Marque pelo menos um equipamento na lista.');
   if(imFase==='feito') $('imOk').disabled=!total;
 }
 IM_TIPOS.forEach(x=>$(x[0]).addEventListener('change',imContar));
+$('imLivreTxt').addEventListener('input',()=>{ $('imSLivre').checked=!!$('imLivreTxt').value.trim(); imContar() });
 /* --- Envio da configuração em etapas (11/10/2026) ---
    APN para todos -> espera 30 s -> IP e Porta para todos -> espera 30 s -> Bloqueio imediato para todos.
    Roda por trás: dá para fechar a tela e fazer outras coisas; o número vermelho fica até terminar.
@@ -11702,7 +11710,9 @@ function imEnviarSms(){
   imSalvarLote();
   const id=imLoteAtual; if(!id) return;
   const fora=Array.from(imForaSms);
-  imLoteAtualizar(id,l=>{ l.tipos=tipos; l.envio={tipos:tipos,feitos:[],ultimoMs:0,ok:0,falhas:[],falhouIds:[],fora:fora} });
+  const livre=tipos.indexOf('livre')>=0?imLivreLinhas():[];
+  if(tipos.indexOf('livre')>=0&&!imLivreOk()) return;
+  imLoteAtualizar(id,l=>{ l.tipos=tipos; l.envio={tipos:tipos,feitos:[],ultimoMs:0,ok:0,falhas:[],falhouIds:[],fora:fora,livre:livre} });
   imIniciarEnvio(id);
 }
 function imIniciarEnvio(id){
@@ -11728,10 +11738,19 @@ async function imEnvTick(){
     if(E.cancelar) break;
     E.n++; imEnvPintar();
     try{
+      if(t==='livre'){ /* 29/10/2026: cada linha vira 1 SMS pelo catálogo, com {ID} trocado */
+        const ls=(l.envio.livre||[]); if(!ls.length) throw new Error('mensagem livre vazia');
+        for(let k=0;k<ls.length;k++){ if(/\{ID\}/.test(ls[k])&&!a.imei) throw new Error('sem IMEI para o {ID}');
+          const r=await fetch(DESB_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',body:JSON.stringify({acao:'smsConfig',tipo:'catalogo',texto:ls[k].replace(/\{ID\}/g,a.imei||''),token:lsGet('rg_token'),deviceId:a.id})});
+          let j={}; try{ j=await r.json() }catch(e){}
+          if(!r.ok) throw new Error(j.erro||('erro '+r.status));
+          if(k<ls.length-1) await imDorme(3000) }
+        ok++;
+      } else {
       const r=await fetch(DESB_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',body:JSON.stringify({acao:'smsConfig',tipo:t,token:lsGet('rg_token'),deviceId:a.id})});
       let j={}; try{ j=await r.json() }catch(e){}
       if(!r.ok) throw new Error(j.erro||('erro '+r.status));
-      ok++;
+      ok++; }
     }catch(e){ falhas.push(a.nome+' ('+imTipoNome(t)+'): '+(e.message||'erro')); fids.push(a.id) }
     await imDorme(400);
   }
