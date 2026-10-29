@@ -10727,7 +10727,8 @@ $('catLista').addEventListener('click',e=>{
 });
 $('catEnviar').onclick=()=>{
   const v=cartao(); if(!v) return;
-  const linhas=$('catTexto').value.split(/\n+/).map(x=>x.trim()).filter(Boolean);
+  const idV=soDigitos(v.imei||v.uniqueId||''); /* 29/10/2026: {ID} vira o IMEI/identificador deste equipamento */
+  const linhas=$('catTexto').value.split(/\n+/).map(x=>x.trim()).filter(Boolean).map(x=>x.replace(/\{ID\}/gi,idV));
   $('catErro').textContent='';
   if(!linhas.length){ $('catErro').textContent='Escolha ou digite um comando.'; return }
   if(linhas.length>5){ $('catErro').textContent='No máximo 5 comandos por vez.'; return }
