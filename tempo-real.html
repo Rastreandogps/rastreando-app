@@ -7811,25 +7811,29 @@ function abaApagarPerguntar(){
   },{perigo:true});
 }
 /* adicionar veículos à aba ativa */
+let abaAddSel=new Set(); /* 29/10/2026 (dono): marcados ficam guardados ao trocar a busca */
+function abaAddBotao(){ const n=abaAddSel.size; $('abaAddOk').textContent=n?'Adicionar '+n:'Pronto' }
 function abaAddDesenhar(){
   const a=abaAtiva(); if(!a) return;
   const q=String($('abaAddBusca').value||'').trim().toLowerCase();
-  const marc=new Set([...$('abaAddLista').querySelectorAll('input:checked')].map(i=>+i.value));
+  const marc=abaAddSel;
   const lista=veiculos.filter(v=>!a.ids.includes(v.id) && (!q||v.nome.toLowerCase().includes(q)||v.placa.toLowerCase().includes(q)))
     .sort((x,y)=>{ const ox=abaDe(x.id)?1:0, oy=abaDe(y.id)?1:0; return ox-oy || String(x.nome).localeCompare(String(y.nome),'pt-BR',{sensitivity:'base'}) });
   $('abaAddLista').innerHTML=lista.map(v=>{ const o=abaDe(v.id);
     return '<label class="'+(o?'outra':'')+'"><input type="checkbox" value="'+v.id+'"'+(o?' disabled':(marc.has(v.id)?' checked':''))+'><b>'+esc(v.nome)+(v.placa?' <span style="font-weight:400;color:var(--mut)">· '+esc(v.placa)+'</span>':'')+'</b>'+(o?'<small>em '+esc(o.nome)+'</small>':'')+'</label>';
   }).join('')||'<div class="vempty">'+(q?'Nenhum veículo encontrado.':'Todos os veículos já estão nesta aba.')+'</div>';
+  abaAddBotao();
 }
 function abaAddAbrir(){
   const a=abaAtiva(); if(!a) return;
-  $('abaAddTit').textContent='Adicionar à aba '+a.nome; $('abaAddBusca').value=''; $('abaAddLista').innerHTML=''; $('abaAddErro').textContent='';
+  $('abaAddTit').textContent='Adicionar à aba '+a.nome; abaAddSel=new Set(); $('abaAddBusca').value=''; $('abaAddLista').innerHTML=''; $('abaAddErro').textContent='';
   abaAddDesenhar(); abrir('mAbaAdd');
 }
 $('abaAddBusca').addEventListener('input',abaAddDesenhar);
+$('abaAddLista').addEventListener('change',e=>{ const i=e.target.closest('input[type=checkbox]'); if(!i) return; if(i.checked) abaAddSel.add(+i.value); else abaAddSel.delete(+i.value); abaAddBotao() });
 $('abaAddOk').onclick=async()=>{
   const a=abaAtiva(); if(!a){ fechar(); return }
-  const ids=[...$('abaAddLista').querySelectorAll('input:checked')].map(i=>+i.value);
+  const ids=[...abaAddSel];
   if(!ids.length){ fechar(); return }
   const b=$('abaAddOk'); b.disabled=true; $('abaAddErro').textContent='';
   try{
