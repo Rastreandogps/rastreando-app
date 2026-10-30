@@ -3254,6 +3254,13 @@ nav button:not(.on) .nemo{filter:saturate(.85)}
   main #sheet .spdtop .spdnum.n3{font-size:15px}
   main #sheet .grid .stat:has(.spdic){display:none!important}
 }
+@media (max-width:899px){
+  #sheet.spdtopon .spdtop{display:block;position:relative;flex:none;width:76px;height:65px;align-self:flex-start;background:url(icv/st-vel2.webp) center/contain no-repeat;filter:drop-shadow(0 2px 4px rgba(0,0,0,.25))}
+  #sheet.spdtopon .spdtop .spdnum{position:absolute;left:0;right:0;top:48%;transform:translateY(-50%);text-align:center;font:italic 800 20px/1 ui-monospace,'Consolas','Courier New',monospace;color:#fff;letter-spacing:-.5px;text-shadow:0 0 4px rgba(255,255,255,.55)}
+  #sheet.spdtopon .spdtop .spdnum.n3{font-size:16px}
+  #sheet.spdtopon .grid .stat:has(.spdic){display:none!important}
+  #sheet.spdtopon .grid:not(.semcomb){grid-template-columns:repeat(4,minmax(0,1fr))}
+}
 @media (min-width:900px) and (max-height:1000px){ main #sheet .spdtop{width:56px;height:48px} main #sheet .spdtop .spdnum{font-size:16px} main #sheet .spdtop .spdnum.n3{font-size:13px} }
 </style>
 </head>
@@ -6120,7 +6127,7 @@ function animar(now){
   requestAnimationFrame(animar);
 }
 requestAnimationFrame(animar);
-function deslizePintar(){ const b=$('deslizeBtn'); if(!b) return; b.style.display='none'; try{ $('pontoBtn').style.display=ehAdmin?'inline-flex':'none' }catch(e){} try{ const sb=$('socBtn'); sb.style.display='flex'; sb.style.top=ehAdmin?'54px':'12px' }catch(e){} /* 30/10/2026 (dono): botão Serviços liberado para todos; sem a lupa (cliente), sobe para o topo */ const on=deslizeLigado(); b.classList.toggle('on',on); $('deslizeTxt').textContent=on?'ligado':'desligado' }
+function deslizePintar(){ const b=$('deslizeBtn'); if(!b) return; b.style.display='none'; try{ $('pontoBtn').style.display=ehAdmin?'inline-flex':'none' }catch(e){} try{ $('sheet').classList.toggle('spdtopon',!!ehAdmin) }catch(e){} /* 30/10/2026: velocímetro ao lado do nome no celular (teste só admin) */ try{ const sb=$('socBtn'); sb.style.display='flex'; sb.style.top=ehAdmin?'54px':'12px' }catch(e){} /* 30/10/2026 (dono): botão Serviços liberado para todos; sem a lupa (cliente), sobe para o topo */ const on=deslizeLigado(); b.classList.toggle('on',on); $('deslizeTxt').textContent=on?'ligado':'desligado' }
 /* ===== MARCAR PONTO NO MAPA (19/10/2026, pedido do dono; só administrador) =====
    Lupa abaixo do "Deslize contínuo": busca um endereço (OpenStreetMap, grátis) ou aceita "latitude, longitude",
    escolhe o ícone (casa, pino ou bandeira) e marca no mapa. Fica guardado neste computador; dá para remover. */
