@@ -6137,7 +6137,7 @@ function animar(now){
   requestAnimationFrame(animar);
 }
 requestAnimationFrame(animar);
-function deslizePintar(){ const b=$('deslizeBtn'); if(!b) return; b.style.display='none'; try{ $('pontoBtn').style.display=ehAdmin?'inline-flex':'none' }catch(e){} try{ $('sheet').classList.toggle('spdtopon',!!ehAdmin) }catch(e){} /* 30/10/2026: velocímetro ao lado do nome no celular (teste só admin) */ try{ const sb=$('socBtn'); sb.style.display='flex'; sb.style.top=ehAdmin?'54px':'12px' }catch(e){} /* 30/10/2026 (dono): botão Serviços liberado para todos; sem a lupa (cliente), sobe para o topo */ const on=deslizeLigado(); b.classList.toggle('on',on); $('deslizeTxt').textContent=on?'ligado':'desligado' }
+function deslizePintar(){ const b=$('deslizeBtn'); if(!b) return; b.style.display='none'; try{ $('pontoBtn').style.display=ehAdmin?'inline-flex':'none' }catch(e){} try{ $('sheet').classList.add('spdtopon') }catch(e){} /* 30/10/2026: velocímetro ao lado do nome no celular (teste só admin) */ try{ const sb=$('socBtn'); sb.style.display='flex'; sb.style.top=ehAdmin?'54px':'12px' }catch(e){} /* 30/10/2026 (dono): botão Serviços liberado para todos; sem a lupa (cliente), sobe para o topo */ const on=deslizeLigado(); b.classList.toggle('on',on); $('deslizeTxt').textContent=on?'ligado':'desligado' }
 /* ===== MARCAR PONTO NO MAPA (19/10/2026, pedido do dono; só administrador) =====
    Lupa abaixo do "Deslize contínuo": busca um endereço (OpenStreetMap, grátis) ou aceita "latitude, longitude",
    escolhe o ícone (casa, pino ou bandeira) e marca no mapa. Fica guardado neste computador; dá para remover. */
