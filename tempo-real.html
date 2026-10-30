@@ -1102,6 +1102,13 @@ body.hist-on #follow,body.hist-on #btnEu,body.hist-on #btnTodos,body.hist-on #bt
 #pontoBtn b:empty{display:none}
 body.hist-on #pontoBtn{display:none!important}
 @media (min-width:900px){ #pontoBtn{left:calc(var(--lado,0px) + 12px);z-index:460} }
+/* 29/10/2026 (pedido do dono): atalho "Socorro" no mapa, com o reboque. Por enquanto só no administrativo (teste) */
+#socBtn{position:absolute;top:96px;left:12px;z-index:420;display:none;flex-direction:column;align-items:center;justify-content:center;gap:1px;width:62px;height:54px;padding:4px 3px 3px;border-radius:14px;border:1px solid var(--line);background:#fff;color:#b91c1c;box-shadow:0 2px 8px rgba(0,0,0,.25);cursor:pointer;font:inherit;-webkit-tap-highlight-color:transparent;transition:transform .1s}
+#socBtn img{width:52px;height:30px;object-fit:contain;mix-blend-mode:multiply;display:block;pointer-events:none}
+#socBtn b{font-size:10px;font-weight:800;letter-spacing:.02em;line-height:1}
+#socBtn:active{transform:scale(.95)}
+body.hist-on #socBtn{display:none!important}
+@media (min-width:900px){ #socBtn{left:calc(var(--lado,0px) + 12px);z-index:460} }
 /* 21/10/2026: botões + e − do zoom no computador (para quem tem dificuldade com a rodinha do mouse ou usa touchpad) */
 #zoomBox{display:none}
 @media (min-width:900px){
@@ -3308,6 +3315,7 @@ nav button:not(.on) .nemo{filter:saturate(.85)}
   <button class="follow" id="btnRet" type="button" style="display:none" title="Para retirar" aria-label="Para retirar"><span class="rletra">R</span><span class="lbl">Para retirar</span></button>
   <div id="zoomBox"><button type="button" id="zoomMais" title="Aproximar o mapa" aria-label="Aproximar o mapa">+</button><button type="button" id="zoomMenos" title="Afastar o mapa" aria-label="Afastar o mapa">−</button></div>
   <!-- 19/10/2026 (pedido do dono): lupa para marcar um ponto no mapa (endereço ou latitude/longitude), só administrador -->
+  <button id="socBtn" type="button" title="Socorro: reboque, chaveiro, mecânico e mais" aria-label="Socorro: reboque, chaveiro, mecânico e mais"><img src="cat-reboque.jpg" alt=""><b>Socorro</b></button>
   <button id="pontoBtn" type="button" style="display:none" title="Marcar um ponto no mapa (endereço ou coordenadas)" aria-label="Marcar um ponto no mapa"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><b id="pontoN"></b></button>
   <button id="retChip" type="button" style="display:none" title="Tirar do mapa os veículos para retirar">📍 Para retirar no mapa <span aria-hidden="true">✕</span></button>
   <button id="deslizeBtn" type="button" title="Teste: o veículo desliza sem parar, mostrando o trajeto com até 2 minutos de atraso">〰️ Deslize contínuo: <span id="deslizeTxt">desligado</span></button>
@@ -5599,7 +5607,7 @@ function euLigar(){
   },{enableHighAccuracy:true,maximumAge:5000,timeout:25000});
 }
 $('zoomMais').onclick=()=>map.zoomIn(); $('zoomMenos').onclick=()=>map.zoomOut(); /* 21/10/2026 */
-function zoomPos(){ try{ const p=$('pontoBtn'), d=$('deslizeBtn'), tem=x=>x&&getComputedStyle(x).display!=='none'; $('zoomBox').style.top=tem(p)?'96px':tem(d)?'54px':'12px' }catch(e){} } /* administrador tem a lupa e o deslize em cima; cliente não */
+function zoomPos(){ try{ const p=$('pontoBtn'), d=$('deslizeBtn'), tem=x=>x&&getComputedStyle(x).display!=='none'; const sc=$('socBtn'); $('zoomBox').style.top=tem(sc)?'158px':tem(p)?'96px':tem(d)?'54px':'12px' }catch(e){} } /* administrador tem a lupa e o deslize em cima; cliente não */
 [1500,4000,9000].forEach(t=>setTimeout(zoomPos,t));
 $('btnEu').onclick=()=>{ if(eu.on) euDesligar(); else euLigar() };
 setInterval(()=>{ if(eu.on){ euAtualizarTela(); euRumoPintar() } },2000);
@@ -6093,7 +6101,7 @@ function animar(now){
   requestAnimationFrame(animar);
 }
 requestAnimationFrame(animar);
-function deslizePintar(){ const b=$('deslizeBtn'); if(!b) return; b.style.display=ehAdmin?'inline-flex':'none'; try{ $('pontoBtn').style.display=ehAdmin?'inline-flex':'none' }catch(e){} const on=deslizeLigado(); b.classList.toggle('on',on); $('deslizeTxt').textContent=on?'ligado':'desligado' }
+function deslizePintar(){ const b=$('deslizeBtn'); if(!b) return; b.style.display=ehAdmin?'inline-flex':'none'; try{ $('pontoBtn').style.display=ehAdmin?'inline-flex':'none' }catch(e){} try{ $('socBtn').style.display=ehAdmin?'flex':'none' }catch(e){} /* 29/10/2026: Socorro no mapa (teste só admin) */ const on=deslizeLigado(); b.classList.toggle('on',on); $('deslizeTxt').textContent=on?'ligado':'desligado' }
 /* ===== MARCAR PONTO NO MAPA (19/10/2026, pedido do dono; só administrador) =====
    Lupa abaixo do "Deslize contínuo": busca um endereço (OpenStreetMap, grátis) ou aceita "latitude, longitude",
    escolhe o ícone (casa, pino ou bandeira) e marca no mapa. Fica guardado neste computador; dá para remover. */
@@ -6157,6 +6165,7 @@ $('ptLista').addEventListener('click',e=>{
   if(d){ ptRemover(d.dataset.ptdel); return }
   if(v){ const p=ptLer().find(x=>x.id===v.dataset.ptver); if(p){ fechar(); try{ setSeguir(false) }catch(e){} map.setView([p.lat,p.lon],16) } }
 });
+$('socBtn').onclick=()=>{ try{ rbAbrir() }catch(e){} }; /* 29/10/2026: mesmo caminho do Mais › Socorro e serviços (com o aviso) */
 $('pontoBtn').onclick=()=>{ if(!ehAdmin) return; $('ptBusca').value=''; $('ptRes').innerHTML=''; $('ptNome').value=''; $('ptEscolha').hidden=true; ptSel=null; ptLista(); abrir('mPonto'); setTimeout(()=>$('ptBusca').focus(),60) };
 setTimeout(()=>{ try{ if(ehAdmin) ptDesenharMapa() }catch(e){} },1500);
 setInterval(()=>{ try{ if(ehAdmin && !ptCamada) ptDesenharMapa() }catch(e){} },5000);
