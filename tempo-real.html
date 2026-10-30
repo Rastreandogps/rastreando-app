@@ -6307,7 +6307,7 @@ function atualizar(){
       const wn=$('vWppNum'); if(wn){ wn.textContent=v.wppVeic?fmtWpp(v.wppVeic):''; wn.style.display=v.wppVeic?'':'none'; wn.title='WhatsApp do cliente (gravado no veículo)' } /* 18/10/2026 */
     } else cr.style.display='none';
     $('vStatus').textContent=txt; $('vStatus').className='status '+cls;
-    $('sSpeed').textContent=sp?'—':v.vel+' km/h'; { const sn=$('sSpeedN'); if(sn){ const t=sp?'—':String(v.vel); sn.textContent=t; sn.classList.toggle('n3',t.length>=3) } const s2=$('sSpeedN2'); if(s2){ const t=sp?'—':String(v.vel); s2.textContent=t; s2.classList.toggle('n3',t.length>=3) } } /* 29/10/2026: número dentro do velocímetro */
+    $('sSpeed').textContent=(sp||!v.online)?'—':v.vel+' km/h'; { const semCon=sp||!v.online; /* 30/10/2026 (dono): sem conexão = não sabemos a velocidade -> dois tracinhos */ const sn=$('sSpeedN'); if(sn){ const t=semCon?'--':String(v.vel); sn.textContent=t; sn.classList.toggle('n3',t.length>=3) } const s2=$('sSpeedN2'); if(s2){ const t=semCon?'--':String(v.vel); s2.textContent=t; s2.classList.toggle('n3',t.length>=3) } } /* 29/10/2026: número dentro do velocímetro */
     { const ig=$('vIgn'), vel=v.ign===null && typeof v.ignUlt==='boolean', iv=vel?v.ignUlt:v.ign; /* 28/10/2026 (dono): sem conexão, mostra a ÚLTIMA ignição conhecida (meio apagada) */
       ig.className='vign '+(iv===null||iv===undefined?'nd':(iv?'on':'off'))+(vel?' velha':''); ig.title=(iv===null||iv===undefined)?'Ignição: sem informação':((iv?'Ignição ligada':'Ignição desligada')+(vel?' (última informação'+(v.ignUltEm?', '+horaAtual(v.ignUltEm):'')+')':'')); ig.setAttribute('aria-label',ig.title) }
     try{ cbQuadro(v) }catch(e){}
