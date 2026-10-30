@@ -6899,7 +6899,7 @@ function pickVV(){
 }
 if(window.visualViewport){ visualViewport.addEventListener('resize',pickVV); visualViewport.addEventListener('scroll',pickVV) }
 $('pickBusca').addEventListener('focus',()=>setTimeout(pickVV,350));
-$('vPick').addEventListener('pointerdown',e=>{ if(veiculos.length>1) e.stopPropagation() });
+/* 30/10/2026: o nome agora ocupa a linha toda; arrastar em cima dele também mexe o cartão (um toque simples continua abrindo a troca de veículo) */
 $('vPick').onclick=e=>{ e.stopPropagation(); abrirPick() };
 
 /* ===== BLOQUEIO / DESBLOQUEIO (comando real) ===== */
