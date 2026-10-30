@@ -3262,8 +3262,12 @@ nav button:not(.on) .nemo{filter:saturate(.85)}
   #sheet.spdtopon .spdtop{width:68px;height:58px}
   #sheet.spdtopon .row > div:not(.stwrap){flex:1 1 auto;min-width:0}
   #sheet.spdtopon .vname{flex-wrap:wrap;row-gap:6px;white-space:normal}
-  #sheet.spdtopon .vname .vpick{flex:1 1 100%;min-width:0;display:flex;align-items:center;gap:6px;text-align:left}
-  #sheet.spdtopon .vname #vName{white-space:normal;word-break:normal;overflow-wrap:normal;line-height:1.15}
+  /* o nome ocupa a largura toda do cartão (passa por cima da coluna do status, que fica mais abaixo) */
+  #sheet.spdtopon .row > div:not(.stwrap){overflow:visible}
+  #sheet.spdtopon .vname{position:relative;z-index:2;width:calc(100vw - 68px - 58px);max-width:none}
+  #sheet.spdtopon .vname .vpick{flex:0 1 auto;max-width:100%;min-width:0;display:flex;align-items:center;gap:6px;text-align:left}
+  #sheet.spdtopon .vname #vName{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.15;font-size:min(22px,5.6vw)}
+  #sheet.spdtopon .vname > *:not(.vpick){order:2}
   #sheet.spdtopon .grid .stat:has(.spdic){display:none!important}
   #sheet.spdtopon .grid:not(.semcomb){grid-template-columns:repeat(4,minmax(0,1fr))}
 }
