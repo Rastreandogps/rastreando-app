@@ -3258,6 +3258,12 @@ nav button:not(.on) .nemo{filter:saturate(.85)}
   #sheet.spdtopon .spdtop{display:block;position:relative;flex:none;width:76px;height:65px;align-self:flex-start;background:url(icv/st-vel2.webp) center/contain no-repeat;filter:drop-shadow(0 2px 4px rgba(0,0,0,.25))}
   #sheet.spdtopon .spdtop .spdnum{position:absolute;left:0;right:0;top:48%;transform:translateY(-50%);text-align:center;font:italic 800 20px/1 ui-monospace,'Consolas','Courier New',monospace;color:#fff;letter-spacing:-.5px;text-shadow:0 0 4px rgba(255,255,255,.55)}
   #sheet.spdtopon .spdtop .spdnum.n3{font-size:16px}
+  /* 30/10/2026 (dono): nome por extenso numa linha própria (com a setinha); chave, editar, ícone e câmera descem para a linha de baixo */
+  #sheet.spdtopon .spdtop{width:68px;height:58px}
+  #sheet.spdtopon .row > div:not(.stwrap){flex:1 1 auto;min-width:0}
+  #sheet.spdtopon .vname{flex-wrap:wrap;row-gap:6px;white-space:normal}
+  #sheet.spdtopon .vname .vpick{flex:1 1 100%;min-width:0;display:flex;align-items:center;gap:6px;text-align:left}
+  #sheet.spdtopon .vname #vName{white-space:normal;word-break:normal;overflow-wrap:normal;line-height:1.15}
   #sheet.spdtopon .grid .stat:has(.spdic){display:none!important}
   #sheet.spdtopon .grid:not(.semcomb){grid-template-columns:repeat(4,minmax(0,1fr))}
 }
