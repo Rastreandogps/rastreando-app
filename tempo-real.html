@@ -2269,6 +2269,8 @@ header nav .nl-pc{display:inline} header nav .nl-cel{display:none}
 .alic.v{background:rgba(167,139,250,.18);color:#a78bfa}
 .alic.m{background:rgba(251,146,60,.17);color:#fb923c}
 .altiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+@media (max-width:899px){.altiles{grid-template-columns:repeat(2,1fr)}} /* 30/10/2026: 4 cartões = 2 por linha no celular */
+.alic.b{background:rgba(239,68,68,.14);color:#ef4444}
 .altile{display:flex;flex-direction:column;align-items:flex-start;gap:8px;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px;min-height:112px;color:var(--txt);transition:transform .12s ease,border-color .15s ease}
 .altile:active{transform:scale(.97)}
 .altile b{font-size:13.5px;font-weight:650;line-height:1.2}
@@ -3609,6 +3611,7 @@ nav button:not(.on) .nemo{filter:saturate(.85)}
         <button class="altile" id="alTIgn" type="button"><span class="alic i"><svg viewBox="0 0 24 24"><path d="M12 3v8"/><path d="M6.4 6.6a8 8 0 1011.2 0"/></svg></span><b>Ignição</b><small id="alIgnResumo">…</small></button>
         <button class="altile" id="alTVolta" type="button"><span class="alic v"><svg viewBox="0 0 24 24"><path d="M5 12.5a10 10 0 0114 0"/><path d="M8.5 16a5 5 0 017 0"/><circle cx="12" cy="19.2" r="1"/></svg></span><b>Volta do sinal</b><small id="alVoltaResumo">…</small></button>
         <button class="altile" id="alTKm" type="button"><span class="alic m"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg></span><b>Revisão por km</b><small id="alKmResumo">…</small></button>
+        <button class="altile" id="alTBat" type="button"><span class="alic b"><svg viewBox="0 0 24 24"><rect x="3" y="7" width="16" height="10" rx="2"/><path d="M21 10.5v3"/><path d="M7 10v4"/></svg></span><b>Bateria crítica</b><small id="alBatResumo">…</small></button>
       </div>
       <div class="alsec">Últimos alertas</div>
       <div id="alItens"></div>
@@ -4953,6 +4956,16 @@ nav button:not(.on) .nemo{filter:saturate(.85)}
     <div class="apbusca"><input class="fld" id="alVoltaBusca" type="search" placeholder="Buscar veículo" autocomplete="off"><small id="alVoltaBuscaN"></small></div>
     <div class="algrupo" id="alVolta"></div>
     <p class="alnota">Depois de avisar, a chave desliga sozinha. Ligue de novo quando quiser outro aviso.</p>
+    <button class="btn btn-out alfechar" data-close type="button">Fechar</button>
+  </div>
+</div>
+<div class="modal alsheet" id="mAlBat">
+  <div class="box2">
+    <h3>Bateria crítica</h3>
+    <p>Avisa quando a bateria do rastreador ficar abaixo do valor que você escolher. Útil no rastreador portátil e também no fixo: se cortarem ou tirarem a bateria do veículo, o rastreador passa a usar a bateria dele e o nível começa a cair.</p>
+    <div class="apbusca"><input class="fld" id="alBatBusca" type="search" placeholder="Buscar veículo" autocomplete="off"><small id="alBatBuscaN"></small></div>
+    <div class="algrupo" id="alBat"></div>
+    <p class="alnota">Avisa uma vez. Só avisa de novo depois que a bateria for carregada.</p>
     <button class="btn btn-out alfechar" data-close type="button">Fechar</button>
   </div>
 </div>
@@ -12778,7 +12791,7 @@ async function ativarPush(){
 /* ----- alertas de ignição por veículo ----- */
 async function carregarCfgAlertas(){
   try{ const j=await fnAl('alertasEstado'); alCfg=j.cfg||{ign:{},volta:{}} }catch(e){}
-  desenharIgn(); desenharVolta(); carregarManut();
+  desenharIgn(); desenharVolta(); desenharBat(); carregarManut();
 }
 function desenharIgn(){
   const ign=alCfg.ign||{}, lista=veiculos.slice().sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
@@ -12794,7 +12807,7 @@ function alFiltrar(id){
   $(id).querySelectorAll('.igrow[data-busca]').forEach(el=>{ tot++; const ok=!q||el.dataset.busca.includes(q); el.style.display=ok?'':'none'; if(ok) n++ });
   const c=$(id+'BuscaN'); if(c) c.textContent=q?(n+' de '+tot):'';
 }
-['alIgn','alVolta'].forEach(id=>{ const i=$(id+'Busca'); if(!i) return; i.addEventListener('input',()=>alFiltrar(id)); i.addEventListener('keydown',e=>{ if(e.key==='Enter') e.preventDefault() }) });
+['alIgn','alVolta','alBat'].forEach(id=>{ const i=$(id+'Busca'); if(!i) return; i.addEventListener('input',()=>alFiltrar(id)); i.addEventListener('keydown',e=>{ if(e.key==='Enter') e.preventDefault() }) });
 $('alIgn').addEventListener('change',async e=>{
   const i=e.target.closest('input[data-ign]'); if(!i) return;
   i.disabled=true;
@@ -12823,6 +12836,24 @@ $('alVolta').addEventListener('change',async e=>{
   }
   catch(err){ i.checked=!i.checked; toast(err.message) }
   i.disabled=false; desenharVolta();
+});
+/* ----- 30/10/2026 (dono): bateria crítica por veículo (50 / 30 / 20 %) ----- */
+function desenharBat(){
+  const ba=alCfg.bat||{}, lista=veiculos.slice().sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
+  const n=lista.filter(v=>ba[String(v.id)]).length;
+  $('alBatResumo').textContent=n?(n+(n===1?' veículo':' veículos')):'Desligado'; $('alTBat').classList.toggle('on',n>0);
+  $('alBat').innerHTML=lista.map(v=>{ const val=Number(ba[String(v.id)])||0;
+    return '<div class="igrow" data-busca="'+esc((v.nome+' '+(v.placa||'')+' '+(v.imei||'')).toLowerCase())+'"><span>'+esc(v.nome)+(v.bat!=null?' <small style="color:var(--mut)">· '+v.bat+'%</small>':'')+'</span><select class="fld batsel" data-bat="'+v.id+'" style="width:auto;min-width:104px;padding:6px 8px">'+
+      [[0,'Desligado'],[50,'Abaixo de 50%'],[30,'Abaixo de 30%'],[20,'Abaixo de 20%']].map(([k,t])=>'<option value="'+k+'"'+(k===val?' selected':'')+'>'+t+'</option>').join('')+'</select></div>' }).join('') || '<div class="igrow"><span>Nenhum veículo.</span></div>';
+  alFiltrar('alBat');
+}
+$('alBat').addEventListener('change',async e=>{
+  const s=e.target.closest('select[data-bat]'); if(!s) return;
+  const antes=Number((alCfg.bat||{})[s.dataset.bat])||0, lim=Number(s.value)||0;
+  s.disabled=true;
+  try{ const j=await fnAl('alertasBateria',{deviceId:+s.dataset.bat,limite:lim}); alCfg=Object.assign({ign:{},volta:{},bat:{}},j.cfg||alCfg); toast(lim?('Aviso ligado: abaixo de '+lim+'%.'):'Aviso de bateria desligado.') }
+  catch(err){ s.value=String(antes); toast(err.message) }
+  s.disabled=false; desenharBat();
 });
 /* ----- lembrete de quilometragem por veículo (servidor: rastreamento-manutencao.js) ----- */
 let kmLista=[];
@@ -12881,6 +12912,7 @@ $('kmNovo').onclick=()=>{ if(!modFrota()){ toast('O lembrete de km faz parte do 
 $('kmCancelar').onclick=()=>kmFormulario(false);
 $('alTIgn').onclick=()=>abrir('mAlIgn');
 $('alTVolta').onclick=()=>abrir('mAlVolta');
+$('alTBat').onclick=()=>abrir('mAlBat');
 $('alTKm').onclick=()=>{ kmFormulario(false); desenharManut(); abrir('mAlKm') };
 $('alMais').onclick=()=>abrir('mAlMais');
 /* tocar num alerta mostra o texto inteiro (o texto longo aparece cortado em 2 linhas) */
