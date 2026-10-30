@@ -3212,6 +3212,19 @@ nav button:not(.on) .nemo{filter:saturate(.85)}
   main #sheet #addrRow{padding:7px 14px 7px 16px}
   main #sheet #addrRow strong{font-size:13px}
 }
+/* 29/10/2026 (pedido do dono): velocímetro digital com o número DENTRO da imagem, e odômetro com relógio no lugar da pista */
+#sheet .grid .spdic{position:relative;width:58px!important;height:50px!important;margin:0 auto 1px!important;background-image:url(icv/st-vel2.webp)!important;background-size:contain!important}
+#sheet .grid .spdic .spdnum{position:absolute;left:0;right:0;top:41%;transform:translateY(-50%);text-align:center;font:italic 800 17px/1 ui-monospace,'Consolas','Courier New',monospace;color:#fff;letter-spacing:-.5px;text-shadow:0 0 4px rgba(255,255,255,.55),0 0 1px #fff;pointer-events:none}
+#sheet .grid .spdic .spdnum.n3{font-size:14px}
+#sheet .grid .stat:has(.spdic){position:relative;padding-top:4px;padding-bottom:4px}
+#sheet .grid .stat:has(.spdic) > b{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+#sOdoBtn::before{background-image:url(icv/st-odo2.webp)!important}
+@media (min-width:900px) and (max-height:1000px){
+  main #sheet .grid .stat .spdic{width:50px!important;height:43px!important}
+  main #sheet .grid .stat .spdic .spdnum{font-size:15px}
+  main #sheet .grid .stat .spdic .spdnum.n3{font-size:12.5px}
+  main #sheet .grid .stat:has(.spdic){padding-top:2px;padding-bottom:2px}
+}
 </style>
 </head>
 <body>
@@ -3319,7 +3332,7 @@ nav button:not(.on) .nemo{filter:saturate(.85)}
     <div class="banner" id="banner">Veículo bloqueado</div>
     <div id="ruaCelTesteRow"><div class="rteste" aria-hidden="true"><span class="rtt"></span></div></div><!-- 26/10/2026 -->
     <div class="grid">
-      <div class="stat" title="Velocidade"><span class="spdic" aria-label="Velocidade"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 17a8.5 8.5 0 1 1 15 0"/><path d="M12 13l4-4"/><circle cx="12" cy="13" r="1.3" fill="currentColor"/></svg></span><b id="sSpeed"></b></div>
+      <div class="stat" title="Velocidade"><span class="spdic" aria-label="Velocidade"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 17a8.5 8.5 0 1 1 15 0"/><path d="M12 13l4-4"/><circle cx="12" cy="13" r="1.3" fill="currentColor"/></svg><em class="spdnum" id="sSpeedN" aria-hidden="true"></em></span><b id="sSpeed"></b></div>
       <div class="stat bv" id="sBvBox" title="Bateria do rastreador e voltagem do veículo"><div class="bvl"><i aria-label="Bateria">🔋</i><b id="sBat"></b></div><div class="bvl"><i aria-label="Voltagem">⚡</i><b id="sVolt"></b></div><small id="sVoltAge" hidden></small></div>
       <button type="button" class="stat statbtn odo" id="sOdoBtn" aria-label="Odômetro e meta de quilometragem" title="Toque para a meta de quilometragem"><span>Odômetro</span><b id="sOdo"></b></button>
       <button type="button" class="stat statbtn comb" id="sCombBtn" aria-label="Combustível" title="Toque para calcular o combustível"><span>Combustível</span><b id="sComb">—</b></button>
@@ -6232,7 +6245,7 @@ function atualizar(){
       const wn=$('vWppNum'); if(wn){ wn.textContent=v.wppVeic?fmtWpp(v.wppVeic):''; wn.style.display=v.wppVeic?'':'none'; wn.title='WhatsApp do cliente (gravado no veículo)' } /* 18/10/2026 */
     } else cr.style.display='none';
     $('vStatus').textContent=txt; $('vStatus').className='status '+cls;
-    $('sSpeed').textContent=sp?'—':v.vel+' km/h';
+    $('sSpeed').textContent=sp?'—':v.vel+' km/h'; { const sn=$('sSpeedN'); if(sn){ const t=sp?'—':String(v.vel); sn.textContent=t; sn.classList.toggle('n3',t.length>=3) } } /* 29/10/2026: número dentro do velocímetro */
     { const ig=$('vIgn'), vel=v.ign===null && typeof v.ignUlt==='boolean', iv=vel?v.ignUlt:v.ign; /* 28/10/2026 (dono): sem conexão, mostra a ÚLTIMA ignição conhecida (meio apagada) */
       ig.className='vign '+(iv===null||iv===undefined?'nd':(iv?'on':'off'))+(vel?' velha':''); ig.title=(iv===null||iv===undefined)?'Ignição: sem informação':((iv?'Ignição ligada':'Ignição desligada')+(vel?' (última informação'+(v.ignUltEm?', '+horaAtual(v.ignUltEm):'')+')':'')); ig.setAttribute('aria-label',ig.title) }
     try{ cbQuadro(v) }catch(e){}
