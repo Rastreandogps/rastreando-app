@@ -14192,7 +14192,11 @@ function pcDesenhar(nome,anexar){ /* anexar=true: junta aos reboquistas com rast
     if(lay){ pts.push(c); lay.on('click',()=>pcSel(i,true)); try{ lay.getTooltip().on('click',()=>pcSel(i,true)) }catch(e){} }
     pcMarc.push({lay,c,circ:lay&&lay._circ?lay._circ:null});
   });
-  if(pts.length){ try{ rbMapa.fitBounds(L.latLngBounds(pts).pad(0.25),{maxZoom:14}) }catch(e){} }
+  /* 29/10/2026 (dono): o mapa abre mais aproximado, CENTRADO no cliente, mostrando só os prestadores mais próximos (os outros aparecem ao afastar) */
+  const pcPerto=v&&v.pos?pcMarc.filter(m=>m.c).map(m=>m.c).sort((x,y)=>rbMapa.distance(v.pos,x)-rbMapa.distance(v.pos,y)).slice(0,4):[];
+  if(pcPerto.length){ try{ let dl=0,dg=0; pcPerto.forEach(c=>{ dl=Math.max(dl,Math.abs(c[0]-v.pos[0])); dg=Math.max(dg,Math.abs(c[1]-v.pos[1])) }); dl=Math.max(dl,.01); dg=Math.max(dg,.01);
+      rbMapa.fitBounds([[v.pos[0]-dl,v.pos[1]-dg],[v.pos[0]+dl,v.pos[1]+dg]],{padding:[24,24],maxZoom:14}) }catch(e){} }
+  else if(pts.length){ try{ rbMapa.fitBounds(L.latLngBounds(pts).pad(0.25),{maxZoom:14}) }catch(e){} }
   else if(map){ try{ rbMapa.setView(map.getCenter(),11) }catch(e){} }
   const PL={reboque:['reboque','reboques'],chaveiro:['chaveiro','chaveiros'],borracheiro:['borracheiro','borracheiros'],mecanico:['mecânico','mecânicos'],eletricista:['eletricista','eletricistas'],despachante:['despachante','despachantes'],insulfilme:['loja de insulfilme e multimídia','lojas de insulfilme e multimídia'],pintura:['oficina de pintura e lanternagem','oficinas de pintura e lanternagem'],lavajato:['lava-jato','lava-jatos']}[pcCat]||[String(nome).toLowerCase(),String(nome).toLowerCase()]; /* 27/10/2026 (revisão): plural certo */
   const vtN=PC_TIPO_NOME[pcVeicTipo(v)]||'';
