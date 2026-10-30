@@ -1106,6 +1106,10 @@ body.hist-on #pontoBtn{display:none!important}
 #socBtn{position:absolute;top:54px;left:12px;z-index:420;display:none;flex-direction:column;align-items:center;justify-content:center;gap:1px;width:62px;height:54px;padding:4px 3px 3px;border-radius:14px;border:1px solid var(--line);background:#fff;color:#b91c1c;box-shadow:0 2px 8px rgba(0,0,0,.25);cursor:pointer;font:inherit;-webkit-tap-highlight-color:transparent;transition:transform .1s}
 #socBtn img{width:52px;height:30px;object-fit:contain;mix-blend-mode:multiply;display:block;pointer-events:none}
 #socBtn b{font-size:10px;font-weight:800;letter-spacing:.02em;line-height:1}
+/* 29/10/2026 (dono): menos "leitoso": vidro transparente, caminhão recortado e sombra de quem flutua no mapa */
+#socBtn{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.55);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);box-shadow:0 10px 22px rgba(0,0,0,.30),0 2px 5px rgba(0,0,0,.18)}
+#socBtn img{mix-blend-mode:normal;filter:drop-shadow(0 3px 3px rgba(0,0,0,.35))}
+#socBtn b{color:#b91c1c;text-shadow:0 0 3px #fff,0 0 3px #fff,0 0 6px rgba(255,255,255,.9)}
 #socBtn:active{transform:scale(.95)}
 body.hist-on #socBtn{display:none!important}
 @media (min-width:900px){ #socBtn{left:calc(var(--lado,0px) + 12px);z-index:460} }
@@ -3315,7 +3319,7 @@ nav button:not(.on) .nemo{filter:saturate(.85)}
   <button class="follow" id="btnRet" type="button" style="display:none" title="Para retirar" aria-label="Para retirar"><span class="rletra">R</span><span class="lbl">Para retirar</span></button>
   <div id="zoomBox"><button type="button" id="zoomMais" title="Aproximar o mapa" aria-label="Aproximar o mapa">+</button><button type="button" id="zoomMenos" title="Afastar o mapa" aria-label="Afastar o mapa">−</button></div>
   <!-- 19/10/2026 (pedido do dono): lupa para marcar um ponto no mapa (endereço ou latitude/longitude), só administrador -->
-  <button id="socBtn" type="button" title="Socorro: reboque, chaveiro, mecânico e mais" aria-label="Socorro: reboque, chaveiro, mecânico e mais"><img src="cat-reboque.jpg" alt=""><b>Socorro</b></button>
+  <button id="socBtn" type="button" title="Serviços: reboque, chaveiro, mecânico e mais" aria-label="Serviços: reboque, chaveiro, mecânico e mais"><img src="icv/servicos-reboque.webp" alt=""><b>Serviços</b></button>
   <button id="pontoBtn" type="button" style="display:none" title="Marcar um ponto no mapa (endereço ou coordenadas)" aria-label="Marcar um ponto no mapa"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><b id="pontoN"></b></button>
   <button id="retChip" type="button" style="display:none" title="Tirar do mapa os veículos para retirar">📍 Para retirar no mapa <span aria-hidden="true">✕</span></button>
   <button id="deslizeBtn" type="button" title="Teste: o veículo desliza sem parar, mostrando o trajeto com até 2 minutos de atraso">〰️ Deslize contínuo: <span id="deslizeTxt">desligado</span></button>
