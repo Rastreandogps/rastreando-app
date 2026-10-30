@@ -3245,6 +3245,16 @@ nav button:not(.on) .nemo{filter:saturate(.85)}
   main #sheet .grid .stat::before{width:24px!important;height:24px!important}
 }
 @media (min-width:900px) and (max-width:1199px) and (max-height:1000px){ main #sheet #sLojaBtn span,main #sheet #sFatBtn span{display:none} main #sheet .grid .stat{padding-left:6px} } /* notebook estreito: Loja e Faturas só com o ícone */
+/* 30/10/2026 (dono): no computador, o velocímetro vai para o lugar do ícone do carrinho (à esquerda do nome) e sai da faixa de baixo */
+.spdtop{display:none}
+@media (min-width:900px){
+  main #sheet .dragzone .row::before{display:none!important}
+  main #sheet .spdtop{display:block;position:relative;flex:none;width:64px;height:55px;background:url(icv/st-vel2.webp) center/contain no-repeat;filter:drop-shadow(0 2px 4px rgba(0,0,0,.25))}
+  main #sheet .spdtop .spdnum{position:absolute;left:0;right:0;top:48%;transform:translateY(-50%);text-align:center;font:italic 800 18px/1 ui-monospace,'Consolas','Courier New',monospace;color:#fff;letter-spacing:-.5px;text-shadow:0 0 4px rgba(255,255,255,.55)}
+  main #sheet .spdtop .spdnum.n3{font-size:15px}
+  main #sheet .grid .stat:has(.spdic){display:none!important}
+}
+@media (min-width:900px) and (max-height:1000px){ main #sheet .spdtop{width:56px;height:48px} main #sheet .spdtop .spdnum{font-size:16px} main #sheet .spdtop .spdnum.n3{font-size:13px} }
 </style>
 </head>
 <body>
@@ -3339,6 +3349,7 @@ nav button:not(.on) .nemo{filter:saturate(.85)}
     <div class="dragzone" id="dragzone">
       <div class="handlewrap"><span class="handle"></span></div>
       <div class="row">
+        <span class="spdtop" id="spdTop" title="Velocidade" aria-hidden="true"><em class="spdnum" id="sSpeedN2"></em></span><!-- 30/10/2026: velocímetro no lugar do ícone do carro (computador) -->
         <button type="button" class="vrua" id="vRua" aria-label="Vista da rua"><img id="vRuaImg" alt=""><span class="vrmsg" id="vRuaMsg"></span><span class="vrtag" id="vRuaTag"></span></button>
         <div>
           <div class="vname"><button id="vPick" class="vpick" type="button" aria-label="Trocar de veículo" title="Trocar de veículo"><span id="vName"></span><svg class="pickseta" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button><span class="vign" id="vIgn" title="Ignição" aria-label="Ignição"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="4"/><path d="M10.4 12.6 20 3"/><path d="M16 7l3 3"/><path d="M14 9l2 2"/></svg></span><button id="btnRenome" aria-label="Editar nome do veículo" title="Editar nome"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></button><button id="btnIcone" type="button" aria-label="Trocar o ícone do veículo no mapa" title="Trocar o ícone no mapa"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/></svg></button><button id="btnRuaVer" type="button" aria-label="Mostrar a vista da rua" title="Vista da rua: ligar/desligar (só para você)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></button><span id="ruaGiroCont" title="Giros 360° grátis que ainda restam hoje, somando todos os clientes"></span></div>
@@ -6267,7 +6278,7 @@ function atualizar(){
       const wn=$('vWppNum'); if(wn){ wn.textContent=v.wppVeic?fmtWpp(v.wppVeic):''; wn.style.display=v.wppVeic?'':'none'; wn.title='WhatsApp do cliente (gravado no veículo)' } /* 18/10/2026 */
     } else cr.style.display='none';
     $('vStatus').textContent=txt; $('vStatus').className='status '+cls;
-    $('sSpeed').textContent=sp?'—':v.vel+' km/h'; { const sn=$('sSpeedN'); if(sn){ const t=sp?'—':String(v.vel); sn.textContent=t; sn.classList.toggle('n3',t.length>=3) } } /* 29/10/2026: número dentro do velocímetro */
+    $('sSpeed').textContent=sp?'—':v.vel+' km/h'; { const sn=$('sSpeedN'); if(sn){ const t=sp?'—':String(v.vel); sn.textContent=t; sn.classList.toggle('n3',t.length>=3) } const s2=$('sSpeedN2'); if(s2){ const t=sp?'—':String(v.vel); s2.textContent=t; s2.classList.toggle('n3',t.length>=3) } } /* 29/10/2026: número dentro do velocímetro */
     { const ig=$('vIgn'), vel=v.ign===null && typeof v.ignUlt==='boolean', iv=vel?v.ignUlt:v.ign; /* 28/10/2026 (dono): sem conexão, mostra a ÚLTIMA ignição conhecida (meio apagada) */
       ig.className='vign '+(iv===null||iv===undefined?'nd':(iv?'on':'off'))+(vel?' velha':''); ig.title=(iv===null||iv===undefined)?'Ignição: sem informação':((iv?'Ignição ligada':'Ignição desligada')+(vel?' (última informação'+(v.ignUltEm?', '+horaAtual(v.ignUltEm):'')+')':'')); ig.setAttribute('aria-label',ig.title) }
     try{ cbQuadro(v) }catch(e){}
