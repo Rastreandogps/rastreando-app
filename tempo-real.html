@@ -13687,6 +13687,11 @@ async function mrSwTrocar(){
   $('mrSwBox').classList.remove('ocupado');
 }
 /* o carro do cliente que entra na conta: o selecionado; senão, o primeiro com posição */
+/* 29/10/2026 (dono): no mapa dos prestadores, o veículo aparece igual ao mapa principal (mesmo ícone e mesmo nome), no lugar da bolinha */
+function rbCarMarc(v){
+  try{ return L.marker(v.pos,{zIndexOffset:2000,interactive:false,keyboard:false,icon:L.divIcon({className:'',iconSize:[44,44],iconAnchor:[22,22],html:carHtml(v)+'<div class="'+rotuloClasse(v)+'">'+rotuloHtml(v)+'</div>'})}) }
+  catch(e){ return L.marker(v.pos,{icon:L.divIcon({className:'',html:'<div class="rbcar" title="Seu veículo"></div>',iconSize:[14,14],iconAnchor:[7,7]}),interactive:false}).bindTooltip('Você está aqui',{permanent:true,direction:'top',className:'rbaqui',offset:[0,-9]}) }
+}
 function rbCarro(){ return ativo() || veiculos.find(v=>v.pos && v.visivel && !v.tag) || veiculos.find(v=>v.pos) || null }
 let pcAdmMapa=false; /* 26/10/2026 (dono): admin abre o mapa dos prestadores sem veículo */
 /* 29/10/2026 (dono): antes de abrir Socorro e serviços, o cliente confirma que paga o prestador direto (admin entra direto) */
@@ -13719,7 +13724,7 @@ function rbMapaPreparar(){
 function rbDesenhar(){
   rbMapaPreparar(); rbCamada.clearLayers();
   const pts=[]; const v=rbCarroAtual;
-  if(v&&v.pos){ L.marker(v.pos,{icon:L.divIcon({className:'',html:'<div class="rbcar" title="Seu veículo"></div>',iconSize:[14,14],iconAnchor:[7,7]}),interactive:false}).addTo(rbCamada).bindTooltip('Você está aqui',{permanent:true,direction:'top',className:'rbaqui',offset:[0,-9]}); pts.push(v.pos) }
+  if(v&&v.pos){ rbCarMarc(v).addTo(rbCamada); pts.push(v.pos) }
   rbLista.forEach((r,i)=>{ /* 26/10/2026 (dono): círculo da região + ícone do reboque no meio + só o primeiro nome; tocar abre a janela */
     const c=[r.regiao.lat,r.regiao.lon];
     const circ=L.circle(c,{radius:r.regiao.raioM||2000,color:'#0ea5e9',weight:2,fillColor:'#0ea5e9',fillOpacity:.14}).addTo(rbCamada); circ.on('click',()=>pcDetAbrir('reb',i));
@@ -14180,7 +14185,7 @@ function pcDesenhar(nome,anexar){ /* anexar=true: junta aos reboquistas com rast
   rbMapaPreparar(); if(!anexar) rbCamada.clearLayers();
   const pts=[], v=rbCarroAtual;
   if(anexar) rbLista.forEach(r=>{ if(r.regiao) pts.push([r.regiao.lat,r.regiao.lon]) });
-  if(v&&v.pos&&!anexar){ L.marker(v.pos,{icon:L.divIcon({className:'',html:'<div class="rbcar" title="Seu veículo"></div>',iconSize:[14,14],iconAnchor:[7,7]}),interactive:false}).addTo(rbCamada).bindTooltip('Você está aqui',{permanent:true,direction:'top',className:'rbaqui',offset:[0,-9]}); pts.push(v.pos) }
+  if(v&&v.pos&&!anexar){ rbCarMarc(v).addTo(rbCamada); pts.push(v.pos) }
   const emo=(PC_CATS.find(c=>c[0]===pcCat)||[])[2]||'📍';
   pcMarc=[]; pcAberto=-1;
   pcLista.forEach((p,i)=>{ let lay=null, c=null;
