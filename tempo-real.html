@@ -6243,7 +6243,7 @@ function gvPinta(){ gvRaf=0; sheet.style.transform='translate3d(0,'+gvO+'px,0)' 
 zone.addEventListener('pointerdown',e=>{
   if(telaLarga()) return;
   arrastando=true; moveu=false; y0=e.clientY; off0=offAtual(); gvMax=maxOff(); gvO=off0; gvAm=[{y:e.clientY,t:performance.now()}];
-  naAlca = !!e.target.closest('.handlewrap');
+  naAlca = !!e.target.closest('.handlewrap') || !e.target.closest('button,a,input,select,label,[role=button]'); /* 30/10/2026 (dono): um toque em qualquer parte livre do cartão sobe/desce (botões continuam com a função deles) */
   sheet.classList.add('drag');
   try{zone.setPointerCapture(e.pointerId)}catch(_){}
 });
