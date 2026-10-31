@@ -41,7 +41,7 @@ try{ if(localStorage.getItem('rg_token')||sessionStorage.getItem('rgv_rg_token')
 try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'){document.documentElement.setAttribute('data-tema',t)}}catch(e){}
 </script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="stylesheet" href="app.css?v=4"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
+<link rel="stylesheet" href="app.css?v=5"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
 </head>
 <body>
 
@@ -6496,6 +6496,23 @@ function dorDiasTxt(arr){
   const partes=grupos.map(g=>g.d.slice(0,-1).concat(g.d[g.d.length-1]+'/'+g.m));
   const tudo=[].concat(...partes); return tudo.length<=1?(tudo[0]||''):tudo.slice(0,-1).join(', ')+' e '+tudo[tudo.length-1];
 }
+/* 31/10/2026 (dono): bloco dia por dia — "28/10 ter · 15:54 às 23:59", "29/10 qua · dia todo"... */
+const DOR_SEM=['dom','seg','ter','qua','qui','sex','sáb'];
+function dorDiasDet(g){
+  const rows=[];
+  (g.lst||[]).forEach(s=>{ const d0=dorDiaDe(s.ini), d1=dorDiaDe(s.fim);
+    for(let d=d0; d<=d1; d++){ const a=d*DOR_DIA+3*3600000, b=a+DOR_DIA, ini=Math.max(s.ini,a), fim=Math.min(s.fim,b);
+      if(fim-ini<3600000) continue; rows.push({d,ini,fim,todo:ini-a<60000 && b-fim<60000}) } });
+  return rows.sort((x,y)=>x.ini-y.ini);
+}
+function dorDiasHtml(g,max){
+  const hm=t=>new Date(t).toLocaleTimeString('pt-BR',{timeZone:'America/Sao_Paulo',hour:'2-digit',minute:'2-digit'});
+  let rows=dorDiasDet(g); const tot=rows.length, cortou=tot>max; if(cortou) rows=rows.slice(-max);
+  return '<span class="hdordias">'+(cortou?'<i>… e mais '+(tot-max)+(tot-max===1?' dia antes':' dias antes')+'</i>':'')+rows.map(r=>{ const dt=new Date(r.ini); const dia=dt.toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo',day:'2-digit',month:'2-digit'});
+    const sem=DOR_SEM[new Date(r.d*DOR_DIA+3*3600000+12*3600000).getUTCDay()];
+    const fimTxt=(r.fim-(r.d*DOR_DIA+3*3600000)>=DOR_DIA-60000)?'23:59':hm(r.fim);
+    return '<span><b>'+dia+' '+sem+'</b><span>'+(r.todo?'dia todo':hm(r.ini)+' às '+fimTxt)+'</span></span>' }).join('')+'</span>';
+}
 function dorLinhas(g){
   const n=g.diasL?Math.min(g.diasL.length,g.dias):g.dias, lst=(g.diasL||[]).slice(-n);
   const t1='Esteve aqui em '+n+(n===1?' dia':' dias')+(lst.length?': '+dorDiasTxt(lst):'');
@@ -6508,7 +6525,7 @@ function popDorme(g,i,n){
   const gm='https://www.google.com/maps/search/?api=1&query='+la+','+lo, am='https://maps.apple.com/?q='+encodeURIComponent('Lugar '+(i+1))+'&ll='+la+','+lo;
   const end=enderecoGuardado(g.ll);
   return '<div class="hpopt">'+(i===0?'🛏️ Lugar 1 · principal':'Lugar '+(i+1))+'</div>'+
-    '<div class="hpopd"><b>'+dorLinhas(g)[0]+'</b><br>'+dorLinhas(g)[1]+'</div>'+
+    '<div class="hpopd"><b>Esteve aqui em '+(dorDiasDet(g).length||g.dias)+' dias</b>'+dorDiasHtml(g,5)+'</div>'+
     '<div class="hpope" data-pe="'+i+'">'+(end?esc(end):'Buscando endereço...')+'</div>'+
     '<a class="hpopb" href="'+gm+'" target="_blank" rel="noopener">Abrir no Google Maps</a>'+
     (ehIphone()?'<a class="hpopb ap" href="'+am+'" target="_blank" rel="noopener">Abrir no Mapas (Apple)</a>':'');
@@ -6560,8 +6577,8 @@ $('hDorme').onclick=async()=>{
         .bindPopup(popDorme(x,i,nTxt),{className:'hpop',closeButton:true,autoPanPaddingTopLeft:[20,20],autoPanPaddingBottomRight:[20,40]}).addTo(g);
     });
     g.addTo(map); hist.camDor=g;
-    $('hDorLista').innerHTML=lug.map((x,i)=>'<div class="hdoritem'+(i===0?' top':'')+'" data-di="'+i+'"><span class="n">'+(i+1)+'</span><span><b>'+(i===0?'Principal · ':'')+dorLinhas(x)[0]+'</b>'+
-      '<small>'+dorLinhas(x)[1]+'</small>'+
+    $('hDorLista').innerHTML=lug.map((x,i)=>'<div class="hdoritem'+(i===0?' top':'')+'" data-di="'+i+'"><span class="n">'+(i+1)+'</span><span><b>'+(i===0?'Principal · ':'')+'Esteve aqui em '+Math.min(dorDiasDet(x).length||x.dias,99)+' dias</b>'+
+      dorDiasHtml(x,8)+
       '<em class="hend" data-de="'+i+'">'+esc(enderecoGuardado(x.ll)||'')+'</em></span></div>').join('');
     $('hDorLista').onclick=e=>{ const r=e.target.closest('[data-di]'); if(r){ const i=+r.dataset.di; histFocar(lug[i].ll,17); setTimeout(()=>{ try{ hist.mkDor[i].openPopup() }catch(er){} },350) } };
     $('hDorRes').classList.add('show');

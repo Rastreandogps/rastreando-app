@@ -3384,3 +3384,11 @@ nav button:not(.on) .nemo{filter:saturate(.85)}
 .hpanel.tab-per .hdorme{margin-top:0;padding-top:0;border-top:0}
 .hpanel.tab-ev .hevbtn{height:48px;margin-top:4px;background:#2563eb;border-color:#2563eb;color:#fff}
 .hpanel.tab-per .hdormebtn{height:48px;background:#7c3aed;color:#fff}
+
+/* 31/10/2026 (dono): Pernoites dia por dia */
+.hdordias{display:grid;gap:3px;margin-top:6px}
+.hdordias>span{display:flex;justify-content:space-between;gap:10px;font-size:12.5px;padding:4px 9px;border-radius:8px;background:rgba(127,127,127,.12);font-variant-numeric:tabular-nums}
+.hdordias>span b{font-size:12.5px!important;font-weight:700;display:inline!important}
+.hdordias>i{font-size:11.5px;color:var(--mut);font-style:normal}
+.hpopd .hdordias{margin-top:6px}
+.hpanel .hdoritem>span:not(.n){flex:1;min-width:0}
