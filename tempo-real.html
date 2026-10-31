@@ -1813,6 +1813,7 @@ h3.comdica .dica:hover~.dicatx,h3.comdica .dica:focus~.dicatx,h3.comdica .dica.o
 .stat.bv{display:flex;flex-direction:column;justify-content:center;gap:4px;padding:6px 2px}
 .stat.bv .bvl{display:flex;align-items:center;justify-content:center;gap:3px;white-space:nowrap}
 .stat.bv .bvl i{font-style:normal;font-size:12px;line-height:1}
+.stat.bv .bvl .bvic{width:16px;height:16px;object-fit:contain;flex:none} /* 31/10/2026 (dono): rastreador ao lado do % e bateria do veículo ao lado da voltagem */
 .stat.bv .bvl b{display:inline;margin:0;font-size:13px}
 .stat.bv .bvl b.velha{opacity:.6}
 @media(max-width:480px){.stat.bv .bvl b{font-size:12px}.stat.bv .bvl i{font-size:11px}}
@@ -3484,7 +3485,7 @@ nav button:not(.on) .nemo{filter:saturate(.85)}
     <div id="ruaCelTesteRow"><div class="rteste" aria-hidden="true"><span class="rtt"></span></div></div><!-- 26/10/2026 -->
     <div class="grid">
       <div class="stat" title="Velocidade"><span class="spdic" aria-label="Velocidade"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 17a8.5 8.5 0 1 1 15 0"/><path d="M12 13l4-4"/><circle cx="12" cy="13" r="1.3" fill="currentColor"/></svg><em class="spdnum" id="sSpeedN" aria-hidden="true"></em></span><b id="sSpeed"></b></div>
-      <div class="stat bv" id="sBvBox" title="Bateria do rastreador e voltagem do veículo"><div class="bvl"><i aria-label="Bateria">🔋</i><b id="sBat"></b></div><div class="bvl"><i aria-label="Voltagem">⚡</i><b id="sVolt"></b></div><small id="sVoltAge" hidden></small></div>
+      <div class="stat bv" id="sBvBox" title="Bateria do rastreador e voltagem do veículo"><div class="bvl"><img class="bvic" src="icv/bv-rast.webp" alt="Bateria do rastreador"><b id="sBat"></b></div><div class="bvl"><img class="bvic" src="icv/bv-bat.webp" alt="Bateria do veículo"><b id="sVolt"></b></div><small id="sVoltAge" hidden></small></div>
       <button type="button" class="stat statbtn odo" id="sOdoBtn" aria-label="Odômetro e meta de quilometragem" title="Toque para a meta de quilometragem"><span>Odômetro</span><b id="sOdo"></b></button>
       <button type="button" class="stat statbtn comb" id="sCombBtn" aria-label="Combustível" title="Toque para calcular o combustível"><span>Combustível</span><b id="sComb">—</b></button>
       <button type="button" class="stat statbtn loja" id="sLojaBtn" aria-label="Loja" title="Loja: tag de emergência, rastreador portátil e mais"><span>Loja</span><b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6h15l-1.5 9h-12z"/><path d="M6 6L5 3H2"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/></svg></b><em class="lojabadge" id="sLojaN" hidden></em></button>
