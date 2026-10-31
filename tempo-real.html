@@ -2350,6 +2350,10 @@ header nav .nl-pc{display:inline} header nav .nl-cel{display:none}
 .wppv{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-top:10px}
 .wppv .vh{display:flex;justify-content:space-between;align-items:center;gap:8px;font-weight:700;font-size:14px}
 .wppv .vh small{font-weight:600;color:var(--mut);font-size:12px}
+.wppv{border-color:rgba(37,211,102,.75)!important;animation:wppLed 2.4s ease-in-out infinite} /* 31/10/2026 (dono): LED verde em volta do card ativo */
+@keyframes wppLed{0%,100%{box-shadow:0 0 0 1px rgba(37,211,102,.35),0 0 10px 1px rgba(37,211,102,.28)}50%{box-shadow:0 0 0 1px rgba(37,211,102,.6),0 0 22px 5px rgba(37,211,102,.45)}}
+@media (prefers-reduced-motion:reduce){.wppv{animation:none;box-shadow:0 0 0 1px rgba(37,211,102,.5),0 0 14px 3px rgba(37,211,102,.35)}}
+.wppv .bts{display:flex;gap:8px;flex-wrap:wrap}
 .wppv .wppcanal{display:flex;align-items:center;justify-content:space-between;gap:10px;border-top:1px solid var(--line);margin-top:10px;padding-top:10px;font-size:13px;font-weight:600}
 .wppv .wppcanal small{display:block;font-weight:500;color:var(--mut);font-size:11.5px;margin-top:2px}
 .wppit{margin-top:10px}
@@ -5102,6 +5106,16 @@ nav button:not(.on) .nemo{filter:saturate(.85)}
     <button class="btn btn-wpp" id="wppPagar" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l4.2 4.2-4.2 4.2-4.2-4.2zM12 13.1l4.2 4.2-4.2 4.2-4.2-4.2zM6.7 7.8l4.2 4.2-4.2 4.2L2.5 12zM17.3 7.8l4.2 4.2-4.2 4.2-4.2-4.2z"/></svg>Pagar com PIX</button>
     <button class="btn btn-out" id="wppAdmin" type="button" style="width:100%;margin-top:8px;display:none">Ativar sem PIX (teste do administrador)</button>
     <p class="alnota" style="text-align:center">Assim que o PIX for confirmado, os alertas começam a chegar no WhatsApp. Quando vencer, o WhatsApp para e os alertas continuam no app.</p>
+  </div>
+</div>
+<div class="modal alsheet" id="mWppTroca">
+  <div class="box2">
+    <h3>Trocar veículo</h3>
+    <p>Os alertas no WhatsApp de <b id="wtDe"></b> passam para outro veículo seu, com os mesmos dias que faltam e o mesmo número. O uso do mês continua contando.</p>
+    <select class="fld" id="wtPara" required></select>
+    <p class="wpperrotx" id="wtErro" style="color:var(--red2);font-size:13px;min-height:18px;margin:6px 0 0"></p>
+    <button class="btn btn-wpp" id="wtOk" type="button" style="width:100%;margin-top:8px">Trocar</button>
+    <button class="btn btn-out alfechar" data-close type="button">Cancelar</button>
   </div>
 </div>
 <div class="modal alsheet" id="mAlKm">
@@ -13012,7 +13026,7 @@ function wppDesenhar(){
       '<div style="font-size:12.5px;color:var(--mut);margin-top:2px">💬 '+esc(wppFone(num))+'</div>'+itens+vence+
       /* 31/10/2026 (dono): escolher entre "app + WhatsApp" (padrão) e "só WhatsApp" */
       '<div class="igrow wppcanal"><span>Avisar também no app<small>'+(soWpp?'Desligado: chega só no WhatsApp':'Notificação do app + WhatsApp')+'</small></span><label class="sw"><input type="checkbox" data-wppcanal="'+v.id+'"'+(soWpp?'':' checked')+'><span></span></label></div>'+
-      '<div class="bts"><button class="mini" type="button" data-wppren="'+v.id+'">'+(faltaD<=3?'Renovar':'Adicionar ou renovar')+'</button></div></div>';
+      '<div class="bts"><button class="mini" type="button" data-wppren="'+v.id+'">'+(faltaD<=3?'Renovar':'Adicionar ou renovar')+'</button>'+(veiculos.length>1?'<button class="mini" type="button" data-wpptroca="'+v.id+'">Trocar veículo</button>':'')+'</div></div>';
   }).join('');
 }
 function wppAbrir(dev){
@@ -13075,11 +13089,30 @@ $('wppLista').addEventListener('change',async e=>{
 });
 $('wppLista').addEventListener('click',async e=>{
   const r=e.target.closest('[data-wppren]'); if(r){ wppAbrir(r.dataset.wppren); return }
+  const tr=e.target.closest('[data-wpptroca]'); if(tr){ wppTrocaAbrir(+tr.dataset.wpptroca); return }
   const d=e.target.closest('[data-wppdesl]'); if(!d) return;
   d.disabled=true;
   try{ wppEst=await fnAl('wppAdminDesativar',{deviceId:+d.dataset.wppdesl,item:d.dataset.k}); toast('Desligado.') }catch(err){ toast(err.message) }
   wppDesenhar();
 });
+/* 31/10/2026 (dono): trocar o veículo que recebe os alertas no WhatsApp (vendeu o carro, mudou de ideia). Leva os dias que faltam. */
+let wppTrocaDe=0;
+function wppTrocaAbrir(de){
+  const v=veiculos.find(x=>x.id===de); if(!v) return;
+  const livres=veiculos.filter(x=>x.id!==de && !Object.keys(wppAtivos(x.id)).length).sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
+  if(!livres.length){ toast('Todos os seus outros veículos já têm alertas no WhatsApp.'); return }
+  wppTrocaDe=de; $('wtDe').textContent=v.nome; $('wtErro').textContent='';
+  $('wtPara').innerHTML='<option value="" disabled selected>Escolha o veículo</option>'+livres.map(x=>'<option value="'+x.id+'">'+esc(x.nome)+(x.placa?' · '+esc(x.placa):'')+'</option>').join('');
+  $('wtPara').classList.remove('wpperro'); abrir('mWppTroca');
+}
+$('wtOk').onclick=async()=>{
+  const para=+$('wtPara').value, f=$('wtPara');
+  if(!para){ $('wtErro').textContent='Escolha o veículo que vai receber os alertas.'; f.classList.remove('wpperro'); void f.offsetWidth; f.classList.add('wpperro'); try{ navigator.vibrate && navigator.vibrate([60,40,60]) }catch(e){} return }
+  const b=$('wtOk'); b.disabled=true;
+  try{ wppEst=await fnAl('wppTrocar',{deviceId:wppTrocaDe,para}); fechar(); wppDesenhar(); try{ alCfg=(await fnAl('alertasEstado',{})).cfg||alCfg }catch(e){} try{ desenharIgn(); desenharBat() }catch(e){} toast('Pronto. Os alertas no WhatsApp agora são de '+((veiculos.find(x=>x.id===para)||{}).nome||'outro veículo')+'.',4500) }
+  catch(err){ $('wtErro').textContent=err.message }
+  b.disabled=false;
+};
 let wppComprando=false;
 $('wppPagar').onclick=async()=>{
   const p=wppValidar(); if(!p || wppComprando) return;
@@ -13094,7 +13127,7 @@ $('wppPagar').onclick=async()=>{
 $('wppAdmin').onclick=async()=>{
   const p=wppValidar(); if(!p) return;
   const btn=$('wppAdmin'); btn.disabled=true;
-  try{ wppEst=await fnAl('wppAdminAtivar',Object.assign({dias:wppEst.dias||30},p)); toast('Ativado por '+(wppEst.dias||30)+' dias (sem PIX).'); fechar(); wppDesenhar() }
+  try{ wppEst=await fnAl('wppAdminAtivar',Object.assign({dias:wppEst.dias||30},p)); toast('Ativado por '+(wppEst.dias||30)+' dias (sem PIX).'); fechar(); wppDesenhar(); try{ alCfg=(await fnAl('alertasEstado',{})).cfg||alCfg; desenharIgn(); desenharBat() }catch(e){} }
   catch(err){ $('wppErro').textContent=err.message }
   btn.disabled=false;
 };
