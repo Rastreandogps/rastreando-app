@@ -2317,8 +2317,8 @@ header nav .nl-pc{display:inline} header nav .nl-cel{display:none}
 .alnota{font-size:12.5px!important;color:var(--mut);margin:10px 2px 0!important;line-height:1.4}
 .algrupo{background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:0 14px}
 /* ===== 31/10/2026 (pedido do dono): Alertas no WhatsApp (pacote pago por PIX, 30 dias por veículo) ===== */
-.wppcard{display:flex;gap:12px;align-items:center;background:linear-gradient(135deg,#0f3d2a,#0b2a1e);border:1px solid rgba(37,211,102,.35);border-radius:16px;padding:12px;color:#eafff3;cursor:pointer}
-.wppcard video{width:92px;height:111px;flex:none;border-radius:12px;object-fit:cover;background:#0b2a1e}
+.wppcard{display:flex;gap:12px;align-items:center;overflow:hidden;background:linear-gradient(135deg,#0f3d2a,#0b2a1e);border:1px solid rgba(37,211,102,.35);border-radius:16px;padding:12px;color:#eafff3;cursor:pointer}
+.wppcard img{width:150px;height:auto;flex:none;align-self:flex-end;margin:-4px 0 -12px -12px} /* 31/10/2026 (dono): PNG sem fundo, maior, para dar para ler a mensagem */
 .wppcard .tt{font-weight:750;font-size:15px;line-height:1.25}
 .wppcard .tx{font-size:12.5px;color:#b9e8cc;margin-top:4px;line-height:1.4}
 .wppcard .bt{display:inline-flex;align-items:center;gap:6px;margin-top:9px;height:34px;padding:0 14px;border-radius:999px;background:#25d366;color:#05301a;font-weight:750;font-size:13px;border:0}
@@ -3662,7 +3662,7 @@ nav button:not(.on) .nemo{filter:saturate(.85)}
       <div id="wppBox" style="display:none">
         <div class="alsec">Alertas no WhatsApp<span class="wppteste" id="wppTeste" style="display:none">só admin</span></div>
         <div class="wppcard" id="wppCard" role="button" tabindex="0">
-          <video src="icv/alerta-whatsapp.mp4" muted loop playsinline autoplay preload="metadata" aria-hidden="true"></video>
+          <img src="icv/alerta-whatsapp.png" alt="" aria-hidden="true">
           <div><div class="tt">Receba os alertas também no WhatsApp</div>
           <div class="tx">Ignição, cerca, bateria fraca e volta do sinal chegam no seu WhatsApp, com o veículo, a hora e o link do mapa.</div>
           <button class="bt" type="button" id="wppContratar">Escolher alertas</button></div>
