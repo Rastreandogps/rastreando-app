@@ -3336,3 +3336,13 @@ nav button:not(.on) .nemo{filter:saturate(.85)}
 @media (min-width:900px){ main #sheet .placalinha{display:inline-flex;vertical-align:middle} }
 @media (max-width:899px){ .placabts button{width:30px;height:30px} .placabts button svg{width:16px;height:16px}
   #sheet.spdtopon .placalinha{flex-wrap:nowrap;position:relative;z-index:2;width:calc(100vw - 68px - 58px)} #sheet.spdtopon .placabts{gap:6px;margin-left:4px} } /* 30/10/2026: ícones na mesma linha da placa, que não sai do lugar */
+
+/* 31/10/2026 (dono): painel do Histórico recolhível no celular */
+.hpuxa{display:none}
+@media (max-width:899px){
+  .hpanel{transition:transform .3s cubic-bezier(.2,.8,.2,1)}
+  .hpanel.achou .hpuxa{display:block;width:46px;height:5px;border-radius:99px;background:var(--line);margin:-4px auto 8px;cursor:pointer;position:relative}
+  .hpanel.achou .hpuxa::before{content:"";position:absolute;left:-20px;right:-20px;top:-10px;bottom:-10px}
+  .hpanel.achou .htop{cursor:pointer;touch-action:none}
+  .hpanel.recolh{overflow:hidden}
+}

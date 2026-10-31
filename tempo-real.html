@@ -41,7 +41,7 @@ try{ if(localStorage.getItem('rg_token')||sessionStorage.getItem('rgv_rg_token')
 try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'){document.documentElement.setAttribute('data-tema',t)}}catch(e){}
 </script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="stylesheet" href="app.css?v=1"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
+<link rel="stylesheet" href="app.css?v=2"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
 </head>
 <body>
 
@@ -209,6 +209,7 @@ try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'
     </div>
   </div>
   <section class="hpanel" id="hpanel">
+    <div class="hpuxa" id="hPuxa" role="button" aria-label="Recolher ou abrir o painel"></div><!-- 31/10/2026: puxador (celular) -->
     <div class="htop"><h3>Histórico</h3><button type="button" class="hfechar" id="hFechar" title="Fechar o histórico e voltar ao mapa" aria-label="Fechar o histórico e voltar ao mapa">&times;</button></div>
     <div class="hbusca"><input type="search" id="hBusca" placeholder="🔍 Buscar veículo" autocomplete="off" data-lpignore="true" data-1p-ignore aria-label="Buscar veículo, placa ou cliente"><select id="hVeic" aria-label="Veículo"></select></div>
     <div class="hdias">
@@ -6202,6 +6203,7 @@ function histLimpar(){
   if(hist.camada){ map.removeLayer(hist.camada); hist.camada=null }
   hist.marc=null; hist.pts=[]; hist.tv=[]; hist.total=0; hist.t=0;
   $('hRes').classList.remove('show'); $('hpanel').classList.remove('achou');
+  try{ hpRecolher(false) }catch(e){}
 }
 function histSair(){
   if(!hist.on) return;
@@ -6213,6 +6215,27 @@ function histSair(){
   atualizar();
 }
 $('hFechar').onclick=()=>irPara('Mapa');
+/* 31/10/2026 (dono): no celular, o painel do Histórico também recolhe para ver o mapa. Recolhido, fica visível até o aviso amarelo
+   (ou até a linha do período). Toque no puxador/título, arraste para baixo/cima, ou toque no mapa. */
+function hpAlvo(){ const p=$('hpanel'); const av=p.querySelector('#hDorCab .hdoraviso'); if(av && av.offsetHeight) return av; const pr=p.querySelector('.hperres'); if(pr && pr.offsetHeight) return pr; return p.querySelector('.hbusca') }
+function hpAplicar(){
+  const p=$('hpanel');
+  if(telaLarga() || !p.classList.contains('recolh')){ p.style.transform=''; return }
+  p.scrollTop=0;
+  const t=hpAlvo(); if(!t){ p.style.transform=''; return }
+  const off=Math.max(0, p.offsetHeight-(t.getBoundingClientRect().bottom-p.getBoundingClientRect().top+6));
+  p.style.transform='translate3d(0,'+off+'px,0)';
+}
+function hpRecolher(on){ const p=$('hpanel'); if(on && !p.classList.contains('achou')) on=false; p.classList.toggle('recolh',!!on); hpAplicar() }
+{ let y0=null, toque=false;
+  const ini=e=>{ if(telaLarga() || e.target.closest('#hFechar')) return; y0=e.clientY; toque=true };
+  const fim=e=>{ if(y0===null) return; const dy=e.clientY-y0; y0=null; const p=$('hpanel');
+    if(dy>30) hpRecolher(true); else if(dy<-30) hpRecolher(false); else if(toque) hpRecolher(!p.classList.contains('recolh')) };
+  ['hPuxa'].forEach(id=>{ const el=$(id); el.addEventListener('pointerdown',ini); el.addEventListener('pointerup',fim) });
+  const ht=document.querySelector('#hpanel .htop'); ht.addEventListener('pointerdown',ini); ht.addEventListener('pointerup',fim);
+}
+map.on('click',()=>{ try{ if(hist.on && $('hpanel').classList.contains('achou') && !telaLarga()) hpRecolher(true) }catch(e){} });
+window.addEventListener('resize',()=>{ try{ hpAplicar() }catch(e){} });
 $('hBusca').addEventListener('input',()=>{ if(histVeiculos() && $('hVeic').value) $('hVeic').dispatchEvent(new Event('change')) });
 $('hBusca').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); if($('hVeic').value) $('hBuscar').click() } });
 $('hAlterar').onclick=()=>{ histLimpar(); $('hMsg').textContent='Guardamos os últimos 90 dias.' };
