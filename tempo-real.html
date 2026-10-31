@@ -6412,6 +6412,8 @@ function soltar(e){
 }
 zone.addEventListener('pointerup',soltar);
 zone.addEventListener('pointercancel',soltar);
+/* 31/10/2026 (dono): no celular, um toque no mapa recolhe o cartão (ganha mapa). Toque no veículo não conta. */
+map.on('click',()=>{ if(telaLarga() || arrastando || recolhido || (typeof desenho!=='undefined' && desenho)) return; recolhido=true; aplicarSheet() });
 
 /* 30/10/2026 (dono): o cartão também sobe/desce tocando ou arrastando EM QUALQUER LUGAR dele (não só na parte de cima).
    Toque em parte livre = sobe/desce. Arrastar para cima/baixo (mesmo começando em cima de um botão) = move o cartão
