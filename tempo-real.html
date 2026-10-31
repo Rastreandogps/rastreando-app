@@ -2389,6 +2389,10 @@ header nav .nl-pc{display:inline} header nav .nl-cel{display:none}
 .btn-wpp{display:flex!important;align-items:center;justify-content:center;gap:10px;width:100%;min-height:54px;margin-top:8px;border-radius:15px!important;background:#13c98a!important;color:#fff!important;border:0!important;font-weight:750;font-size:16.5px!important}
 .btn-wpp svg{width:20px;height:20px;fill:#fff}
 .btn-wpp:disabled{opacity:.45}
+#wppVeic:invalid,#wppVeic option[value=""]{color:var(--mut)}
+#wppVeic option{color:var(--txt)}
+.fld.wpperro{border-color:var(--red2)!important;box-shadow:0 0 0 3px rgba(255,74,82,.18);animation:wppTreme .45s}
+@keyframes wppTreme{0%,100%{transform:none}20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
 @media (max-width:360px){.wppop .ic{width:42px;height:42px}.wppop .nm b{font-size:13px}.wppop .pr{font-size:13.5px}}
 .altile .wppselo{display:none;font-size:10.5px;font-weight:700;color:#25d366;margin-top:-4px}
 .altile.wppon .wppselo{display:block}
@@ -5085,7 +5089,7 @@ nav button:not(.on) .nemo{filter:saturate(.85)}
     <p class="wppdesc">Receba os alertas do seu veículo também no WhatsApp. Eles continuam chegando no app normalmente.</p>
     <div class="wppvale"><span>📅</span><div>Vale por <b><span id="wppDias">30</span> dias</b>, por veículo.<br><small>Não mexe na sua mensalidade.</small></div></div>
     <label class="flbl" for="wppVeic">Veículo</label>
-    <select class="fld" id="wppVeic"></select>
+    <select class="fld" id="wppVeic" required></select>
     <label class="flbl" for="wppNum">WhatsApp que vai receber os alertas</label>
     <input class="fld" id="wppNum" type="tel" inputmode="numeric" maxlength="16" placeholder="(21) 99999-9999" autocomplete="tel">
     <div class="wppsub">Quais alertas você quer ativar?</div>
@@ -13008,8 +13012,9 @@ function wppAbrir(dev){
   if(!wppEst || !wppEst.podeComprar) return;
   const lista=veiculos.slice().sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
   if(!lista.length){ toast('Nenhum veículo na sua conta.'); return }
-  $('wppVeic').innerHTML=lista.map(v=>'<option value="'+v.id+'">'+esc(v.nome)+(v.placa?' · '+esc(v.placa):'')+'</option>').join('');
-  if(dev) $('wppVeic').value=String(dev);
+  /* 31/10/2026 (dono): começa VAZIO, para quem tem 2+ veículos não pagar sem querer pelo veículo errado. Só vem escolhido pelo botão Renovar de um veículo */
+  $('wppVeic').innerHTML='<option value="" disabled selected>Escolha o veículo</option>'+lista.map(v=>'<option value="'+v.id+'">'+esc(v.nome)+(v.placa?' · '+esc(v.placa):'')+'</option>').join('');
+  $('wppVeic').value=dev?String(dev):''; $('wppVeic').classList.remove('wpperro');
   $('wppDias').textContent=wppEst.dias||30;
   $('wppAdmin').style.display=ehAdmin?'':'none';
   $('wppErro').textContent='';
@@ -13039,12 +13044,18 @@ function wppTotal(){
 }
 function wppValidar(){
   const itens=wppEscolhidos(), num=$('wppNum').value.replace(/\D/g,'').replace(/^55(?=\d{10,11}$)/,'');
+  if(!$('wppVeic').value){ /* 31/10/2026 (dono): campo vermelho + tremida + vibração */
+    const f=$('wppVeic'); $('wppErro').textContent='Escolha o veículo que vai receber os alertas.';
+    f.classList.remove('wpperro'); void f.offsetWidth; f.classList.add('wpperro');
+    try{ f.scrollIntoView({block:'center',behavior:'smooth'}) }catch(e){} try{ navigator.vibrate && navigator.vibrate([60,40,60]) }catch(e){}
+    return null;
+  }
   if(!itens.length){ $('wppErro').textContent='Escolha pelo menos um alerta.'; return null }
   if(num.length!==10 && num.length!==11){ $('wppErro').textContent='Informe o WhatsApp com DDD. Ex.: (21) 99999-9999'; $('wppNum').focus(); return null }
   $('wppErro').textContent=''; $('wppNum').dataset.ult=wppFone(num);
   return {deviceId:+$('wppVeic').value, itens:itens, numero:num};
 }
-$('wppVeic').onchange=()=>wppPintarItens(true);
+$('wppVeic').onchange=()=>{ $('wppVeic').classList.remove('wpperro'); $('wppErro').textContent=''; wppPintarItens(true) };
 $('wppItens').addEventListener('change',wppTotal);
 $('wppNum').addEventListener('input',()=>{ $('wppErro').textContent='' });
 $('wppCard').onclick=e=>{ wppAbrir() };
