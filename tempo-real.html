@@ -6484,17 +6484,31 @@ function dormeLugares(est,minMs){
     /* 25/10/2026: conta os DIAS DO CALENDÁRIO que a parada toca (pelo menos 1 h em cada um). Antes contava 1 dia a cada 24 h
        parado a partir do início: a noite de 19h às 6h valia só o dia em que começou, e um veículo com 2 dias de histórico nunca aparecia. */
     g.lst.forEach(s=>{ const d0=dorDiaDe(s.ini), d1=dorDiaDe(s.fim); for(let d=d0; d<=d1; d++){ const ini=Math.max(s.ini,d*DOR_DIA+3*3600000), fim=Math.min(s.fim,(d+1)*DOR_DIA+3*3600000); if(fim-ini>=3600000) dias.add(d) } });
-    g.dias=dias.size; g.vezes=g.lst.length; g.total=g.lst.reduce((a,s)=>a+s.dur,0);
+    g.dias=dias.size; g.diasL=[...dias].sort((a,b)=>a-b); g.vezes=g.lst.length; g.total=g.lst.reduce((a,s)=>a+s.dur,0);
     g.ult=g.lst.reduce((a,s)=>s.fim>a.fim?s:a,g.lst[0]);
   });
   return grupos.filter(g=>g.dias>=2).sort((a,b)=>b.dias-a.dias||b.total-a.total);
+}
+/* 31/10/2026 (dono): texto mais claro — quais dias esteve no lugar e, se foi uma parada só, quanto tempo durou */
+function dorDiasTxt(arr){
+  const ds=(arr||[]).map(d=>new Date(d*DOR_DIA+3*3600000+12*3600000).toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo',day:'2-digit',month:'2-digit'}).split('/'));
+  const grupos=[]; ds.forEach(([d,m])=>{ const g=grupos[grupos.length-1]; if(g && g.m===m) g.d.push(d); else grupos.push({m,d:[d]}) });
+  const partes=grupos.map(g=>g.d.slice(0,-1).concat(g.d[g.d.length-1]+'/'+g.m));
+  const tudo=[].concat(...partes); return tudo.length<=1?(tudo[0]||''):tudo.slice(0,-1).join(', ')+' e '+tudo[tudo.length-1];
+}
+function dorLinhas(g){
+  const n=g.diasL?Math.min(g.diasL.length,g.dias):g.dias, lst=(g.diasL||[]).slice(-n);
+  const t1='Esteve aqui em '+n+(n===1?' dia':' dias')+(lst.length?': '+dorDiasTxt(lst):'');
+  const t2=g.vezes===1?'1 parada de '+durCurta(g.total)+' · de '+dorDataHora(g.ult.ini)+' até '+dorDataHora(g.ult.fim)
+    :g.vezes+' paradas · em média '+durCurta(g.total/g.vezes)+' cada · última: '+dorDataHora(g.ult.ini)+' até '+dorDataHora(g.ult.fim);
+  return [t1,t2];
 }
 function popDorme(g,i,n){
   const la=g.ll[0].toFixed(6), lo=g.ll[1].toFixed(6);
   const gm='https://www.google.com/maps/search/?api=1&query='+la+','+lo, am='https://maps.apple.com/?q='+encodeURIComponent('Lugar '+(i+1))+'&ll='+la+','+lo;
   const end=enderecoGuardado(g.ll);
   return '<div class="hpopt">'+(i===0?'🛏️ Lugar 1 · principal':'Lugar '+(i+1))+'</div>'+
-    '<div class="hpopd"><b>Parado aqui em '+g.dias+' dos '+n+'</b><br>'+g.vezes+(g.vezes===1?' vez':' vezes')+' · em média '+durCurta(g.total/g.vezes)+' por vez<br>Última: '+dorDataHora(g.ult.ini)+' até '+dorDataHora(g.ult.fim)+'</div>'+
+    '<div class="hpopd"><b>'+dorLinhas(g)[0]+'</b><br>'+dorLinhas(g)[1]+'</div>'+
     '<div class="hpope" data-pe="'+i+'">'+(end?esc(end):'Buscando endereço...')+'</div>'+
     '<a class="hpopb" href="'+gm+'" target="_blank" rel="noopener">Abrir no Google Maps</a>'+
     (ehIphone()?'<a class="hpopb ap" href="'+am+'" target="_blank" rel="noopener">Abrir no Mapas (Apple)</a>':'');
@@ -6532,7 +6546,7 @@ $('hDorme').onclick=async()=>{
     lug.forEach(g=>{ g.dias=Math.min(g.dias,nHist) }); /* a parada que começou antes do período não conta dia a mais */
     $('hPerTxt').textContent='🛏️ Pernoites · últimos '+n+' dias · '+horas+' h ou mais'; $('hpanel').classList.add('achou');
     $('hDorCab').innerHTML=(curto?'<div class="hdoraviso">⚠️ Este veículo só tem <b>'+nHist+(nHist===1?' dia':' dias')+'</b> de histórico no período de '+n+' dias.'+(nHist<2?' Para achar onde ele dorme, precisa de pelo menos 2 dias.':' A busca foi feita nesses '+nHist+' dias.')+'</div>':'')+
-      (lug.length?'Lugares onde ficou parado '+horas+' h ou mais em pelo menos 2 dias diferentes. O <b>principal</b> está em destaque.':'');
+      (lug.length?'Lugares onde ficou parado '+horas+' h ou mais em pelo menos 2 dias diferentes'+(curto?' (dos '+nHist+' dias com histórico)':'')+'. O <b>principal</b> está em destaque. Um mesmo dia pode aparecer em mais de um lugar (ex.: de dia num lugar, à noite em outro).':'');
     if(!lug.length){
       $('hDorLista').innerHTML='<div class="hdoritem"><small>'+(nHist<2?'Ainda não dá para saber: só há '+nHist+' dia de histórico.':'Nenhum lugar onde ele ficou parado '+horas+' h ou mais em 2 dias diferentes'+(curto?' nos '+nHist+' dias com histórico.':' nesse período.')+(horas>3?' Tente com menos horas (ex.: 3 h).':''))+'</small></div>';
       $('hDorRes').classList.add('show'); map.setView(pts[pts.length-1].ll,15); return;
@@ -6546,8 +6560,8 @@ $('hDorme').onclick=async()=>{
         .bindPopup(popDorme(x,i,nTxt),{className:'hpop',closeButton:true,autoPanPaddingTopLeft:[20,20],autoPanPaddingBottomRight:[20,40]}).addTo(g);
     });
     g.addTo(map); hist.camDor=g;
-    $('hDorLista').innerHTML=lug.map((x,i)=>'<div class="hdoritem'+(i===0?' top':'')+'" data-di="'+i+'"><span class="n">'+(i+1)+'</span><span><b>'+(i===0?'Principal · ':'')+'parado aqui em '+x.dias+' dos '+nTxt+'</b>'+
-      '<small>'+x.vezes+(x.vezes===1?' vez':' vezes')+' · em média '+durCurta(x.total/x.vezes)+' por vez · última: '+dorDataHora(x.ult.ini)+' até '+dorDataHora(x.ult.fim)+'</small>'+
+    $('hDorLista').innerHTML=lug.map((x,i)=>'<div class="hdoritem'+(i===0?' top':'')+'" data-di="'+i+'"><span class="n">'+(i+1)+'</span><span><b>'+(i===0?'Principal · ':'')+dorLinhas(x)[0]+'</b>'+
+      '<small>'+dorLinhas(x)[1]+'</small>'+
       '<em class="hend" data-de="'+i+'">'+esc(enderecoGuardado(x.ll)||'')+'</em></span></div>').join('');
     $('hDorLista').onclick=e=>{ const r=e.target.closest('[data-di]'); if(r){ const i=+r.dataset.di; histFocar(lug[i].ll,17); setTimeout(()=>{ try{ hist.mkDor[i].openPopup() }catch(er){} },350) } };
     $('hDorRes').classList.add('show');
