@@ -2358,18 +2358,38 @@ header nav .nl-pc{display:inline} header nav .nl-cel{display:none}
 .wppit .bar i.cheio{background:var(--red2)}
 .wppvence{margin-top:10px;font-size:12.5px;font-weight:650;color:var(--amber)}
 .wppv .bts{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
-.wppsel{display:flex;flex-direction:column;gap:8px;margin-top:6px}
-.wppop{display:flex;align-items:center;gap:10px;background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;cursor:pointer}
-.wppop input{width:20px;height:20px;accent-color:#25d366;flex:none}
+/* janela de contratação (visual novo, 31/10/2026) */
+#mWpp .wppbox{background:linear-gradient(160deg,var(--card),var(--bg));border:1px solid var(--line)}
+.wpptopo{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.wpptopo h3{margin:0!important;font-size:22px;letter-spacing:-.3px}
+.wpptopo h3 span{color:#13c98a}
+.wppx{width:36px;height:36px;flex:none;border-radius:50%;background:var(--card2);border:1px solid var(--line);display:grid;place-items:center;cursor:pointer}
+.wppx svg{width:16px;height:16px;fill:none;stroke:var(--txt);stroke-width:2.4;stroke-linecap:round}
+.wppdesc{font-size:13px!important;color:var(--mut);line-height:1.5;margin:8px 0 12px!important}
+.wppvale{display:flex;gap:10px;align-items:center;padding:11px 13px;border-radius:13px;background:rgba(19,201,138,.12);border:1px solid rgba(19,201,138,.45);font-size:13.5px;line-height:1.45;margin-bottom:6px}
+.wppvale>span{font-size:20px}
+.wppvale b{color:#13c98a}
+.wppvale small{color:var(--mut);font-size:12.5px}
+.wppsub{font-size:16px;font-weight:750;margin:16px 2px 8px}
+.wppsel{display:flex;flex-direction:column;gap:9px}
+.wppop{display:flex;align-items:center;gap:10px;background:var(--card2);border:1px solid var(--line);border-radius:15px;padding:9px 11px 9px 8px;cursor:pointer;transition:background .15s,border-color .15s}
+.wppop.on{background:rgba(19,201,138,.12);border-color:#13c98a;box-shadow:inset 0 0 0 1px rgba(19,201,138,.25)}
+.wppop .ic{width:52px;height:52px;flex:none;object-fit:contain}
 .wppop .nm{flex:1;min-width:0}
-.wppop .nm b{display:block;font-size:14px}
-.wppop .nm small{display:block;font-size:12px;color:var(--mut);margin-top:2px}
-.wppop .pr{font-weight:750;font-size:14px;white-space:nowrap}
-.wppop .pr small{display:block;font-size:11px;color:var(--mut);font-weight:600;text-align:right}
-.wppop.ativo{opacity:.75}
-.wpptot{display:flex;justify-content:space-between;align-items:baseline;margin:14px 2px 4px;font-size:14px;font-weight:650}
-.wpptot b{font-size:20px}
-.btn-wpp{background:#25d366!important;color:#05301a!important;border:0!important;font-weight:750}
+.wppop .nm b{display:block;font-size:14.5px;line-height:1.25}
+.wppop .nm small{display:block;font-size:12px;color:var(--mut);margin-top:3px;line-height:1.35}
+.wppop .nm small em{font-style:normal;color:#13c98a;font-weight:650}
+.wppop .pr{font-weight:750;font-size:15px;white-space:nowrap;text-align:right}
+.wppop .pr small{display:block;font-size:11px;color:var(--mut);font-weight:600}
+.wppop input{appearance:none;-webkit-appearance:none;width:22px;height:22px;flex:none;margin:0 0 0 2px;border:2px solid var(--mut);border-radius:6px;display:grid;place-items:center;cursor:pointer}
+.wppop input:checked{background:#13c98a;border-color:#13c98a}
+.wppop input:checked::after{content:"";width:6px;height:11px;border:solid #053325;border-width:0 2.5px 2.5px 0;transform:translateY(-1px) rotate(45deg)}
+.wpptot{display:flex;justify-content:space-between;align-items:center;margin:14px 0 4px;padding:13px 15px;border:1px solid var(--line);border-radius:15px;font-size:15px;font-weight:700}
+.wpptot b{font-size:24px;color:#13c98a;white-space:nowrap}
+.btn-wpp{display:flex!important;align-items:center;justify-content:center;gap:10px;width:100%;min-height:54px;margin-top:8px;border-radius:15px!important;background:#13c98a!important;color:#fff!important;border:0!important;font-weight:750;font-size:16.5px!important}
+.btn-wpp svg{width:20px;height:20px;fill:#fff}
+.btn-wpp:disabled{opacity:.45}
+@media (max-width:360px){.wppop .ic{width:42px;height:42px}.wppop .nm b{font-size:13px}.wppop .pr{font-size:13.5px}}
 .altile .wppselo{display:none;font-size:10.5px;font-weight:700;color:#25d366;margin-top:-4px}
 .altile.wppon .wppselo{display:block}
 .algrupo .igrow{border-top:1px solid var(--line);padding:11px 0;min-height:52px}
@@ -5057,21 +5077,24 @@ nav button:not(.on) .nemo{filter:saturate(.85)}
   </div>
 </div>
 <div class="modal alsheet" id="mWpp">
-  <div class="box2">
-    <h3>Alertas no WhatsApp</h3>
-    <p>Os alertas continuam chegando no app. Com este pacote, chegam também no WhatsApp. Vale por <b id="wppDias">30</b> dias, por veículo. Não mexe na mensalidade.</p>
+  <div class="box2 wppbox"><!-- 31/10/2026 (dono): visual novo (ícones 3D, cartões marcados em verde, total e PIX em destaque) -->
+    <div class="wpptopo">
+      <h3>Alertas no <span>WhatsApp</span></h3>
+      <button class="wppx almx" type="button" data-close aria-label="Fechar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+    <p class="wppdesc">Receba os alertas do seu veículo também no WhatsApp. Eles continuam chegando no app normalmente.</p>
+    <div class="wppvale"><span>📅</span><div>Vale por <b><span id="wppDias">30</span> dias</b>, por veículo.<br><small>Não mexe na sua mensalidade.</small></div></div>
     <label class="flbl" for="wppVeic">Veículo</label>
     <select class="fld" id="wppVeic"></select>
-    <label class="flbl" for="wppNum">WhatsApp que vai receber</label>
+    <label class="flbl" for="wppNum">WhatsApp que vai receber os alertas</label>
     <input class="fld" id="wppNum" type="tel" inputmode="numeric" maxlength="16" placeholder="(21) 99999-9999" autocomplete="tel">
-    <label class="flbl">Quais alertas?</label>
+    <div class="wppsub">Quais alertas você quer ativar?</div>
     <div class="wppsel" id="wppItens"></div>
     <div class="wpptot"><span>Total (30 dias)</span><b id="wppTotal">R$ 0,00</b></div>
     <div class="ferr" id="wppErro"></div>
-    <button class="btn btn-wpp" id="wppPagar" type="button" style="width:100%;margin-top:8px">Pagar com PIX</button>
+    <button class="btn btn-wpp" id="wppPagar" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l4.2 4.2-4.2 4.2-4.2-4.2zM12 13.1l4.2 4.2-4.2 4.2-4.2-4.2zM6.7 7.8l4.2 4.2-4.2 4.2L2.5 12zM17.3 7.8l4.2 4.2-4.2 4.2-4.2-4.2z"/></svg>Pagar com PIX</button>
     <button class="btn btn-out" id="wppAdmin" type="button" style="width:100%;margin-top:8px;display:none">Ativar sem PIX (teste do administrador)</button>
-    <p class="alnota">Assim que o PIX for confirmado, os alertas escolhidos começam a chegar no WhatsApp. Quando vencer, o WhatsApp para e os alertas continuam no app.</p>
-    <button class="btn btn-out alfechar" data-close type="button">Fechar</button>
+    <p class="alnota" style="text-align:center">Assim que o PIX for confirmado, os alertas começam a chegar no WhatsApp. Quando vencer, o WhatsApp para e os alertas continuam no app.</p>
   </div>
 </div>
 <div class="modal alsheet" id="mAlKm">
@@ -12997,17 +13020,19 @@ function wppPintarItens(marcarAtivos){
   const dev=$('wppVeic').value, at=wppAtivos(dev), v=(wppEst.veiculos||{})[String(dev)]||{};
   $('wppNum').value=v.numero?wppFone(v.numero):($('wppNum').dataset.ult||'');
   $('wppItens').innerHTML=(wppEst.itens||[]).map(it=>{
-    const lim=it.mes?'Até '+it.mes+' avisos por mês':'Até '+it.dia+' avisos por dia, com 1 hora entre eles';
-    const ativo=at[it.k]?' · ativo até '+wppDia(at[it.k].ate):'';
-    return '<label class="wppop"><input type="checkbox" data-wk="'+it.k+'"'+(marcarAtivos&&at[it.k]?' checked':'')+'>'+
-      '<span class="nm"><b>'+esc(it.nome)+'</b><small>'+lim+ativo+'</small></span>'+
-      '<span class="pr">'+brl(it.preco)+'<small>30 dias</small></span></label>';
+    const lim=it.mes?'Até '+it.mes+' avisos por mês':'Até '+it.dia+' avisos por dia, com 1 h entre eles';
+    const ativo2=at[it.k]?'<br><em>Ativo até '+wppDia(at[it.k].ate)+'</em>':'';
+    return '<label class="wppop'+(marcarAtivos&&at[it.k]?' on':'')+'"><img class="ic" src="icv/al-'+it.k+'.webp" alt="" loading="lazy">'+
+      '<span class="nm"><b>'+esc(it.nome)+'</b><small>'+lim+ativo2+'</small></span>'+
+      '<span class="pr">'+brl(it.preco)+'<small>30 dias</small></span>'+
+      '<input type="checkbox" data-wk="'+it.k+'"'+(marcarAtivos&&at[it.k]?' checked':'')+' aria-label="'+esc(it.nome)+'"></label>';
   }).join('');
   wppTotal();
 }
 function wppEscolhidos(){ return [...$('wppItens').querySelectorAll('input[data-wk]:checked')].map(i=>i.dataset.wk) }
 function wppTotal(){
   const pr={}; (wppEst.itens||[]).forEach(i=>pr[i.k]=Number(i.preco));
+  $('wppItens').querySelectorAll('.wppop').forEach(l=>{ const c=l.querySelector('input'); l.classList.toggle('on',!!(c&&c.checked)) });
   const t=wppEscolhidos().reduce((a,k)=>a+(pr[k]||0),0);
   $('wppTotal').textContent=brl(Math.round(t*100)/100);
   $('wppPagar').disabled=!t;
