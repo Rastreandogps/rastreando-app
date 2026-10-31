@@ -13087,8 +13087,10 @@ $('wppAdmin').onclick=async()=>{
   catch(err){ $('wppErro').textContent=err.message }
   btn.disabled=false;
 };
+/* 31/10/2026 (dono): nas listas de alertas, os veículos já acionados ficam no topo (depois, ordem alfabética) */
+function alOrdenar(mapa){ return veiculos.slice().sort((a,b)=>{ const x=mapa[String(a.id)]?1:0, y=mapa[String(b.id)]?1:0; return y-x || a.nome.localeCompare(b.nome,'pt-BR') }) }
 function desenharIgn(){
-  const ign=alCfg.ign||{}, lista=veiculos.slice().sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
+  const ign=alCfg.ign||{}, lista=alOrdenar(ign);
   const n=lista.filter(v=>ign[String(v.id)]).length;
   $('alIgnResumo').textContent=n?(n+(n===1?' veículo':' veículos')):'Desligado'; $('alTIgn').classList.toggle('on',n>0);
   $('alIgn').innerHTML=lista.map(v=>'<div class="igrow" data-busca="'+esc((v.nome+' '+(v.placa||'')+' '+(v.imei||'')).toLowerCase())+'"><span>'+esc(v.nome)+'</span><label class="sw"><input type="checkbox" data-ign="'+v.id+'"'+(ign[String(v.id)]?' checked':'')+'><span></span></label></div>').join('') || '<div class="igrow"><span>Nenhum veículo.</span></div>';
@@ -13102,6 +13104,19 @@ function alFiltrar(id){
   const c=$(id+'BuscaN'); if(c) c.textContent=q?(n+' de '+tot):'';
 }
 ['alIgn','alVolta','alBat'].forEach(id=>{ const i=$(id+'Busca'); if(!i) return; i.addEventListener('input',()=>alFiltrar(id)); i.addEventListener('keydown',e=>{ if(e.key==='Enter') e.preventDefault() }) });
+/* 31/10/2026 (dono): no celular, com o teclado aberto, estas janelas ficam ACIMA do teclado e a lista rola dentro (mesma solução da "Escolher veículo", 27/10) */
+function alVV(){
+  const vv=window.visualViewport;
+  [['mAlIgn','alIgn'],['mAlVolta','alVolta'],['mAlBat','alBat']].forEach(([mid,lid])=>{
+    const m=$(mid), l=$(lid); if(!m||!l) return;
+    if(!vv || !m.classList.contains('show') || window.matchMedia('(min-width:900px)').matches || document.activeElement!==$(lid+'Busca')){ m.style.top=m.style.height=m.style.bottom=''; l.style.maxHeight=l.style.overflowY=''; return }
+    m.style.top=vv.offsetTop+'px'; m.style.bottom='auto'; m.style.height=vv.height+'px';
+    const box=m.querySelector('.box2'), fixo=l.getBoundingClientRect().top-box.getBoundingClientRect().top+(box.scrollTop||0)+110; /* topo da janela até a lista + nota + Fechar */
+    l.style.maxHeight=Math.max(110,vv.height-fixo-12)+'px'; l.style.overflowY='auto';
+  });
+}
+if(window.visualViewport){ visualViewport.addEventListener('resize',alVV); visualViewport.addEventListener('scroll',alVV) }
+['alIgn','alVolta','alBat'].forEach(id=>{ const i=$(id+'Busca'); if(!i) return; i.addEventListener('focus',()=>setTimeout(alVV,350)); i.addEventListener('blur',()=>setTimeout(alVV,100)) });
 $('alIgn').addEventListener('change',async e=>{
   const i=e.target.closest('input[data-ign]'); if(!i) return;
   i.disabled=true;
@@ -13112,7 +13127,7 @@ $('alIgn').addEventListener('change',async e=>{
 
 /* ----- aviso "voltou a transmitir" por veículo (manual, um aviso por vez) ----- */
 function desenharVolta(){
-  const vo=alCfg.volta||{}, lista=veiculos.slice().sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
+  const vo=alCfg.volta||{}, lista=alOrdenar(vo);
   const n=lista.filter(v=>vo[String(v.id)]).length;
   $('alVoltaResumo').textContent=n?(n+(n===1?' veículo':' veículos')):'Desligado'; $('alTVolta').classList.toggle('on',n>0);
   $('alVolta').innerHTML=lista.map(v=>'<div class="igrow" data-busca="'+esc((v.nome+' '+(v.placa||'')+' '+(v.imei||'')).toLowerCase())+'"><span>'+esc(v.nome)+'</span><label class="sw"><input type="checkbox" data-volta="'+v.id+'"'+(vo[String(v.id)]?' checked':'')+'><span></span></label></div>').join('') || '<div class="igrow"><span>Nenhum veículo.</span></div>';
@@ -13133,7 +13148,7 @@ $('alVolta').addEventListener('change',async e=>{
 });
 /* ----- 30/10/2026 (dono): bateria crítica por veículo (50 / 30 / 20 %) ----- */
 function desenharBat(){
-  const ba=alCfg.bat||{}, lista=veiculos.slice().sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
+  const ba=alCfg.bat||{}, lista=alOrdenar(ba);
   const n=lista.filter(v=>ba[String(v.id)]).length;
   $('alBatResumo').textContent=n?(n+(n===1?' veículo':' veículos')):'Desligado'; $('alTBat').classList.toggle('on',n>0);
   $('alBat').innerHTML=lista.map(v=>{ const val=Number(ba[String(v.id)])||0;
