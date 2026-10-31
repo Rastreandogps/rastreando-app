@@ -2318,7 +2318,29 @@ header nav .nl-pc{display:inline} header nav .nl-cel{display:none}
 .algrupo{background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:0 14px}
 /* ===== 31/10/2026 (pedido do dono): Alertas no WhatsApp (pacote pago por PIX, 30 dias por veículo) ===== */
 .wppcard{display:flex;gap:12px;align-items:center;background:linear-gradient(135deg,#0f3d2a,#0b2a1e);border:1px solid rgba(37,211,102,.35);border-radius:16px;padding:12px;color:#eafff3;cursor:pointer}
-.wppcard video{width:92px;height:111px;flex:none;border-radius:12px;object-fit:cover;background:#0b2a1e}
+.wppcard{overflow:hidden}
+.wppfone{position:relative;width:150px;flex:none;align-self:flex-end;margin:-4px 0 -12px -12px;animation:wppVibra 6s infinite}
+.wppfone img{display:block;width:100%;height:auto;position:relative;z-index:1}
+.wpptela{position:absolute;left:22.6%;top:2.6%;width:60.5%;height:84.5%;overflow:hidden;border-radius:12px;background:radial-gradient(120% 80% at 30% 20%,#2b3f6b 0%,#141c33 45%,#070a14 100%);font-family:Roboto,"Segoe UI",sans-serif;color:#111}
+.wpptela .wl{text-align:center;color:#fff;padding-top:30px}
+.wpptela .wl b{display:block;font-size:24px;font-weight:300;letter-spacing:-.5px}
+.wpptela .wl small{font-size:6.5px;opacity:.85}
+.wpptela .wb{position:absolute;left:3px;right:3px;top:-60px;background:rgba(245,245,247,.95);border-radius:8px;padding:5px 4px;display:flex;gap:4px;font-size:7px;line-height:1.3;white-space:nowrap;overflow:hidden;box-shadow:0 4px 10px rgba(0,0,0,.35);animation:wppBan 6s infinite}
+.wpptela .wb i{width:14px;height:14px;border-radius:4px;background:#25d366;flex:none;display:grid;place-items:center}
+.wpptela .wb i svg{width:9px;height:9px}
+.wpptela .wb em{display:block;font-style:normal;font-weight:700}
+.wpptela .wc{position:absolute;inset:0;background:#efeae2;opacity:0;animation:wppChat 6s infinite}
+.wpptela .wh{background:#075e54;color:#fff;padding:13px 5px 5px;display:flex;align-items:center;gap:4px;font-size:7.5px;font-weight:700;line-height:1.15}
+.wpptela .wh i{width:14px;height:14px;border-radius:50%;background:#0b1020;border:1px solid #b3262c;display:grid;place-items:center;font-size:4px;font-style:normal;font-weight:800}
+.wpptela .wh small{display:block;font-size:5.5px;font-weight:400;opacity:.85}
+.wpptela .wm{position:relative;margin:9px 3px 0 3px;background:#fff;border-radius:0 7px 7px 7px;padding:5px 4px 12px;font-size:8.6px;line-height:1.3;white-space:nowrap;box-shadow:0 1px 1px rgba(0,0,0,.15);transform-origin:0 0;animation:wppMsg 6s infinite}
+.wpptela .wm u{text-decoration:none;color:#027eb5;font-weight:600}
+.wpptela .wm s{position:absolute;right:5px;bottom:2px;font-size:5.5px;color:#888;text-decoration:none}
+@keyframes wppBan{0%,13%{top:-60px}21%,92%{top:14px}93%,100%{top:-60px}}
+@keyframes wppChat{0%,46%{opacity:0}54%,92%{opacity:1}100%{opacity:0}}
+@keyframes wppMsg{0%,53%{opacity:0;transform:scale(.85)}59%,100%{opacity:1;transform:scale(1)}}
+@keyframes wppVibra{0%,13%,23%,100%{transform:none}14%,16%,18%,20%,22%{transform:translateX(-2px)}15%,17%,19%,21%{transform:translateX(2px)}}
+@media (prefers-reduced-motion:reduce){.wppfone,.wpptela .wb,.wpptela .wc,.wpptela .wm{animation:none}.wpptela .wc{opacity:1}}
 .wppcard .tt{font-weight:750;font-size:15px;line-height:1.25}
 .wppcard .tx{font-size:12.5px;color:#b9e8cc;margin-top:4px;line-height:1.4}
 .wppcard .bt{display:inline-flex;align-items:center;gap:6px;margin-top:9px;height:34px;padding:0 14px;border-radius:999px;background:#25d366;color:#05301a;font-weight:750;font-size:13px;border:0}
@@ -3662,7 +3684,15 @@ nav button:not(.on) .nemo{filter:saturate(.85)}
       <div id="wppBox" style="display:none">
         <div class="alsec">Alertas no WhatsApp<span class="wppteste" id="wppTeste" style="display:none">só admin</span></div>
         <div class="wppcard" id="wppCard" role="button" tabindex="0">
-          <video src="icv/alerta-whatsapp.mp4" muted loop playsinline autoplay preload="metadata" aria-hidden="true"></video>
+          <div class="wppfone" aria-hidden="true"><!-- 31/10/2026 (dono): animação feita em HTML por cima da foto da mão (PNG sem fundo), para ficar grande e legível -->
+            <div class="wpptela">
+              <div class="wl"><b>08:12</b><small>sábado, 31 de outubro</small></div>
+              <div class="wb"><i><svg viewBox="0 0 24 24"><path fill="#fff" d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Z"/></svg></i><span><em>Rastreando GPS</em>🔔 Ignição ligada<br>CAIO [UNO]</span></div>
+              <div class="wc"><div class="wh"><i>GPS</i><span>Rastreando GPS<small>conta comercial</small></span></div>
+                <div class="wm">🔔 <b>Ignição ligada</b><br><br>🚗 <b>CAIO [UNO]</b><br>🕗 31/10 08:12<br><br>📍 <u>Ver no mapa</u><s>08:12 ✓✓</s></div></div>
+            </div>
+            <img src="icv/alerta-moldura.png" alt="">
+          </div>
           <div><div class="tt">Receba os alertas também no WhatsApp</div>
           <div class="tx">Ignição, cerca, bateria fraca e volta do sinal chegam no seu WhatsApp, com o veículo, a hora e o link do mapa.</div>
           <button class="bt" type="button" id="wppContratar">Escolher alertas</button></div>
