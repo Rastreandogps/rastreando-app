@@ -1406,7 +1406,8 @@ body.hist-on #mapCar{display:none!important}
 #cartRecolher,#cartMini,#ruaBox{display:none}
 .sheet{position:absolute;left:0;right:0;bottom:0;z-index:450;margin:0 auto;max-width:520px;background:var(--card);border:1px solid var(--line);border-bottom:0;border-radius:18px 18px 0 0;padding:0 16px 14px;box-shadow:0 -8px 24px rgba(0,0,0,.45);transition:transform .22s ease;will-change:transform}
 .sheet.drag{transition:none}
-@media (max-width:899px){ .sheet{transition:transform .3s cubic-bezier(.2,.8,.2,1)} } /* 16/10/2026: assentar suave depois de soltar */
+@media (max-width:899px){ .sheet{transition:transform .3s cubic-bezier(.2,.8,.2,1)} }
+@media (max-width:899px){ #sheet{touch-action:pan-x} } /* 30/10/2026: arrastar para cima/baixo em qualquer lugar do cartão move o cartão */ /* 16/10/2026: assentar suave depois de soltar */
 /* computador: cartão do veículo no canto esquerdo (celular não muda) */
 /* ===== COMPUTADOR (14/10/2026, pedido do dono): lista de veículos FIXA à esquerda + cartão do veículo EMBAIXO do mapa.
    Padrão para todo mundo no computador (mesmo com 1 veículo). O celular não muda nada. ===== */
@@ -6291,6 +6292,39 @@ function soltar(e){
 }
 zone.addEventListener('pointerup',soltar);
 zone.addEventListener('pointercancel',soltar);
+
+/* 30/10/2026 (dono): o cartão também sobe/desce tocando ou arrastando EM QUALQUER LUGAR dele (não só na parte de cima).
+   Toque em parte livre = sobe/desce. Arrastar para cima/baixo (mesmo começando em cima de um botão) = move o cartão
+   e o botão NÃO é acionado. Toque normal num botão continua fazendo a função dele. */
+let gsAtivo=false, gsArr=false, gsY=0, gsX=0, gsAlvo=null, gsIgnClique=false, gsId=null;
+sheet.addEventListener('pointerdown',e=>{
+  if(telaLarga() || zone.contains(e.target) || (e.pointerType==='mouse' && e.button!==0)) return;
+  gsAtivo=true; gsArr=false; gsY=e.clientY; gsX=e.clientX; gsAlvo=e.target; gsId=e.pointerId;
+});
+sheet.addEventListener('pointermove',e=>{
+  if(!gsAtivo || e.pointerId!==gsId) return;
+  const dy=e.clientY-gsY, dx=e.clientX-gsX;
+  if(!gsArr){
+    if(Math.abs(dy)<10 || Math.abs(dy)<Math.abs(dx)) return;
+    gsArr=true; arrastando=true; moveu=true; naAlca=false; y0=e.clientY; off0=offAtual(); gvMax=maxOff(); gvO=off0; gvAm=[{y:e.clientY,t:performance.now()}];
+    sheet.classList.add('drag');
+    try{sheet.setPointerCapture(e.pointerId)}catch(_){}
+  }
+  gvO=Math.max(0,Math.min(gvMax,off0+(e.clientY-y0)));
+  const t=performance.now(); gvAm.push({y:e.clientY,t}); while(gvAm.length>2 && t-gvAm[0].t>100) gvAm.shift();
+  if(!gvRaf) gvRaf=requestAnimationFrame(gvPinta);
+});
+function gsSoltar(e){
+  if(!gsAtivo || (e && e.pointerId!==gsId)) return;
+  gsAtivo=false;
+  if(gsArr){ gsIgnClique=true; setTimeout(()=>{ gsIgnClique=false },400); soltar(e); return }
+  if(e && e.type==='pointerup' && gsAlvo && !gsAlvo.closest('button,a,input,select,textarea,label,[role=button],[onclick],.statbtn,.navbtn,.smsult,.ruacel,#ruaCel')){
+    recolhido=!recolhido; aplicarSheet();
+  }
+}
+sheet.addEventListener('pointerup',gsSoltar);
+sheet.addEventListener('pointercancel',gsSoltar);
+sheet.addEventListener('click',e=>{ if(gsIgnClique){ e.stopPropagation(); e.preventDefault(); gsIgnClique=false } },true);
 
 /* ===== CARTÃO RECOLHIDO (computador, 16/10/2026) ===== */
 function cartMinOn(){ return telaLarga() && lsGet('rg_cart_min')==='1' }
