@@ -41,7 +41,7 @@ try{ if(localStorage.getItem('rg_token')||sessionStorage.getItem('rgv_rg_token')
 try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'){document.documentElement.setAttribute('data-tema',t)}}catch(e){}
 </script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="stylesheet" href="app.css?v=3"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
+<link rel="stylesheet" href="app.css?v=4"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
 </head>
 <body>
 
@@ -211,7 +211,9 @@ try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'
   <section class="hpanel" id="hpanel">
     <div class="hpuxa" id="hPuxa" role="button" aria-label="Recolher ou abrir o painel"></div><!-- 31/10/2026: puxador (celular) -->
     <div class="htop"><h3>Histórico</h3><button type="button" class="hfechar" id="hFechar" title="Fechar o histórico e voltar ao mapa" aria-label="Fechar o histórico e voltar ao mapa">&times;</button></div>
+    <p class="hsub">Trajetos, eventos e pernoites do veículo</p><!-- 31/10/2026 (dono): painel em abas -->
     <div class="hbusca"><input type="search" id="hBusca" placeholder="🔍 Buscar veículo" autocomplete="off" data-lpignore="true" data-1p-ignore aria-label="Buscar veículo, placa ou cliente"><select id="hVeic" aria-label="Veículo"></select></div>
+    <div class="htabs" id="hTabs" role="tablist"><button type="button" class="htab on" data-ht="traj" role="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="19" r="2.5"/><circle cx="18" cy="5" r="2.5"/><path d="M8.5 19H16a3.5 3.5 0 0 0 0-7H8a3.5 3.5 0 0 1 0-7h7.5"/></svg>Trajetos</button><button type="button" class="htab" data-ht="ev" id="hTabEv" role="tab" style="display:none"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1"/><path d="M9 10h6M9 14h6M9 18h4"/></svg>Eventos</button><button type="button" class="htab" data-ht="per" role="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>Pernoites</button></div>
     <div class="hdias">
       <button type="button" class="hdia on" data-d="0">Hoje</button>
       <button type="button" class="hdia" data-d="1">Ontem</button>
@@ -235,14 +237,14 @@ try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'
       </select>
     </label>
     <button type="button" class="hbuscar" id="hBuscar">Ver trajeto</button>
-    <button type="button" class="hevbtn" id="hEventos" style="display:none">📋 Eventos: ignição, bloqueio e alarmes</button><!-- 31/10/2026 (dono): só o administrador -->
+    <button type="button" class="hevbtn" id="hEventos" style="display:none">📋 Consultar eventos</button><!-- 31/10/2026 (dono): só o administrador -->
     <!-- 23/10/2026: ONDE O VEÍCULO DORME (PRD 4.86) -->
     <div class="hdorme">
       <div class="hdormeop">
-        <label>Período<select id="hDorDias"><option value="3">últimos 3 dias</option><option value="7" selected>últimos 7 dias</option><option value="15">últimos 15 dias</option></select></label>
+        <label>Período<select id="hDorDias"><option value="3">últimos 3 dias</option><option value="7" selected>últimos 7 dias</option><option value="15">últimos 15 dias</option><option value="30">últimos 30 dias</option></select></label>
         <label>Parado por<select id="hDorHoras"><option value="3">3 h ou mais</option><option value="5" selected>5 h ou mais</option><option value="8">8 h ou mais</option></select></label>
       </div>
-      <button type="button" class="hdormebtn" id="hDorme">🛏️ Onde o veículo dorme</button>
+      <button type="button" class="hdormebtn" id="hDorme">🛏️ Consultar pernoites</button>
     </div>
     <div class="hperres"><span id="hPerTxt"></span><button type="button" id="hAlterar">Alterar</button></div>
     <div class="hmsg" id="hMsg">Guardamos os últimos 90 dias.</div>
@@ -6197,7 +6199,7 @@ function histEntrar(){
   const d=$('hData'), d2=$('hData2'); d.max=d2.max=hojeSP(); d.min=d2.min=diaMenos(HIST_DIAS); if(!d.value) d.value=hojeSP(); if(!d2.value) d2.value=d.value;
   histVeiculos(); histMarcarDia();
   $('hpanel').classList.add('show');
-  try{ $('hEventos').style.display=ehAdmin?'':'none' }catch(e){}
+  try{ $('hEventos').style.display=ehAdmin?'':'none'; $('hTabEv').style.display=ehAdmin?'':'none'; $('hTabs').classList.toggle('dois',!ehAdmin); if(!ehAdmin && hTab==='ev') hTabIr('traj'); else hTabIr(hTab) }catch(e){}
   setTimeout(()=>{ try{ map.invalidateSize() }catch(e){} },50);
 }
 function histLimpar(){
@@ -6280,6 +6282,15 @@ $('hBuscar').onclick=async()=>{
   b.disabled=false; b.textContent='Ver trajeto';
   if($('hVeic').value && +$('hVeic').value!==id) $('hBuscar').click(); /* 16/10/2026 (revisão): trocou de veículo enquanto buscava -> busca o certo */
 };
+/* 31/10/2026 (dono): abas do Histórico — Trajetos | Eventos (só admin) | Pernoites */
+let hTab='traj';
+function hTabIr(t){
+  hTab=t; const p=$('hpanel'); ['traj','ev','per'].forEach(k=>p.classList.toggle('tab-'+k,k===t));
+  document.querySelectorAll('#hTabs .htab').forEach(b=>{ const on=b.dataset.ht===t; b.classList.toggle('on',on); b.setAttribute('aria-selected',on?'true':'false') });
+  $('hMsg').textContent=t==='per'?'Guardamos os últimos 90 dias. Pernoite = parado no mesmo lugar em pelo menos 2 dias.':'Guardamos os últimos 90 dias.';
+}
+$('hTabs').addEventListener('click',e=>{ const b=e.target.closest('[data-ht]'); if(b) hTabIr(b.dataset.ht) });
+hTabIr('traj');
 /* ===== 31/10/2026 (dono): EVENTOS DO VEÍCULO (só administrador) — ignição liga/desliga, bloqueio/desbloqueio efetivado e alarmes,
    no mesmo período do "Ver trajeto". Ignição vem das POSIÇÕES (alguns rastreadores não geram o evento do Traccar); bloqueio vem da
    resposta do rastreador ao comando (commandResult); alarmes vêm dos eventos do Traccar. ===== */
@@ -6292,7 +6303,7 @@ function eventosLimpar(){
   hist.ev=null;
   const r=$('hEvRes'); if(r) r.classList.remove('show');
   const hp=$('hpanel'); if(hp) hp.classList.remove('eventos');
-  const b=$('hEventos'); if(b){ b.disabled=false; b.textContent='📋 Eventos: ignição, bloqueio e alarmes' }
+  const b=$('hEventos'); if(b){ b.disabled=false; b.textContent='📋 Consultar eventos' }
 }
 const evHora=ms=>new Date(ms).toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'}).replace(',','');
 function eventosDesenhar(){
@@ -6371,7 +6382,7 @@ $('hEventos').onclick=async()=>{
     eventosDesenhar(); $('hEvRes').classList.add('show');
     const ult=[...pos].reverse().map(llDe).find(Boolean); if(ult) map.setView(ult,15);
   }catch(e){ if(!e.sessao) $('hMsg').textContent=e.message||'Não consegui buscar os eventos.'; hist.modo=''; $('hpanel').classList.remove('eventos') }
-  b.disabled=false; b.textContent='📋 Eventos: ignição, bloqueio e alarmes';
+  b.disabled=false; b.textContent='📋 Consultar eventos';
 };
 const hhData=ms=>new Date(ms).toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo',day:'2-digit',month:'2-digit'});
 /* paradas calculadas a partir do próprio trajeto: o veículo ficou num raio de 60 m (contando também o tempo sem GPS, com a chave desligada) */
@@ -6442,7 +6453,7 @@ function dormeLimpar(){
   hist.modo=''; hist.dor=null; hist.mkDor=null;
   const r=$('hDorRes'); if(r) r.classList.remove('show');
   const hp=$('hpanel'); if(hp) hp.classList.remove('dorme');
-  if(dorAtivo){ dorAtivo=0; const b=$('hDorme'); if(b){ b.disabled=false; b.textContent='🛏️ Onde o veículo dorme' } }
+  if(dorAtivo){ dorAtivo=0; const b=$('hDorme'); if(b){ b.disabled=false; b.textContent='🛏️ Consultar pernoites' } }
 }
 /* períodos em que ficou parado (raio de 150 m; um ponto solto fora do lugar, que volta logo, é pulo de GPS) */
 function dormeEstadias(pts){
@@ -6519,7 +6530,7 @@ $('hDorme').onclick=async()=>{
     const nHist=Math.min(n,Math.max(1,diasHist.size)), curto=nHist<n;
     const nTxt=curto?nHist+(nHist===1?' dia com histórico':' dias com histórico'):'últimos '+n+' dias';
     lug.forEach(g=>{ g.dias=Math.min(g.dias,nHist) }); /* a parada que começou antes do período não conta dia a mais */
-    $('hPerTxt').textContent='🛏️ Onde dorme · últimos '+n+' dias · '+horas+' h ou mais'; $('hpanel').classList.add('achou');
+    $('hPerTxt').textContent='🛏️ Pernoites · últimos '+n+' dias · '+horas+' h ou mais'; $('hpanel').classList.add('achou');
     $('hDorCab').innerHTML=(curto?'<div class="hdoraviso">⚠️ Este veículo só tem <b>'+nHist+(nHist===1?' dia':' dias')+'</b> de histórico no período de '+n+' dias.'+(nHist<2?' Para achar onde ele dorme, precisa de pelo menos 2 dias.':' A busca foi feita nesses '+nHist+' dias.')+'</div>':'')+
       (lug.length?'Lugares onde ficou parado '+horas+' h ou mais em pelo menos 2 dias diferentes. O <b>principal</b> está em destaque.':'');
     if(!lug.length){
@@ -6547,7 +6558,7 @@ $('hDorme').onclick=async()=>{
     });
     setTimeout(()=>{ try{ if(lug.length===1) histFocar(lug[0].ll,16); else map.fitBounds(L.latLngBounds(lug.map(x=>x.ll)),Object.assign({maxZoom:16},histPadding())) }catch(e){} },60);
   }catch(e){ if(ger===dorGer && !e.sessao) $('hMsg').textContent=e.message||'Não consegui ler o histórico.'; if(ger===dorGer) hist.modo='' }
-  finally{ if(dorAtivo===ger){ dorAtivo=0; b.disabled=false; b.textContent='🛏️ Onde o veículo dorme' } }
+  finally{ if(dorAtivo===ger){ dorAtivo=0; b.disabled=false; b.textContent='🛏️ Consultar pernoites' } }
 };
 /* ===== PDF das paradas (10/10/2026) =====
    Montado no próprio aparelho (bibliotecas jsPDF e AutoTable, carregadas só quando o botão é tocado). Respeita o filtro de paradas. */
