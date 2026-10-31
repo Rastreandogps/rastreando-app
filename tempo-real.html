@@ -41,7 +41,7 @@ try{ if(localStorage.getItem('rg_token')||sessionStorage.getItem('rgv_rg_token')
 try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'){document.documentElement.setAttribute('data-tema',t)}}catch(e){}
 </script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="stylesheet" href="app.css?v=2"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
+<link rel="stylesheet" href="app.css?v=3"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
 </head>
 <body>
 
@@ -235,6 +235,7 @@ try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'
       </select>
     </label>
     <button type="button" class="hbuscar" id="hBuscar">Ver trajeto</button>
+    <button type="button" class="hevbtn" id="hEventos" style="display:none">📋 Eventos: ignição, bloqueio e alarmes</button><!-- 31/10/2026 (dono): só o administrador -->
     <!-- 23/10/2026: ONDE O VEÍCULO DORME (PRD 4.86) -->
     <div class="hdorme">
       <div class="hdormeop">
@@ -266,6 +267,7 @@ try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'
       <button type="button" class="hpdf hwpp" id="hPdfWpp" style="display:none"><span id="hPdfWppIco"></span>Enviar o PDF pelo WhatsApp</button>
     </div>
     <div class="hdorres" id="hDorRes"><div class="hdorcab" id="hDorCab"></div><div id="hDorLista"></div></div>
+    <div class="hevres" id="hEvRes"><div class="hevcab" id="hEvCab"></div><div class="hevchips" id="hEvChips"></div><div id="hEvLista"></div></div>
   </section>
 
   <section class="vview" id="vview">
@@ -6195,10 +6197,11 @@ function histEntrar(){
   const d=$('hData'), d2=$('hData2'); d.max=d2.max=hojeSP(); d.min=d2.min=diaMenos(HIST_DIAS); if(!d.value) d.value=hojeSP(); if(!d2.value) d2.value=d.value;
   histVeiculos(); histMarcarDia();
   $('hpanel').classList.add('show');
+  try{ $('hEventos').style.display=ehAdmin?'':'none' }catch(e){}
   setTimeout(()=>{ try{ map.invalidateSize() }catch(e){} },50);
 }
 function histLimpar(){
-  dormeLimpar();
+  dormeLimpar(); try{ eventosLimpar() }catch(e){}
   histParar(); geoFilaGer++; hist.pdf=null; $('hPdfWpp').style.display='none';
   if(hist.camada){ map.removeLayer(hist.camada); hist.camada=null }
   hist.marc=null; hist.pts=[]; hist.tv=[]; hist.total=0; hist.t=0;
@@ -6217,7 +6220,7 @@ function histSair(){
 $('hFechar').onclick=()=>irPara('Mapa');
 /* 31/10/2026 (dono): no celular, o painel do Histórico também recolhe para ver o mapa. Recolhido, fica visível até o aviso amarelo
    (ou até a linha do período). Toque no puxador/título, arraste para baixo/cima, ou toque no mapa. */
-function hpAlvo(){ const p=$('hpanel'); const av=p.querySelector('#hDorCab .hdoraviso'); if(av && av.offsetHeight) return av; const pr=p.querySelector('.hperres'); if(pr && pr.offsetHeight) return pr; return p.querySelector('.hbusca') }
+function hpAlvo(){ const p=$('hpanel'); if(p.classList.contains('eventos')){ const ch=$('hEvChips'); if(ch && ch.offsetHeight) return ch } const av=p.querySelector('#hDorCab .hdoraviso'); if(av && av.offsetHeight) return av; const pr=p.querySelector('.hperres'); if(pr && pr.offsetHeight) return pr; return p.querySelector('.hbusca') }
 function hpAplicar(){
   const p=$('hpanel');
   if(telaLarga() || !p.classList.contains('recolh')){ p.style.transform=''; return }
@@ -6239,7 +6242,7 @@ window.addEventListener('resize',()=>{ try{ hpAplicar() }catch(e){} });
 $('hBusca').addEventListener('input',()=>{ if(histVeiculos() && $('hVeic').value) $('hVeic').dispatchEvent(new Event('change')) });
 $('hBusca').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); if($('hVeic').value) $('hBuscar').click() } });
 $('hAlterar').onclick=()=>{ histLimpar(); $('hMsg').textContent='Guardamos os últimos 90 dias.' };
-$('hVeic').addEventListener('change',()=>{ if(hist.modo==='dorme'){ $('hDorme').click(); return } if(hist.pts.length||$('hpanel').classList.contains('achou')) $('hBuscar').click() });
+$('hVeic').addEventListener('change',()=>{ if(hist.modo==='dorme'){ $('hDorme').click(); return } if(hist.modo==='eventos'){ $('hEventos').click(); return } if(hist.pts.length||$('hpanel').classList.contains('achou')) $('hBuscar').click() });
 document.querySelectorAll('.hdia').forEach(b=>b.onclick=()=>{
   const d=+b.dataset.d;
   if(d===7){ $('hData').value=diaMenos(6); $('hData2').value=hojeSP() } else { $('hData').value=diaMenos(d); $('hData2').value=diaMenos(d) }
@@ -6276,6 +6279,99 @@ $('hBuscar').onclick=async()=>{
   }catch(e){ if(!e.sessao) $('hMsg').textContent=e.message||'Não consegui buscar o trajeto.' }
   b.disabled=false; b.textContent='Ver trajeto';
   if($('hVeic').value && +$('hVeic').value!==id) $('hBuscar').click(); /* 16/10/2026 (revisão): trocou de veículo enquanto buscava -> busca o certo */
+};
+/* ===== 31/10/2026 (dono): EVENTOS DO VEÍCULO (só administrador) — ignição liga/desliga, bloqueio/desbloqueio efetivado e alarmes,
+   no mesmo período do "Ver trajeto". Ignição vem das POSIÇÕES (alguns rastreadores não geram o evento do Traccar); bloqueio vem da
+   resposta do rastreador ao comando (commandResult); alarmes vêm dos eventos do Traccar. ===== */
+const EV_ALARME={powerCut:'Corte de energia',powerRestored:'Energia voltou',lowBattery:'Bateria baixa',lowPower:'Energia baixa',vibration:'Vibração',accident:'Impacto / batida',tampering:'Violação do rastreador',removing:'Rastreador removido',overspeed:'Excesso de velocidade',sos:'Botão de pânico (SOS)',door:'Porta',movement:'Movimento',jamming:'Bloqueador de sinal (jammer)',parking:'Estacionado',idle:'Parado ligado'};
+let evGer=0, evFiltro='tudo';
+function eventosLimpar(){
+  evGer++;
+  if(hist.camEv){ try{ map.removeLayer(hist.camEv) }catch(e){} hist.camEv=null }
+  if(hist.modo==='eventos') hist.modo='';
+  hist.ev=null;
+  const r=$('hEvRes'); if(r) r.classList.remove('show');
+  const hp=$('hpanel'); if(hp) hp.classList.remove('eventos');
+  const b=$('hEventos'); if(b){ b.disabled=false; b.textContent='📋 Eventos: ignição, bloqueio e alarmes' }
+}
+const evHora=ms=>new Date(ms).toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'}).replace(',','');
+function eventosDesenhar(){
+  const lst=hist.ev||[];
+  const cont={tudo:lst.length,ign:0,bloq:0,alarme:0}; lst.forEach(x=>cont[x.cat]++);
+  const nome={tudo:'Tudo',ign:'Ignição',bloq:'Bloqueio',alarme:'Alarmes'};
+  $('hEvChips').innerHTML=['tudo','ign','bloq','alarme'].map(k=>'<button type="button" data-evf="'+k+'" class="'+(evFiltro===k?'on':'')+'">'+nome[k]+' ('+cont[k]+')</button>').join('');
+  const vis=lst.filter(x=>evFiltro==='tudo'||x.cat===evFiltro);
+  $('hEvLista').innerHTML=vis.length?vis.map(x=>'<div class="hevit '+x.cls+'" data-evi="'+lst.indexOf(x)+'"><span class="ic">'+x.ic+'</span><span><b>'+esc(x.tit)+'</b>'+(x.sub?'<small>'+esc(x.sub)+'</small>':'')+'</span><span class="hr">'+evHora(x.ms)+'</span></div>').join('')
+    :'<div class="hdoritem"><small>Nenhum evento '+(evFiltro==='tudo'?'':'de '+nome[evFiltro].toLowerCase()+' ')+'nesse período.</small></div>';
+}
+$('hEvChips').addEventListener('click',e=>{ const b=e.target.closest('[data-evf]'); if(!b) return; evFiltro=b.dataset.evf; eventosDesenhar() });
+$('hEvLista').addEventListener('click',e=>{
+  const r=e.target.closest('[data-evi]'); if(!r) return; const x=(hist.ev||[])[+r.dataset.evi]; if(!x) return;
+  if(!x.ll){ toast('Este evento veio sem posição.'); return }
+  if(hist.camEv){ try{ map.removeLayer(hist.camEv) }catch(er){} }
+  hist.camEv=L.marker(x.ll,{icon:L.divIcon({className:'hmk',html:'<div class="hevpin">'+x.ic+'</div>',iconSize:[36,36],iconAnchor:[18,18]}),zIndexOffset:950})
+    .bindPopup('<div class="hpopt">'+esc(x.tit)+'</div><div class="hpopd">'+evHora(x.ms)+(x.sub?'<br>'+esc(x.sub):'')+'</div>',{className:'hpop'}).addTo(map);
+  try{ histFocar(x.ll,17) }catch(er){ map.setView(x.ll,17) }
+  setTimeout(()=>{ try{ hist.camEv.openPopup() }catch(er){} },350);
+  try{ if(!telaLarga()) hpRecolher(true) }catch(er){}
+});
+$('hEventos').onclick=async()=>{
+  if(!ehAdmin) return;
+  const id=+$('hVeic').value, dia=$('hData').value, dia2=$('hData2').value||dia, de=$('hDe').value||'00:00', ate=$('hAte').value||'23:59';
+  if(!id){ toast('Escolha um veículo.'); return }
+  if(!dia){ toast('Escolha o dia inicial.'); return }
+  if(dia<diaMenos(HIST_DIAS)){ toast('Guardamos só os últimos '+HIST_DIAS+' dias.'); return }
+  const ini=Date.parse(dia+'T'+de+':00-03:00'), fim=Date.parse(dia2+'T'+ate+':59-03:00');
+  if(!(fim>ini)){ toast('O fim precisa ser depois do início.'); return }
+  if(fim-ini>HIST_MAX_DIAS*86400000){ toast('Escolha no máximo '+HIST_MAX_DIAS+' dias de cada vez.',4500); return }
+  histLimpar();
+  const ger=++evGer; hist.modo='eventos'; $('hpanel').classList.add('eventos');
+  const b=$('hEventos'); b.disabled=true; b.textContent='Buscando eventos...'; $('hMsg').textContent='';
+  try{
+    const q='deviceId='+id+'&from='+encodeURIComponent(new Date(ini).toISOString())+'&to='+encodeURIComponent(new Date(Math.min(fim,Date.now())).toISOString());
+    const [rr,re]=await Promise.all([api('/api/reports/route?'+q),api('/api/reports/events?'+q)]);
+    if(ger!==evGer || !hist.on) return;
+    if(!rr.ok || !re.ok) throw new Error('O servidor respondeu erro '+(rr.ok?re.status:rr.status)+' ao buscar os eventos.');
+    const pos=await rr.json(), evs=await re.json();
+    if(ger!==evGer || !hist.on) return;
+    const porId={}; pos.forEach(p=>{ porId[p.id]=p });
+    const llDe=p=>(p && isFinite(p.latitude) && isFinite(p.longitude) && !(p.latitude===0&&p.longitude===0))?[p.latitude,p.longitude]:null;
+    const out=[];
+    /* ignição pelas posições, na ordem em que o rastreador mandou */
+    let ant=null;
+    pos.filter(p=>p.attributes && typeof p.attributes.ignition==='boolean').map(p=>({p,ms:Date.parse(p.deviceTime||p.fixTime)})).filter(x=>isFinite(x.ms)).sort((a,b)=>a.ms-b.ms).forEach(({p,ms})=>{
+      const on=p.attributes.ignition;
+      if(ant!==null && on!==ant) out.push({cat:'ign',ms,ll:llDe(p),ic:on?'🔑':'💤',cls:on?'ign-on':'ign-off',tit:on?'Ignição ligada':'Ignição desligada',sub:''});
+      ant=on;
+    });
+    evs.forEach(e=>{
+      const ms=Date.parse(e.eventTime), a=e.attributes||{}, p=porId[e.positionId], ll=llDe(p);
+      if(e.type==='commandResult'){
+        const t=String(a.result||'').replace(/\s+/g,' ').trim();
+        const rel=relayDaResposta(t), blq=rel===1 || (rel===null && /stop engine|bloque|cut off/i.test(t) && !/resume|desbloq/i.test(t)), lib=rel===0 || (rel===null && /resume|desbloq|restore/i.test(t));
+        out.push({cat:'bloq',ms,ll,ic:blq?'🔒':(lib?'🔓':'💬'),cls:blq?'bloq':(lib?'desb':''),tit:blq?'Bloqueio efetivado':(lib?'Desbloqueio efetivado':'Resposta do rastreador'),sub:t?'Rastreador: '+t.slice(0,80):''});
+      } else if(e.type==='queuedCommandSent'){
+        out.push({cat:'bloq',ms,ll,ic:'📨',cls:'',tit:'Comando enviado ao rastreador',sub:'Estava na fila e saiu quando o rastreador voltou a conectar'});
+      } else if(e.type==='alarm'){
+        const ks=[...new Set(String(a.alarm||'').split(',').map(x=>x.trim()).filter(Boolean))];
+        ks.forEach(k=>out.push({cat:'alarme',ms,ll,ic:'⚠️',cls:'alarme',tit:EV_ALARME[k]||('Alarme: '+k),sub:''}));
+      } else if(e.type==='geofenceEnter'||e.type==='geofenceExit'){
+        out.push({cat:'alarme',ms,ll,ic:'🚧',cls:'alarme',tit:e.type==='geofenceEnter'?'Entrou na cerca':'Saiu da cerca',sub:''});
+      } else if(e.type==='deviceOverspeed'){
+        out.push({cat:'alarme',ms,ll,ic:'⚠️',cls:'alarme',tit:'Excesso de velocidade',sub:''});
+      }
+    });
+    out.sort((a,b)=>b.ms-a.ms);
+    hist.ev=out; evFiltro='tudo';
+    const n=k=>out.filter(x=>x.cat===k).length, lig=out.filter(x=>x.cls==='ign-on').length, des=out.filter(x=>x.cls==='ign-off').length;
+    $('hEvCab').innerHTML='<b>'+lig+'</b> '+(lig===1?'ligada':'ligadas')+' · <b>'+des+'</b> '+(des===1?'desligada':'desligadas')+' · <b>'+out.filter(x=>x.cls==='bloq').length+'</b> bloqueio(s) · <b>'+n('alarme')+'</b> alarme(s)';
+    const dd=x=>x.split('-').reverse().slice(0,2).join('/');
+    $('hPerTxt').textContent='📋 Eventos · '+(dia===dia2?dd(dia)+' · '+de+' às '+ate:dd(dia)+' '+de+' até '+dd(dia2)+' '+ate);
+    $('hpanel').classList.add('achou');
+    eventosDesenhar(); $('hEvRes').classList.add('show');
+    const ult=[...pos].reverse().map(llDe).find(Boolean); if(ult) map.setView(ult,15);
+  }catch(e){ if(!e.sessao) $('hMsg').textContent=e.message||'Não consegui buscar os eventos.'; hist.modo=''; $('hpanel').classList.remove('eventos') }
+  b.disabled=false; b.textContent='📋 Eventos: ignição, bloqueio e alarmes';
 };
 const hhData=ms=>new Date(ms).toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo',day:'2-digit',month:'2-digit'});
 /* paradas calculadas a partir do próprio trajeto: o veículo ficou num raio de 60 m (contando também o tempo sem GPS, com a chave desligada) */
