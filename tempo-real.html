@@ -6238,6 +6238,23 @@ function hpRecolher(on){ const p=$('hpanel'); if(on && !p.classList.contains('ac
     if(dy>30) hpRecolher(true); else if(dy<-30) hpRecolher(false); else if(toque) hpRecolher(!p.classList.contains('recolh')) };
   ['hPuxa'].forEach(id=>{ const el=$(id); el.addEventListener('pointerdown',ini); el.addEventListener('pointerup',fim) });
   const ht=document.querySelector('#hpanel .htop'); ht.addEventListener('pointerdown',ini); ht.addEventListener('pointerup',fim);
+  /* 31/10/2026 (dono): tocar em QUALQUER parte livre do painel (com resultado na tela) recolhe/abre; arrastar para baixo
+     (com a lista no topo) recolhe; arrastar para cima, recolhido, abre. Botões, campos e itens da lista continuam com a função deles. */
+  const hp=$('hpanel'); let gy=null, gx=0, gAlvo=null, gTopo=true;
+  const livre=t=>!t.closest('button,a,input,select,textarea,label,summary,details,[data-di],[data-evi],[data-evf],[data-ht],.hpuxa,.htop');
+  const gIni=(x,y,alvo)=>{ if(telaLarga() || !hp.classList.contains('achou')) return; gy=y; gx=x; gAlvo=alvo; gTopo=hp.scrollTop<=2 };
+  const gFim=(x,y)=>{
+    if(gy===null) return; const dy=y-gy, dx=x-gx, alvo=gAlvo; gy=null;
+    if(alvo && (alvo.closest('.hpuxa') || alvo.closest('.htop'))) return; /* já tratado acima */
+    const rec=hp.classList.contains('recolh');
+    if(Math.abs(dy)<10 && Math.abs(dx)<10){ if(alvo && livre(alvo)) hpRecolher(!rec); return }
+    if(Math.abs(dy)>40 && Math.abs(dy)>Math.abs(dx)){ if(dy>0 && (gTopo||rec)) hpRecolher(true); else if(dy<0 && rec) hpRecolher(false) }
+  };
+  /* no celular usa toque (a rolagem da lista não cancela o gesto); no computador, mouse */
+  hp.addEventListener('touchstart',e=>{ const t=e.touches[0]; if(t && e.touches.length===1) gIni(t.clientX,t.clientY,e.target); else gy=null },{passive:true});
+  hp.addEventListener('touchend',e=>{ const t=e.changedTouches[0]; if(t) gFim(t.clientX,t.clientY) },{passive:true});
+  hp.addEventListener('pointerdown',e=>{ if(e.pointerType==='mouse' && e.button===0) gIni(e.clientX,e.clientY,e.target) });
+  hp.addEventListener('pointerup',e=>{ if(e.pointerType==='mouse') gFim(e.clientX,e.clientY) });
 }
 map.on('click',()=>{ try{ if(hist.on && $('hpanel').classList.contains('achou') && !telaLarga()) hpRecolher(true) }catch(e){} });
 window.addEventListener('resize',()=>{ try{ hpAplicar() }catch(e){} });
@@ -6580,7 +6597,7 @@ $('hDorme').onclick=async()=>{
     $('hDorLista').innerHTML=lug.map((x,i)=>'<div class="hdoritem'+(i===0?' top':'')+'" data-di="'+i+'"><span class="n">'+(i+1)+'</span><span><b>'+(i===0?'Principal · ':'')+'Esteve aqui em '+Math.min(dorDiasDet(x).length||x.dias,99)+' dias</b>'+
       dorDiasHtml(x,8)+
       '<em class="hend" data-de="'+i+'">'+esc(enderecoGuardado(x.ll)||'')+'</em></span></div>').join('');
-    $('hDorLista').onclick=e=>{ const r=e.target.closest('[data-di]'); if(r){ const i=+r.dataset.di; histFocar(lug[i].ll,17); setTimeout(()=>{ try{ hist.mkDor[i].openPopup() }catch(er){} },350) } };
+    $('hDorLista').onclick=e=>{ const r=e.target.closest('[data-di]'); if(r){ const i=+r.dataset.di; try{ if(!telaLarga()) hpRecolher(true) }catch(er){} histFocar(lug[i].ll,17); setTimeout(()=>{ try{ hist.mkDor[i].openPopup() }catch(er){} },350) } };
     $('hDorRes').classList.add('show');
     enderecosParadas(lug,(i,t)=>{
       if(ger!==dorGer) return;
