@@ -2350,6 +2350,8 @@ header nav .nl-pc{display:inline} header nav .nl-cel{display:none}
 .wppv{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-top:10px}
 .wppv .vh{display:flex;justify-content:space-between;align-items:center;gap:8px;font-weight:700;font-size:14px}
 .wppv .vh small{font-weight:600;color:var(--mut);font-size:12px}
+.wppv .wppcanal{display:flex;align-items:center;justify-content:space-between;gap:10px;border-top:1px solid var(--line);margin-top:10px;padding-top:10px;font-size:13px;font-weight:600}
+.wppv .wppcanal small{display:block;font-weight:500;color:var(--mut);font-size:11.5px;margin-top:2px}
 .wppit{margin-top:10px}
 .wppit .l1{display:flex;justify-content:space-between;gap:8px;font-size:13px;font-weight:600}
 .wppit .l1 span:last-child{color:var(--mut);font-weight:600;font-size:12px;white-space:nowrap}
@@ -12992,7 +12994,7 @@ function wppDesenhar(){
   const nomes={}; (wppEst.itens||[]).forEach(i=>nomes[i.k]=i);
   const lista=veiculos.filter(v=>Object.keys(wppAtivos(v.id)).length).sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
   $('wppLista').innerHTML=lista.map(v=>{
-    const at=wppAtivos(v.id), num=(wppEst.veiculos[String(v.id)]||{}).numero||'';
+    const at=wppAtivos(v.id), num=(wppEst.veiculos[String(v.id)]||{}).numero||'', soWpp=!!(wppEst.veiculos[String(v.id)]||{}).soWpp;
     let menor=Infinity;
     const itens=Object.keys(at).map(k=>{
       const it=nomes[k]||{nome:k}, u=at[k]; menor=Math.min(menor,Number(u.ate));
@@ -13008,6 +13010,8 @@ function wppDesenhar(){
     const vence=faltaD<=3?'<div class="wppvence">⚠️ Vence em '+(faltaD<=1?'menos de 1 dia':faltaD+' dias')+' ('+wppDia(menor)+'). Renove para continuar recebendo no WhatsApp.</div>':'';
     return '<div class="wppv"><div class="vh"><span>'+esc(v.nome)+'</span><small>até '+wppDia(menor)+'</small></div>'+
       '<div style="font-size:12.5px;color:var(--mut);margin-top:2px">💬 '+esc(wppFone(num))+'</div>'+itens+vence+
+      /* 31/10/2026 (dono): escolher entre "app + WhatsApp" (padrão) e "só WhatsApp" */
+      '<div class="igrow wppcanal"><span>Avisar também no app<small>'+(soWpp?'Desligado: chega só no WhatsApp':'Notificação do app + WhatsApp')+'</small></span><label class="sw"><input type="checkbox" data-wppcanal="'+v.id+'"'+(soWpp?'':' checked')+'><span></span></label></div>'+
       '<div class="bts"><button class="mini" type="button" data-wppren="'+v.id+'">'+(faltaD<=3?'Renovar':'Adicionar ou renovar')+'</button></div></div>';
   }).join('');
 }
@@ -13062,6 +13066,13 @@ $('wppVeic').onchange=()=>{ $('wppVeic').classList.remove('wpperro'); $('wppErro
 $('wppItens').addEventListener('change',wppTotal);
 $('wppNum').addEventListener('input',()=>{ $('wppErro').textContent='' });
 $('wppCard').onclick=e=>{ wppAbrir() };
+$('wppLista').addEventListener('change',async e=>{
+  const c=e.target.closest('input[data-wppcanal]'); if(!c) return;
+  c.disabled=true;
+  try{ wppEst=await fnAl('wppCanal',{deviceId:+c.dataset.wppcanal,soWpp:!c.checked}); toast(c.checked?'Avisa no app e no WhatsApp.':'Agora só no WhatsApp. A notificação do app volta sozinha se o WhatsApp vencer.',4500) }
+  catch(err){ c.checked=!c.checked; toast(err.message) }
+  wppDesenhar();
+});
 $('wppLista').addEventListener('click',async e=>{
   const r=e.target.closest('[data-wppren]'); if(r){ wppAbrir(r.dataset.wppren); return }
   const d=e.target.closest('[data-wppdesl]'); if(!d) return;
