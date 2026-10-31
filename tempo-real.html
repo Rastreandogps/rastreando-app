@@ -2316,6 +2316,39 @@ header nav .nl-pc{display:inline} header nav .nl-cel{display:none}
 #mAlMais .alfechar,#mLoja .alfechar,#mServ .alfechar{flex:none;margin-top:10px}
 .alnota{font-size:12.5px!important;color:var(--mut);margin:10px 2px 0!important;line-height:1.4}
 .algrupo{background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:0 14px}
+/* ===== 31/10/2026 (pedido do dono): Alertas no WhatsApp (pacote pago por PIX, 30 dias por veículo) ===== */
+.wppcard{display:flex;gap:12px;align-items:center;background:linear-gradient(135deg,#0f3d2a,#0b2a1e);border:1px solid rgba(37,211,102,.35);border-radius:16px;padding:12px;color:#eafff3;cursor:pointer}
+.wppcard video{width:92px;height:111px;flex:none;border-radius:12px;object-fit:cover;background:#0b2a1e}
+.wppcard .tt{font-weight:750;font-size:15px;line-height:1.25}
+.wppcard .tx{font-size:12.5px;color:#b9e8cc;margin-top:4px;line-height:1.4}
+.wppcard .bt{display:inline-flex;align-items:center;gap:6px;margin-top:9px;height:34px;padding:0 14px;border-radius:999px;background:#25d366;color:#05301a;font-weight:750;font-size:13px;border:0}
+.wppteste{display:inline-block;margin-left:6px;font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:999px;background:rgba(245,184,61,.2);color:var(--amber);vertical-align:middle}
+.wppv{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-top:10px}
+.wppv .vh{display:flex;justify-content:space-between;align-items:center;gap:8px;font-weight:700;font-size:14px}
+.wppv .vh small{font-weight:600;color:var(--mut);font-size:12px}
+.wppit{margin-top:10px}
+.wppit .l1{display:flex;justify-content:space-between;gap:8px;font-size:13px;font-weight:600}
+.wppit .l1 span:last-child{color:var(--mut);font-weight:600;font-size:12px;white-space:nowrap}
+.wppit .bar{height:6px;border-radius:99px;background:var(--card2);margin-top:5px;overflow:hidden}
+.wppit .bar i{display:block;height:100%;background:#25d366;border-radius:99px}
+.wppit .bar i.alto{background:var(--amber)}
+.wppit .bar i.cheio{background:var(--red2)}
+.wppvence{margin-top:10px;font-size:12.5px;font-weight:650;color:var(--amber)}
+.wppv .bts{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.wppsel{display:flex;flex-direction:column;gap:8px;margin-top:6px}
+.wppop{display:flex;align-items:center;gap:10px;background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;cursor:pointer}
+.wppop input{width:20px;height:20px;accent-color:#25d366;flex:none}
+.wppop .nm{flex:1;min-width:0}
+.wppop .nm b{display:block;font-size:14px}
+.wppop .nm small{display:block;font-size:12px;color:var(--mut);margin-top:2px}
+.wppop .pr{font-weight:750;font-size:14px;white-space:nowrap}
+.wppop .pr small{display:block;font-size:11px;color:var(--mut);font-weight:600;text-align:right}
+.wppop.ativo{opacity:.75}
+.wpptot{display:flex;justify-content:space-between;align-items:baseline;margin:14px 2px 4px;font-size:14px;font-weight:650}
+.wpptot b{font-size:20px}
+.btn-wpp{background:#25d366!important;color:#05301a!important;border:0!important;font-weight:750}
+.altile .wppselo{display:none;font-size:10.5px;font-weight:700;color:#25d366;margin-top:-4px}
+.altile.wppon .wppselo{display:block}
 .algrupo .igrow{border-top:1px solid var(--line);padding:11px 0;min-height:52px}
 .algrupo .igrow:first-child{border-top:0}
 .algrupo .igrow > span:first-child{font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -3620,10 +3653,21 @@ nav button:not(.on) .nemo{filter:saturate(.85)}
       <div class="alcard" id="alPush"></div>
       <div class="alsec">Avisos que você recebe</div>
       <div class="altiles">
-        <button class="altile" id="alTIgn" type="button"><span class="alic i"><svg viewBox="0 0 24 24"><path d="M12 3v8"/><path d="M6.4 6.6a8 8 0 1011.2 0"/></svg></span><b>Ignição</b><small id="alIgnResumo">…</small></button>
-        <button class="altile" id="alTVolta" type="button"><span class="alic v"><svg viewBox="0 0 24 24"><path d="M5 12.5a10 10 0 0114 0"/><path d="M8.5 16a5 5 0 017 0"/><circle cx="12" cy="19.2" r="1"/></svg></span><b>Volta do sinal</b><small id="alVoltaResumo">…</small></button>
+        <button class="altile" id="alTIgn" type="button"><span class="alic i"><svg viewBox="0 0 24 24"><path d="M12 3v8"/><path d="M6.4 6.6a8 8 0 1011.2 0"/></svg></span><b>Ignição</b><small id="alIgnResumo">…</small><small class="wppselo">💬 WhatsApp ativo</small></button>
+        <button class="altile" id="alTVolta" type="button"><span class="alic v"><svg viewBox="0 0 24 24"><path d="M5 12.5a10 10 0 0114 0"/><path d="M8.5 16a5 5 0 017 0"/><circle cx="12" cy="19.2" r="1"/></svg></span><b>Volta do sinal</b><small id="alVoltaResumo">…</small><small class="wppselo">💬 WhatsApp ativo</small></button>
         <button class="altile" id="alTKm" type="button"><span class="alic m"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg></span><b>Revisão por km</b><small id="alKmResumo">…</small></button>
-        <button class="altile" id="alTBat" type="button"><span class="alic b"><svg viewBox="0 0 24 24"><rect x="3" y="7" width="16" height="10" rx="2"/><path d="M21 10.5v3"/><path d="M7 10v4"/></svg></span><b>Bateria crítica</b><small id="alBatResumo">…</small></button>
+        <button class="altile" id="alTBat" type="button"><span class="alic b"><svg viewBox="0 0 24 24"><rect x="3" y="7" width="16" height="10" rx="2"/><path d="M21 10.5v3"/><path d="M7 10v4"/></svg></span><b>Bateria crítica</b><small id="alBatResumo">…</small><small class="wppselo">💬 WhatsApp ativo</small></button>
+      </div>
+      <!-- 31/10/2026: Alertas no WhatsApp (só aparece para quem pode comprar; hoje, só o administrador) -->
+      <div id="wppBox" style="display:none">
+        <div class="alsec">Alertas no WhatsApp<span class="wppteste" id="wppTeste" style="display:none">só admin</span></div>
+        <div class="wppcard" id="wppCard" role="button" tabindex="0">
+          <video src="icv/alerta-whatsapp.mp4" muted loop playsinline autoplay preload="metadata" aria-hidden="true"></video>
+          <div><div class="tt">Receba os alertas também no WhatsApp</div>
+          <div class="tx">Ignição, cerca, bateria fraca e volta do sinal chegam no seu WhatsApp, com o veículo, a hora e o link do mapa.</div>
+          <button class="bt" type="button" id="wppContratar">Escolher alertas</button></div>
+        </div>
+        <div id="wppLista"></div>
       </div>
       <div class="alsec">Últimos alertas</div>
       <div id="alItens"></div>
@@ -4978,6 +5022,24 @@ nav button:not(.on) .nemo{filter:saturate(.85)}
     <div class="apbusca"><input class="fld" id="alBatBusca" type="search" placeholder="Buscar veículo" autocomplete="off"><small id="alBatBuscaN"></small></div>
     <div class="algrupo" id="alBat"></div>
     <p class="alnota">Avisa uma vez. Só avisa de novo depois que a bateria for carregada.</p>
+    <button class="btn btn-out alfechar" data-close type="button">Fechar</button>
+  </div>
+</div>
+<div class="modal alsheet" id="mWpp">
+  <div class="box2">
+    <h3>Alertas no WhatsApp</h3>
+    <p>Os alertas continuam chegando no app. Com este pacote, chegam também no WhatsApp. Vale por <b id="wppDias">30</b> dias, por veículo. Não mexe na mensalidade.</p>
+    <label class="flbl" for="wppVeic">Veículo</label>
+    <select class="fld" id="wppVeic"></select>
+    <label class="flbl" for="wppNum">WhatsApp que vai receber</label>
+    <input class="fld" id="wppNum" type="tel" inputmode="numeric" maxlength="16" placeholder="(21) 99999-9999" autocomplete="tel">
+    <label class="flbl">Quais alertas?</label>
+    <div class="wppsel" id="wppItens"></div>
+    <div class="wpptot"><span>Total (30 dias)</span><b id="wppTotal">R$ 0,00</b></div>
+    <div class="ferr" id="wppErro"></div>
+    <button class="btn btn-wpp" id="wppPagar" type="button" style="width:100%;margin-top:8px">Pagar com PIX</button>
+    <button class="btn btn-out" id="wppAdmin" type="button" style="width:100%;margin-top:8px;display:none">Ativar sem PIX (teste do administrador)</button>
+    <p class="alnota">Assim que o PIX for confirmado, os alertas escolhidos começam a chegar no WhatsApp. Quando vencer, o WhatsApp para e os alertas continuam no app.</p>
     <button class="btn btn-out alfechar" data-close type="button">Fechar</button>
   </div>
 </div>
@@ -12836,8 +12898,125 @@ async function ativarPush(){
 /* ----- alertas de ignição por veículo ----- */
 async function carregarCfgAlertas(){
   try{ const j=await fnAl('alertasEstado'); alCfg=j.cfg||{ign:{},volta:{}} }catch(e){}
-  desenharIgn(); desenharVolta(); desenharBat(); carregarManut();
+  desenharIgn(); desenharVolta(); desenharBat(); carregarManut(); wppCarregar();
 }
+
+/* ===== 31/10/2026 (pedido do dono): ALERTAS NO WHATSAPP =====
+   Pacote pago por PIX (loja, produto "wppal"), 30 dias por veículo, não mexe na mensalidade.
+   Servidor: rastreamento-wppalertas.js (envio pelo SMS Market, modelo alerta_veiculo) + rastreamento-desbloqueio.js (PIX).
+   Enquanto rastreamento_config/wpp_alertas.liberado = false, só o administrador vê e compra (podeComprar). */
+let wppEst=null;
+const wppFone=n=>{ n=String(n||'').replace(/\D/g,''); if(n.length===11) return '('+n.slice(0,2)+') '+n.slice(2,7)+'-'+n.slice(7); if(n.length===10) return '('+n.slice(0,2)+') '+n.slice(2,6)+'-'+n.slice(6); return n };
+const wppDia=ms=>new Date(ms).toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo',day:'2-digit',month:'2-digit'});
+async function wppCarregar(){
+  if(!auth || !lsGet('rg_token')) return;
+  try{ wppEst=await fnAl('wppEstado') }catch(e){ wppEst=null }
+  wppDesenhar();
+}
+function wppAtivos(dev){ /* itens ainda valendo de um veículo: {k:{ate,usoMes,usoDia}} */
+  const v=wppEst && wppEst.veiculos && wppEst.veiculos[String(dev)], out={};
+  if(!v) return out;
+  Object.keys(v.itens||{}).forEach(k=>{ if(Number(v.itens[k].ate)>Date.now()) out[k]=v.itens[k] });
+  return out;
+}
+function wppDesenhar(){
+  const box=$('wppBox'); if(!box) return;
+  const pode=!!(wppEst && wppEst.podeComprar);
+  box.style.display=pode?'':'none';
+  /* selo "WhatsApp ativo" nos cartões de Ignição / Volta do sinal / Bateria */
+  const temItem=k=>!!(wppEst && Object.keys(wppEst.veiculos||{}).some(d=>wppAtivos(d)[k]));
+  [['alTIgn','ign'],['alTVolta','volta'],['alTBat','bat']].forEach(([id,k])=>{ try{ $(id).classList.toggle('wppon',pode&&temItem(k)) }catch(e){} });
+  if(!pode){ $('wppLista').innerHTML=''; return }
+  $('wppTeste').style.display=wppEst.liberado?'none':'';
+  const nomes={}; (wppEst.itens||[]).forEach(i=>nomes[i.k]=i);
+  const lista=veiculos.filter(v=>Object.keys(wppAtivos(v.id)).length).sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
+  $('wppLista').innerHTML=lista.map(v=>{
+    const at=wppAtivos(v.id), num=(wppEst.veiculos[String(v.id)]||{}).numero||'';
+    let menor=Infinity;
+    const itens=Object.keys(at).map(k=>{
+      const it=nomes[k]||{nome:k}, u=at[k]; menor=Math.min(menor,Number(u.ate));
+      let lim, usado, txt;
+      if(it.mes){ lim=it.mes; usado=u.usoMes; txt=usado+' de '+lim+' no mês' }
+      else { lim=it.dia||1; usado=u.usoDia; txt=usado+' de '+lim+' hoje' }
+      const pc=Math.min(100,Math.round(usado/lim*100));
+      return '<div class="wppit"><div class="l1"><span>'+esc(it.nome)+'</span><span>'+txt+'</span></div>'+
+        '<div class="bar"><i class="'+(pc>=100?'cheio':pc>=80?'alto':'')+'" style="width:'+pc+'%"></i></div>'+
+        (ehAdmin?'<div style="text-align:right;margin-top:4px"><button class="linkbtn" type="button" data-wppdesl="'+v.id+'" data-k="'+k+'">Desligar</button></div>':'')+'</div>';
+    }).join('');
+    const faltaD=Math.ceil((menor-Date.now())/86400000);
+    const vence=faltaD<=3?'<div class="wppvence">⚠️ Vence em '+(faltaD<=1?'menos de 1 dia':faltaD+' dias')+' ('+wppDia(menor)+'). Renove para continuar recebendo no WhatsApp.</div>':'';
+    return '<div class="wppv"><div class="vh"><span>'+esc(v.nome)+'</span><small>até '+wppDia(menor)+'</small></div>'+
+      '<div style="font-size:12.5px;color:var(--mut);margin-top:2px">💬 '+esc(wppFone(num))+'</div>'+itens+vence+
+      '<div class="bts"><button class="mini" type="button" data-wppren="'+v.id+'">'+(faltaD<=3?'Renovar':'Adicionar ou renovar')+'</button></div></div>';
+  }).join('');
+}
+function wppAbrir(dev){
+  if(!wppEst || !wppEst.podeComprar) return;
+  const lista=veiculos.slice().sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
+  if(!lista.length){ toast('Nenhum veículo na sua conta.'); return }
+  $('wppVeic').innerHTML=lista.map(v=>'<option value="'+v.id+'">'+esc(v.nome)+(v.placa?' · '+esc(v.placa):'')+'</option>').join('');
+  if(dev) $('wppVeic').value=String(dev);
+  $('wppDias').textContent=wppEst.dias||30;
+  $('wppAdmin').style.display=ehAdmin?'':'none';
+  $('wppErro').textContent='';
+  wppPintarItens(true);
+  abrir('mWpp');
+}
+function wppPintarItens(marcarAtivos){
+  const dev=$('wppVeic').value, at=wppAtivos(dev), v=(wppEst.veiculos||{})[String(dev)]||{};
+  $('wppNum').value=v.numero?wppFone(v.numero):($('wppNum').dataset.ult||'');
+  $('wppItens').innerHTML=(wppEst.itens||[]).map(it=>{
+    const lim=it.mes?'Até '+it.mes+' avisos por mês':'Até '+it.dia+' avisos por dia, com 1 hora entre eles';
+    const ativo=at[it.k]?' · ativo até '+wppDia(at[it.k].ate):'';
+    return '<label class="wppop"><input type="checkbox" data-wk="'+it.k+'"'+(marcarAtivos&&at[it.k]?' checked':'')+'>'+
+      '<span class="nm"><b>'+esc(it.nome)+'</b><small>'+lim+ativo+'</small></span>'+
+      '<span class="pr">'+brl(it.preco)+'<small>30 dias</small></span></label>';
+  }).join('');
+  wppTotal();
+}
+function wppEscolhidos(){ return [...$('wppItens').querySelectorAll('input[data-wk]:checked')].map(i=>i.dataset.wk) }
+function wppTotal(){
+  const pr={}; (wppEst.itens||[]).forEach(i=>pr[i.k]=Number(i.preco));
+  const t=wppEscolhidos().reduce((a,k)=>a+(pr[k]||0),0);
+  $('wppTotal').textContent=brl(Math.round(t*100)/100);
+  $('wppPagar').disabled=!t;
+}
+function wppValidar(){
+  const itens=wppEscolhidos(), num=$('wppNum').value.replace(/\D/g,'').replace(/^55(?=\d{10,11}$)/,'');
+  if(!itens.length){ $('wppErro').textContent='Escolha pelo menos um alerta.'; return null }
+  if(num.length!==10 && num.length!==11){ $('wppErro').textContent='Informe o WhatsApp com DDD. Ex.: (21) 99999-9999'; $('wppNum').focus(); return null }
+  $('wppErro').textContent=''; $('wppNum').dataset.ult=wppFone(num);
+  return {deviceId:+$('wppVeic').value, itens:itens, numero:num};
+}
+$('wppVeic').onchange=()=>wppPintarItens(true);
+$('wppItens').addEventListener('change',wppTotal);
+$('wppNum').addEventListener('input',()=>{ $('wppErro').textContent='' });
+$('wppCard').onclick=e=>{ wppAbrir() };
+$('wppLista').addEventListener('click',async e=>{
+  const r=e.target.closest('[data-wppren]'); if(r){ wppAbrir(r.dataset.wppren); return }
+  const d=e.target.closest('[data-wppdesl]'); if(!d) return;
+  d.disabled=true;
+  try{ wppEst=await fnAl('wppAdminDesativar',{deviceId:+d.dataset.wppdesl,item:d.dataset.k}); toast('Desligado.') }catch(err){ toast(err.message) }
+  wppDesenhar();
+});
+let wppComprando=false;
+$('wppPagar').onclick=async()=>{
+  const p=wppValidar(); if(!p || wppComprando) return;
+  const btn=$('wppPagar'); wppComprando=true; btn.disabled=true; const t0=btn.textContent; btn.textContent='Gerando PIX...';
+  try{
+    const r=await fnLoja('lojaComprar',Object.assign({produto:'wppal',qtd:1},p));
+    if(r.semCpf||r.semCadastro) toast('Seu CPF ainda não está vinculado ao financeiro. Peça pelo WhatsApp que a gente resolve na hora.',5000);
+    else { r.produto='wppal'; lojaAbrirPix(r) }
+  }catch(err){ $('wppErro').textContent=err.message }
+  wppComprando=false; btn.textContent=t0; wppTotal();
+};
+$('wppAdmin').onclick=async()=>{
+  const p=wppValidar(); if(!p) return;
+  const btn=$('wppAdmin'); btn.disabled=true;
+  try{ wppEst=await fnAl('wppAdminAtivar',Object.assign({dias:wppEst.dias||30},p)); toast('Ativado por '+(wppEst.dias||30)+' dias (sem PIX).'); fechar(); wppDesenhar() }
+  catch(err){ $('wppErro').textContent=err.message }
+  btn.disabled=false;
+};
 function desenharIgn(){
   const ign=alCfg.ign||{}, lista=veiculos.slice().sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
   const n=lista.filter(v=>ign[String(v.id)]).length;
@@ -13412,6 +13591,10 @@ function lojaPagoOk(s){
   if(/premium/i.test(s.nome||'')){ /* 19/10/2026: pagou, mas o servidor não conseguiu liberar na hora (o dono recebe aviso) */
     $('ljpOkTxt').textContent='Pagamento recebido. A liberação do Premium está sendo concluída. Se não aparecer em alguns minutos, fale com a gente.'; $('ljpOkWpp').style.display='none'; return;
   }
+  if(s.wppAteMs!==undefined){ /* 31/10/2026: Alertas no WhatsApp liberados na hora */
+    $('ljpOkTxt').textContent=Number(s.wppAteMs)>0 ? 'Alertas no WhatsApp ativados até '+new Date(Number(s.wppAteMs)).toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo'})+'. A partir de agora, os alertas escolhidos chegam também no seu WhatsApp.' : 'Pagamento recebido. A ativação dos alertas no WhatsApp está sendo concluída. Se não aparecer em alguns minutos, fale com a gente.';
+    $('ljpOkWpp').style.display='none'; try{ $('mWpp').classList.remove('show') }catch(e){} wppCarregar(); return;
+  }
   if(Number(s.giros)>0){ /* 20/10/2026: giros da vista da rua entram na hora */
     $('ljpOkTxt').textContent=s.giros+' giros liberados!'+(typeof s.girosSaldo==='number'?' Você tem '+s.girosSaldo+' giro'+(s.girosSaldo===1?'':'s')+' extra'+(s.girosSaldo===1?'':'s')+'. Eles não vencem.':'')+' Feche esta janela e toque em "Girar 360°".';
     $('ljpOkWpp').style.display='none'; return;
@@ -13439,7 +13622,7 @@ async function lojaPedidosDesenhar(){ /* pedidos dos últimos 7 dias (aguardando
     lojaMapaPintar(lista);
     if(!lista.length){ box.innerHTML=''; cb.classList.remove('show'); return }
     const ag=lista.filter(p=>p.estado!=='pago').length, pg=lista.length-ag;
-    const pgEnt=lista.filter(p=>p.estado==='pago' && !(Number(p.giros)>0||Number(p.frotaDias)>0)).length;
+    const pgEnt=lista.filter(p=>p.estado==='pago' && !(Number(p.giros)>0||Number(p.frotaDias)>0||Number(p.dourada)>0||p.produto==='wppal')).length;
     const resumo=[ag?ag+(ag>1?' aguardando pagamento':' aguardando pagamento'):'', pg?pg+(pg>1?' pagos':' pago')+(pgEnt?' · combine a entrega':''):''].filter(Boolean).join(' · ');
     if(ag) lojaCarAberto=true; /* tem PIX para pagar: já mostra aberto */
     $('lojaCarN').textContent=lista.length; cb.classList.add('show');
@@ -13450,7 +13633,7 @@ async function lojaPedidosDesenhar(){ /* pedidos dos últimos 7 dias (aguardando
         const pago=p.estado==='pago';
         const canc=!pago&&p.cancelarEmMs;
         const tag=pago?'<span class="ljst ok">Pago</span>':canc?'<span class="ljst cc">Cancelamento até '+fmtHora(p.cancelarEmMs).split(' ').pop()+'</span>':'<span class="ljst ag">Aguardando pagamento</span>';
-        const semEntrega=Number(p.giros)>0||Number(p.frotaDias)>0||Number(p.dourada)>0; /* 24/10/2026: giros e Premium entram na hora, não têm entrega */
+        const semEntrega=Number(p.giros)>0||Number(p.frotaDias)>0||Number(p.dourada)>0||p.produto==='wppal'; /* 31/10/2026: alertas no WhatsApp também */ /* 24/10/2026: giros e Premium entram na hora, não têm entrega */
         const bts=pago?(semEntrega?'<span class="ljst ok" style="align-self:center">'+(Number(p.giros)>0?'Giros creditados':Number(p.dourada)>0?'Fichas creditadas':'Liberado')+'</span>':'<button class="ljbtn" type="button" data-lent="'+esc(p.rotulo||'')+'" data-ln="'+esc(p.nome)+'">'+LOJA_SVG_WPP+'Entrega</button>')
           :'<div class="ljpb"><button class="ljcomprar" type="button" data-k="'+esc(p.produto)+'" data-q="'+(Number(p.qtd)||1)+'">Pagar</button>'+
             (canc?'<button class="ljcanc" type="button" data-lmant="'+esc(p.pedido)+'">Manter pedido</button>'
