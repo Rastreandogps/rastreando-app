@@ -3047,7 +3047,11 @@ setInterval(deslizePintar,3000); setTimeout(deslizePintar,500);
 const sheet = $('sheet'), zone = $('dragzone');
 let y0=0, off0=0, moveu=false, naAlca=false;
 function maxOff(){
-  const peek = zone.getBoundingClientRect().bottom - sheet.getBoundingClientRect().top + 12;
+  let fim = zone.getBoundingClientRect().bottom;
+  /* 31/10/2026 (dono): no celular do ADMINISTRADOR, o cartão recolhido mostra só velocímetro, nome e a linha de botões (chave, lápis, ícone);
+     IMEI, motorista, chip e situação ficam escondidos embaixo. */
+  try{ if(ehAdmin && !telaLarga()){ let b=0; [$('placaLinha'),$('spdTop')].forEach(e=>{ if(e && e.offsetParent){ const r=e.getBoundingClientRect(); if(r.height) b=Math.max(b,r.bottom) } }); if(b) fim=Math.min(fim,b-6) } }catch(e){} /* -6: a linha do IMEI não aparece nem um pouquinho */
+  const peek = fim - sheet.getBoundingClientRect().top + 12;
   return Math.max(0, sheet.offsetHeight - peek);
 }
 function offAtual(){ return recolhido ? maxOff() : 0 }
