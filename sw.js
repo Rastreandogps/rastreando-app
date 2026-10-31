@@ -8,7 +8,14 @@ self.addEventListener('activate', e => {
 });
 self.addEventListener('fetch', e => {
   const r = e.request;
-  if (r.method !== 'GET' || r.mode !== 'navigate' || new URL(r.url).origin !== self.location.origin) return;
+  const u = new URL(r.url);
+  // 31/10/2026: o visual do app (app.css) também fica guardado, para o app abrir com visual mesmo sem internet
+  if (r.method === 'GET' && u.origin === self.location.origin && /\/app\.css$/.test(u.pathname)) {
+    e.respondWith(fetch(r).then(res => { if (res && res.ok) { const c = res.clone(); caches.open(V).then(x => x.put(r, c)).catch(() => {}); } return res; })
+      .catch(() => caches.match(r).then(m => m || caches.match(r, { ignoreSearch: true }))));
+    return;
+  }
+  if (r.method !== 'GET' || r.mode !== 'navigate' || u.origin !== self.location.origin) return;
   e.respondWith(
     fetch(r).then(res => {
       if (res && res.ok) { const c = res.clone(); caches.open(V).then(x => x.put(r, c)).catch(() => {}); }
