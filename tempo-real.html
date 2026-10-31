@@ -6401,10 +6401,10 @@ $('hDorme').onclick=async()=>{
     const nTxt=curto?nHist+(nHist===1?' dia com histórico':' dias com histórico'):'últimos '+n+' dias';
     lug.forEach(g=>{ g.dias=Math.min(g.dias,nHist) }); /* a parada que começou antes do período não conta dia a mais */
     $('hPerTxt').textContent='🛏️ Onde dorme · últimos '+n+' dias · '+horas+' h ou mais'; $('hpanel').classList.add('achou');
-    $('hDorCab').innerHTML=(curto?'<div class="hdoraviso">⚠️ Este veículo só tem <b>'+nHist+(nHist===1?' dia':' dias')+'</b> de histórico no período de '+n+' dias.'+(nHist<2?' Para achar onde ele dorme, precisa de pelo menos 2 dias.':'')+'</div>':'')+
+    $('hDorCab').innerHTML=(curto?'<div class="hdoraviso">⚠️ Este veículo só tem <b>'+nHist+(nHist===1?' dia':' dias')+'</b> de histórico no período de '+n+' dias.'+(nHist<2?' Para achar onde ele dorme, precisa de pelo menos 2 dias.':' A busca foi feita nesses '+nHist+' dias.')+'</div>':'')+
       (lug.length?'Lugares onde ficou parado '+horas+' h ou mais em pelo menos 2 dias diferentes. O <b>principal</b> está em destaque.':'');
     if(!lug.length){
-      $('hDorLista').innerHTML='<div class="hdoritem"><small>'+(nHist<2?'Ainda não dá para saber: só há '+nHist+' dia de histórico.':'Nenhum lugar onde ele ficou parado '+horas+' h ou mais em 2 dias diferentes nesse período.')+'</small></div>';
+      $('hDorLista').innerHTML='<div class="hdoritem"><small>'+(nHist<2?'Ainda não dá para saber: só há '+nHist+' dia de histórico.':'Nenhum lugar onde ele ficou parado '+horas+' h ou mais em 2 dias diferentes'+(curto?' nos '+nHist+' dias com histórico.':' nesse período.')+(horas>3?' Tente com menos horas (ex.: 3 h).':''))+'</small></div>';
       $('hDorRes').classList.add('show'); map.setView(pts[pts.length-1].ll,15); return;
     }
     const g=L.layerGroup();
