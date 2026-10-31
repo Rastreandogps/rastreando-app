@@ -3167,6 +3167,7 @@ function atualizar(){
       cr.style.display='flex'; cr.classList.toggle('sem',!tem);
       $('vChip').textContent = tem ? fmtFone(v.fone) : 'não cadastrado';
       const wn=$('vWppNum'); if(wn){ wn.textContent=v.wppVeic?fmtWpp(v.wppVeic):''; wn.style.display=v.wppVeic?'':'none'; wn.title='WhatsApp do cliente (gravado no veículo)' } /* 18/10/2026 */
+      try{ wppCliPintar(v) }catch(e){}
     } else cr.style.display='none';
     $('vStatus').textContent=txt; $('vStatus').className='status '+cls;
     $('sSpeed').textContent=(sp||!v.online)?'—':v.vel+' km/h'; { const semCon=sp||!v.online; /* 30/10/2026 (dono): sem conexão = não sabemos a velocidade -> dois tracinhos */ const sn=$('sSpeedN'); if(sn){ const t=semCon?'--':String(v.vel); sn.textContent=t; sn.classList.toggle('n3',t.length>=3) } const s2=$('sSpeedN2'); if(s2){ const t=semCon?'--':String(v.vel); s2.textContent=t; s2.classList.toggle('n3',t.length>=3) } } /* 29/10/2026: número dentro do velocímetro */
@@ -4416,6 +4417,22 @@ $('btnCopiaChip').onclick=e=>{
   copiar(n).then(()=>toast('Número do chip copiado: '+fmtFone(v.fone))).catch(()=>toast('Não foi possível copiar'));
 };
 /* abrir o WhatsApp do cliente (administrador): só abre a conversa, sem mensagem */
+/* 31/10/2026 (dono): o botão do WhatsApp do cliente só aparece quando há um número para abrir
+   (WhatsApp gravado no veículo, ou cliente vinculado com telefone no cadastro). */
+function wppCliNumero(v){
+  if(v.wppVeic && String(v.wppVeic).length>=10) return String(v.wppVeic);
+  if(!usuarios.length) return null; /* lista de clientes ainda não carregada: não dá para saber */
+  let cl=usuarios.find(u=>!u.administrator && casaUsuario(u,v.contato));
+  if(!cl){ try{ if(Object.keys(vinculos).length) cl=clientesDoEquip(v)[0] }catch(e){} }
+  const n=cl?soDigitos(cl.phone||''):''; return n.length>=10?n:'';
+}
+let wppCliCarregando=false;
+function wppCliPintar(v){
+  const b=$('btnWppCli'); if(!b) return;
+  const n=wppCliNumero(v);
+  b.style.display=n?'':'none';
+  if(n===null && ehAdmin && !wppCliCarregando){ wppCliCarregando=true; carregarUsuarios().then(()=>{ const c=cartao(); if(c) wppCliPintar(c) }).catch(()=>{}).finally(()=>{ wppCliCarregando=false }) }
+}
 $('btnWppCli').addEventListener('pointerdown',e=>e.stopPropagation());
 $('btnWppCli').onclick=e=>{
   e.stopPropagation();
