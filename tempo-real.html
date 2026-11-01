@@ -41,7 +41,7 @@ try{ if(localStorage.getItem('rg_token')||sessionStorage.getItem('rgv_rg_token')
 try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'){document.documentElement.setAttribute('data-tema',t)}}catch(e){}
 </script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="stylesheet" href="app.css?v=10"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
+<link rel="stylesheet" href="app.css?v=11"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
 </head>
 <body>
 
@@ -1781,6 +1781,19 @@ try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'
     <select class="fld" id="wtPara" required></select>
     <p class="wpperrotx" id="wtErro" style="color:var(--red2);font-size:13px;min-height:18px;margin:6px 0 0"></p>
     <button class="btn btn-wpp" id="wtOk" type="button" style="width:100%;margin-top:8px">Trocar</button>
+    <button class="btn btn-out alfechar" data-close type="button">Cancelar</button>
+  </div>
+</div>
+<div class="modal alsheet" id="mWppNum"><!-- 01/11/2026 (dono): editar os números que recebem os alertas no WhatsApp -->
+  <div class="box2">
+    <h3>Números do WhatsApp</h3>
+    <p>Quem recebe os alertas de <b id="wnVeic"></b>.</p>
+    <label style="display:block;font-size:13px;font-weight:600;margin:10px 0 4px">Número principal</label>
+    <input class="fld" id="wn1" type="tel" inputmode="numeric" maxlength="16" placeholder="(21) 99999-9999" autocomplete="off">
+    <label style="display:block;font-size:13px;font-weight:600;margin:12px 0 4px">2º número <small style="font-weight:400;color:var(--mut)">(opcional)</small></label>
+    <input class="fld" id="wn2" type="tel" inputmode="numeric" maxlength="16" placeholder="(21) 99999-9999" autocomplete="off">
+    <p id="wnErro" style="color:var(--red2);font-size:13px;min-height:18px;margin:6px 0 0"></p>
+    <button class="btn btn-wpp" id="wnOk" type="button" style="width:100%;margin-top:8px">Salvar</button>
     <button class="btn btn-out alfechar" data-close type="button">Cancelar</button>
   </div>
 </div>
@@ -9922,7 +9935,7 @@ function wppDesenhar(){
     const faltaD=Math.ceil((menor-Date.now())/86400000);
     const vence=faltaD<=3?'<div class="wppvence">⚠️ Vence em '+(faltaD<=1?'menos de 1 dia':faltaD+' dias')+' ('+wppDia(menor)+'). Renove para continuar recebendo no WhatsApp.</div>':'';
     return '<div class="wppv"><div class="vh"><span>'+esc(v.nome)+'</span><small>até '+wppDia(menor)+'</small></div>'+
-      '<div style="font-size:12.5px;color:var(--mut);margin-top:2px">💬 '+esc(wppFone(num))+'</div>'+itens+vence+
+      '<div class="wppnums">💬 '+esc(wppFone(num))+((wppEst.veiculos[String(v.id)]||{}).numero2?' · '+esc(wppFone(wppEst.veiculos[String(v.id)].numero2)):'')+' <button class="linkbtn" type="button" data-wppnum="'+v.id+'">Editar</button></div>'+itens+vence+
       /* 31/10/2026 (dono): escolher entre "app + WhatsApp" (padrão) e "só WhatsApp" */
       '<div class="igrow wppcanal"><span>Avisar também no app<small>'+(soWpp?'Desligado: chega só no WhatsApp':'Notificação do app + WhatsApp')+'</small></span><label class="sw"><input type="checkbox" data-wppcanal="'+v.id+'"'+(soWpp?'':' checked')+'><span></span></label></div>'+
       '<div class="bts"><button class="mini" type="button" data-wppren="'+v.id+'">'+(faltaD<=3?'Renovar':'Adicionar ou renovar')+'</button>'+(veiculos.length>1?'<button class="mini" type="button" data-wpptroca="'+v.id+'">Trocar veículo</button>':'')+'</div></div>';
@@ -9989,11 +10002,32 @@ $('wppLista').addEventListener('change',async e=>{
 $('wppLista').addEventListener('click',async e=>{
   const r=e.target.closest('[data-wppren]'); if(r){ wppAbrir(r.dataset.wppren); return }
   const tr=e.target.closest('[data-wpptroca]'); if(tr){ wppTrocaAbrir(+tr.dataset.wpptroca); return }
+  const nm=e.target.closest('[data-wppnum]'); if(nm){ wppNumAbrir(+nm.dataset.wppnum); return }
   const d=e.target.closest('[data-wppdesl]'); if(!d) return;
   d.disabled=true;
   try{ wppEst=await fnAl('wppAdminDesativar',{deviceId:+d.dataset.wppdesl,item:d.dataset.k}); toast('Desligado.') }catch(err){ toast(err.message) }
   wppDesenhar();
 });
+/* 01/11/2026 (dono): editar o número e pôr um 2º número (outra pessoa também recebe; cada envio gasta 1 da cota) */
+let wppNumDev=0;
+function wppNumAbrir(dev){
+  const v=veiculos.find(x=>x.id===dev), w=(wppEst&&wppEst.veiculos&&wppEst.veiculos[String(dev)])||{}; if(!v) return;
+  wppNumDev=dev; $('wnVeic').textContent=v.nome; $('wnErro').textContent='';
+  $('wn1').value=w.numero?wppFone(w.numero):''; $('wn2').value=w.numero2?wppFone(w.numero2):'';
+  abrir('mWppNum');
+}
+$('wnOk').onclick=async()=>{
+  const lim=x=>x.value.replace(/\D/g,'').replace(/^55(?=\d{10,11}$)/,'');
+  const n1=lim($('wn1')), n2=lim($('wn2'));
+  if(!(n1.length===10||n1.length===11)){ $('wnErro').textContent='Digite o número com DDD.'; return }
+  if(n2 && !(n2.length===10||n2.length===11)){ $('wnErro').textContent='O 2º número está incompleto. Digite com DDD ou deixe em branco.'; return }
+  if(n2 && n2===n1){ $('wnErro').textContent='Os dois números são iguais.'; return }
+  const b=$('wnOk'); b.disabled=true;
+  try{ wppEst=await fnAl('wppNumero',{deviceId:wppNumDev,numero:n1,numero2:n2}); fechar('mWppNum'); toast('Números salvos.'); wppDesenhar() }
+  catch(err){ $('wnErro').textContent=err.message||'Não foi possível salvar.' }
+  b.disabled=false;
+};
+['wn1','wn2'].forEach(id=>$(id).addEventListener('input',e=>{ const d=e.target.value.replace(/\D/g,'').slice(0,11); e.target.value=d.length>2?'('+d.slice(0,2)+') '+(d.length>6?d.slice(2,d.length-4)+'-'+d.slice(-4):d.slice(2)):d }));
 /* 31/10/2026 (dono): trocar o veículo que recebe os alertas no WhatsApp (vendeu o carro, mudou de ideia). Leva os dias que faltam. */
 let wppTrocaDe=0;
 function wppTrocaAbrir(de){
