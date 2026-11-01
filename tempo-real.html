@@ -41,7 +41,7 @@ try{ if(localStorage.getItem('rg_token')||sessionStorage.getItem('rgv_rg_token')
 try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'){document.documentElement.setAttribute('data-tema',t)}}catch(e){}
 </script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="stylesheet" href="app.css?v=11"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
+<link rel="stylesheet" href="app.css?v=12"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
 </head>
 <body>
 
@@ -9408,6 +9408,7 @@ function desenharCercasLista(){
     return '<div class="arow" data-id="'+x.g.id+'"><div class="t"><span class="cdot" style="background:'+corDaCerca(a)+'"></span>'+esc(x.g.name||'Cerca')+'</div>'+
       '<div class="s">Raio '+fmtRaio(x.c.raio)+' · '+(bloq?'BLOQUEIA ':'avisa ')+(FRASE_QUANDO[a.quando]||FRASE_QUANDO.ambos)+'</div>'+
       '<div class="s">'+(ids.length?ids.map(nomeVeic).map(esc).join(', '):'sem veículo informado')+'</div>'+
+      (()=>{ try{ const w=ids.filter(d=>wppAtivos(d).cerca); return w.length?'<div class="cwpp">💬 WhatsApp ativo'+(ids.length>1?' ('+w.map(nomeVeic).map(esc).join(', ')+')':'')+'</div>':'' }catch(e){ return '' } })()+ /* 01/11/2026 (dono): mostra que o alerta de cerca no WhatsApp está ativo */
       '<div class="bts"><button class="mini" data-a="ver">Ver no mapa</button><button class="mini" data-a="editar">Editar</button><button class="mini perigo" data-a="excluir">Excluir</button></div></div>';
   }).join('') || '<div class="vempty">Nenhuma cerca criada ainda.<br>Toque em “+ Nova cerca”.</div>';
 }
@@ -9909,7 +9910,7 @@ const wppDia=ms=>new Date(ms).toLocaleDateString('pt-BR',{timeZone:'America/Sao_
 async function wppCarregar(){
   if(!auth || !lsGet('rg_token')) return;
   try{ wppEst=await fnAl('wppEstado') }catch(e){ wppEst=null }
-  wppDesenhar();
+  wppDesenhar(); try{ if(typeof cercas!=='undefined' && cercas.length) desenharCercasLista() }catch(e){}
 }
 function wppAtivos(dev){ /* itens ainda valendo de um veículo: {k:{ate,usoMes,usoDia}} */
   const v=wppEst && wppEst.veiculos && wppEst.veiculos[String(dev)], out={};

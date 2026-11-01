@@ -3417,3 +3417,6 @@ nav button:not(.on) .nemo{filter:saturate(.85)}
 
 .wppv .wppnums{font-size:12.5px;color:var(--mut);margin-top:2px;display:flex;flex-wrap:wrap;align-items:center;gap:4px 6px} /* 01/11/2026: números + Editar */
 .wppv .wppnums .linkbtn{font-size:12.5px;padding:0;margin-left:4px}
+
+.arow .cwpp{display:inline-block;margin-top:6px;padding:3px 10px;border-radius:999px;background:rgba(37,211,102,.14);color:#15803d;font-size:12.5px;font-weight:650} /* 01/11/2026: cerca com WhatsApp ativo */
+:root:not([data-tema="claro"]) .arow .cwpp{color:#4ade80}
