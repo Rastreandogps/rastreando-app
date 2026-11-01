@@ -41,7 +41,7 @@ try{ if(localStorage.getItem('rg_token')||sessionStorage.getItem('rgv_rg_token')
 try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'){document.documentElement.setAttribute('data-tema',t)}}catch(e){}
 </script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="stylesheet" href="app.css?v=12"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
+<link rel="stylesheet" href="app.css?v=13"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
 </head>
 <body>
 
@@ -112,6 +112,10 @@ try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'
   </button>
   <button class="follow" id="btnAncora" aria-label="Cerca rápida (âncora)" title="Cerca rápida (âncora)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="2.2"/><path d="M12 7.2V21"/><path d="M8 11h8"/><path d="M5 14c0 4 3 7 7 7s7-3 7-7"/></svg><span class="lbl">Âncora</span></button>
 
+  <button class="follow" id="btnRastro" aria-pressed="false" title="Rastro: mostrar por onde o veículo passou nos últimos 30 minutos" aria-label="Rastro dos últimos 30 minutos" style="display:none"><!-- 01/11/2026 (dono): rastro, teste só no admin -->
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="19" r="2"/><path d="M7 18c4-1 3-6 7-7s4-4 4-6" stroke-dasharray="2.5 2.5"/><circle cx="18" cy="5" r="2.2" fill="currentColor"/></svg>
+    <span class="lbl">Rastro</span>
+  </button>
   <button class="follow" id="btnNomes" aria-pressed="false" title="Esconder os nomes dos veículos no mapa" aria-label="Esconder os nomes dos veículos no mapa">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 6.5V4.5h14v2"/><path d="M12 4.5v15"/><path d="M9 19.5h6"/><path d="M4 21L20 3"/><path class="nmcorte" d="M0 0" style="display:none"/><!-- 28/10/2026: T com linha atravessada (tirar o texto) --></svg>
     <span class="lbl">Nomes</span>
@@ -2562,10 +2566,69 @@ function nomesPintar(){
 }
 $('btnNomes').onclick=()=>{ lsSet('rg_semnomes',lsGet('rg_semnomes')==='1'?'0':'1'); nomesPintar(); toast(lsGet('rg_semnomes')==='1'?'Nomes escondidos: fica só a setinha.':'Nomes de volta no mapa.') };
 nomesPintar();
+/* ===== RASTRO (01/11/2026, pedido do dono; por enquanto só no admin) =====
+   Linha por onde o veículo selecionado passou nos últimos 30 minutos. Cor pela velocidade (verde devagar, amarelo, vermelho rápido);
+   a parte mais antiga vai ficando mais clara. Busca os pontos no servidor ao ligar ou trocar de veículo e vai somando os novos ao vivo. */
+const RASTRO_MIN=30;
+const RASTRO={on:lsGet('rg_rastro')==='1', dev:null, pts:[], camada:null, carregando:false, ult:0};
+function rastroCor(kmh){ return kmh<30?'#16a34a':kmh<70?'#eab308':'#dc2626' }
+function rastroPonto(t,lat,lon,kmh){
+  if(!isFinite(t)||!isFinite(lat)||!isFinite(lon)||(lat===0&&lon===0)) return;
+  const u=RASTRO.pts[RASTRO.pts.length-1]; if(u && t<=u.t) return;
+  RASTRO.pts.push({t,ll:[lat,lon],k:kmh||0});
+}
+async function rastroCarregar(dev){
+  RASTRO.dev=dev; RASTRO.pts=[]; if(dev==null) return;
+  RASTRO.carregando=true;
+  try{
+    const ate=new Date(), de=new Date(ate.getTime()-RASTRO_MIN*60000);
+    const r=await api('/api/positions?deviceId='+encodeURIComponent(dev)+'&from='+encodeURIComponent(de.toISOString())+'&to='+encodeURIComponent(ate.toISOString()));
+    const lista=r.ok?await r.json():[];
+    if(RASTRO.dev!==dev) return; /* trocou de veículo no meio */
+    (Array.isArray(lista)?lista:[]).filter(p=>p.valid!==false).sort((a,b)=>Date.parse(a.fixTime)-Date.parse(b.fixTime))
+      .forEach(p=>rastroPonto(Date.parse(p.fixTime),p.latitude,p.longitude,(p.speed||0)*1.852));
+  }catch(e){ if(e.sessao) throw e }
+  finally{ RASTRO.carregando=false; rastroDesenhar() }
+}
+function rastroDesenhar(){
+  if(!RASTRO.camada) RASTRO.camada=L.layerGroup().addTo(map);
+  RASTRO.camada.clearLayers();
+  if(!RASTRO.on || !ehAdmin) return;
+  const lim=Date.now()-RASTRO_MIN*60000;
+  RASTRO.pts=RASTRO.pts.filter(x=>x.t>=lim);
+  const v=veiculos.find(x=>x.id===RASTRO.dev);
+  const pts=RASTRO.pts.slice(); if(v && v.pos) pts.push({t:Date.now(),ll:v.pos,k:v.vel||0}); /* liga a linha até o ícone */
+  /* junta os trechos seguidos de mesma cor e mesma "idade" numa linha só (sem bolinhas nas emendas) */
+  let run=null; const fecha=()=>{ if(run && run.ll.length>1) L.polyline(run.ll,{color:run.cor,weight:5,opacity:run.op,lineCap:'round',lineJoin:'round',interactive:false}).addTo(RASTRO.camada); run=null };
+  for(let i=1;i<pts.length;i++){
+    const a=pts[i-1], b=pts[i];
+    if(b.t-a.t>10*60000){ fecha(); continue } /* buraco grande (sem sinal): não risca reta por cima de tudo */
+    const idade=Math.min(1,(Date.now()-b.t)/(RASTRO_MIN*60000)), op=[0.9,0.7,0.5,0.32][Math.min(3,Math.floor(idade*4))], cor=rastroCor(b.k);
+    if(!run || run.cor!==cor || run.op!==op){ fecha(); run={cor,op,ll:[a.ll]} }
+    run.ll.push(b.ll);
+  }
+  fecha();
+}
+function rastroPintar(){
+  const b=$('btnRastro'); if(!b) return;
+  b.classList.toggle('on',RASTRO.on); b.setAttribute('aria-pressed',RASTRO.on?'true':'false');
+}
+$('btnRastro').onclick=()=>{
+  RASTRO.on=!RASTRO.on; lsSet('rg_rastro',RASTRO.on?'1':'0'); rastroPintar();
+  if(RASTRO.on){ const s=selId!=null?selId:null; if(s==null) toast('Rastro ligado. Escolha um veículo para ver por onde ele passou nos últimos 30 minutos.',4500); else toast('Rastro dos últimos 30 minutos ligado.'); rastroCarregar(s) }
+  else { RASTRO.dev=null; RASTRO.pts=[]; rastroDesenhar(); toast('Rastro desligado.') }
+};
+setInterval(()=>{ /* troca de veículo e redesenho a cada 2 s */
+  if(!RASTRO.on || !ehAdmin){ if(RASTRO.camada && RASTRO.camada.getLayers().length) RASTRO.camada.clearLayers(); return }
+  if(selId!==RASTRO.dev && !RASTRO.carregando){ rastroCarregar(selId); return }
+  rastroDesenhar();
+},2000);
+rastroPintar();
 /* coluna de botões redondos do mapa, de cima para baixo, só os visíveis: Seguir, Minha posição, Mostrar todos, Satélite, Âncora */
 function mapaColuna(){
   let top=14;
-  ['follow','btnEu','btnTodos','btnGrupo','btnSat','btnAncora','btnNomes','btnRet'].forEach(id=>{ const b=$(id); if(!b) return; if(b.style.display==='none' || (b.style.display==='' && getComputedStyle(b).display==='none')) return; b.style.top=top+'px'; top+=52 });
+  try{ $('btnRastro').style.display = ehAdmin ? 'flex' : 'none' }catch(e){} /* 01/11/2026: rastro só no admin (teste) */
+  ['follow','btnEu','btnTodos','btnGrupo','btnSat','btnAncora','btnRastro','btnNomes','btnRet'].forEach(id=>{ const b=$(id); if(!b) return; if(b.style.display==='none' || (b.style.display==='' && getComputedStyle(b).display==='none')) return; b.style.top=top+'px'; top+=52 });
 }
 $('btnTodos').onclick=()=>{
   const vs=visiveis().filter(v=>v.pos);
@@ -2880,6 +2943,7 @@ function mesclar(ds,ps){
       /* 15/10/2026: trilha dos últimos pontos (deslize contínuo); só guarda ponto novo, com a hora do GPS */
       if(!v.trilha) v.trilha=[];
       { const ul=v.trilha[v.trilha.length-1]; if(v.fix && (!ul || v.fix>ul.t)){ v.trilha.push({t:v.fix,ll:[p.latitude,p.longitude],r:v.rumo}); const lim=Date.now()-6*60000; while(v.trilha.length>80 || (v.trilha.length>2 && v.trilha[0].t<lim)) v.trilha.shift() } }
+      try{ if(RASTRO.on && v.id===RASTRO.dev && p.valid!==false) rastroPonto(v.fix,p.latitude,p.longitude,(p.speed||0)*1.852) }catch(e){} /* 01/11/2026: rastro */
       v.result = a.result || null;
       v.bloqDoRastreador = typeof a.blocked==='boolean'; /* item 1.3: o que o rastreador informa vence */
       bloqLembrar(v,a);
