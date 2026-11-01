@@ -2571,7 +2571,7 @@ nomesPintar();
    a parte mais antiga vai ficando mais clara. Busca os pontos no servidor ao ligar ou trocar de veículo e vai somando os novos ao vivo. */
 const RASTRO_MIN=30;
 const RASTRO={on:lsGet('rg_rastro')==='1', dev:null, pts:[], camada:null, carregando:false, ult:0};
-function rastroCor(kmh){ return kmh<30?'#16a34a':kmh<70?'#eab308':'#dc2626' }
+function rastroCor(kmh){ return kmh<30?'#22c55e':kmh<70?'#facc15':'#ef4444' }
 function rastroPonto(t,lat,lon,kmh){
   if(!isFinite(t)||!isFinite(lat)||!isFinite(lon)||(lat===0&&lon===0)) return;
   const u=RASTRO.pts[RASTRO.pts.length-1]; if(u && t<=u.t) return;
@@ -2599,15 +2599,18 @@ function rastroDesenhar(){
   const v=veiculos.find(x=>x.id===RASTRO.dev);
   const pts=RASTRO.pts.slice(); if(v && v.pos) pts.push({t:Date.now(),ll:v.pos,k:v.vel||0}); /* liga a linha até o ícone */
   /* junta os trechos seguidos de mesma cor e mesma "idade" numa linha só (sem bolinhas nas emendas) */
-  let run=null; const fecha=()=>{ if(run && run.ll.length>1) L.polyline(run.ll,{color:run.cor,weight:5,opacity:run.op,lineCap:'round',lineJoin:'round',interactive:false}).addTo(RASTRO.camada); run=null };
+  const runs=[]; let run=null; const fecha=()=>{ if(run && run.ll.length>1) runs.push(run); run=null };
   for(let i=1;i<pts.length;i++){
     const a=pts[i-1], b=pts[i];
     if(b.t-a.t>10*60000){ fecha(); continue } /* buraco grande (sem sinal): não risca reta por cima de tudo */
-    const idade=Math.min(1,(Date.now()-b.t)/(RASTRO_MIN*60000)), op=[0.9,0.7,0.5,0.32][Math.min(3,Math.floor(idade*4))], cor=rastroCor(b.k);
+    const idade=Math.min(1,(Date.now()-b.t)/(RASTRO_MIN*60000)), op=[1,0.85,0.68,0.5][Math.min(3,Math.floor(idade*4))], cor=rastroCor(b.k);
     if(!run || run.cor!==cor || run.op!==op){ fecha(); run={cor,op,ll:[a.ll]} }
     run.ll.push(b.ll);
   }
   fecha();
+  /* 01/11: contorno escuro por baixo para a linha não se misturar com as ruas amarelas/laranja do mapa grátis */
+  runs.forEach(r=>L.polyline(r.ll,{color:'#111827',weight:10,opacity:r.op*0.75,lineCap:'round',lineJoin:'round',interactive:false}).addTo(RASTRO.camada));
+  runs.forEach(r=>L.polyline(r.ll,{color:r.cor,weight:6,opacity:r.op,lineCap:'round',lineJoin:'round',interactive:false}).addTo(RASTRO.camada));
 }
 function rastroPintar(){
   const b=$('btnRastro'); if(!b) return;
