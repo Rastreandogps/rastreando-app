@@ -3401,16 +3401,16 @@ nav button:not(.on) .nemo{filter:saturate(.85)}
 }
 
 /* 01/11/2026 (dono): aba MAIS nova (classe .mnovo; só para os clientes). Figura 3D em cima, título com faixa ciano e seta embaixo */
-#maisview.mnovo .maiscard{display:grid;grid-template-columns:1fr 16px;grid-template-rows:auto auto 1fr;column-gap:8px;row-gap:3px;align-items:start;padding:12px 12px 14px 20px;min-height:178px;border-radius:20px}
-#maisview.mnovo .maiscard>.mimg{grid-column:1/-1;justify-self:center;width:96px;height:96px;object-fit:contain;margin:0 0 6px -8px;filter:drop-shadow(0 6px 10px rgba(0,0,0,.28))}
+#maisview.mnovo .maiscard{display:grid;grid-template-columns:1fr 16px;grid-template-rows:auto auto 1fr;column-gap:8px;row-gap:3px;align-items:start;padding:12px 12px 14px 20px;min-height:146px;border-radius:20px}
+#maisview.mnovo .maiscard>.mimg{grid-column:1/-1;justify-self:center;width:64px;height:64px;object-fit:contain;margin:2px 0 6px -8px;filter:drop-shadow(0 6px 10px rgba(0,0,0,.28))}
 #maisview.mnovo .maiscard>.mimg+.mic{display:none}
-#maisview.mnovo .maiscard>.mic{grid-column:1/-1;justify-self:center;width:72px;height:72px;border-radius:22px;margin:12px 0 18px -8px}
-#maisview.mnovo .maiscard>.mic svg{width:34px;height:34px}
+#maisview.mnovo .maiscard>.mic{grid-column:1/-1;justify-self:center;width:56px;height:56px;border-radius:18px;margin:6px 0 8px -8px}
+#maisview.mnovo .maiscard>.mic svg{width:28px;height:28px}
 #maisview.mnovo .maiscard>b{grid-column:1;font-size:15.5px;position:relative}
 #maisview.mnovo .maiscard>b::before{content:'';position:absolute;left:-11px;top:2px;width:3px;height:38px;border-radius:3px;background:var(--cyan);box-shadow:0 0 8px var(--cyan)}
 #maisview.mnovo .maiscard>small{grid-column:1;font-size:11.5px}
 #maisview.mnovo .maiscard>.mseta{grid-column:2;grid-row:2/4;align-self:center;font-size:22px;line-height:1;color:var(--mut)}
-#maisview.mnovo .maisgrid>.maiscard:last-child:nth-child(odd){flex-direction:unset;min-height:178px}
+#maisview.mnovo .maisgrid>.maiscard:last-child:nth-child(odd){flex-direction:unset;min-height:146px}
 #maisview.mnovo .maiscard .mdot{z-index:1}
 #maisview.mnovo .maisrodape{display:flex;align-items:center;gap:12px;text-align:left;border:1px solid rgba(56,189,248,.35);border-radius:20px;padding:12px 16px;background:var(--card)}
 #maisview.mnovo .maisrodape>img{width:46px;height:46px;flex:none}
