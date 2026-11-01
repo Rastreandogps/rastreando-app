@@ -2700,6 +2700,7 @@ nav button.on .nemo.txt{color:var(--red2)}
 @media (max-width:420px){#aview .vtop{padding:16px 14px 6px}#aview .vlist{padding:8px 14px 20px}#aview .ficha{gap:10px}}
 /* 13/10/2026 (pedido do dono): no celular o nome do cliente ficava espremido ao lado dos botões; agora a 1ª linha tem a sigla + botões e o nome ocupa a largura toda embaixo */
 @media (max-width:480px){#aview details.cli .ctopo{flex-wrap:wrap;padding-right:0;row-gap:10px}#aview details.cli .cnome{flex-basis:100%}}
+@media (max-width:480px){#aview details.cli summary:has(.cacoes > :nth-child(4)) .ctopo{padding-right:0}} /* 01/11/2026 (dono): no celular a regra dos 4 botões deixava o nome espremido com um vão branco à direita */
 #aview details.eq summary{display:block;position:relative;padding:14px 14px 12px}
 #aview details.eq .etopo{display:flex;align-items:center;gap:12px;padding-right:146px;min-height:40px}
 #aview details.eq .etopo .einfo{min-width:0;flex:1}
