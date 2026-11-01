@@ -2865,12 +2865,21 @@ function mesclar(ds,ps){
       /* hora do último GPS válido (posição sem GPS não conta) */
       if(p.valid!==false) v.gpsT = v.fix; else if(v.gpsT===undefined) v.gpsT = null;
       v.addr = p.address || null;
-      v.rumo = p.course||0;
+      /* 01/11/2026 (dono: "os ícones andam de lado"): a direção do ícone vem do caminho que o veículo fez (a cada 15 m andados),
+         não do número que o rastreador manda (muitos mandam 0 ou um valor errado quando param ou andam devagar).
+         Parado, o ícone fica virado para onde estava indo. */
+      { const np=[p.latitude,p.longitude], ref=v._rumoRef; let r=null;
+        if(ref){ const dy=np[0]-ref[0], dx=(np[1]-ref[1])*Math.cos(ref[0]*Math.PI/180);
+          if(Math.hypot(dx,dy)*111320>=15){ r=(Math.atan2(dx,dy)*180/Math.PI+360)%360; v._rumoRef=np } }
+        else v._rumoRef=np;
+        if(r===null && v.rumoBom==null && (p.speed||0)*1.852>=10 && p.course) r=p.course; /* ainda sem caminho: usa o do rastreador só andando */
+        if(r!==null) v.rumoBom=r;
+        v.rumo = v.rumoBom!=null ? v.rumoBom : (p.course||0); }
       v.posId = p.id;
       v.real = [p.latitude,p.longitude];
       /* 15/10/2026: trilha dos últimos pontos (deslize contínuo); só guarda ponto novo, com a hora do GPS */
       if(!v.trilha) v.trilha=[];
-      { const ul=v.trilha[v.trilha.length-1]; if(v.fix && (!ul || v.fix>ul.t)){ v.trilha.push({t:v.fix,ll:[p.latitude,p.longitude],r:p.course||0}); const lim=Date.now()-6*60000; while(v.trilha.length>80 || (v.trilha.length>2 && v.trilha[0].t<lim)) v.trilha.shift() } }
+      { const ul=v.trilha[v.trilha.length-1]; if(v.fix && (!ul || v.fix>ul.t)){ v.trilha.push({t:v.fix,ll:[p.latitude,p.longitude],r:v.rumo}); const lim=Date.now()-6*60000; while(v.trilha.length>80 || (v.trilha.length>2 && v.trilha[0].t<lim)) v.trilha.shift() } }
       v.result = a.result || null;
       v.bloqDoRastreador = typeof a.blocked==='boolean'; /* item 1.3: o que o rastreador informa vence */
       bloqLembrar(v,a);
@@ -2940,7 +2949,7 @@ function deslizePos(v){
       if(b.t-a.t>5*60000 || Math.abs(a.ll[0]-b.ll[0])+Math.abs(a.ll[1]-b.ll[1])>0.03) return {ll:b.ll,r:b.r}; /* buraco grande: pula */
       const f=(t-a.t)/Math.max(1,b.t-a.t);
       const dy=b.ll[0]-a.ll[0], dx=(b.ll[1]-a.ll[1])*Math.cos(a.ll[0]*Math.PI/180);
-      const r=(Math.abs(dx)+Math.abs(dy)>0.00003)?(Math.atan2(dx,dy)*180/Math.PI+360)%360:b.r;
+      const r=(Math.hypot(dx,dy)*111320>=12)?(Math.atan2(dx,dy)*180/Math.PI+360)%360:b.r; /* 01/11: trecho curto (GPS tremendo) não vira o ícone */
       return {ll:[a.ll[0]+dy*f,a.ll[1]+(b.ll[1]-a.ll[1])*f],r};
     } }
   return {ll:ul.ll,r:ul.r};
@@ -2979,7 +2988,7 @@ function animar(now){
     if(naTela && v._fora){ v._fora=false; if(v.pos) v.marker.setLatLng(v.pos) } /* voltou para a tela: põe no lugar certo */
     if(!(apar || v.id===sel) || !naTela) return;
     const c=animEls(v);
-    if(c){const ang='rotate('+(v._rumoVis!=null?v._rumoVis:v.rumo)+'deg)';if(v._girEl){const g=v._girEl;if(g.style.transform!==ang)g.style.transform=ang;if(c.style.transform)c.style.transform=''}else{const tr=(v.bloq||v.tag)?'none':ang;if(c.style.transform!==tr)c.style.transform=tr}const cor=v.tag?(v.fix&&Date.now()-v.fix<TAG_VELHA_MS?'c-tag':'c-tag c-tagvelha'):v.bloq?'c-bloq':corSeta(v);if(c.dataset.cor!==cor){c.classList.remove('c-mov','c-par','c-sem','c-bloq','c-tag','c-tagvelha');cor.split(' ').forEach(k=>c.classList.add(k));c.dataset.cor=cor}}
+    if(c){let alvo=(v._rumoVis!=null?v._rumoVis:v.rumo); if(v._angA!=null){ alvo=v._angA+(((alvo-v._angA)%360+540)%360-180) } v._angA=alvo; /* 01/11: gira pelo lado mais curto (não dá a volta inteira) */ const ang='rotate('+alvo.toFixed(1)+'deg)';if(v._girEl){const g=v._girEl;if(g.style.transform!==ang)g.style.transform=ang;if(c.style.transform)c.style.transform=''}else{const tr=(v.bloq||v.tag)?'none':ang;if(c.style.transform!==tr)c.style.transform=tr}const cor=v.tag?(v.fix&&Date.now()-v.fix<TAG_VELHA_MS?'c-tag':'c-tag c-tagvelha'):v.bloq?'c-bloq':corSeta(v);if(c.dataset.cor!==cor){c.classList.remove('c-mov','c-par','c-sem','c-bloq','c-tag','c-tagvelha');cor.split(' ').forEach(k=>c.classList.add(k));c.dataset.cor=cor}}
   });
   const a=ativo();
   if(seguir && a) centralizar(a.pos);
