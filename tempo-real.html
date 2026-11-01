@@ -41,7 +41,7 @@ try{ if(localStorage.getItem('rg_token')||sessionStorage.getItem('rgv_rg_token')
 try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'){document.documentElement.setAttribute('data-tema',t)}}catch(e){}
 </script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="stylesheet" href="app.css?v=6"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
+<link rel="stylesheet" href="app.css?v=7"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
 </head>
 <body>
 
@@ -6128,6 +6128,7 @@ function irPara(tab){
   $('aview').classList.toggle('show',tab==='Admin');
   $('fview').classList.toggle('show',tab==='Faturas');
   $('maisview').classList.toggle('show',tab==='Mais');
+  if(tab==='Mais') try{ maisNovo() }catch(e){}
   if(tab==='Faturas' && !ehAdmin && !window.matchMedia('(min-width:900px)').matches) document.querySelector('nav button[data-tab="Mais"]').classList.add('on'); /* Faturas mora dentro de "Mais" (no computador ela tem aba própria) */
   $('cview').classList.toggle('show',tab==='Cercas');
   $('alview').classList.toggle('show',tab==='Alertas');
@@ -9857,6 +9858,23 @@ async function ativarPush(){
 async function carregarCfgAlertas(){
   try{ const j=await fnAl('alertasEstado'); alCfg=j.cfg||{ign:{},volta:{}} }catch(e){}
   desenharIgn(); desenharVolta(); desenharBat(); carregarManut(); wppCarregar();
+}
+
+/* ===== 01/11/2026 (pedido do dono): aba MAIS nova, com ícones 3D grandes. Por enquanto SÓ NO ADMIN, para o dono ver.
+   Não muda o que os botões fazem: só põe a figura e a classe "mnovo". Cartão sem figura própria mantém o ícone antigo. ===== */
+const MAIS_ICO={maisLoja:'loja',maisFat:'faturas',maisServ:'rastreador',maisIndique:'indique',maisConta:'conta',maisParceiro:'parceiro',maisRetirar:'ferramentas',maisReboques:'socorro',maisMeuReboque:'socorro'};
+function maisNovo(){
+  const mv=$('maisview'); if(!mv) return;
+  if(!maisNovo.obs && window.MutationObserver){ const g=mv.querySelector('.maisgrid'); if(g){ maisNovo.obs=new MutationObserver(()=>{ if(ehAdmin) maisNovo() }); maisNovo.obs.observe(g,{childList:true}) } } /* cartões que entram depois (Socorro, Para retirar...) */
+  mv.classList.toggle('mnovo',!!ehAdmin);
+  if(!ehAdmin) return;
+  mv.querySelectorAll('.maiscard').forEach(c=>{
+    if(!c.querySelector('.mseta')){ const sa=document.createElement('span'); sa.className='mseta'; sa.setAttribute('aria-hidden','true'); sa.textContent='\u203A'; c.appendChild(sa) }
+    const ic=MAIS_ICO[c.id]; if(!ic || c.querySelector('img.mimg')) return;
+    const im=document.createElement('img'); im.className='mimg'; im.alt=''; im.decoding='async'; im.src='icv/mais-'+ic+'.webp';
+    const mic=c.querySelector('.mic'); if(mic) mic.before(im); else c.prepend(im);
+  });
+  const r=mv.querySelector('.maisrodape'); if(r && !r.querySelector('img')){ const w=document.createElement('img'); w.src='icv/mais-whatsapp.webp'; w.alt=''; const sp=document.createElement('span'); while(r.firstChild) sp.appendChild(r.firstChild); r.append(w,sp) }
 }
 
 /* ===== 31/10/2026 (pedido do dono): ALERTAS NO WHATSAPP =====
