@@ -4348,7 +4348,7 @@ let permCli={smsBloqueio:false,reset:false,editarNome:false,cercaRapida:false,mi
 const brl2 = n => 'R$ '+Number(n||0).toFixed(2).replace('.',',');
 async function carregarPermissoes(){
   try{ fatAtalho() }catch(e){}
-  if(ehAdmin){ permCli={smsBloqueio:true,reset:true,editarNome:true,cercaRapida:true,minhaPosicao:true,appBloqueio:true,cercaBloqueio:true,semBloqueio:false,frotista:true}; cobrCli=null; mostrarBotoesSms(); try{ frAbaAplicar() }catch(e){} return }
+  if(ehAdmin){ permCli={smsBloqueio:true,reset:true,editarNome:true,cercaRapida:true,minhaPosicao:true,appBloqueio:true,cercaBloqueio:true,semBloqueio:false,frotista:true}; cobrCli=null; mostrarBotoesSms(); try{ frAbaAplicar() }catch(e){} try{ retAplicar() }catch(e){} return }
   if(!lsGet('rg_token')) return;
   /* permissões guardadas no usuário do Traccar: Bloquear/Desbloquear pelo app e cerca que bloqueia (padrão: liberado) */
   try{ const rs=await minhaSessao(); if(rs.ok){ const me=await rs.json(); permCli.appBloqueio=permAttr(me,'appBloqueio'); permCli.cercaBloqueio=permAttr(me,'cercaBloqueio'); permCli.semBloqueio=attrLig(me,'semBloqueio'); permCli.frotista=attrLig(me,'frotista'); permCli.semSocorro=attrLig(me,'semSocorro'); mostrarBotoesSms(); try{ rbAplicar() }catch(e){} try{ frAbaAplicar() }catch(e){} try{ const cv=cartao(); if(cv) motLinha(cv) }catch(e){} } }catch(e){ if(e.sessao) return }
@@ -11949,7 +11949,7 @@ setInterval(()=>{ if(ehAdmin && !document.hidden){ drAdmContar(); pcAdmContar() 
    A lista vem do servidor (veículos marcados pelo administrador), com a distância até o celular, do mais perto ao mais longe. */
 let retEu=null;
 function retAplicar(){
-  const pode=!ehAdmin && !!(permCli&&permCli.verRetirar), grid=document.querySelector('#maisview .maisgrid');
+  const pode=ehAdmin || !!(permCli&&permCli.verRetirar), grid=document.querySelector('#maisview .maisgrid'); /* 03/11/2026 (dono): o administrador também tem o botão R no mapa e o cartão no Mais */
   let c=$('maisRetirar');
   if(pode && !c && grid){
     c=document.createElement('button'); c.className='maiscard'; c.id='maisRetirar'; c.type='button';
