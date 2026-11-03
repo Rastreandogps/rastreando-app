@@ -41,7 +41,7 @@ try{ if(localStorage.getItem('rg_token')||sessionStorage.getItem('rgv_rg_token')
 try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'){document.documentElement.setAttribute('data-tema',t)}}catch(e){}
 </script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="stylesheet" href="app.css?v=16"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
+<link rel="stylesheet" href="app.css?v=17"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
 </head>
 <body>
 
@@ -669,6 +669,8 @@ try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'
           <button type="button" data-col="cliente">Cliente<i></i></button>
         </div>
         <div class="imdica" id="imDica"></div>
+        <!-- 03/11/2026 (dono): inserir linha em branco na posição do cursor (veículo que não tem placa/chip) + linha onde o cursor está -->
+        <div class="imferr"><button type="button" id="imBranco" title="Insere uma linha em branco onde o cursor está; o que estava ali desce uma linha">＋ Linha em branco aqui</button><span id="imLinha"></span></div>
         <textarea id="imTexto" spellcheck="false" autocomplete="off" autocapitalize="none"></textarea>
         <div class="imcli" id="imCliBox" style="display:none">
           <input type="search" id="imCliBusca" class="imclibusca" placeholder="🔍 Buscar cliente (nome, login ou telefone)" autocomplete="off" autocapitalize="none" spellcheck="false" aria-label="Buscar cliente"><!-- 21/10/2026: lista de clientes enorme -->
@@ -8476,7 +8478,7 @@ function imItens(col){ const l=String(imListas[col]||'').replace(/\r/g,'').split
 function imAbas(){
   if(imCol!=='cliente') imListas[imCol]=$('imTexto').value;
   const ehCli=imCol==='cliente';
-  $('imTexto').style.display=ehCli?'none':''; $('imCliBox').style.display=ehCli?'':'none';
+  $('imTexto').style.display=ehCli?'none':''; $('imCliBox').style.display=ehCli?'':'none'; try{ document.querySelector('.imferr').style.display=ehCli?'none':''; imLinhaMostrar() }catch(e){}
   if(ehCli) imCliMostrar();
   document.querySelectorAll('#imAbas button').forEach(b=>{ const n=b.dataset.col==='cliente' ? (imCliId?imItens('imei').length:0) : imItens(b.dataset.col).length, i=b.querySelector('i'); b.classList.toggle('on',b.dataset.col===imCol); i.textContent=n; i.classList.toggle('tem',n>0) });
   $('imDica').textContent=IM_COLS[imCol].d; $('imTexto').placeholder=IM_COLS[imCol].ex;
@@ -8486,6 +8488,17 @@ function imAbas(){
 }
 $('imAbas').addEventListener('click',e=>{ const b=e.target.closest('[data-col]'); if(!b) return; if(imCol!=='cliente') imListas[imCol]=$('imTexto').value; imCol=b.dataset.col; $('imTexto').value=imCol==='cliente'?'':imListas[imCol]; imAbas(); if(imCol!=='cliente') $('imTexto').focus() });
 $('imTexto').addEventListener('input',imAbas);
+/* 03/11/2026 (dono): botão que insere uma linha em branco onde o cursor está (a linha atual desce). Mostra "linha X de Y". */
+function imLinhaAtual(){ const t=$('imTexto'), ini=t.value.slice(0,t.selectionStart||0); return ini.split('\n').length }
+function imLinhaMostrar(){ const t=$('imTexto'); if(imCol==='cliente'||!t.value){ $('imLinha').textContent=''; return } const tot=t.value.replace(/\n$/,'').split('\n').length; $('imLinha').textContent='cursor na linha '+imLinhaAtual()+' de '+tot }
+['click','keyup','input','select'].forEach(ev=>$('imTexto').addEventListener(ev,imLinhaMostrar));
+$('imBranco').onclick=()=>{
+  const t=$('imTexto'); if(imCol==='cliente') return;
+  const pos=t.selectionStart||0, ini=t.value.lastIndexOf('\n',pos-1)+1; /* começo da linha onde está o cursor */
+  t.value=t.value.slice(0,ini)+'\n'+t.value.slice(ini);
+  t.focus(); t.setSelectionRange(ini+1,ini+1); /* cursor vai para a linha que desceu, pronto para a próxima */
+  imAbas(); imLinhaMostrar(); toast('Linha '+(ini===0?1:t.value.slice(0,ini).split('\n').length)+' em branco (esse não tem).',2500);
+};
 /* 19/10/2026: importar já "Para retirar" */
 function imRetPintar(){ const on=$('imRet').checked; $('imRetCampos').hidden=!on; $('imRetBox').classList.toggle('on',on); if(on) setTimeout(()=>$('imRetNome').focus(),30) }
 $('imRet').addEventListener('change',imRetPintar);
