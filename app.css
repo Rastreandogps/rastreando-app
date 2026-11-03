@@ -3428,3 +3428,10 @@ nav button:not(.on) .nemo{filter:saturate(.85)}
 .pmfichas .pmi{width:20px;height:20px;padding:0;border-radius:50%;background:#1B3A6B;font-size:12px}
 .pmfichas .pmwtsub{display:block;font-size:11.5px;color:var(--mut);margin-top:2px}
 .pmfichas input.pmwtnum{width:100%;flex:1 1 100%;text-align:left;font-size:13px}
+
+/* 03/11/2026 (dono): X para fechar o aviso */
+.toast.show{pointer-events:auto}
+.toast{display:flex;align-items:flex-start;gap:10px}
+.toast .toasttx{flex:1;min-width:0}
+.toast .toastx{flex:none;width:26px;height:26px;margin:-4px -8px -4px 0;padding:0;border:0;border-radius:50%;background:transparent;color:var(--mut);display:inline-flex;align-items:center;justify-content:center;cursor:pointer}
+.toast .toastx:active{background:var(--line)}

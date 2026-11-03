@@ -41,7 +41,7 @@ try{ if(localStorage.getItem('rg_token')||sessionStorage.getItem('rgv_rg_token')
 try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'){document.documentElement.setAttribute('data-tema',t)}}catch(e){}
 </script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="stylesheet" href="app.css?v=14"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
+<link rel="stylesheet" href="app.css?v=15"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
 </head>
 <body>
 
@@ -2653,7 +2653,11 @@ function ajustarTodos(vs){
 
 /* ===== UTILITÁRIOS ===== */
 let tt;
-function toast(msg,ms){const t=$('toast');t.textContent=msg;
+function toast(msg,ms){const t=$('toast');
+  /* 03/11/2026 (dono): o aviso tem um X para fechar na hora (ele ficava na frente dos botões) */
+  t.textContent=''; const sp=document.createElement('span'); sp.className='toasttx'; sp.textContent=msg; t.appendChild(sp);
+  const x=document.createElement('button'); x.type='button'; x.className='toastx'; x.setAttribute('aria-label','Fechar aviso'); x.innerHTML='<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+  x.onclick=e=>{ e.stopPropagation(); clearTimeout(tt); t.classList.remove('show') }; t.appendChild(x);
   const m=String(msg||''); /* 15/10/2026: cor da borda pelo tipo de aviso */
   t.classList.toggle('er', /^❌|\berro\b|não consegui|recusou|falhou|inválid|não foi enviado|sem conexão/i.test(m));
   t.classList.toggle('am', !t.classList.contains('er') && /^⏳|^⚠|atenção|suspenso|aguardando o aparelho|ainda não/i.test(m));
