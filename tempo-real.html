@@ -7436,9 +7436,10 @@ const ICO_WPP='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10
 /* mensagem de boas-vindas com o acesso (senha padrão fixa) */
 const SENHA_PADRAO='123456';
 function msgAcesso(login){
-  return '\u{1F697} Bem-vindo à Rastreando GPS!\n\nAgora você acompanha seu veículo em tempo real, de onde estiver. \u{1F4CD}\n\n'+
-    '\u{1F510} Seus dados de acesso\n\u{1F464} Login: '+login+'\n\u{1F511} Senha: '+SENHA_PADRAO+'\n\n'+
-    '\u{1F4F2} Instale o aplicativo no seu celular:\nhttps://gps.rastreandogpsbr.com.br/instalar.html\n\n'+
+  /* 03/11/2026 (dono): login e senha em negrito, isolados por linhas em branco, para o cliente enxergar */
+  return '\u{1F697} *Bem-vindo à Rastreando GPS!*\n\nAgora você acompanha seu veículo em tempo real, de onde estiver. \u{1F4CD}\n\n\n'+
+    '\u{1F464} *Login: '+login+'*\n\u{1F511} *Senha: '+SENHA_PADRAO+'*\n\n\n'+
+    '\u{1F4F2} *Instale o aplicativo no seu celular:*\nhttps://gps.rastreandogpsbr.com.br/instalar.html\n\n'+
     'Qualquer dúvida, é só chamar aqui. Boa viagem! \u{1F680}';
 }
 const ICO_UNLINK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 7H7a5 5 0 0 0 0 10h2M15 7h2a5 5 0 0 1 4 8M8 12h3"/><path d="M3 3l18 18"/></svg>';
