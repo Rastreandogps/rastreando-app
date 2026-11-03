@@ -3435,3 +3435,17 @@ nav button:not(.on) .nemo{filter:saturate(.85)}
 .toast .toasttx{flex:1;min-width:0}
 .toast .toastx{flex:none;width:26px;height:26px;margin:-4px -8px -4px 0;padding:0;border:0;border-radius:50%;background:transparent;color:var(--mut);display:inline-flex;align-items:center;justify-content:center;cursor:pointer}
 .toast .toastx:active{background:var(--line)}
+
+/* 03/11/2026 (dono): lista Para retirar — todos os blocos com separação forte e igual. Cartão solto: borda grossa + faixa à esquerda.
+   Dono com 2+ veículos: moldura azul-marinho com cabeçalho escuro (antes era vermelho e parecia erro). */
+#retLista .rtit{border:2px solid var(--line);border-left:6px solid #1B3A6B;border-radius:16px;margin-bottom:14px;box-shadow:0 3px 10px rgba(0,0,0,.08)}
+#retLista .rtit .rttopo b{font-size:16px}
+#retLista .rtgrp{border:2px solid #1B3A6B;border-radius:18px;padding:0 10px 2px;margin-bottom:18px;background:rgba(27,58,107,.06);overflow:hidden}
+#retLista .rtgtopo{margin:0 -10px 10px;padding:10px 14px;background:#1B3A6B;color:#fff}
+#retLista .rtgtopo b{color:#fff;font-size:16px}
+#retLista .rtgtopo small{color:rgba(255,255,255,.8)}
+#retLista .rtgtopo .rtgbt a{border-color:rgba(255,255,255,.35);background:rgba(255,255,255,.12);color:#fff}
+#retLista .rtgtopo .rtgbt a.wpp{background:#25D366;border-color:#25D366;color:#fff}
+#retLista .rtgrp .rtit{border-left-color:#1B3A6B;box-shadow:none;margin-bottom:10px}
+#retLista .rtgrp .rtit:last-child{margin-bottom:8px}
+#retLista .rtit.rtdest{border-color:#e3262f;border-left-color:#e3262f}
