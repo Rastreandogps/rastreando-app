@@ -10063,7 +10063,7 @@ function wppDesenhar(){
       /* 31/10/2026 (dono): escolher entre "app + WhatsApp" (padrão) e "só WhatsApp" */
       /* 03/11/2026 (dono): a chave agora é do WhatsApp (antes era do app). Para desligar tudo, desliga o alerta lá em cima. */
       '<div class="igrow wppcanal"><span>Avisar no WhatsApp<small>'+(wppOff?'Desligado: os alertas chegam só no app e o pacote não é gastado.':'Ligado: chega no app e no WhatsApp')+'</small></span><label class="sw"><input type="checkbox" data-wppcanal="'+v.id+'"'+(wppOff?'':' checked')+'><span></span></label></div>'+
-      '<div class="bts"><button class="mini" type="button" data-wppren="'+v.id+'">'+(faltaD<=3?'Renovar':'Adicionar ou renovar')+'</button>'+(veiculos.length>1?'<button class="mini" type="button" data-wpptroca="'+v.id+'">Trocar veículo</button>':'')+'</div></div>';
+      '<div class="bts"><button class="mini" type="button" data-wppren="'+v.id+'">'+(acabando.length?'Comprar mais avisos':'Adicionar mais avisos')+'</button>'+(veiculos.length>1?'<button class="mini" type="button" data-wpptroca="'+v.id+'">Trocar veículo</button>':'')+'</div></div>';
   }).join('');
 }
 function wppAbrir(dev){
