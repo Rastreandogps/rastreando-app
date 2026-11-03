@@ -2574,25 +2574,35 @@ nomesPintar();
    Linha por onde o veículo selecionado passou nos últimos 30 minutos. Cor pela velocidade (verde devagar, amarelo, vermelho rápido);
    a parte mais antiga vai ficando mais clara. Busca os pontos no servidor ao ligar ou trocar de veículo e vai somando os novos ao vivo. */
 const RASTRO_MIN=30;
-const RASTRO={on:lsGet('rg_rastro')==='1', dev:null, pts:[], camada:null, carregando:false, ult:0};
+const RASTRO={on:lsGet('rg_rastro')==='1', dev:null, pts:[], camada:null, carregando:false, ult:0, seq:0, erroEm:0};
 function rastroCor(kmh){ return kmh<30?'#22c55e':kmh<70?'#facc15':'#ef4444' }
 function rastroPonto(t,lat,lon,kmh){
   if(!isFinite(t)||!isFinite(lat)||!isFinite(lon)||(lat===0&&lon===0)) return;
   const u=RASTRO.pts[RASTRO.pts.length-1]; if(u && t<=u.t) return;
   RASTRO.pts.push({t,ll:[lat,lon],k:kmh||0});
 }
+/* 03/11/2026 (dono: "às vezes some ao trocar de veículo"): cada busca tem um número (seq) e tempo limite de 12 s.
+   Antes, uma busca que travava (rede do celular) deixava "carregando" preso e o rastro não trocava mais de veículo;
+   e uma busca que falhava deixava o rastro vazio até desligar e ligar. Agora a troca nunca espera a busca antiga,
+   e se falhar tenta de novo sozinho em 10 s. */
 async function rastroCarregar(dev){
-  RASTRO.dev=dev; RASTRO.pts=[]; if(dev==null) return;
+  const meu=++RASTRO.seq;
+  RASTRO.dev=dev; RASTRO.pts=[]; RASTRO.erroEm=0; rastroDesenhar(); /* limpa na hora: não mostra a linha do veículo anterior */
+  if(dev==null){ RASTRO.carregando=false; return }
   RASTRO.carregando=true;
+  const ctl=new AbortController(), tm=setTimeout(()=>ctl.abort(),12000);
   try{
     const ate=new Date(), de=new Date(ate.getTime()-RASTRO_MIN*60000);
-    const r=await api('/api/positions?deviceId='+encodeURIComponent(dev)+'&from='+encodeURIComponent(de.toISOString())+'&to='+encodeURIComponent(ate.toISOString()));
-    const lista=r.ok?await r.json():[];
-    if(RASTRO.dev!==dev) return; /* trocou de veículo no meio */
+    const r=await api('/api/positions?deviceId='+encodeURIComponent(dev)+'&from='+encodeURIComponent(de.toISOString())+'&to='+encodeURIComponent(ate.toISOString()),{signal:ctl.signal});
+    if(!r.ok) throw new Error('rastro '+r.status);
+    const lista=await r.json();
+    if(meu!==RASTRO.seq) return; /* trocou de veículo no meio: esta resposta é velha */
+    const ao=RASTRO.pts.slice(); RASTRO.pts=[]; /* pontos ao vivo que chegaram durante a busca entram depois */
     (Array.isArray(lista)?lista:[]).filter(p=>p.valid!==false).sort((a,b)=>Date.parse(a.fixTime)-Date.parse(b.fixTime))
       .forEach(p=>rastroPonto(Date.parse(p.fixTime),p.latitude,p.longitude,(p.speed||0)*1.852));
-  }catch(e){ if(e.sessao) throw e }
-  finally{ RASTRO.carregando=false; rastroDesenhar() }
+    ao.forEach(p=>rastroPonto(p.t,p.ll[0],p.ll[1],p.k));
+  }catch(e){ if(e.sessao) throw e; if(meu===RASTRO.seq) RASTRO.erroEm=Date.now() }
+  finally{ clearTimeout(tm); if(meu===RASTRO.seq){ RASTRO.carregando=false; rastroDesenhar() } }
 }
 function rastroDesenhar(){
   if(!RASTRO.camada) RASTRO.camada=L.layerGroup().addTo(map);
@@ -2627,7 +2637,8 @@ $('btnRastro').onclick=()=>{
 };
 setInterval(()=>{ /* troca de veículo e redesenho a cada 2 s */
   if(!RASTRO.on){ if(RASTRO.camada && RASTRO.camada.getLayers().length) RASTRO.camada.clearLayers(); return }
-  if(selId!==RASTRO.dev && !RASTRO.carregando){ rastroCarregar(selId); return }
+  if(selId!==RASTRO.dev){ rastroCarregar(selId); return } /* 03/11/2026: troca na hora, mesmo com busca antiga pendente */
+  if(RASTRO.erroEm && !RASTRO.carregando && Date.now()-RASTRO.erroEm>10000){ rastroCarregar(RASTRO.dev); return } /* falhou: tenta de novo */
   rastroDesenhar();
 },2000);
 rastroPintar();
@@ -2786,7 +2797,7 @@ async function minhaSessao(senha){
 async function api(caminho,opcoes){
   const o = opcoes||{};
   const h = Object.assign({Authorization:auth,Accept:'application/json'},o.headers||{});
-  const r = await fetch(API+caminho,{method:o.method||'GET',headers:h,body:o.body,credentials:'omit'});
+  const r = await fetch(API+caminho,{method:o.method||'GET',headers:h,body:o.body,credentials:'omit',signal:o.signal}); /* 03/11/2026: signal = tempo limite (rastro) */
   if(r.status===401){ const e=new Error('401'); e.sessao=true; throw e }
   return r;
 }
