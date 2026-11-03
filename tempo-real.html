@@ -41,7 +41,7 @@ try{ if(localStorage.getItem('rg_token')||sessionStorage.getItem('rgv_rg_token')
 try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'){document.documentElement.setAttribute('data-tema',t)}}catch(e){}
 </script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="stylesheet" href="app.css?v=13"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
+<link rel="stylesheet" href="app.css?v=14"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
 </head>
 <body>
 
@@ -914,11 +914,12 @@ try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'
     <section class="pmsec"><h4>🪙 Fichas e extras</h4>
       <label class="fchk pmit"><input type="checkbox" id="pmDourada"><span class="pmtx"><b>Fichas douradas</b><small>Crédito de R$ 1 por ficha para os parceiros do app: aporte no boleto, adição avulsa e venda a R$ 0,94; ainda em teste</small></span><span class="pmsw" aria-hidden="true"></span></label>
       <label class="fchk pmit"><input type="checkbox" id="pmFichas"><span class="pmtx"><b>Cobrar fichas no compartilhar</b><small>1 ficha por link; o cliente compra pacotes por PIX no app</small></span><span class="pmsw" aria-hidden="true"></span></label>
-    <div class="pmfichas" id="pmLogoBox"><span class="sp">🖼️ Logo do cliente: <b id="pmLogoSt">—</b></span><button type="button" id="pmLogoAbrir">Ver / enviar logo</button></div>
-    <div class="pmfichas" id="pmModBox"><span class="sp">⭐ Premium (odômetro/mapa): <b id="pmModSt">—</b></span><input class="fld" id="pmModDias" type="text" inputmode="numeric" maxlength="3" value="30" autocomplete="off" title="Dias de teste grátis"><button type="button" data-mf="dar">Liberar dias</button><button type="button" data-mf="boleto" style="background:#7c3aed" title="Premium incluído na mensalidade: fica ativo sem prazo até você tirar">♾️ No boleto</button><button type="button" data-mf="0" style="background:#64748b">Tirar</button></div>
-    <div class="pmfichas pmdr" id="pmDrBox" hidden><span class="sp"><span class="drcoin" style="width:18px;height:18px;vertical-align:-4px"></span> Fichas douradas: <b id="pmDrSaldo">—</b></span><input class="fld" id="pmDrQ" type="text" inputmode="numeric" placeholder="+50" autocomplete="off" aria-label="Fichas douradas para lançar"><input class="fld pmdrmot" id="pmDrMot" type="text" maxlength="60" placeholder="Motivo (ex.: teste)" autocomplete="off" aria-label="Motivo"><button type="button" id="pmDrLancar">Lançar</button></div><!-- 25/10/2026 (dono): creditar/retirar fichas douradas à mão -->
-    <div class="pmfichas" id="pmGiroBox"><span class="sp">🔄 Giros extras da vista da rua: <b id="pmGiroSaldo">—</b></span><input class="fld" id="pmGiroQ" type="text" inputmode="numeric" placeholder="+10" autocomplete="off" aria-label="Giros para lançar"><button type="button" id="pmGiroLancar">Lançar</button></div><!-- 25/10/2026 (pedido do dono): giros de cortesia de volta -->
-    <div class="pmfichas" id="pmFichasBox"><span class="sp">Saldo: <b id="pmFichasSaldo">—</b> fichas</span><input class="fld" id="pmFichasQ" type="text" inputmode="numeric" placeholder="+10" autocomplete="off" aria-label="Fichas para lançar"><button type="button" id="pmFichasLancar">Lançar</button></div>
+    <div class="pmfichas" id="pmLogoBox"><span class="sp"><button type="button" class="pmi" data-pmi="logo" aria-label="O que é isto?" title="O que é isto?">i</button>🖼️ Logo do cliente: <b id="pmLogoSt">—</b></span><button type="button" id="pmLogoAbrir">Ver / enviar logo</button></div>
+    <div class="pmfichas" id="pmModBox"><span class="sp"><button type="button" class="pmi" data-pmi="premium" aria-label="O que é isto?" title="O que é isto?">i</button>⭐ Premium (odômetro/mapa): <b id="pmModSt">—</b></span><input class="fld" id="pmModDias" type="text" inputmode="numeric" maxlength="3" value="30" autocomplete="off" title="Dias de teste grátis"><button type="button" data-mf="dar">Liberar dias</button><button type="button" data-mf="boleto" style="background:#7c3aed" title="Premium incluído na mensalidade: fica ativo sem prazo até você tirar">♾️ No boleto</button><button type="button" data-mf="0" style="background:#64748b">Tirar</button></div>
+    <div class="pmfichas pmdr" id="pmDrBox" hidden><span class="sp"><button type="button" class="pmi" data-pmi="dourada" aria-label="O que é isto?" title="O que é isto?">i</button><span class="drcoin" style="width:18px;height:18px;vertical-align:-4px"></span> Fichas douradas: <b id="pmDrSaldo">—</b></span><input class="fld" id="pmDrQ" type="text" inputmode="numeric" placeholder="+50" autocomplete="off" aria-label="Fichas douradas para lançar"><input class="fld pmdrmot" id="pmDrMot" type="text" maxlength="60" placeholder="Motivo (ex.: teste)" autocomplete="off" aria-label="Motivo"><button type="button" id="pmDrLancar">Lançar</button></div><!-- 25/10/2026 (dono): creditar/retirar fichas douradas à mão -->
+    <div class="pmfichas" id="pmGiroBox"><span class="sp"><button type="button" class="pmi" data-pmi="giros" aria-label="O que é isto?" title="O que é isto?">i</button>🔄 Giros extras da vista da rua: <b id="pmGiroSaldo">—</b></span><input class="fld" id="pmGiroQ" type="text" inputmode="numeric" placeholder="+10" autocomplete="off" aria-label="Giros para lançar"><button type="button" id="pmGiroLancar">Lançar</button></div><!-- 25/10/2026 (pedido do dono): giros de cortesia de volta -->
+    <div class="pmfichas" id="pmFichasBox"><span class="sp"><button type="button" class="pmi" data-pmi="fichas" aria-label="O que é isto?" title="O que é isto?">i</button>🔗 Fichas do compartilhar: <b id="pmFichasSaldo">—</b></span><input class="fld" id="pmFichasQ" type="text" inputmode="numeric" placeholder="+10" autocomplete="off" aria-label="Fichas para lançar"><button type="button" id="pmFichasLancar">Lançar</button></div>
+    <div class="pmfichas pmwt" id="pmWtBox"><!-- 03/11/2026 (dono): alertas de teste no WhatsApp --><span class="sp"><button type="button" class="pmi" data-pmi="wppteste" aria-label="O que é isto?" title="O que é isto?">i</button>💬 Alertas de teste no WhatsApp: <b id="pmWtSaldo">—</b><small class="pmwtsub" id="pmWtSub"></small></span><input class="fld" id="pmWtQ" type="text" inputmode="numeric" placeholder="+10" autocomplete="off" aria-label="Alertas para lançar"><button type="button" id="pmWtLancar">Lançar</button><input class="fld pmwtnum" id="pmWtNum" type="tel" inputmode="tel" placeholder="WhatsApp do cliente (DDD + número)" autocomplete="off" aria-label="WhatsApp que recebe os alertas de teste"></div>
     </section>
     <section class="pmsec pmlarga"><h4>🗺️ Mapa e acesso</h4>
     <div class="pmval pmmapa"><span class="pmvl">Mapa do app</span><select class="fld" id="pmMapa"><option value="gratis">Grátis (padrão)</option><option value="google">Google Maps</option></select></div>
@@ -4712,6 +4713,7 @@ function mostrarPerm(j){
   $('pmFichas').checked=!!p.fichas; pmFichasCarregar();
   pmModPintar(j.modFrotaAteMs);
   $('pmGiroSaldo').textContent=Number(j.girosExtra||0).toLocaleString('pt-BR'); $('pmGiroQ').value=''; try{ pmDrCarregar() }catch(e){}
+  pmWtPintar(null); chamarPerm('wppTesteVer').then(pmWtPintar).catch(()=>{ $('pmWtSaldo').textContent='?' }); /* 03/11/2026 */
   $('pmLogoSt').textContent='…'; fnAdm('logoVer',{userId:permUserId}).then(r=>{ $('pmLogoSt').textContent=r.img?'enviada'+(r.nome?' ('+r.nome+')':''):'nenhuma' }).catch(()=>{ $('pmLogoSt').textContent='?' });
 }
 async function abrirPermissoes(userId){
@@ -9991,11 +9993,18 @@ function wppAtivos(dev){ /* itens ainda valendo de um veículo: {k:{ate,usoMes,u
 function wppDesenhar(){
   const box=$('wppBox'); if(!box) return;
   const pode=!!(wppEst && wppEst.podeComprar);
-  box.style.display=pode?'':'none';
+  const te=(wppEst&&wppEst.teste)||{saldo:0,usados:0,numero:''}, temTeste=!ehAdmin && (te.saldo>0 || te.usados>0); /* 03/11/2026: alertas de teste */
+  box.style.display=(pode||temTeste)?'':'none';
+  let tb=$('wppTesteCard'); if(!tb){ tb=document.createElement('div'); tb.id='wppTesteCard'; tb.className='wppv'; $('wppLista').parentNode.insertBefore(tb,$('wppLista')) }
+  tb.style.display=temTeste?'':'none';
+  if(temTeste) tb.innerHTML='<div class="vh"><span>🎁 Alertas de teste no WhatsApp</span><small>'+te.saldo+' restante'+(te.saldo===1?'':'s')+'</small></div>'+
+    '<div class="wppnums">'+(te.numero?'💬 '+esc(wppFone(te.numero)):'⚠️ Informe o seu WhatsApp para receber')+' <button class="linkbtn" type="button" id="wppTesteNum">'+(te.numero?'Editar':'Informar')+'</button></div>'+
+    '<div class="igrow" style="font-size:12.5px;color:var(--mut)">Cada alerta enviado no WhatsApp gasta 1. Vale para ignição, cerca, bateria e volta do sinal, nos veículos sem o pacote pago. Lembre de deixar o alerta ligado no veículo.</div>';
+  if(temTeste){ $('wppTesteNum').onclick=async()=>{ const n=prompt('WhatsApp que recebe os alertas de teste (DDD + número):',te.numero?wppFone(te.numero):''); if(n==null) return; try{ wppEst=await fnAl('wppTesteNumero',{numero:n}); toast('Número salvo.'); wppDesenhar() }catch(e){ toast(e.message) } } }
   /* selo "WhatsApp ativo" nos cartões de Ignição / Volta do sinal / Bateria */
   const temItem=k=>!!(wppEst && Object.keys(wppEst.veiculos||{}).some(d=>wppAtivos(d)[k]));
   [['alTIgn','ign'],['alTVolta','volta'],['alTBat','bat']].forEach(([id,k])=>{ try{ $(id).classList.toggle('wppon',pode&&temItem(k)) }catch(e){} });
-  if(!pode){ $('wppLista').innerHTML=''; return }
+  if(!pode){ $('wppLista').innerHTML=''; $('wppCard').style.display='none'; return } $('wppCard').style.display='';
   $('wppTeste').style.display=wppEst.liberado?'none':'';
   const nomes={}; (wppEst.itens||[]).forEach(i=>nomes[i.k]=i);
   const lista=veiculos.filter(v=>Object.keys(wppAtivos(v.id)).length).sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
@@ -11034,6 +11043,30 @@ $('pmGiroLancar').onclick=async()=>{ /* 25/10/2026: giros extras (não vencem; f
   catch(e){ $('pmErro').textContent=e.message }
   b.disabled=false;
 };
+/* 03/11/2026 (dono): alertas de teste no WhatsApp (cada alerta enviado gasta 1; vale para os veículos sem pacote pago) */
+function pmWtPintar(t){
+  $('pmWtSaldo').textContent=t?Number(t.saldo||0).toLocaleString('pt-BR'):'…';
+  $('pmWtSub').textContent=t?((t.usados?t.usados+' já enviado'+(t.usados>1?'s':'')+' · ':'')+(t.numero?'WhatsApp: '+wppFone(t.numero):'sem número: o cliente informa no app, ou digite abaixo')):'';
+  $('pmWtQ').value=''; $('pmWtNum').value=t&&t.numero?wppFone(t.numero):'';
+}
+$('pmWtLancar').onclick=async()=>{
+  const t=$('pmWtQ').value.replace(/\s/g,'').replace('−','-'), q=parseInt(t,10), num=$('pmWtNum').value.trim();
+  if(!/^[+-]?\d+$/.test(t) || !q){ $('pmErro').textContent='Digite quantos alertas (ex.: 10 para dar, -5 para tirar).'; return }
+  const b=$('pmWtLancar'); b.disabled=true; $('pmErro').textContent='';
+  try{ const j=await chamarPerm('wppTesteLancar',{qtd:q,numero:num}); pmWtPintar(j); toast((q>0?'+':'')+q+' alertas de teste. Saldo: '+j.saldo+'.'+(j.numero?'':' Falta o número do WhatsApp.'),6000) }
+  catch(e){ $('pmErro').textContent=e.message }
+  b.disabled=false;
+};
+/* "i" de cada bloco: lembrete do que cada um faz */
+const PM_INFO={
+  logo:'Logo do cliente: imagem que aparece no app no lugar da logo da Rastreando (frotista com Premium). Dá para enviar por ele aqui.',
+  premium:'Premium (odômetro, Google Maps e vista da rua). "Liberar dias" dá os dias digitados, sem PIX. "No boleto" deixa sem fim, para cobrar na mensalidade. "Tirar" remove na hora.',
+  dourada:'Fichas douradas: crédito de R$ 1 por ficha para o cliente pagar os parceiros do app (reboque, chaveiro, mecânico...). Lance com o motivo; número negativo tira.',
+  giros:'Giros extras da vista da rua: giros fora do limite do dia. Não vencem. Número negativo tira.',
+  fichas:'Fichas do compartilhar: 1 ficha por link de localização, só quando "Cobrar fichas no compartilhar" estiver ligado. Número negativo tira.',
+  wppteste:'Alertas de teste no WhatsApp: cada alerta enviado gasta 1 (ignição, cerca, bateria ou volta do sinal) em qualquer veículo do cliente sem pacote pago. Precisa do número do WhatsApp e do alerta grátis ligado no veículo (é ele que gera o aviso). Quando acabar, o cliente compra o pacote no app.'
+};
+document.addEventListener('click',e=>{ const b=e.target.closest('.pmi'); if(!b) return; e.preventDefault(); e.stopPropagation(); toast(PM_INFO[b.dataset.pmi]||'',9000) });
 $('pmFichasLancar').onclick=async()=>{
   const t=$('pmFichasQ').value.replace(/\s/g,'').replace('−','-'), q=parseInt(t,10);
   if(!/^[+-]?\d+$/.test(t) || !q){ $('pmErro').textContent='Digite quantas fichas (ex.: 10 para dar, -5 para tirar).'; return }
