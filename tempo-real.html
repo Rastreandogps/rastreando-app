@@ -41,7 +41,7 @@ try{ if(localStorage.getItem('rg_token')||sessionStorage.getItem('rgv_rg_token')
 try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'){document.documentElement.setAttribute('data-tema',t)}}catch(e){}
 </script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="stylesheet" href="app.css?v=17"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
+<link rel="stylesheet" href="app.css?v=18"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
 </head>
 <body>
 
@@ -1773,6 +1773,13 @@ try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'
     <select class="fld" id="wppVeic" required></select>
     <label class="flbl" for="wppNum">WhatsApp que vai receber os alertas</label>
     <input class="fld" id="wppNum" type="tel" inputmode="numeric" maxlength="16" placeholder="(21) 99999-9999" autocomplete="tel">
+    <!-- 03/11/2026 (dono): 2º WhatsApp opcional já na compra -->
+    <button type="button" class="wppadd2" id="wppAdd2">＋ Adicionar outro WhatsApp, caso deseje</button>
+    <div id="wppNum2Box" hidden>
+      <label class="flbl" for="wppNum2">Outro WhatsApp (opcional)</label>
+      <div class="wppnum2lin"><input class="fld" id="wppNum2" type="tel" inputmode="numeric" maxlength="16" placeholder="(21) 98888-7777" autocomplete="off"><button type="button" id="wppNum2X" aria-label="Tirar o outro WhatsApp" title="Tirar">✕</button></div>
+      <small class="wppnum2inf">Recebe os mesmos alertas. Cada aviso enviado para ele também conta no limite do item.</small>
+    </div>
     <div class="wppsub">Quais alertas você quer ativar?</div>
     <div class="wppsel" id="wppItens"></div>
     <div class="wpptot"><span>Total (30 dias)</span><b id="wppTotal">R$ 0,00</b></div>
@@ -10075,6 +10082,7 @@ function wppAbrir(dev){
 function wppPintarItens(marcarAtivos){
   const dev=$('wppVeic').value, at=wppAtivos(dev), v=(wppEst.veiculos||{})[String(dev)]||{};
   $('wppNum').value=v.numero?wppFone(v.numero):($('wppNum').dataset.ult||'');
+  $('wppNum2').value=v.numero2?wppFone(v.numero2):''; $('wppNum2Box').hidden=!v.numero2; $('wppAdd2').hidden=!!v.numero2; /* 03/11/2026 */
   $('wppItens').innerHTML=(wppEst.itens||[]).map(it=>{
     const lim=it.mes?'Até '+it.mes+' avisos por mês':'Até '+it.dia+' avisos por dia, com 1 h entre eles';
     const ativo2=at[it.k]?'<br><em>Ativo até '+wppDia(at[it.k].ate)+'</em>':'';
@@ -10103,12 +10111,18 @@ function wppValidar(){
   }
   if(!itens.length){ $('wppErro').textContent='Escolha pelo menos um alerta.'; return null }
   if(num.length!==10 && num.length!==11){ $('wppErro').textContent='Informe o WhatsApp com DDD. Ex.: (21) 99999-9999'; $('wppNum').focus(); return null }
+  const num2=$('wppNum2Box').hidden?'':$('wppNum2').value.replace(/\D/g,'').replace(/^55(?=\d{10,11}$)/,''); /* 03/11/2026: 2º WhatsApp opcional */
+  if(num2 && num2.length!==10 && num2.length!==11){ $('wppErro').textContent='O outro WhatsApp está incompleto. Use DDD + número, ou toque no ✕ para tirar.'; $('wppNum2').focus(); return null }
+  if(num2 && num2===num){ $('wppErro').textContent='Os dois WhatsApp são iguais.'; $('wppNum2').focus(); return null }
   $('wppErro').textContent=''; $('wppNum').dataset.ult=wppFone(num);
-  return {deviceId:+$('wppVeic').value, itens:itens, numero:num};
+  return {deviceId:+$('wppVeic').value, itens:itens, numero:num, numero2:num2};
 }
 $('wppVeic').onchange=()=>{ $('wppVeic').classList.remove('wpperro'); $('wppErro').textContent=''; wppPintarItens(true) };
 $('wppItens').addEventListener('change',wppTotal);
 $('wppNum').addEventListener('input',()=>{ $('wppErro').textContent='' });
+$('wppAdd2').onclick=()=>{ $('wppNum2Box').hidden=false; $('wppAdd2').hidden=true; $('wppNum2').focus() };
+$('wppNum2X').onclick=()=>{ $('wppNum2').value=''; $('wppNum2Box').hidden=true; $('wppAdd2').hidden=false; $('wppErro').textContent='' };
+$('wppNum2').addEventListener('input',()=>{ $('wppErro').textContent='' });
 $('wppCard').onclick=e=>{ wppAbrir() };
 $('wppLista').addEventListener('change',async e=>{
   const c=e.target.closest('input[data-wppcanal]'); if(!c) return;
