@@ -1740,7 +1740,7 @@ try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'
 <div class="modal alsheet" id="mAlVolta">
   <div class="box2">
     <h3>Avisar quando voltar o sinal</h3>
-    <p>Para rastreador que perde o sinal (estrada, área rural). Se ele ficar 30 minutos ou mais sem posição e voltar, você recebe um aviso.</p>
+    <p>Para rastreador portátil ou que perde o sinal. Se ele ficar 10 minutos ou mais sem posição e voltar a transmitir, você recebe um aviso na hora, mesmo que esteja no mesmo lugar. Se o aparelho estiver transmitindo direto, o aviso vem quando o veículo sair do lugar (mais de 100 m).</p>
     <div class="apbusca"><input class="fld" id="alVoltaBusca" type="search" placeholder="Buscar veículo" autocomplete="off"><small id="alVoltaBuscaN"></small></div>
     <div class="algrupo" id="alVolta"></div>
     <p class="alnota">Depois de avisar, a chave desliga sozinha. Ligue de novo quando quiser outro aviso.</p>
@@ -10195,7 +10195,7 @@ $('alVolta').addEventListener('change',async e=>{
     alCfg=Object.assign({ign:{},volta:{}},j.cfg||alCfg);
     if(!i.checked) toast('Aviso desligado.');
     else if(j.transmitindo) toast('Aviso ligado. Este aparelho está transmitindo agora: o aviso só vale quando ele ficar sem sinal e voltar.',7000);
-    else toast('Aviso ligado. Você será avisado quando este aparelho voltar a transmitir.',5000);
+    else toast('Aviso ligado. Você será avisado quando este aparelho voltar a transmitir ou sair do lugar.',5000);
   }
   catch(err){ i.checked=!i.checked; toast(err.message) }
   i.disabled=false; desenharVolta();
