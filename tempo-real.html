@@ -1768,7 +1768,7 @@ try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'
       <button class="wppx almx" type="button" data-close aria-label="Fechar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     </div>
     <p class="wppdesc">Receba os alertas do seu veículo também no WhatsApp. Eles continuam chegando no app normalmente.</p>
-    <div class="wppvale"><span>📅</span><div>Vale por <b><span id="wppDias">30</span> dias</b>, por veículo.<br><small>Não mexe na sua mensalidade.</small></div></div>
+    <div class="wppvale"><span>📦</span><div><b>Pacote de avisos, sem prazo</b>: usa até acabar, por veículo.<br><small>Comprar de novo soma ao que sobrou. Não mexe na sua mensalidade.<span id="wppDias" hidden></span></small></div></div>
     <label class="flbl" for="wppVeic">Veículo</label>
     <select class="fld" id="wppVeic" required></select>
     <label class="flbl" for="wppNum">WhatsApp que vai receber os alertas</label>
@@ -1782,7 +1782,7 @@ try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'
     </div>
     <div class="wppsub">Quais alertas você quer ativar?</div>
     <div class="wppsel" id="wppItens"></div>
-    <div class="wpptot"><span>Total (30 dias)</span><b id="wppTotal">R$ 0,00</b></div>
+    <div class="wpptot"><span>Total</span><b id="wppTotal">R$ 0,00</b></div>
     <div class="ferr" id="wppErro"></div>
     <button class="btn btn-wpp" id="wppPagar" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l4.2 4.2-4.2 4.2-4.2-4.2zM12 13.1l4.2 4.2-4.2 4.2-4.2-4.2zM6.7 7.8l4.2 4.2-4.2 4.2L2.5 12zM17.3 7.8l4.2 4.2-4.2 4.2-4.2-4.2z"/></svg>Pagar com PIX</button>
     <button class="btn btn-out" id="wppAdmin" type="button" style="width:100%;margin-top:8px;display:none">Ativar sem PIX (teste do administrador)</button>
@@ -10046,24 +10046,23 @@ function wppDesenhar(){
   const lista=veiculos.filter(v=>Object.keys(wppAtivos(v.id)).length).sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
   $('wppLista').innerHTML=lista.map(v=>{
     const at=wppAtivos(v.id), num=(wppEst.veiculos[String(v.id)]||{}).numero||'', wppOff=!!(wppEst.veiculos[String(v.id)]||{}).wppOff;
-    let menor=Infinity;
+    /* 03/11/2026 (dono): pacote de avisos sem prazo: mostra quantos restam */
+    let acabando=[];
     const itens=Object.keys(at).map(k=>{
-      const it=nomes[k]||{nome:k}, u=at[k]; menor=Math.min(menor,Number(u.ate));
-      let lim, usado, txt;
-      if(it.mes){ lim=it.mes; usado=u.usoMes; txt=usado+' de '+lim+' no mês' }
-      else { lim=it.dia||1; usado=u.usoDia; txt=usado+' de '+lim+' hoje' }
-      const pc=Math.min(100,Math.round(usado/lim*100));
+      const it=nomes[k]||{nome:k}, u=at[k], pac=Number(it.pacote)||100, resta=Math.max(0,Number(u.saldo)||0);
+      const txt=resta+(resta===1?' restante':' restantes');
+      if(resta<=Math.ceil(pac*0.1)) acabando.push(it.nome);
+      const pc=Math.min(100,Math.round((pac-Math.min(resta,pac))/pac*100)); /* barra = quanto do pacote já foi usado */
       return '<div class="wppit"><div class="l1"><span>'+esc(it.nome)+'</span><span>'+txt+'</span></div>'+
         '<div class="bar"><i class="'+(pc>=100?'cheio':pc>=80?'alto':'')+'" style="width:'+pc+'%"></i></div>'+
         (ehAdmin?'<div style="text-align:right;margin-top:4px"><button class="linkbtn" type="button" data-wppdesl="'+v.id+'" data-k="'+k+'">Desligar</button></div>':'')+'</div>';
     }).join('');
-    const faltaD=Math.ceil((menor-Date.now())/86400000);
-    const vence=faltaD<=3?'<div class="wppvence">⚠️ Vence em '+(faltaD<=1?'menos de 1 dia':faltaD+' dias')+' ('+wppDia(menor)+'). Renove para continuar recebendo no WhatsApp.</div>':'';
-    return '<div class="wppv"><div class="vh"><span>'+esc(v.nome)+'</span><small>até '+wppDia(menor)+'</small></div>'+
+    const vence=acabando.length?'<div class="wppvence">⚠️ Restam poucos avisos: '+esc(acabando.join(', '))+'. Compre outro pacote para continuar recebendo no WhatsApp.</div>':'';
+    return '<div class="wppv"><div class="vh"><span>'+esc(v.nome)+'</span><small>sem prazo</small></div>'+
       '<div class="wppnums">💬 '+esc(wppFone(num))+((wppEst.veiculos[String(v.id)]||{}).numero2?' · '+esc(wppFone(wppEst.veiculos[String(v.id)].numero2)):'')+' <button class="linkbtn" type="button" data-wppnum="'+v.id+'">Editar</button></div>'+itens+vence+
       /* 31/10/2026 (dono): escolher entre "app + WhatsApp" (padrão) e "só WhatsApp" */
       /* 03/11/2026 (dono): a chave agora é do WhatsApp (antes era do app). Para desligar tudo, desliga o alerta lá em cima. */
-      '<div class="igrow wppcanal"><span>Avisar no WhatsApp<small>'+(wppOff?'Desligado: os alertas chegam só no app. Os dias continuam contando.':'Ligado: chega no app e no WhatsApp')+'</small></span><label class="sw"><input type="checkbox" data-wppcanal="'+v.id+'"'+(wppOff?'':' checked')+'><span></span></label></div>'+
+      '<div class="igrow wppcanal"><span>Avisar no WhatsApp<small>'+(wppOff?'Desligado: os alertas chegam só no app e o pacote não é gastado.':'Ligado: chega no app e no WhatsApp')+'</small></span><label class="sw"><input type="checkbox" data-wppcanal="'+v.id+'"'+(wppOff?'':' checked')+'><span></span></label></div>'+
       '<div class="bts"><button class="mini" type="button" data-wppren="'+v.id+'">'+(faltaD<=3?'Renovar':'Adicionar ou renovar')+'</button>'+(veiculos.length>1?'<button class="mini" type="button" data-wpptroca="'+v.id+'">Trocar veículo</button>':'')+'</div></div>';
   }).join('');
 }
@@ -10085,11 +10084,11 @@ function wppPintarItens(marcarAtivos){
   $('wppNum').value=v.numero?wppFone(v.numero):($('wppNum').dataset.ult||'');
   $('wppNum2').value=v.numero2?wppFone(v.numero2):''; $('wppNum2Box').hidden=!v.numero2; $('wppAdd2').hidden=!!v.numero2; /* 03/11/2026 */
   $('wppItens').innerHTML=(wppEst.itens||[]).map(it=>{
-    const lim=it.mes?'Até '+it.mes+' avisos por mês':'Até '+it.dia+' avisos por dia, com 1 h entre eles';
+    const lim=(it.pacote||100)+' avisos, sem prazo para usar'+(it.dia?' (até '+it.dia+' por dia)':''); /* 03/11/2026: pacote de avisos */
     const ativo2=at[it.k]?'<br><em>Ativo até '+wppDia(at[it.k].ate)+'</em>':'';
     return '<label class="wppop'+(marcarAtivos&&at[it.k]?' on':'')+'"><img class="ic" src="icv/al-'+it.k+'.webp" alt="" loading="lazy">'+
       '<span class="nm"><b>'+esc(it.nome)+'</b><small>'+lim+ativo2+'</small></span>'+
-      '<span class="pr">'+brl(it.preco)+'<small>30 dias</small></span>'+
+      '<span class="pr">'+brl(it.preco)+'<small>'+(it.pacote||100)+' avisos</small></span>'+
       '<input type="checkbox" data-wk="'+it.k+'"'+(marcarAtivos&&at[it.k]?' checked':'')+' aria-label="'+esc(it.nome)+'"></label>';
   }).join('');
   wppTotal();
@@ -10193,7 +10192,7 @@ $('wppPagar').onclick=async()=>{
 $('wppAdmin').onclick=async()=>{
   const p=wppValidar(); if(!p) return;
   const btn=$('wppAdmin'); btn.disabled=true;
-  try{ wppEst=await fnAl('wppAdminAtivar',Object.assign({dias:wppEst.dias||30},p)); toast('Ativado por '+(wppEst.dias||30)+' dias (sem PIX).'); fechar(); wppDesenhar(); try{ alCfg=(await fnAl('alertasEstado',{})).cfg||alCfg; desenharIgn(); desenharBat() }catch(e){} }
+  try{ wppEst=await fnAl('wppAdminAtivar',Object.assign({dias:wppEst.dias||30},p)); toast('Pacote de avisos liberado (sem PIX).'); fechar(); wppDesenhar(); try{ alCfg=(await fnAl('alertasEstado',{})).cfg||alCfg; desenharIgn(); desenharBat() }catch(e){} }
   catch(err){ $('wppErro').textContent=err.message }
   btn.disabled=false;
 };
@@ -10787,7 +10786,7 @@ function lojaPagoOk(s){
     $('ljpOkTxt').textContent='Pagamento recebido. A liberação do Premium está sendo concluída. Se não aparecer em alguns minutos, fale com a gente.'; $('ljpOkWpp').style.display='none'; return;
   }
   if(s.wppAteMs!==undefined){ /* 31/10/2026: Alertas no WhatsApp liberados na hora */
-    $('ljpOkTxt').textContent=Number(s.wppAteMs)>0 ? 'Alertas no WhatsApp ativados até '+new Date(Number(s.wppAteMs)).toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo'})+'. A partir de agora, os alertas escolhidos chegam também no seu WhatsApp.' : 'Pagamento recebido. A ativação dos alertas no WhatsApp está sendo concluída. Se não aparecer em alguns minutos, fale com a gente.';
+    $('ljpOkTxt').textContent=Number(s.wppAteMs)>0 ? 'Pacote de alertas no WhatsApp ativado, sem prazo: vale até acabar. A partir de agora, os alertas escolhidos chegam também no seu WhatsApp.' : 'Pagamento recebido. A ativação dos alertas no WhatsApp está sendo concluída. Se não aparecer em alguns minutos, fale com a gente.';
     $('ljpOkWpp').style.display='none'; try{ $('mWpp').classList.remove('show') }catch(e){} wppCarregar(); return;
   }
   if(Number(s.giros)>0){ /* 20/10/2026: giros da vista da rua entram na hora */
