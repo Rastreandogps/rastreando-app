@@ -3494,3 +3494,33 @@ nav button:not(.on) .nemo{filter:saturate(.85)}
 #sheet .plate.vimei{white-space:nowrap;flex-wrap:nowrap;align-items:center;max-width:100%;gap:4px}
 #sheet .plate.vimei #vImeiTxt{font-variant-numeric:tabular-nums;letter-spacing:0}
 @media (max-width:600px){#sheet .plate.vimei .imlbl{display:none}#sheet .plate.vimei #vImeiTxt{font-size:11px}}
+
+/* 04/11/2026: assistente do administrador (janela #mAssist) */
+#mAssist .box2{display:flex;flex-direction:column;max-height:92vh;overflow:hidden;max-width:560px}
+#mAssist .smtopo{flex:none;display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:4px}
+#mAssist .smtopo h3{font-size:19px;margin:0}
+#mAssist .imx{width:38px;height:38px;flex:none;border-radius:50%;background:var(--card2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--txt)}
+#mAssist .imx svg{width:18px;height:18px;stroke:currentColor;stroke-width:2.2;fill:none}
+#mAssist .asdica{flex:none;margin:0 0 8px;font-size:12.5px;color:var(--mut);line-height:1.35}
+#mAssist .aschat{flex:1 1 auto;min-height:160px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding:4px 2px;-webkit-overflow-scrolling:touch}
+#mAssist .asb{max-width:92%;padding:9px 12px;border-radius:14px;font-size:14px;line-height:1.4;word-break:break-word}
+#mAssist .asu{align-self:flex-end;background:var(--cyan);color:#06262a;border-bottom-right-radius:4px;white-space:pre-wrap}
+#mAssist .asa{align-self:flex-start;background:var(--card2);border:1px solid var(--line);border-bottom-left-radius:4px}
+#mAssist .asa p{margin:0 0 4px}#mAssist .asa p:last-child{margin-bottom:0}
+#mAssist .asa ul{margin:2px 0 6px;padding-left:18px}#mAssist .asa li{margin:2px 0}
+#mAssist .asa .asbr{height:4px}
+#mAssist .asa a{color:var(--cyan);font-weight:600}
+#mAssist .asesp{color:var(--mut);animation:aspisca 1.2s ease-in-out infinite}
+@keyframes aspisca{0%,100%{opacity:.45}50%{opacity:1}}
+#mAssist .aserr{background:rgba(227,38,47,.12);border-color:var(--red2);color:var(--red2);font-weight:600}
+#mAssist .asfer{margin-top:6px;font-size:11px;color:var(--mut)}
+#mAssist .assug{flex:none;display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 2px}
+#mAssist .assug button{height:32px;padding:0 12px;border-radius:16px;border:1px solid var(--line);background:var(--card2);color:var(--txt);font:inherit;font-size:12.5px;font-weight:600;cursor:pointer}
+#mAssist .asform{flex:none;display:flex;align-items:flex-end;gap:8px;margin-top:8px}
+#mAssist textarea{flex:1;min-height:44px;max-height:120px;resize:none;border-radius:14px;border:1px solid var(--line);background:var(--card2);color:var(--txt);font:inherit;font-size:15px;padding:11px 14px;line-height:1.3;outline:none}
+#mAssist textarea:focus{border-color:var(--cyan)}
+#mAssist .asenv{width:44px;height:44px;flex:none;border-radius:50%;border:0;background:var(--cyan);color:#06262a;display:flex;align-items:center;justify-content:center;cursor:pointer}
+#mAssist .asenv:disabled{opacity:.45;cursor:default}
+#mAssist .asenv svg{width:20px;height:20px}
+#mAssist .asrod{flex:none;display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:6px;font-size:11.5px;color:var(--mut)}
+@media (min-width:900px){#mAssist .box2{max-height:80vh;border-radius:18px}#mAssist .aschat{min-height:280px}}
