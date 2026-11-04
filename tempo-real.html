@@ -10181,7 +10181,7 @@ function wppTrocaAbrir(k){
   const nm=((wppEst.itens||[]).find(i=>i.k===wppTrocaItem)||{}).nome;
   $('wtTit').textContent=nm?'Veículos · '+nm:'Veículos no WhatsApp';
   $('wtTxt').textContent=nm?'Marque os veículos que avisam "'+nm+'" no WhatsApp. Todos gastam do mesmo pacote: quanto mais veículos, mais rápido ele acaba.':'Marque os veículos que vão avisar no WhatsApp. Todos gastam do mesmo pacote: quanto mais veículos, mais rápido ele acaba.';
-  const lista=veiculos.slice().sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
+  const lista=veiculos.slice().sort((a,b)=>(marc.includes(b.id)-marc.includes(a.id))||a.nome.localeCompare(b.nome,'pt-BR')); /* 03/11/2026: ativos no topo */
   $('wtErro').textContent='';
   $('wtLista').innerHTML=lista.map(x=>'<div class="igrow wtit"><span>'+esc(x.nome)+(x.placa?'<small>'+esc(x.placa)+'</small>':'')+'</span><label class="sw"><input type="checkbox" data-wtv="'+x.id+'"'+(marc.includes(x.id)?' checked':'')+'><span></span></label></div>').join('');
   $('wtTodos').hidden=lista.length<2;
