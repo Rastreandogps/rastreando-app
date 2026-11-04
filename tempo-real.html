@@ -926,6 +926,7 @@ try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'
       <label class="fchk pmit"><input type="checkbox" id="pmIcone"><span class="pmtx"><b>Trocar o ícone no mapa</b><small>Ligado de fábrica</small></span><span class="pmsw" aria-hidden="true"></span></label>
       <label class="fchk pmit"><input type="checkbox" id="pmAncora"><span class="pmtx"><b>Cerca rápida</b><small>Botão da âncora no veículo</small></span><span class="pmsw" aria-hidden="true"></span></label>
       <label class="fchk pmit"><input type="checkbox" id="pmEu"><span class="pmtx"><b>Minha posição</b><small>Ver a posição do próprio celular no mapa</small></span><span class="pmsw" aria-hidden="true"></span></label>
+      <label class="fchk pmit"><input type="checkbox" id="pmAssistente"><span class="pmtx"><b>✨ Assistente de IA</b><small>Libera o Assistente Rastreando GPS para este cliente (ainda não aparece para ele: só fica marcado)</small></span><span class="pmsw" aria-hidden="true"></span></label><!-- 04/11/2026 (dono): permissão reservada; a cobrança e a versão do cliente vêm depois -->
       <label class="fchk pmit"><input type="checkbox" id="pmSemSocorro"><span class="pmtx"><b>Esconder Socorro e serviços</b><small>Some o caminhão do mapa e o cartão na aba Mais (reboque, chaveiro, mecânico...)</small></span><span class="pmsw" aria-hidden="true"></span></label><!-- 03/11/2026 (dono) -->
       <label class="fchk pmit"><input type="checkbox" id="pmRuaCel"><span class="pmtx"><b>Vista da rua no celular</b><small>No cartão do veículo, a foto da rua toma o lugar de odômetro, combustível e faturas</small></span><span class="pmsw" aria-hidden="true"></span></label>
     </section>
@@ -4725,6 +4726,7 @@ function mostrarPermTraccar(u){
   $('pmApp').checked=permAttr(u,'appBloqueio'); $('pmCercaBloq').checked=permAttr(u,'cercaBloqueio');
   $('pmSemBloq').checked=attrLig(u,'semBloqueio'); pmSemBloqPintar();
   $('pmSemSocorro').checked=attrLig(u,'semSocorro'); /* 03/11/2026 */
+  $('pmAssistente').checked=attrLig(u,'assistenteIA'); /* 04/11/2026 */
   $('pmMapa').value=(u.attributes&&u.attributes.mapa==='google')?'google':'gratis';
   const t=validadeDe(u); $('pmValidade').value=t?isoData(t):''; $('pmHora').value=t?horaSP(t):'23:59'; textoValidade();
 }
@@ -4734,6 +4736,7 @@ async function salvarPermTraccar(u){
   if(app) delete attrs.appBloqueio; else attrs.appBloqueio=false;
   if(cb) delete attrs.cercaBloqueio; else attrs.cercaBloqueio=false;
   if(sem) attrs.semBloqueio=true; else delete attrs.semBloqueio;
+  if($('pmAssistente').checked) attrs.assistenteIA=true; else delete attrs.assistenteIA; /* 04/11/2026 (dono): permissão do assistente de IA (só fica gravada) */
   if($('pmSemSocorro').checked) attrs.semSocorro=true; else delete attrs.semSocorro; /* 03/11/2026 (dono): esconde Socorro e serviços deste cliente */
   if($('pmMapa').value==='google') attrs.mapa='google'; else delete attrs.mapa; /* mapa do Google por cliente (4.49) */
   const exp=v?new Date(fimValidade()).toISOString():null;
