@@ -3011,6 +3011,7 @@ function mesclar(ds,ps){
       v.bloq = lsGet('rg_bloq_'+v.id)==='1';
     }
   });
+  if(!selId){ const g=Number(lsGet('rg_selid')||0); if(g && veiculos.find(v=>v.id===g)) selId=g } /* 04/11/2026 (dono): ao recarregar, volta no último veículo escolhido */
   if(!selId || !veiculos.find(v=>v.id===selId)) selId = veiculos.length ? veiculos[0].id : null;
   const sig = veiculos.map(v=>v.id+':'+v.nome+':'+v.placa+':'+v.fone+':'+v.contato).join('|');
   if(sig!==assinaturaLista){ assinaturaLista=sig; desenharLista(); if(ehAdmin && $('aview').classList.contains('show') && abaAdmin==='equip') desenharEquip() }
@@ -3285,7 +3286,9 @@ $('cartMini').onclick=()=>{ lsSet('rg_cart_min','0'); cartMinPintar() };
 window.addEventListener('resize',()=>{ try{ cartMinPintar() }catch(e){} });
 
 /* ===== TELA ===== */
+let selSalvo=null;
 function atualizar(){
+  if(selId && selId!==selSalvo){ selSalvo=selId; try{ if(!VER.on) lsSet('rg_selid',String(selId)) }catch(e){} } /* 04/11/2026: lembra o veículo escolhido */
   if(arrastando) return; /* 16/10/2026: não redesenha o cartão com o dedo nele (volta no próximo segundo) */
   const v=cartao(), sp=!!(v && !v.pos); /* sp = aparelho ainda sem sinal */
   sheet.style.display = v ? (telaLarga()?'grid':'block') : 'none';
