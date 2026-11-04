@@ -7178,6 +7178,7 @@ async function descobrirAdmin(){
     await carregarUsuarios();
     const em=(lsGet('rg_email')||'').toLowerCase();
     ehAdmin = !!usuarios.find(u=>u.administrator && casaUsuario(u,em));
+    if(ehAdmin && !VER.on){ try{ localStorage.setItem('rg_aparelho_dono','1') }catch(e){} } /* 04/11/2026: marca este aparelho como do dono */
   }catch(e){}
   if(ehAdmin) setTimeout(()=>{ travarClientes().catch(()=>{}) },4000); /* check-up 10/10: corrige clientes antigos sem trava */
   document.querySelector('nav button[data-tab="Admin"]').style.display = ehAdmin ? '' : 'none';
@@ -7197,6 +7198,7 @@ function dispAtual(){
 }
 function registrarAcesso(){
   if(VER.on) return; /* 16/10/2026: administrador vendo como cliente não conta como acesso do cliente */
+  try{ if(localStorage.getItem('rg_aparelho_dono')==='1') return }catch(e){} /* 04/11/2026 (dono): celular onde o administrador já entrou não conta acesso de cliente (nem o selo Instalado) */
   const t=lsGet('rg_token'); if(!t) return;
   fetch(DESB_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',
     body:JSON.stringify({acao:'acesso',token:t,disp:dispAtual(),inst:instalado()})}).catch(()=>{}); /* 04/11/2026: conta se está instalado ou no navegador */
