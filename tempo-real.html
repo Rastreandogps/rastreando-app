@@ -41,7 +41,7 @@ try{ if(localStorage.getItem('rg_token')||sessionStorage.getItem('rgv_rg_token')
 try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'){document.documentElement.setAttribute('data-tema',t)}}catch(e){}
 </script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="stylesheet" href="app.css?v=35"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
+<link rel="stylesheet" href="app.css?v=36"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
 </head>
 <body>
 
@@ -260,6 +260,8 @@ try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'
         <div class="hcard"><b id="hMov">—</b><small>em movimento</small></div>
         <div class="hcard"><b id="hMax">—</b><small>vel. máxima</small></div>
         <div class="hcard"><b id="hNPar">—</b><small>paradas</small></div>
+        <div class="hcard hign"><b id="hIgn">—</b><small>🔑 ignição ligada</small></div><!-- 04/11/2026 (dono): tempo com a ignição ligada -->
+        <div class="hcard hign"><b id="hOcioso">—</b><small>parado com motor ligado</small></div>
       </div>
       <div class="hplay">
         <button type="button" class="hbtn" id="hPlay" aria-label="Reproduzir"></button>
@@ -6571,6 +6573,24 @@ $('hEventos').onclick=async()=>{
 };
 const hhData=ms=>new Date(ms).toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo',day:'2-digit',month:'2-digit'});
 /* paradas calculadas a partir do próprio trajeto: o veículo ficou num raio de 60 m (contando também o tempo sem GPS, com a chave desligada) */
+/* 04/11/2026: soma o tempo entre posições seguidas com a ignição LIGADA (o último valor conhecido vale até chegar outro).
+   Buraco maior que 30 min entre duas posições conta no máximo 30 min (estimativa: o rastreador pode ter ficado sem sinal).
+   "parado com motor ligado" = ignição ligada e velocidade abaixo de 3 km/h. Guarda os trechos para as paradas usarem. */
+const IGN_TETO_MS=30*60000;
+function histIgnicao(pos){
+  const l=(pos||[]).map(p=>({t:Date.parse(p.deviceTime||p.fixTime||p.serverTime),ign:p.attributes&&typeof p.attributes.ignition==='boolean'?p.attributes.ignition:null,vel:(p.speed||0)*1.852})).filter(x=>isFinite(x.t)).sort((a,b)=>a.t-b.t);
+  let ult=null, ligado=0, parado=0, tem=false; const trechos=[];
+  for(let i=0;i<l.length;i++){
+    if(l[i].ign!==null){ ult=l[i].ign; tem=true }
+    const q=l[i+1]; if(!q || !ult) continue;
+    const dt=Math.min(Math.max(0,q.t-l[i].t),IGN_TETO_MS); if(!dt) continue;
+    ligado+=dt; if(l[i].vel<3) parado+=dt;
+    const u=trechos[trechos.length-1]; if(u && u.fim===l[i].t) u.fim=l[i].t+dt; else trechos.push({ini:l[i].t,fim:l[i].t+dt});
+  }
+  return {tem,ligado,parado,trechos};
+}
+/* quanto tempo do intervalo [a,b] ficou com a ignição ligada */
+function ignNoIntervalo(a,b){ const ig=hist.ign; if(!ig||!ig.tem) return null; let s=0; ig.trechos.forEach(x=>{ const i=Math.max(a,x.ini), f=Math.min(b,x.fim); if(f>i) s+=f-i }); return s }
 function histAcharParadas(pts){
   const out=[]; let ini=null;
   for(let i=0;i<pts.length;i++){
@@ -6593,7 +6613,7 @@ function popParada(s,i){
   const la=s.ll[0].toFixed(6), lo=s.ll[1].toFixed(6);
   const g='https://www.google.com/maps/search/?api=1&query='+la+','+lo, a='https://maps.apple.com/?q='+encodeURIComponent('Parada '+(i+1))+'&ll='+la+','+lo;
   const end=enderecoGuardado(s.ll);
-  return '<div class="hpopt">Parada '+(i+1)+'</div><div class="hpopd">'+(hist.varios?hhData(s.ini)+' ':'')+hhmm(s.ini)+' às '+hhmm(s.fim)+' · '+durCurta(s.dur)+'</div>'+
+  return '<div class="hpopt">Parada '+(i+1)+'</div><div class="hpopd">'+(hist.varios?hhData(s.ini)+' ':'')+hhmm(s.ini)+' às '+hhmm(s.fim)+' · '+durCurta(s.dur)+(()=>{ const m=ignNoIntervalo(s.ini,s.fim); return m>=60000?' · motor ligado '+durCurta(m):'' })()+'</div>'+
     '<div class="hpope" data-pe="'+i+'">'+(end?esc(end):'Buscando endereço...')+'</div>'+
     '<a class="hpopb" href="'+g+'" target="_blank" rel="noopener">Abrir no Google Maps</a>'+
     (ehIphone()?'<a class="hpopb ap" href="'+a+'" target="_blank" rel="noopener">Abrir no Mapas (Apple)</a>':'');
@@ -6606,7 +6626,7 @@ function histDesenharParadas(){
     .on('click',function(){ const pp=this.getPopup(); if(!pp) return; pp.options.autoPanPaddingBottomRight=[20,telaLarga()?40:($('hpanel').offsetHeight||0)+40]; pp.options.autoPanPaddingTopLeft=[telaLarga()?($('hpanel').offsetWidth||0)+40:20,20] })
     .bindPopup(popParada(s,i),{className:'hpop',closeButton:true,autoPanPaddingTopLeft:[20,20],autoPanPaddingBottomRight:[20,40]}).addTo(hist.camPar));
   $('hNPar').textContent=String(lst.length);
-  $('hParLista').innerHTML=lst.length?lst.map((s,i)=>'<div class="hstop" data-i="'+i+'"><span class="n">'+(i+1)+'</span><span>'+(hist.varios?hhData(s.ini)+' ':'')+hhmm(s.ini)+' às '+hhmm(s.fim)+' <small>· '+durCurta(s.dur)+'</small><em class="hend" data-e="'+i+'">'+esc(enderecoGuardado(s.ll)||'')+'</em></span></div>').join(''):'<div class="hstop"><small>Nenhuma parada desse tamanho no período.</small></div>';
+  $('hParLista').innerHTML=lst.length?lst.map((s,i)=>'<div class="hstop" data-i="'+i+'"><span class="n">'+(i+1)+'</span><span>'+(hist.varios?hhData(s.ini)+' ':'')+hhmm(s.ini)+' às '+hhmm(s.fim)+' <small>· '+durCurta(s.dur)+(()=>{ const m=ignNoIntervalo(s.ini,s.fim); return m>=60000?' · <b class="hmotor">motor ligado '+durCurta(m)+'</b>':'' })()+'</small><em class="hend" data-e="'+i+'">'+esc(enderecoGuardado(s.ll)||'')+'</em></span></div>').join(''):'<div class="hstop"><small>Nenhuma parada desse tamanho no período.</small></div>';
   $('hParLista').onclick=e=>{ const r=e.target.closest('[data-i]'); if(r){ const i=+r.dataset.i, s=lst[i]; histFocar(s.ll,17); setTimeout(()=>{ try{ hist.mkPar[i].openPopup() }catch(er){} },350) } };
   $('hParadas').querySelector('summary').textContent='Paradas ('+lst.length+')';
   enderecosParadas(lst,(i,t)=>{
@@ -6821,20 +6841,20 @@ $('hPdf').onclick=async()=>{
     doc.text('Paradas: '+$('hParMin2').options[$('hParMin2').selectedIndex].text,14,48);
     doc.text('Gerado em '+hhData(Date.now())+'/'+new Date().getFullYear()+' às '+hhmm(Date.now()),W-14,42.5,{align:'right'});
     /* resumo */
-    const res=[['Percorridos',$('hDist').textContent],['Em movimento',$('hMov').textContent],['Velocidade máxima',$('hMax').textContent],['Paradas',String(lst.length)]];
-    const cw=(W-28-9)/4;
+    const res=[['Percorridos',$('hDist').textContent],['Em movimento',$('hMov').textContent],['Velocidade máxima',$('hMax').textContent],['Paradas',String(lst.length)]].concat(hist.ign&&hist.ign.tem?[['Ignição ligada',$('hIgn').textContent],['Ligado e parado',$('hOcioso').textContent]]:[]); /* 04/11/2026 */
+    const nb=res.length, cw=(W-28-3*(nb-1))/nb; /* 04/11/2026: 4 ou 6 quadros (com a ignição) */
     res.forEach((r,i)=>{ const cx=14+i*(cw+3); doc.setFillColor(238,241,245); doc.roundedRect(cx,53,cw,15,2,2,'F');
-      doc.setTextColor(20,24,31); doc.setFont('helvetica','bold'); doc.setFontSize(11.5); doc.text(r[1],cx+cw/2,60,{align:'center'});
+      doc.setTextColor(20,24,31); doc.setFont('helvetica','bold'); doc.setFontSize(nb>4?10:11.5); doc.text(r[1],cx+cw/2,60,{align:'center'});
       doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(93,102,117); doc.text(r[0],cx+cw/2,65,{align:'center'}) });
     const dataHora=ms=>(hist.varios?hhData(ms)+' ':'')+hhmm(ms);
-    const linhas=lst.map((s,i)=>[String(i+1),dataHora(s.ini),dataHora(s.fim),durCurta(s.dur),enderecoGuardado(s.ll)||(s.ll[0].toFixed(5)+', '+s.ll[1].toFixed(5))]);
+    const linhas=lst.map((s,i)=>[String(i+1),dataHora(s.ini),dataHora(s.fim),durCurta(s.dur)+(()=>{ const m=ignNoIntervalo(s.ini,s.fim); return m>=60000?' (motor ligado '+durCurta(m)+')':'' })(),enderecoGuardado(s.ll)||(s.ll[0].toFixed(5)+', '+s.ll[1].toFixed(5))]);
     doc.autoTable({
       startY:74, head:[['#','Chegada','Saída','Tempo parado','Endereço']],
       body:linhas.length?linhas:[['','','','','Nenhuma parada desse tamanho no período.']],
       theme:'striped', styles:{font:'helvetica',fontSize:9,cellPadding:2.2,textColor:[20,24,31],valign:'middle'},
       headStyles:{fillColor:[37,99,235],textColor:255,fontStyle:'bold'},
       alternateRowStyles:{fillColor:[246,248,251]},
-      columnStyles:{0:{cellWidth:9,halign:'center',fontStyle:'bold'},1:{cellWidth:hist.varios?26:18},2:{cellWidth:hist.varios?26:18},3:{cellWidth:27},4:{cellWidth:'auto'}},
+      columnStyles:{0:{cellWidth:9,halign:'center',fontStyle:'bold'},1:{cellWidth:hist.varios?26:18},2:{cellWidth:hist.varios?26:18},3:{cellWidth:hist.ign&&hist.ign.tem?34:27},4:{cellWidth:'auto'}},
       margin:{left:14,right:14,bottom:16}
     });
     const n=doc.internal.getNumberOfPages();
@@ -6877,6 +6897,11 @@ function histMostrar(pos,id){
     if(pts[i].vel>max) max=pts[i].vel;
   }
   hist.todasParadas=histAcharParadas(pts);
+  /* 04/11/2026 (dono): tempo de ignição ligada e "parado com motor ligado", pela ignição de cada posição (inclusive sem GPS) */
+  hist.ign=histIgnicao(pos); const ig=hist.ign;
+  $('hIgn').textContent=ig.tem?(ig.ligado?durCurta(ig.ligado):'0 min'):'—';
+  $('hOcioso').textContent=ig.tem?(ig.parado?durCurta(ig.parado):'0 min'):'—';
+  document.querySelectorAll('#hRes .hign').forEach(x=>{ x.style.display=ig.tem?'':'none' });
   $('hDist').textContent=dist>=1000?(dist/1000).toFixed(dist>=100000?0:1).replace('.',',')+' km':Math.round(dist)+' m';
   $('hMov').textContent=mov?durCurta(mov):'—';
   $('hMax').textContent=max+' km/h';

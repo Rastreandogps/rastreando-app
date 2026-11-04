@@ -3574,3 +3574,7 @@ body.hist-on #assMapaBtn{display:none!important}
 #mAssist .aslbts .aslwpp{height:auto;min-height:38px;padding:8px 14px;line-height:1.25;text-align:left}
 #mAssist .aslbts button,#mAssist .aslbts a{flex:none;white-space:nowrap}
 #mAssist .aslbts .aslwpp{white-space:normal;flex:0 1 auto}
+
+/* 04/11/2026 (dono): histórico com ignição ligada e parado com motor ligado (2ª linha do resumo) */
+.hpanel .hcards .hign{grid-column:span 2}
+.hstop .hmotor{color:#d97706;font-weight:700}
