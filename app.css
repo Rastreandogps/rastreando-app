@@ -3488,5 +3488,5 @@ nav button:not(.on) .nemo{filter:saturate(.85)}
 .seloinst.ok{background:rgba(37,211,102,.14);color:#15803d}
 .seloinst.nav{background:rgba(245,165,36,.16);color:#b45309}
 /* 04/11/2026 (dono): IMEI comprido não passa mais por baixo do selo ("Tag · vista há…"); quebra dentro da própria coluna */
-#sheet .plate.vimei{white-space:normal;flex-wrap:wrap;max-width:100%;row-gap:2px}
+#sheet .plate.vimei{white-space:normal;flex-wrap:nowrap;align-items:flex-end;max-width:100%} /* botão de copiar sempre colado na frente do número */
 #sheet .plate.vimei #vImeiTxt{min-width:0;overflow-wrap:anywhere}
