@@ -11202,8 +11202,8 @@ function asMd(t){ /* negrito **x**, listas "- " e quebras de linha; nada de HTML
   const linhas=String(t||'').split('\n'); let h='', lista=false;
   const inl=x=>esc(x).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,(m,t,u)=>'<a href="'+u+'" target="_blank" rel="noopener">'+t+'</a>').replace(/(^|[^"])(https?:\/\/[^\s)<]+)/g,(m,p,u)=>p+'<a href="'+u+'" target="_blank" rel="noopener">'+(u.indexOf('maps.google')>=0?'ver no mapa':u)+'</a>');
   for(const l of linhas){
-    const px=/^\s*`?(000201\S{40,})`?\s*$/.exec(l); /* 04/11/2026: PIX copia e cola numa linha sozinha -> caixa com botão Copiar */
-    if(px){ if(lista){ h+='</ul>'; lista=false } h+='<div class="aspix"><code>'+esc(px[1])+'</code><button type="button" data-aspix="'+esc(px[1])+'">Copiar PIX</button></div>'; continue }
+    const px=/^\s*`?(000201.{40,}?)`?\s*$/.exec(l); if(px && !/BR\.GOV\.BCB\.PIX/i.test(px[1])) px.length=0; /* PIX pode ter espaço (nome da empresa) */ /* 04/11/2026: PIX copia e cola numa linha sozinha -> caixa com botão Copiar */
+    if(px && px[1]){ if(lista){ h+='</ul>'; lista=false } h+='<div class="aspix"><code>'+esc(px[1])+'</code><button type="button" data-aspix="'+esc(px[1])+'">Copiar PIX</button></div>'; continue }
     const m=/^\s*(?:[-•*]|\d+[.)])\s+(.*)$/.exec(l);
     if(m){ if(!lista){ h+='<ul>'; lista=true } h+='<li>'+inl(m[1])+'</li>'; continue }
     if(lista){ h+='</ul>'; lista=false }
@@ -11228,7 +11228,7 @@ async function asPerguntar(q){
     let j={}; try{ j=await r.json() }catch(e){}
     if(!r.ok) throw new Error(j.erro||('Erro '+r.status));
     esp.classList.remove('asesp'); esp.innerHTML=asMd(j.resposta||'(sem resposta)')+(j.ferramentas&&j.ferramentas.length?'<div class="asfer" title="Consultas que o assistente fez">🔎 '+esc(j.ferramentas.filter((x,i,a)=>a.indexOf(x)===i).join(' · ').replace(/_/g,' '))+'</div>':'');
-    asHist.push({papel:'usuario',texto:q},{papel:'assistente',texto:String(j.resposta||'')}); asHist=asHist.slice(-12);
+    asHist.push({papel:'usuario',texto:q},{papel:'assistente',texto:String(j.resposta||''),ferramentas:(j.ferramentas||[]).filter((x,i,a)=>a.indexOf(x)===i)}); asHist=asHist.slice(-12);
     (j.confirmar||[]).forEach(asConfirmarCard); /* etapa 2 (04/11/2026): ações só rodam depois do Confirmar */
     $('asInfo').textContent=(j.nDia?j.nDia+'ª pergunta de hoje':'')+(j.ms?' · '+(j.ms/1000).toFixed(1)+' s':'');
   }catch(e){ esp.classList.remove('asesp'); esp.classList.add('aserr'); esp.textContent=e.message||'Não consegui falar com o assistente.' }
@@ -11237,7 +11237,7 @@ async function asPerguntar(q){
 /* etapa 2: cartão de confirmação de uma ação (bloquear, desbloquear, SMS). Vale 10 min; o servidor só executa com o toque. */
 function asConfirmarCard(p){
   const c=$('asChat'); const d=document.createElement('div'); d.className='asb asa asconf'; d.dataset.id=p.id;
-  const perigo=/f[aá]brica|BLOQUEAR o ve/.test(p.descricao||'');
+  const perigo=/f[aá]brica|BLOQUEAR o ve|APAGAR|DESATIVAR/.test(p.descricao||'');
   d.innerHTML='<div class="asct">'+(perigo?'⚠️ ':'')+'Confirmar?</div><div class="asdesc">'+esc(p.descricao||'')+'</div>'+
     '<div class="asbts"><button type="button" class="asok'+(perigo?' perigo':'')+'" data-asok="'+esc(p.id)+'">Confirmar</button><button type="button" class="ascan" data-ascan="'+esc(p.id)+'">Cancelar</button></div>';
   c.appendChild(d); c.scrollTop=c.scrollHeight;
