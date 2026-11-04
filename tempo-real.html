@@ -41,7 +41,7 @@ try{ if(localStorage.getItem('rg_token')||sessionStorage.getItem('rgv_rg_token')
 try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'){document.documentElement.setAttribute('data-tema',t)}}catch(e){}
 </script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="stylesheet" href="app.css?v=26"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
+<link rel="stylesheet" href="app.css?v=27"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
 </head>
 <body>
 
@@ -734,7 +734,7 @@ try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'
 <div class="modal" id="mAssist"><!-- 04/11/2026: assistente do administrador (só consulta nesta versão) -->
   <div class="box2">
     <div class="smtopo"><h3>✨ Assistente</h3><button class="imx" id="asX" type="button" aria-label="Fechar" title="Fechar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
-    <p class="asdica" id="asDica">Pergunte em português sobre clientes, aparelhos, chips, financeiro e acessos. Por enquanto ele <b>só consulta</b>: não bloqueia, não manda SMS, não altera nada.</p>
+    <p class="asdica" id="asDica">Pergunte em português sobre clientes, aparelhos, chips, financeiro e acessos. Também pode pedir para <b>bloquear, desbloquear ou mandar SMS</b>: a ação só acontece depois que você tocar em <b>Confirmar</b>.</p>
     <div class="aschat" id="asChat"></div>
     <div class="assug" id="asSug">
       <button type="button" data-asq="Quantos clientes e aparelhos eu tenho?">Resumo geral</button>
@@ -11224,10 +11224,35 @@ async function asPerguntar(q){
     if(!r.ok) throw new Error(j.erro||('Erro '+r.status));
     esp.classList.remove('asesp'); esp.innerHTML=asMd(j.resposta||'(sem resposta)')+(j.ferramentas&&j.ferramentas.length?'<div class="asfer" title="Consultas que o assistente fez">🔎 '+esc(j.ferramentas.filter((x,i,a)=>a.indexOf(x)===i).join(' · ').replace(/_/g,' '))+'</div>':'');
     asHist.push({papel:'usuario',texto:q},{papel:'assistente',texto:String(j.resposta||'')}); asHist=asHist.slice(-12);
+    (j.confirmar||[]).forEach(asConfirmarCard); /* etapa 2 (04/11/2026): ações só rodam depois do Confirmar */
     $('asInfo').textContent=(j.nDia?j.nDia+'ª pergunta de hoje':'')+(j.ms?' · '+(j.ms/1000).toFixed(1)+' s':'');
   }catch(e){ esp.classList.remove('asesp'); esp.classList.add('aserr'); esp.textContent=e.message||'Não consegui falar com o assistente.' }
   finally{ asOcupado=false; $('asEnviar').disabled=false; $('asChat').scrollTop=$('asChat').scrollHeight; try{ $('asTxt').focus() }catch(_){} }
 }
+/* etapa 2: cartão de confirmação de uma ação (bloquear, desbloquear, SMS). Vale 10 min; o servidor só executa com o toque. */
+function asConfirmarCard(p){
+  const c=$('asChat'); const d=document.createElement('div'); d.className='asb asa asconf'; d.dataset.id=p.id;
+  const perigo=/f[aá]brica/i.test(p.descricao||'');
+  d.innerHTML='<div class="asct">'+(perigo?'⚠️ ':'')+'Confirmar?</div><div class="asdesc">'+esc(p.descricao||'')+'</div>'+
+    '<div class="asbts"><button type="button" class="asok'+(perigo?' perigo':'')+'" data-asok="'+esc(p.id)+'">Confirmar</button><button type="button" class="ascan" data-ascan="'+esc(p.id)+'">Cancelar</button></div>';
+  c.appendChild(d); c.scrollTop=c.scrollHeight;
+}
+async function asExecutar(id,cancelar){
+  const card=$('asChat').querySelector('.asconf[data-id="'+id+'"]'); if(!card) return;
+  const bts=card.querySelector('.asbts'); bts.innerHTML='<span class="asesp">'+(cancelar?'Cancelando…':'Executando…')+'</span>';
+  const tok=lsGet('rg_token');
+  try{
+    const r=await fetch(ASSIST_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',body:JSON.stringify({acao:'executar',token:tok,id:id,cancelar:!!cancelar})});
+    let j={}; try{ j=await r.json() }catch(e){}
+    if(!r.ok) throw new Error(j.erro||('Erro '+r.status));
+    const txt=cancelar?'Cancelado. Nada foi feito.':(j.ok?'✅ '+((j.resultado&&j.resultado.resultado)||'Feito.'):'❌ '+((j.resultado&&j.resultado.erro)||'Não deu certo.'));
+    bts.innerHTML='<div class="asres'+(cancelar||!j.ok?' asmut':'')+'">'+esc(txt)+'</div>';
+    asHist.push({papel:'assistente',texto:(cancelar?'[ação cancelada pelo administrador] ':'[ação executada] ')+String(j.descricao||'')+': '+txt}); asHist=asHist.slice(-12);
+    try{ if(!cancelar && j.ok){ setTimeout(()=>{ try{ buscarSeguro() }catch(_){} },4000) } }catch(e){}
+  }catch(e){ bts.innerHTML='<div class="asres aserr2">'+esc(e.message||'Não consegui executar.')+'</div>' }
+  $('asChat').scrollTop=$('asChat').scrollHeight;
+}
+$('asChat').addEventListener('click',e=>{ const ok=e.target.closest('[data-asok]'); if(ok){ asExecutar(ok.dataset.asok,false); return } const ca=e.target.closest('[data-ascan]'); if(ca) asExecutar(ca.dataset.ascan,true) });
 function asAltura(){ const t=$('asTxt'); t.style.height='auto'; t.style.height=Math.min(120,t.scrollHeight)+'px' }
 $('aAssist').onclick=()=>{ if(!ehAdmin) return; abrir('mAssist'); if(!asHist.length) asPintarVazio(); setTimeout(()=>{ try{ $('asTxt').focus() }catch(_){} },150) };
 $('asX').onclick=fechar;
