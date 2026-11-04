@@ -3488,5 +3488,7 @@ nav button:not(.on) .nemo{filter:saturate(.85)}
 .seloinst.ok{background:rgba(37,211,102,.14);color:#15803d}
 .seloinst.nav{background:rgba(245,165,36,.16);color:#b45309}
 /* 04/11/2026 (dono): IMEI comprido não passa mais por baixo do selo ("Tag · vista há…"); quebra dentro da própria coluna */
-#sheet .plate.vimei{white-space:normal;flex-wrap:nowrap;align-items:flex-end;max-width:100%} /* botão de copiar sempre colado na frente do número */
-#sheet .plate.vimei #vImeiTxt{min-width:0;overflow-wrap:anywhere}
+/* 04/11/2026 (dono): o número do IMEI nunca quebra; no celular some a palavra "IMEI" para caber, e o botão de copiar fica colado na frente */
+#sheet .plate.vimei{white-space:nowrap;flex-wrap:nowrap;align-items:center;max-width:100%;gap:4px}
+#sheet .plate.vimei #vImeiTxt{font-variant-numeric:tabular-nums;letter-spacing:0}
+@media (max-width:600px){#sheet .plate.vimei .imlbl{display:none}#sheet .plate.vimei #vImeiTxt{font-size:11px}}

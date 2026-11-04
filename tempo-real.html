@@ -41,7 +41,7 @@ try{ if(localStorage.getItem('rg_token')||sessionStorage.getItem('rgv_rg_token')
 try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'){document.documentElement.setAttribute('data-tema',t)}}catch(e){}
 </script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="stylesheet" href="app.css?v=23"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
+<link rel="stylesheet" href="app.css?v=24"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
 </head>
 <body>
 
@@ -3279,7 +3279,7 @@ function atualizar(){
     sheet.classList.toggle('ehtag',!!v.tag); /* 16/10/2026: cartão da tag (sem bloqueio, SMS, velocidade, odômetro e combustível) */
     $('vName').textContent=v.nome; $('vName').title=v.nome; $('vPick').classList.toggle('multi',veiculos.length>1);
     $('vPlate').textContent=v.placa;
-    { const ie=$('vImei'), im=(ehAdmin||(permCli&&permCli.frotista===true))?String(v.imei||'').trim():''; $('vImeiTxt').textContent=im?'IMEI '+im:''; ie.style.display=im?'':'none' } /* 20/10/2026: IMEI embaixo da placa, só o administrador. 23/10/2026 (pedido do dono): o frotista também vê, igual */
+    { const ie=$('vImei'), im=(ehAdmin||(permCli&&permCli.frotista===true))?String(v.imei||'').trim():''; $('vImeiTxt').innerHTML=im?'<span class="imlbl">IMEI </span>'+esc(im):''; /* 04/11/2026: no celular some a palavra IMEI (o número não quebra) */ ie.style.display=im?'':'none' } /* 20/10/2026: IMEI embaixo da placa, só o administrador. 23/10/2026 (pedido do dono): o frotista também vê, igual */
     motLinha(v);
     /* número do chip: só o administrador vê (o cliente nunca vê) */
     const cr=$('chipRow');
