@@ -63,7 +63,12 @@ main{width:100%;max-width:440px;display:flex;flex-direction:column;gap:16px}
 #dicaDeslize{margin-top:8px}
 #dicaIos{font-size:12.5px}
 @media (max-height:760px){body{padding-top:14px}.brand{gap:6px;padding-top:0}.brand img{width:56px;height:56px;border-radius:14px}.brand h1{font-size:19px}.brand p{display:none}}
-#videoIos video{display:block;width:100%;max-height:72vh;object-fit:contain;border-radius:12px;background:#000}
+/* 04/11/2026 (dono): o quadro tem o tamanho do vídeo (sem faixas pretas dos lados) e o botão de som fica em cima dele */
+#videoIos{position:relative;width:min(100%,calc(70vh * 9 / 16));margin:0 auto}
+#videoIos video{display:block;width:100%;height:auto;aspect-ratio:9/16;object-fit:cover;border-radius:12px;background:#151b2b}
+.vsom{position:absolute;left:50%;bottom:7%;transform:translateX(-50%);border:1.5px solid rgba(255,255,255,.6);border-radius:999px;background:rgba(10,15,30,.72);color:#fff;font:inherit;font-size:15px;font-weight:700;padding:11px 18px;cursor:pointer;white-space:nowrap;animation:vsomPulsa 1.4s ease-in-out infinite}
+@keyframes vsomPulsa{50%{transform:translateX(-50%) scale(1.07);box-shadow:0 0 0 8px rgba(255,255,255,.12)}}
+@media (prefers-reduced-motion:reduce){.vsom{animation:none}}
 #dicaIos{font-size:13px;color:var(--mut);line-height:1.45}
 [hidden]{display:none!important}
 </style>
@@ -99,7 +104,7 @@ main{width:100%;max-width:440px;display:flex;flex-direction:column;gap:16px}
     <h2>Instalar no iPhone</h2>
     <div class="aviso" id="avisoIosWeb" hidden style="margin-bottom:12px">Esta página abriu dentro de outro aplicativo (como WhatsApp ou Instagram). Abra no <b>Safari</b> primeiro: toque no ícone de menu ou compartilhar e escolha <b>Abrir no Safari</b>.</div>
     <!-- 04/11/2026 (dono): no iPhone, o vídeo do passo a passo no lugar da demonstração (os cartões não estavam ajudando) -->
-    <div id="videoIos" style="margin-bottom:12px"><video src="tutorial-iphone.mp4" poster="tutorial-iphone-capa.jpg" controls autoplay muted loop playsinline preload="metadata" width="720" height="1280" aria-label="Vídeo: como instalar o app no iPhone"></video></div>
+    <div id="videoIos" style="margin-bottom:12px"><video id="vIos" src="tutorial-iphone.mp4" poster="tutorial-iphone-capa.jpg" autoplay muted loop playsinline preload="metadata" width="720" height="1280" aria-label="Vídeo: como instalar o app no iPhone"></video><button type="button" id="vIosSom" class="vsom">🔇 Toque para ouvir</button></div>
     <p class="peq" style="margin:0 0 4px">Assista e faça igual: no <b>Safari</b>, toque nos <b>três pontinhos ⋯</b> → <b>Compartilhar</b> → <b>Adicionar à Tela de Início</b> → <b>Adicionar</b>.</p>
   </section>
 
@@ -141,6 +146,20 @@ main{width:100%;max-width:440px;display:flex;flex-direction:column;gap:16px}
 
 
 
+
+  /* 04/11/2026 (dono): tocar no vídeo ou no botão liga o som e começa do início, com os controles */
+  var vIos = $('vIos'), vSom = $('vIosSom');
+  if (vIos && vSom) {
+    var comSom = function(){
+      vIos.muted = false; vIos.loop = false; vIos.controls = true;
+      try { vIos.currentTime = 0 } catch (e) {}
+      var p = vIos.play(); if (p && p.catch) p.catch(function(){});
+      vSom.hidden = true;
+    };
+    vSom.addEventListener('click', comSom);
+    vIos.addEventListener('click', function(){ if (vIos.muted) comSom() });
+    vIos.addEventListener('ended', function(){ vIos.muted = true; vIos.loop = true; vIos.controls = false; vSom.hidden = false; var p = vIos.play(); if (p && p.catch) p.catch(function(){}) });
+  }
 
   /* carrossel dos passos do iPhone */
   var car = $('carrossel');
