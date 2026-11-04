@@ -41,7 +41,7 @@ try{ if(localStorage.getItem('rg_token')||sessionStorage.getItem('rgv_rg_token')
 try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'){document.documentElement.setAttribute('data-tema',t)}}catch(e){}
 </script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="stylesheet" href="app.css?v=32"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
+<link rel="stylesheet" href="app.css?v=33"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
 </head>
 <body>
 
@@ -126,7 +126,7 @@ try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'
   <!-- 19/10/2026 (pedido do dono): lupa para marcar um ponto no mapa (endereço ou latitude/longitude), só administrador -->
   <button id="socBtn" type="button" title="Serviços: reboque, chaveiro, mecânico e mais" aria-label="Serviços: reboque, chaveiro, mecânico e mais"><img src="icv/servicos-reboque.webp" alt=""><b>Serviços</b></button>
   <!-- 04/11/2026 (dono): atalho do assistente no mapa, embaixo do Serviços (só administrador; o botão da aba Admin continua) -->
-  <button id="assMapaBtn" type="button" style="display:none" title="Assistente" aria-label="Abrir o assistente"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 4.6L18.5 9.4l-4.7 1.8L12 16l-1.8-4.8L5.5 9.4l4.7-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg><b>Assistente</b></button>
+  <button id="assMapaBtn" type="button" style="display:none" title="Assistente Rastreando GPS" aria-label="Abrir o Assistente Rastreando GPS"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 4.6L18.5 9.4l-4.7 1.8L12 16l-1.8-4.8L5.5 9.4l4.7-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg><b>Assistente</b></button>
   <button id="pontoBtn" type="button" style="display:none" title="Marcar um ponto no mapa (endereço ou coordenadas)" aria-label="Marcar um ponto no mapa"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><b id="pontoN"></b></button>
   <button id="retChip" type="button" style="display:none" title="Tirar do mapa os veículos para retirar">📍 Para retirar no mapa <span aria-hidden="true">✕</span></button>
   <button id="deslizeBtn" type="button" title="Teste: o veículo desliza sem parar, mostrando o trajeto com até 2 minutos de atraso">〰️ Deslize contínuo: <span id="deslizeTxt">desligado</span></button>
@@ -735,10 +735,10 @@ try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'
 <!-- SMS em massa (13/10/2026, pedido do dono): escolher o comando e os equipamentos -->
 <div class="modal" id="mAssist"><!-- 04/11/2026: assistente do administrador (só consulta nesta versão) -->
   <div class="box2">
-    <div class="smtopo"><h3>✨ Assistente</h3><button class="imx" id="asX" type="button" aria-label="Fechar" title="Fechar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
-    <p class="asdica" id="asDica">Pergunte em português sobre clientes, aparelhos, chips, financeiro e acessos. Também pode pedir resumo do dia, cobrança, trajeto, paradas, km, velocidade, faturas e PIX, <b>bloquear, desbloquear, mandar SMS, cercas, link, renomear, vincular e cadastrar aparelho</b>: a ação só acontece depois que você tocar em <b>Confirmar</b>.</p>
+    <div class="smtopo"><h3>✨ Assistente Rastreando GPS</h3><button class="imx" id="asX" type="button" aria-label="Fechar" title="Fechar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <p class="asdica" id="asDica" hidden>Pergunte em português sobre clientes, aparelhos, chips, financeiro e acessos. Também pode pedir resumo do dia, cobrança, trajeto, paradas, km, velocidade, faturas e PIX, <b>bloquear, desbloquear, mandar SMS, cercas, link, renomear, vincular e cadastrar aparelho</b>: a ação só acontece depois que você tocar em <b>Confirmar</b>.</p>
     <div class="aschat" id="asChat"></div>
-    <div class="assug" id="asSug">
+    <div class="assug" id="asSug" hidden><!-- 04/11/2026 (dono): sem atalhos prontos -->
       <button type="button" data-asq="Quantos clientes e aparelhos eu tenho?">Resumo geral</button>
       <button type="button" data-asq="Quem está com a mensalidade atrasada?">Atrasados</button>
       <button type="button" data-asq="Quais aparelhos estão sem sinal há mais de 24 horas?">Sem sinal</button>
@@ -11229,7 +11229,7 @@ function asMd(t){ /* negrito **x**, listas "- " e quebras de linha; nada de HTML
 function asBolha(papel,texto,extra){
   const c=$('asChat'); const d=document.createElement('div'); d.className='asb '+(papel==='assistente'?'asa':'asu'); d.innerHTML=(papel==='assistente'?asMd(texto):esc(texto))+(extra||''); c.appendChild(d); c.scrollTop=c.scrollHeight; return d;
 }
-function asPintarVazio(){ $('asChat').innerHTML=''; $('asSug').style.display=''; $('asInfo').textContent='' }
+function asPintarVazio(){ $('asChat').innerHTML=''; $('asInfo').textContent='' }
 async function asPerguntar(q){
   q=String(q||'').trim(); if(!q||asOcupado) return;
   asOcupado=true; $('asEnviar').disabled=true; $('asSug').style.display='none'; $('asTxt').value=''; asAltura();

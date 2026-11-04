@@ -3559,3 +3559,6 @@ nav button:not(.on) .nemo{filter:saturate(.85)}
 #assMapaBtn:active{transform:scale(.95)}
 body.hist-on #assMapaBtn{display:none!important}
 @media (min-width:900px){ #assMapaBtn{left:calc(var(--lado,0px) + 12px);z-index:460} }
+
+/* 04/11/2026 (dono): sem texto de explicação e sem atalhos no assistente */
+#mAssist .asdica[hidden],#mAssist .assug[hidden]{display:none!important}
