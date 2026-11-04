@@ -41,7 +41,7 @@ try{ if(localStorage.getItem('rg_token')||sessionStorage.getItem('rgv_rg_token')
 try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'){document.documentElement.setAttribute('data-tema',t)}}catch(e){}
 </script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="stylesheet" href="app.css?v=19"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
+<link rel="stylesheet" href="app.css?v=20"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
 </head>
 <body>
 
@@ -1791,8 +1791,8 @@ try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'
 </div>
 <div class="modal alsheet" id="mWppTroca"><!-- 03/11/2026 (noite, dono): escolher os veículos que usam o pacote da conta -->
   <div class="box2">
-    <h3>Veículos no WhatsApp</h3>
-    <p>Marque os veículos que vão avisar no WhatsApp. Todos gastam do mesmo pacote: quanto mais veículos, mais rápido ele acaba.</p>
+    <h3 id="wtTit">Veículos no WhatsApp</h3>
+    <p id="wtTxt">Marque os veículos que vão avisar no WhatsApp. Todos gastam do mesmo pacote: quanto mais veículos, mais rápido ele acaba.</p>
     <button class="linkbtn" type="button" id="wtTodos" style="margin:2px 0 6px">Marcar todos</button>
     <div id="wtLista" class="wtlista"></div>
     <p class="wpperrotx" id="wtErro" style="color:var(--red2);font-size:13px;min-height:18px;margin:6px 0 0"></p>
@@ -10044,28 +10044,39 @@ function wppDesenhar(){
   if(!pode){ $('wppLista').innerHTML=''; $('wppCard').style.display='none'; return } $('wppCard').style.display='';
   $('wppTeste').style.display=wppEst.liberado?'none':'';
   const nomes={}; (wppEst.itens||[]).forEach(i=>nomes[i.k]=i);
-  /* 03/11/2026 (noite, dono): o pacote é da CONTA e vale para os veículos que o cliente marcar. Um cartão só. */
+  /* 03/11/2026 (noite, dono): o pacote é da CONTA. 21h30: cada função (ignição, cerca...) tem os SEUS veículos;
+     tocar na função abre a lista dela e o botão para adicionar ou tirar veículos. */
   const ct=wppEst.conta; if(!ct || !ct.temPacote){ $('wppLista').innerHTML=''; return }
-  const marc=veiculos.filter(v=>(ct.veiculos||[]).map(Number).includes(v.id)).sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
+  const lst=k=>((ct.vpi&&ct.vpi[k])||ct.veiculos||[]).map(Number);
+  const nomeV=id=>{ const v=veiculos.find(x=>x.id===id); return v?v.nome:'' };
   let acabando=[];
   const itens=(wppEst.itens||[]).filter(it=>ct.itens[it.k] && ct.itens[it.k].ate>0).map(it=>{
     const k=it.k, u=ct.itens[k], pac=Number(it.pacote)||100, resta=Math.max(0,Number(u.saldo)||0);
     const txt=resta+(resta===1?' restante':' restantes');
     if(resta<=Math.ceil(pac*0.1)) acabando.push(it.nome);
     const pc=Math.min(100,Math.round((pac-Math.min(resta,pac))/pac*100)); /* barra = quanto do pacote já foi usado */
-    return '<div class="wppit"><div class="l1"><span>'+esc(it.nome)+'</span><span>'+txt+'</span></div>'+
+    const ids=lst(k).filter(id=>nomeV(id)).sort((a,b)=>nomeV(a).localeCompare(nomeV(b),'pt-BR'));
+    const qtd=ids.length?ids.length+(ids.length===1?' veículo':' veículos'):'nenhum veículo';
+    return '<details class="wppfx" data-k="'+k+'"'+(wppAbertos.has(k)?' open':'')+'><summary>'+
+      '<div class="l1"><span>'+esc(it.nome)+'</span><span>'+txt+'</span></div>'+
       '<div class="bar"><i class="'+(pc>=100?'cheio':pc>=80?'alto':'')+'" style="width:'+pc+'%"></i></div>'+
-      (ehAdmin?'<div style="text-align:right;margin-top:4px"><button class="linkbtn" type="button" data-wppdesl="'+((marc[0]||veiculos[0]||{}).id||0)+'" data-k="'+k+'">Desligar</button></div>':'')+'</div>';
+      '<div class="l2"><span class="'+(ids.length?'':'zero')+'">🚗 '+qtd+'</span><span class="seta" aria-hidden="true">›</span></div></summary>'+
+      '<div class="wppfxc">'+(ids.length?ids.map(id=>'<div class="wppfxv">'+esc(nomeV(id))+'</div>').join(''):'<div class="wppfxv zero">Nenhum veículo nesta função: ela não avisa no WhatsApp.</div>')+
+      (k==='cerca'?'<div class="wppfxn">O aviso sai quando o veículo entra ou sai de uma cerca dele (crie a cerca na aba Cercas).</div>':'')+
+      (k==='volta'?'<div class="wppfxn">O aviso "voltou a transmitir" é ligado no veículo, no cartão "Volta do sinal" acima.</div>':'')+
+      '<button class="mini" type="button" data-wpptroca="'+k+'">＋ Adicionar ou tirar veículos</button>'+
+      (ehAdmin?' <button class="linkbtn" type="button" data-wppdesl="'+((ids[0]||(veiculos[0]||{}).id)||0)+'" data-k="'+k+'">Desligar</button>':'')+'</div></details>';
   }).join('');
   const vence=acabando.length?'<div class="wppvence">⚠️ Restam poucos avisos: '+esc(acabando.join(', '))+'. Compre outro pacote para continuar recebendo no WhatsApp.</div>':'';
-  const vtx=marc.length?marc.map(v=>esc(v.nome)).join(', '):'<b style="color:var(--red2)">Nenhum veículo marcado: o WhatsApp está parado.</b>';
+  const prim=lst(Object.keys(ct.itens||{}).find(k=>ct.itens[k].ate>0)||'ign')[0]||'';
   $('wppLista').innerHTML='<div class="wppv"><div class="vh"><span>📦 Seu pacote de avisos</span><small>sem prazo</small></div>'+
     '<div class="wppnums">💬 '+esc(wppFone(ct.numero))+(ct.numero2?' · '+esc(wppFone(ct.numero2)):'')+' <button class="linkbtn" type="button" data-wppnum="1">Editar</button></div>'+
-    '<div class="wppnums">🚗 '+vtx+' <button class="linkbtn" type="button" data-wpptroca="1">'+(veiculos.length>1?'Escolher veículos':'Alterar')+'</button></div>'+
-    (marc.length>1?'<div class="igrow" style="font-size:12px;color:var(--mut)">'+marc.length+' veículos usando o mesmo pacote.</div>':'')+
+    '<div class="wppfxdica">Toque em cada aviso para ver e escolher os veículos.</div>'+
     itens+vence+
-    '<div class="bts"><button class="mini" type="button" data-wppren="'+((marc[0]||{}).id||'')+'">'+(acabando.length?'Comprar mais avisos':'Adicionar mais avisos')+'</button></div></div>';
+    '<div class="bts"><button class="mini" type="button" data-wppren="'+prim+'">'+(acabando.length?'Comprar mais avisos':'Adicionar mais avisos')+'</button></div></div>';
+  $('wppLista').querySelectorAll('details.wppfx').forEach(d=>d.addEventListener('toggle',()=>{ d.open?wppAbertos.add(d.dataset.k):wppAbertos.delete(d.dataset.k) }));
 }
+var wppAbertos=new Set();
 function wppAbrir(dev){
   if(!wppEst || !wppEst.podeComprar) return;
   const lista=veiculos.slice().sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
@@ -10134,7 +10145,7 @@ $('wppLista').addEventListener('change',async e=>{
 });
 $('wppLista').addEventListener('click',async e=>{
   const r=e.target.closest('[data-wppren]'); if(r){ wppAbrir(r.dataset.wppren); return }
-  const tr=e.target.closest('[data-wpptroca]'); if(tr){ wppTrocaAbrir(); return }
+  const tr=e.target.closest('[data-wpptroca]'); if(tr){ wppTrocaAbrir(tr.dataset.wpptroca); return }
   const nm=e.target.closest('[data-wppnum]'); if(nm){ wppNumAbrir(); return }
   const d=e.target.closest('[data-wppdesl]'); if(!d) return;
   d.disabled=true;
@@ -10162,8 +10173,14 @@ $('wnOk').onclick=async()=>{
 };
 ['wn1','wn2'].forEach(id=>$(id).addEventListener('input',e=>{ const d=e.target.value.replace(/\D/g,'').slice(0,11); e.target.value=d.length>2?'('+d.slice(0,2)+') '+(d.length>6?d.slice(2,d.length-4)+'-'+d.slice(-4):d.slice(2)):d }));
 /* 03/11/2026 (noite, dono): "Trocar veículo" virou "Escolher veículos": marca quantos quiser, todos gastam do mesmo pacote. */
-function wppTrocaAbrir(){
-  const ct=(wppEst&&wppEst.conta)||{}, marc=(ct.veiculos||[]).map(Number);
+let wppTrocaItem='';
+function wppTrocaAbrir(k){
+  const ct=(wppEst&&wppEst.conta)||{};
+  wppTrocaItem=(k&&k!=='1')?k:'';
+  const marc=((wppTrocaItem&&ct.vpi&&ct.vpi[wppTrocaItem])||ct.veiculos||[]).map(Number);
+  const nm=((wppEst.itens||[]).find(i=>i.k===wppTrocaItem)||{}).nome;
+  $('wtTit').textContent=nm?'Veículos · '+nm:'Veículos no WhatsApp';
+  $('wtTxt').textContent=nm?'Marque os veículos que avisam "'+nm+'" no WhatsApp. Todos gastam do mesmo pacote: quanto mais veículos, mais rápido ele acaba.':'Marque os veículos que vão avisar no WhatsApp. Todos gastam do mesmo pacote: quanto mais veículos, mais rápido ele acaba.';
   const lista=veiculos.slice().sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
   $('wtErro').textContent='';
   $('wtLista').innerHTML=lista.map(x=>'<div class="igrow wtit"><span>'+esc(x.nome)+(x.placa?'<small>'+esc(x.placa)+'</small>':'')+'</span><label class="sw"><input type="checkbox" data-wtv="'+x.id+'"'+(marc.includes(x.id)?' checked':'')+'><span></span></label></div>').join('');
@@ -10173,9 +10190,9 @@ function wppTrocaAbrir(){
 $('wtTodos').onclick=()=>{ const cs=[...$('wtLista').querySelectorAll('input[data-wtv]')], todos=cs.every(c=>c.checked); cs.forEach(c=>c.checked=!todos); $('wtTodos').textContent=todos?'Marcar todos':'Desmarcar todos' };
 $('wtOk').onclick=async()=>{
   const lista=[...$('wtLista').querySelectorAll('input[data-wtv]:checked')].map(c=>+c.dataset.wtv);
-  if(!lista.length && !confirm('Nenhum veículo marcado: o WhatsApp fica parado e o pacote não é gasto. Salvar assim?')) return;
+  if(!lista.length && !confirm(wppTrocaItem?'Nenhum veículo marcado: este aviso para de chegar no WhatsApp. Salvar assim?':'Nenhum veículo marcado: o WhatsApp fica parado e o pacote não é gasto. Salvar assim?')) return;
   const b=$('wtOk'); b.disabled=true;
-  try{ wppEst=await fnAl('wppVeiculos',{lista}); fechar(); wppDesenhar(); try{ alCfg=(await fnAl('alertasEstado',{})).cfg||alCfg }catch(e){} try{ desenharIgn(); desenharBat() }catch(e){} toast(lista.length?'Pronto. '+lista.length+(lista.length===1?' veículo avisa':' veículos avisam')+' no WhatsApp, usando o mesmo pacote.':'WhatsApp parado. Os alertas continuam no app.',4500) }
+  try{ wppEst=await fnAl('wppVeiculos',wppTrocaItem?{lista,item:wppTrocaItem}:{lista}); if(wppTrocaItem) wppAbertos.add(wppTrocaItem); fechar(); wppDesenhar(); try{ alCfg=(await fnAl('alertasEstado',{})).cfg||alCfg }catch(e){} try{ desenharIgn(); desenharBat() }catch(e){} toast(lista.length?'Pronto. '+lista.length+(lista.length===1?' veículo avisa':' veículos avisam')+' no WhatsApp, usando o mesmo pacote.':'Pronto. Os alertas continuam no app.',4500) }
   catch(err){ $('wtErro').textContent=err.message }
   b.disabled=false;
 };
