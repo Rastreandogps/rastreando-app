@@ -3538,3 +3538,9 @@ nav button:not(.on) .nemo{filter:saturate(.85)}
 #mAssist .ascod{margin:6px 0;background:var(--card);border:1px dashed var(--line);border-radius:12px;padding:10px;display:grid;gap:8px}
 #mAssist .ascod pre{margin:0;white-space:pre-wrap;word-break:break-word;font:inherit;font-size:13.5px;line-height:1.4;color:var(--txt)}
 #mAssist .ascod button{justify-self:start;height:36px;padding:0 16px;border-radius:10px;border:0;background:var(--cyan);color:#06262a;font:700 13.5px inherit;font-family:inherit;cursor:pointer}
+
+/* 04/11/2026 assistente: tabelas vindas em markdown */
+#mAssist .astab{overflow-x:auto;margin:6px 0;-webkit-overflow-scrolling:touch}
+#mAssist .astab table{border-collapse:collapse;font-size:12px;min-width:100%;white-space:nowrap}
+#mAssist .astab th,#mAssist .astab td{padding:4px 8px;border-bottom:1px solid rgba(255,255,255,.12);text-align:left;vertical-align:top}
+#mAssist .astab th{font-weight:700;opacity:.85}

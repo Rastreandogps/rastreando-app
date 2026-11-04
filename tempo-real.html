@@ -41,7 +41,7 @@ try{ if(localStorage.getItem('rg_token')||sessionStorage.getItem('rgv_rg_token')
 try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'){document.documentElement.setAttribute('data-tema',t)}}catch(e){}
 </script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="stylesheet" href="app.css?v=29"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
+<link rel="stylesheet" href="app.css?v=30"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
 </head>
 <body>
 
@@ -11199,13 +11199,20 @@ $('aPlacas').onclick=leitorAbrir;
 const ASSIST_URL='https://southamerica-east1-rastreando-assinaturas.cloudfunctions.net/rastreamentoAssistente';
 let asHist=[], asOcupado=false;
 function asMd(t){ /* negrito **x**, listas "- " e quebras de linha; nada de HTML vindo do servidor */
-  const linhas=String(t||'').split('\n'); let h='', lista=false, cod=null; /* cod = dentro de um bloco ``` (mensagem pronta para copiar) */
+  const linhas=String(t||'').split('\n'); let h='', lista=false, tab=false, cod=null; /* cod = dentro de um bloco ``` (mensagem pronta para copiar) */
   const inl=x=>esc(x).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,(m,t,u)=>'<a href="'+u+'" target="_blank" rel="noopener">'+t+'</a>').replace(/(^|[^"])(https?:\/\/[^\s)<]+)/g,(m,p,u)=>p+'<a href="'+u+'" target="_blank" rel="noopener">'+(u.indexOf('maps.google')>=0?'ver no mapa':u)+'</a>');
   for(const l of linhas){
     if(/^\s*```/.test(l)){ if(cod===null){ if(lista){ h+='</ul>'; lista=false } cod=[] } else { const txt=cod.join('\n'); h+='<div class="ascod"><pre>'+esc(txt)+'</pre><button type="button" data-ascopy="'+esc(txt)+'">Copiar mensagem</button></div>'; cod=null } continue }
     if(cod!==null){ cod.push(l); continue }
     const px=/^\s*`?(000201.{40,}?)`?\s*$/.exec(l); if(px && !/BR\.GOV\.BCB\.PIX/i.test(px[1])) px.length=0; /* PIX pode ter espaço (nome da empresa) */ /* 04/11/2026: PIX copia e cola numa linha sozinha -> caixa com botão Copiar */
     if(px && px[1]){ if(lista){ h+='</ul>'; lista=false } h+='<div class="aspix"><code>'+esc(px[1])+'</code><button type="button" data-aspix="'+esc(px[1])+'">Copiar PIX</button></div>'; continue }
+    if(/^\s*\|.*\|\s*$/.test(l)){ /* 04/11/2026: tabela em markdown -> <table> com rolagem */
+      const cels=l.trim().replace(/^\||\|$/g,'').split('|').map(x=>x.trim());
+      if(cels.every(x=>/^:?-{3,}:?$/.test(x))){ continue }
+      if(lista){ h+='</ul>'; lista=false }
+      if(!tab){ h+='<div class="astab"><table>'; tab=true; h+='<tr>'+cels.map(x=>'<th>'+inl(x)+'</th>').join('')+'</tr>'; continue }
+      h+='<tr>'+cels.map(x=>'<td>'+inl(x)+'</td>').join('')+'</tr>'; continue }
+    if(tab){ h+='</table></div>'; tab=false }
     const m=/^\s*(?:[-•*]|\d+[.)])\s+(.*)$/.exec(l);
     if(m){ if(!lista){ h+='<ul>'; lista=true } h+='<li>'+inl(m[1])+'</li>'; continue }
     if(lista){ h+='</ul>'; lista=false }
@@ -11213,6 +11220,7 @@ function asMd(t){ /* negrito **x**, listas "- " e quebras de linha; nada de HTML
     h+='<p>'+inl(l)+'</p>';
   }
   if(cod!==null){ const txt=cod.join('\n'); h+='<div class="ascod"><pre>'+esc(txt)+'</pre><button type="button" data-ascopy="'+esc(txt)+'">Copiar mensagem</button></div>' }
+  if(tab) h+='</table></div>';
   if(lista) h+='</ul>';
   return h;
 }
