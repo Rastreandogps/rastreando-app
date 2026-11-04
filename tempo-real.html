@@ -41,7 +41,7 @@ try{ if(localStorage.getItem('rg_token')||sessionStorage.getItem('rgv_rg_token')
 try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'){document.documentElement.setAttribute('data-tema',t)}}catch(e){}
 </script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="stylesheet" href="app.css?v=20"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
+<link rel="stylesheet" href="app.css?v=21"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
 </head>
 <body>
 
@@ -7199,7 +7199,7 @@ function registrarAcesso(){
   if(VER.on) return; /* 16/10/2026: administrador vendo como cliente não conta como acesso do cliente */
   const t=lsGet('rg_token'); if(!t) return;
   fetch(DESB_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',
-    body:JSON.stringify({acao:'acesso',token:t,disp:dispAtual()})}).catch(()=>{});
+    body:JSON.stringify({acao:'acesso',token:t,disp:dispAtual(),inst:instalado()})}).catch(()=>{}); /* 04/11/2026: conta se está instalado ou no navegador */
 }
 function registrarBloqueio(v){
   const t=lsGet('rg_token'); if(!t||!v) return;
@@ -7235,7 +7235,12 @@ function valorAcesso(u){
   const a=acessosMapa[u.id];
   if(!a || !a.ultimoMs) return '<span class="bd-am">sem registro ainda</span>';
   const disp=NOME_DISP[a.disp]||'';
-  return esc(fmtHora(a.ultimoMs))+' <span class="fmut">('+haQuanto(a.ultimoMs)+(disp?' · '+disp:'')+')</span>';
+  return esc(fmtHora(a.ultimoMs))+' <span class="fmut">('+haQuanto(a.ultimoMs)+(disp?' · '+disp:'')+')</span>'+seloInst(a);
+}
+/* 04/11/2026 (dono): selo de app instalado (tela inicial) ou só pelo navegador */
+function seloInst(a){
+  if(!a || !a.instInfo) return '';
+  return a.instMs?' <span class="seloinst ok" title="Já abriu o app instalado na tela inicial">📱 Instalado</span>':' <span class="seloinst nav" title="Só abriu pelo navegador: mande o link de instalação">🌐 Pelo navegador</span>';
 }
 function valorEvento(u,pre){
   if(!acessosMapa) return '<span class="fmut">carregando...</span>';
@@ -7272,7 +7277,7 @@ function linhaAcesso(u){
   const a=acessosMapa[u.id];
   if(!a || !a.ultimoMs) return '<div class="s">Último acesso: <span class="bd-am">sem registro ainda</span></div>';
   const disp=NOME_DISP[a.disp]||'';
-  return '<div class="s">Último acesso: <b>'+esc(fmtHora(a.ultimoMs))+'</b> ('+haQuanto(a.ultimoMs)+')'+(disp?' · '+disp:'')+'</div>';
+  return '<div class="s">Último acesso: <b>'+esc(fmtHora(a.ultimoMs))+'</b> ('+haQuanto(a.ultimoMs)+')'+(disp?' · '+disp:'')+seloInst(a)+'</div>';
 }
 async function carregarCpfs(){
   try{ const r=await fn('cpfs'); cpfsMapa=r.mapa||{}; if(abaAdmin==='cli' && $('aview').classList.contains('show')) desenharClientes(true); cpfsLimparOrfaos() }
@@ -7688,6 +7693,7 @@ const FILTROS_CLI=[
   {id:'desat',  t:'Desativados',  ok:u=>!!u.disabled||(validadeDe(u)>0&&validadeDe(u)<Date.now()), tit:'Acesso desativado por você ou com a validade vencida'},
   {id:'semcpf', t:'Sem CPF',      ok:(u,cpfDe)=>!cpfDe(u), tit:'Sem CPF vinculado: não vê faturas nem é suspenso por atraso'},
   {id:'semwpp', t:'Sem WhatsApp', ok:u=>!(u.phone&&normWpp(u.phone)), tit:'Sem WhatsApp: não recebe o aviso de desbloqueio nem a mensagem de acesso'},
+  {id:'naoinst',t:'Não instalou', ac:1, ok:u=>{const a=acessosMapa&&acessosMapa[u.id];return !!(a&&a.instInfo&&!a.instMs)}, tit:'Abriu o app só pelo navegador (desde 04/11/2026): mande o link de instalação'},
   {id:'nunca',  t:'Nunca entrou', ac:1, ok:u=>!(acessosMapa&&acessosMapa[u.id]&&acessosMapa[u.id].ultimoMs), tit:'Sem nenhum acesso registrado (o registro começou em 10/10/2026)'}
 ];
 let filtroCli='todos', ordemCli='nome';

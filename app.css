@@ -3483,3 +3483,7 @@ nav button:not(.on) .nemo{filter:saturate(.85)}
 .wppv .wppfxv{font-size:13.5px;padding:7px 10px;border-radius:10px;background:rgba(127,127,127,.09);margin-bottom:6px}
 .wppv .wppfxv.zero{color:var(--red2);background:transparent;padding-left:0}
 .wppv .wppfxn{font-size:12px;color:var(--mut);margin:2px 0 8px}
+/* 04/11/2026: selo de app instalado / pelo navegador no card do cliente (admin) */
+.seloinst{display:inline-block;margin-left:6px;padding:1px 8px;border-radius:999px;font-size:11px;font-weight:700;white-space:nowrap;vertical-align:1px}
+.seloinst.ok{background:rgba(37,211,102,.14);color:#15803d}
+.seloinst.nav{background:rgba(245,165,36,.16);color:#b45309}
