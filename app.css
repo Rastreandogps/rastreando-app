@@ -960,6 +960,8 @@ body.foramapa #map .leaflet-control-attribution,body.foramapa #map .gmlogo{displ
 .car.veic.c-mov .anelv{fill:#16a34a;stroke:#16a34a}
 .car.veic.c-sem .anelv{fill:#64748b;stroke:#64748b}
 .car.veic.c-bloq .anelv{fill:#dc2626;stroke:#dc2626}
+.car.veic.c-tag .anelv{fill:#7c3aed;stroke:#7c3aed} /* 04/11/2026: tag com ícone escolhido = anel roxo */
+.car.veic.c-tagvelha .anelv{fill:#64748b;stroke:#64748b}
 .car.veic .cadb{display:none}
 .car.veic~.carlabel{bottom:56px} /* o anel é maior que a setinha: o nome sobe um pouco */
 .icpick{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:8px}
@@ -1027,7 +1029,7 @@ body.hist-on #abaSelo{display:none!important}
 @media (min-width:900px){ #abaSelo{left:calc(var(--lado,0px) + (100% - var(--lado,0px))/2)} }
 .sheet.ehtag #vIgn,.sheet.ehtag #chipRow,.sheet.ehtag #smsUlt,.sheet.ehtag #banner,.sheet.ehtag .grid .stat:first-child,
 .sheet.ehtag #sBvBox .bvl:nth-child(2),.sheet.ehtag #sOdoBtn,.sheet.ehtag #sCombBtn,.sheet.ehtag #btnBlock,.sheet.ehtag #btnUnblock,
-.sheet.ehtag #btnIcone,.sheet.ehtag #chaveBloq,.sheet.ehtag #btnSmsMenu,.sheet.ehtag #admSmsRow,.sheet.ehtag #smsCusto,.sheet.ehtag #desbRow{display:none!important}
+.sheet.ehtag #chaveBloq,.sheet.ehtag #btnSmsMenu,.sheet.ehtag #admSmsRow,.sheet.ehtag #smsCusto,.sheet.ehtag #desbRow{display:none!important}
 .car.c-bloq .seta{display:none}
 .car.c-bloq .cad{display:inline}
 .car.c-bloq .cad path{stroke:#dc2626}

@@ -41,7 +41,7 @@ try{ if(localStorage.getItem('rg_token')||sessionStorage.getItem('rgv_rg_token')
 try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'){document.documentElement.setAttribute('data-tema',t)}}catch(e){}
 </script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="stylesheet" href="app.css?v=24"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
+<link rel="stylesheet" href="app.css?v=25"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
 </head>
 <body>
 
@@ -2299,7 +2299,7 @@ function veicSvg(tipo,cor,mini){
     '<g class="vgir"><g transform="scale('+sc+')">'+T.d(c)+'</g></g>'+
     (mini?'':'<g class="cadb" transform="translate(19,-19)"><circle r="8.5" fill="#dc2626" stroke="#fff" stroke-width="2"/><path d="M-2.8 -.6V-2.6A2.8 2.8 0 0 1 2.8 -2.6V-.6" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/><rect x="-4" y="-.8" width="8" height="5.6" rx="1.3" fill="#fff"/></g>')+'</svg>';
 }
-function carHtml(v){ return (!v.tag && v.icone) ? '<div class="car veic">'+veicSvg(v.icone,v.iconeCor)+'</div>' : '<div class="car">'+carSvg+'</div>' }
+function carHtml(v){ return v.icone ? /* 04/11/2026 (dono): tag também pode ter ícone; sem escolha = marcador roxo da tag */ '<div class="car veic">'+veicSvg(v.icone,v.iconeCor)+'</div>' : '<div class="car">'+carSvg+'</div>' }
 /* troca o nome escrito no mapa na hora (sem F5) */
 /* rótulo do mapa: nome e, se ligado na calculadora, o gasto de combustível de hoje (11/10/2026) */
 /* chips do rótulo: ⛽ gasto pelo odômetro e 🔧 km que faltam para a meta; opcional esconder o nome (11/10/2026) */
@@ -2325,7 +2325,7 @@ function rotularMarcador(v){
   }catch(e){}
 }
 function icTrocar(v){ /* o ícone mudou (cadastro ou virou tag): refaz o desenho do marcador sem recriar */
-  if(!v.marker) return; const k=(v.tag?'tag':(v.icone||''))+'|'+(v.iconeCor||'')+'|'+icRealOn(); if(k===v.icoChave) return; v.icoChave=k;
+  if(!v.marker) return; const k=(v.tag?'tag':'')+(v.icone||'')+'|'+(v.iconeCor||'')+'|'+icRealOn(); if(k===v.icoChave) return; v.icoChave=k;
   try{ const ic=v.marker.options.icon; ic.options.html=carHtml(v)+'<div class="'+rotuloClasse(v)+'">'+rotuloHtml(v)+'</div>'; v.marker.setIcon(ic) }catch(e){}
 }
 function criarMarcador(v){
@@ -2333,7 +2333,7 @@ function criarMarcador(v){
     className:'',iconSize:[44,44],iconAnchor:[22,22],
     html:carHtml(v)+'<div class="'+rotuloClasse(v)+'">'+rotuloHtml(v)+'</div>'
   })});
-  v.rotuloNome=v.nome+'|'+(v.placaMapa?v.placa:''); v.icoChave=(v.tag?'tag':(v.icone||''))+'|'+(v.iconeCor||'')+'|'+icRealOn();
+  v.rotuloNome=v.nome+'|'+(v.placaMapa?v.placa:''); v.icoChave=(v.tag?'tag':'')+(v.icone||'')+'|'+(v.iconeCor||'')+'|'+icRealOn();
   v.marker.on('click',()=>{ selId = v.id; recolhido = false; atualizar(); });
   if(v.visivel && abaMostra(v)) v.marker.addTo(map);
 }
@@ -3082,7 +3082,7 @@ function animar(now){
     if(naTela && v._fora){ v._fora=false; if(v.pos) v.marker.setLatLng(v.pos) } /* voltou para a tela: põe no lugar certo */
     if(!(apar || v.id===sel) || !naTela) return;
     const c=animEls(v);
-    if(c){let alvo=(v._rumoVis!=null?v._rumoVis:v.rumo); if(v._angA!=null){ alvo=v._angA+(((alvo-v._angA)%360+540)%360-180) } v._angA=alvo; /* 01/11: gira pelo lado mais curto (não dá a volta inteira) */ const ang='rotate('+alvo.toFixed(1)+'deg)';if(v._girEl){const g=v._girEl;if(g.style.transform!==ang)g.style.transform=ang;if(c.style.transform)c.style.transform=''}else{const tr=(v.bloq||v.tag)?'none':ang;if(c.style.transform!==tr)c.style.transform=tr}const cor=v.tag?(v.fix&&Date.now()-v.fix<TAG_VELHA_MS?'c-tag':'c-tag c-tagvelha'):v.bloq?'c-bloq':corSeta(v);if(c.dataset.cor!==cor){c.classList.remove('c-mov','c-par','c-sem','c-bloq','c-tag','c-tagvelha');cor.split(' ').forEach(k=>c.classList.add(k));c.dataset.cor=cor}}
+    if(c){let alvo=(v._rumoVis!=null?v._rumoVis:v.rumo); if(v._angA!=null){ alvo=v._angA+(((alvo-v._angA)%360+540)%360-180) } v._angA=alvo; /* 01/11: gira pelo lado mais curto (não dá a volta inteira) */ const ang='rotate('+alvo.toFixed(1)+'deg)';if(v._girEl){const g=v._girEl,ga=v.tag?'none':ang;if(g.style.transform!==ga)g.style.transform=ga;if(c.style.transform)c.style.transform=''}else{const tr=(v.bloq||v.tag)?'none':ang;if(c.style.transform!==tr)c.style.transform=tr}const cor=v.tag?(v.fix&&Date.now()-v.fix<TAG_VELHA_MS?'c-tag':'c-tag c-tagvelha'):v.bloq?'c-bloq':corSeta(v);if(c.dataset.cor!==cor){c.classList.remove('c-mov','c-par','c-sem','c-bloq','c-tag','c-tagvelha');cor.split(' ').forEach(k=>c.classList.add(k));c.dataset.cor=cor}}
   });
   const a=ativo();
   if(seguir && a) centralizar(a.pos);
@@ -4413,7 +4413,7 @@ function mostrarBotoesSms(){
   $('smMenuResetSub').textContent=ehAdmin?'Todos os SMS de configuração':'Reinicia o rastreador';
   $('btnSmsMenu').style.display=n?'':'none';
   $('btnRenome').style.display=(ehAdmin||permCli.editarNome||permCli.frotista)?'inline-flex':'none';
-  { const cv=cartao(); $('btnIcone').style.display=(cv && !cv.tag && (ehAdmin||permCli.trocarIcone!==false))?'inline-flex':'none' } /* 16/10/2026 */
+  { const cv=cartao(); $('btnIcone').style.display=(cv && (ehAdmin||permCli.trocarIcone!==false))?'inline-flex':'none' } /* 16/10/2026 */
   const podeApp=ehAdmin||(permCli.appBloqueio!==false && !semBloq);
   $('btnBlock').style.display=podeApp?'':'none'; $('btnUnblock').style.display=podeApp?'':'none';
   $('chaveBloq').classList.toggle('nao',!podeApp); /* 14/10/2026: a chave segue a mesma permissão dos botões */
