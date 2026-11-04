@@ -63,7 +63,7 @@ main{width:100%;max-width:440px;display:flex;flex-direction:column;gap:16px}
 #dicaDeslize{margin-top:8px}
 #dicaIos{font-size:12.5px}
 @media (max-height:760px){body{padding-top:14px}.brand{gap:6px;padding-top:0}.brand img{width:56px;height:56px;border-radius:14px}.brand h1{font-size:19px}.brand p{display:none}}
-#videoIos video{width:100%;border-radius:12px;background:#000}
+#videoIos video{display:block;width:100%;max-height:72vh;object-fit:contain;border-radius:12px;background:#000}
 #dicaIos{font-size:13px;color:var(--mut);line-height:1.45}
 [hidden]{display:none!important}
 </style>
@@ -98,43 +98,9 @@ main{width:100%;max-width:440px;display:flex;flex-direction:column;gap:16px}
   <section class="card" id="ios" hidden>
     <h2>Instalar no iPhone</h2>
     <div class="aviso" id="avisoIosWeb" hidden style="margin-bottom:12px">Esta página abriu dentro de outro aplicativo (como WhatsApp ou Instagram). Abra no <b>Safari</b> primeiro: toque no ícone de menu ou compartilhar e escolha <b>Abrir no Safari</b>.</div>
-    <div id="videoIos" hidden style="margin-bottom:12px"></div>
-    <div class="carrossel" id="carrossel">
-      <div class="passo">
-        <div class="t" data-n="1"><span>Toque em <b>Instalar o aplicativo</b> (botão aqui embaixo). Na tela que abrir, faça os passos 2 a 4.</span></div>
-      </div>
-      <div class="passo">
-        <div class="t" data-n="2"><span>Toque nos <b>três pontinhos ⋯</b> da barra de baixo do Safari (canto direito) e depois em <b>Compartilhar</b>.</span></div>
-        <div class="mock" aria-hidden="true">
-          <div class="bar">
-            <span class="ic"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg></span>
-            <span class="ic"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></span>
-            <span class="ic dest"><svg viewBox="0 0 24 24"><path d="M12 3v12M8 7l4-4 4 4"/><path d="M6 11H5a1 1 0 00-1 1v8a1 1 0 001 1h14a1 1 0 001-1v-8a1 1 0 00-1-1h-1"/></svg></span>
-            <span class="ic"><svg viewBox="0 0 24 24"><path d="M5 4h11a3 3 0 013 3v13l-4-3H5z"/></svg></span>
-            <span class="ic"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="7" height="7" rx="1"/><rect x="13" y="4" width="7" height="7" rx="1"/><rect x="4" y="13" width="7" height="7" rx="1"/><rect x="13" y="13" width="7" height="7" rx="1"/></svg></span>
-          </div>
-        </div>
-        <p id="dicaIos">Se o seu Safari mostrar o botão <b>Compartilhar</b> (quadrado com seta) direto na barra, toque nele.</p>
-      </div>
-      <div class="passo">
-        <div class="t" data-n="3"><span>Toque em <b>Ver Mais</b> (seta para baixo, na última fileira) e depois em <b>Adicionar à Tela de Início</b>.</span></div>
-        <div class="mock" aria-hidden="true">
-          <div class="row"><span>Copiar</span><svg viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 00-2-2H6a2 2 0 00-2 2v8a2 2 0 002 2h2"/></svg></div>
-          <div class="row"><span>Adicionar aos Favoritos</span><svg viewBox="0 0 24 24"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/></svg></div>
-          <div class="row dest"><span>Adicionar à Tela de Início</span><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M12 8v8M8 12h8"/></svg></div>
-          <div class="row"><span>Marcar</span><svg viewBox="0 0 24 24"><path d="M4 20l4-1 11-11-3-3L5 16z"/></svg></div>
-        </div>
-      </div>
-      <div class="passo">
-        <div class="t" data-n="4"><span>Toque em <b>Adicionar</b>, no canto de cima. Pronto: o ícone “Rastreando” aparece na tela do iPhone.</span></div>
-        <div class="mock dlg" aria-hidden="true">
-          <div class="top"><span class="cancel">Cancelar</span><span>Tela de Início</span><span class="add">Adicionar</span></div>
-          <div class="nm"><img src="apple-touch-icon.png" alt=""><span>Rastreando</span></div>
-        </div>
-      </div>
-    </div>
-    <div class="pontos" id="pontos" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i></div>
-    <p class="peq" id="dicaDeslize">Deslize para o lado para ver os próximos passos ›</p>
+    <!-- 04/11/2026 (dono): no iPhone, o vídeo do passo a passo no lugar da demonstração (os cartões não estavam ajudando) -->
+    <div id="videoIos" style="margin-bottom:12px"><video src="tutorial-iphone.mp4" poster="tutorial-iphone-capa.jpg" controls autoplay muted loop playsinline preload="metadata" width="720" height="1280" aria-label="Vídeo: como instalar o app no iPhone"></video></div>
+    <p class="peq" style="margin:0 0 4px">Assista e faça igual: no <b>Safari</b>, toque nos <b>três pontinhos ⋯</b> → <b>Compartilhar</b> → <b>Adicionar à Tela de Início</b> → <b>Adicionar</b>.</p>
   </section>
 
   <!-- Computador / outros -->
@@ -174,12 +140,6 @@ main{width:100%;max-width:440px;display:flex;flex-direction:column;gap:16px}
   }
 
 
-  /* vídeo opcional: se existir o arquivo tutorial-iphone.mp4 na mesma pasta, aparece aqui */
-  if (ios && !standalone) {
-    fetch('tutorial-iphone.mp4', {method:'HEAD'}).then(function(r){
-      if (r.ok) { var v = document.createElement('video'); v.src = 'tutorial-iphone.mp4'; v.controls = true; v.playsInline = true; v.preload = 'metadata'; $('videoIos').appendChild(v); $('videoIos').hidden = false; }
-    }).catch(function(){});
-  }
 
 
   /* carrossel dos passos do iPhone */
