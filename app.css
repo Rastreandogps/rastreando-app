@@ -3532,3 +3532,6 @@ nav button:not(.on) .nemo{filter:saturate(.85)}
 #mAssist .asok.perigo{background:var(--red2);color:#fff}
 #mAssist .ascan{height:40px;padding:0 14px;border-radius:12px;border:1px solid var(--line);background:var(--card2);color:var(--txt);font:600 14px inherit;font-family:inherit;cursor:pointer}
 #mAssist .asres{font-weight:600}#mAssist .asres.asmut{color:var(--mut);font-weight:500}#mAssist .asres.aserr2{color:var(--red2)}
+#mAssist .aspix{margin:6px 0;background:var(--card);border:1px dashed var(--cyan);border-radius:12px;padding:10px;display:grid;gap:8px}
+#mAssist .aspix code{font-size:11.5px;word-break:break-all;line-height:1.35;color:var(--txt);user-select:all}
+#mAssist .aspix button{justify-self:start;height:36px;padding:0 16px;border-radius:10px;border:0;background:var(--cyan);color:#06262a;font:700 13.5px inherit;font-family:inherit;cursor:pointer}

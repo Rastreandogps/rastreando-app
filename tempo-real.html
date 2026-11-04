@@ -41,7 +41,7 @@ try{ if(localStorage.getItem('rg_token')||sessionStorage.getItem('rgv_rg_token')
 try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'){document.documentElement.setAttribute('data-tema',t)}}catch(e){}
 </script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="stylesheet" href="app.css?v=27"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
+<link rel="stylesheet" href="app.css?v=28"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
 </head>
 <body>
 
@@ -734,7 +734,7 @@ try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'
 <div class="modal" id="mAssist"><!-- 04/11/2026: assistente do administrador (só consulta nesta versão) -->
   <div class="box2">
     <div class="smtopo"><h3>✨ Assistente</h3><button class="imx" id="asX" type="button" aria-label="Fechar" title="Fechar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
-    <p class="asdica" id="asDica">Pergunte em português sobre clientes, aparelhos, chips, financeiro e acessos. Também pode pedir trajeto e paradas, <b>bloquear, desbloquear, mandar SMS ou criar cerca</b>: a ação só acontece depois que você tocar em <b>Confirmar</b>.</p>
+    <p class="asdica" id="asDica">Pergunte em português sobre clientes, aparelhos, chips, financeiro e acessos. Também pode pedir trajeto, paradas, km, eventos, faturas e PIX, <b>bloquear, desbloquear, mandar SMS, criar ou apagar cerca, gerar link</b>: a ação só acontece depois que você tocar em <b>Confirmar</b>.</p>
     <div class="aschat" id="asChat"></div>
     <div class="assug" id="asSug">
       <button type="button" data-asq="Quantos clientes e aparelhos eu tenho?">Resumo geral</button>
@@ -11202,6 +11202,8 @@ function asMd(t){ /* negrito **x**, listas "- " e quebras de linha; nada de HTML
   const linhas=String(t||'').split('\n'); let h='', lista=false;
   const inl=x=>esc(x).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,(m,t,u)=>'<a href="'+u+'" target="_blank" rel="noopener">'+t+'</a>').replace(/(^|[^"])(https?:\/\/[^\s)<]+)/g,(m,p,u)=>p+'<a href="'+u+'" target="_blank" rel="noopener">'+(u.indexOf('maps.google')>=0?'ver no mapa':u)+'</a>');
   for(const l of linhas){
+    const px=/^\s*`?(000201\S{40,})`?\s*$/.exec(l); /* 04/11/2026: PIX copia e cola numa linha sozinha -> caixa com botão Copiar */
+    if(px){ if(lista){ h+='</ul>'; lista=false } h+='<div class="aspix"><code>'+esc(px[1])+'</code><button type="button" data-aspix="'+esc(px[1])+'">Copiar PIX</button></div>'; continue }
     const m=/^\s*(?:[-•*]|\d+[.)])\s+(.*)$/.exec(l);
     if(m){ if(!lista){ h+='<ul>'; lista=true } h+='<li>'+inl(m[1])+'</li>'; continue }
     if(lista){ h+='</ul>'; lista=false }
@@ -11255,7 +11257,8 @@ async function asExecutar(id,cancelar){
   }catch(e){ bts.innerHTML='<div class="asres aserr2">'+esc(e.message||'Não consegui executar.')+'</div>' }
   $('asChat').scrollTop=$('asChat').scrollHeight;
 }
-$('asChat').addEventListener('click',e=>{ const ok=e.target.closest('[data-asok]'); if(ok){ asExecutar(ok.dataset.asok,false); return } const ca=e.target.closest('[data-ascan]'); if(ca) asExecutar(ca.dataset.ascan,true) });
+$('asChat').addEventListener('click',e=>{ const px=e.target.closest('[data-aspix]'); if(px){ const t=px.dataset.aspix; const ok=()=>{ px.textContent='Copiado ✓'; setTimeout(()=>{ px.textContent='Copiar PIX' },2000) }; try{ navigator.clipboard.writeText(t).then(ok,()=>{ const c=px.previousElementSibling; const g=getSelection(), rg=document.createRange(); rg.selectNodeContents(c); g.removeAllRanges(); g.addRange(rg) }) }catch(_){} return }
+  const ok=e.target.closest('[data-asok]'); if(ok){ asExecutar(ok.dataset.asok,false); return } const ca=e.target.closest('[data-ascan]'); if(ca) asExecutar(ca.dataset.ascan,true) });
 function asAltura(){ const t=$('asTxt'); t.style.height='auto'; t.style.height=Math.min(120,t.scrollHeight)+'px' }
 $('aAssist').onclick=()=>{ if(!ehAdmin) return; abrir('mAssist'); if(!asHist.length) asPintarVazio(); setTimeout(()=>{ try{ $('asTxt').focus() }catch(_){} },150) };
 $('asX').onclick=fechar;
