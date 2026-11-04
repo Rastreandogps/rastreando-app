@@ -41,7 +41,7 @@ try{ if(localStorage.getItem('rg_token')||sessionStorage.getItem('rgv_rg_token')
 try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'){document.documentElement.setAttribute('data-tema',t)}}catch(e){}
 </script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="stylesheet" href="app.css?v=28"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
+<link rel="stylesheet" href="app.css?v=29"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
 </head>
 <body>
 
@@ -734,7 +734,7 @@ try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'
 <div class="modal" id="mAssist"><!-- 04/11/2026: assistente do administrador (só consulta nesta versão) -->
   <div class="box2">
     <div class="smtopo"><h3>✨ Assistente</h3><button class="imx" id="asX" type="button" aria-label="Fechar" title="Fechar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
-    <p class="asdica" id="asDica">Pergunte em português sobre clientes, aparelhos, chips, financeiro e acessos. Também pode pedir trajeto, paradas, km, eventos, faturas e PIX, <b>bloquear, desbloquear, mandar SMS, criar ou apagar cerca, gerar link</b>: a ação só acontece depois que você tocar em <b>Confirmar</b>.</p>
+    <p class="asdica" id="asDica">Pergunte em português sobre clientes, aparelhos, chips, financeiro e acessos. Também pode pedir resumo do dia, cobrança, trajeto, paradas, km, velocidade, faturas e PIX, <b>bloquear, desbloquear, mandar SMS, cercas, link, renomear, vincular e cadastrar aparelho</b>: a ação só acontece depois que você tocar em <b>Confirmar</b>.</p>
     <div class="aschat" id="asChat"></div>
     <div class="assug" id="asSug">
       <button type="button" data-asq="Quantos clientes e aparelhos eu tenho?">Resumo geral</button>
@@ -11199,9 +11199,11 @@ $('aPlacas').onclick=leitorAbrir;
 const ASSIST_URL='https://southamerica-east1-rastreando-assinaturas.cloudfunctions.net/rastreamentoAssistente';
 let asHist=[], asOcupado=false;
 function asMd(t){ /* negrito **x**, listas "- " e quebras de linha; nada de HTML vindo do servidor */
-  const linhas=String(t||'').split('\n'); let h='', lista=false;
+  const linhas=String(t||'').split('\n'); let h='', lista=false, cod=null; /* cod = dentro de um bloco ``` (mensagem pronta para copiar) */
   const inl=x=>esc(x).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,(m,t,u)=>'<a href="'+u+'" target="_blank" rel="noopener">'+t+'</a>').replace(/(^|[^"])(https?:\/\/[^\s)<]+)/g,(m,p,u)=>p+'<a href="'+u+'" target="_blank" rel="noopener">'+(u.indexOf('maps.google')>=0?'ver no mapa':u)+'</a>');
   for(const l of linhas){
+    if(/^\s*```/.test(l)){ if(cod===null){ if(lista){ h+='</ul>'; lista=false } cod=[] } else { const txt=cod.join('\n'); h+='<div class="ascod"><pre>'+esc(txt)+'</pre><button type="button" data-ascopy="'+esc(txt)+'">Copiar mensagem</button></div>'; cod=null } continue }
+    if(cod!==null){ cod.push(l); continue }
     const px=/^\s*`?(000201.{40,}?)`?\s*$/.exec(l); if(px && !/BR\.GOV\.BCB\.PIX/i.test(px[1])) px.length=0; /* PIX pode ter espaço (nome da empresa) */ /* 04/11/2026: PIX copia e cola numa linha sozinha -> caixa com botão Copiar */
     if(px && px[1]){ if(lista){ h+='</ul>'; lista=false } h+='<div class="aspix"><code>'+esc(px[1])+'</code><button type="button" data-aspix="'+esc(px[1])+'">Copiar PIX</button></div>'; continue }
     const m=/^\s*(?:[-•*]|\d+[.)])\s+(.*)$/.exec(l);
@@ -11210,6 +11212,7 @@ function asMd(t){ /* negrito **x**, listas "- " e quebras de linha; nada de HTML
     if(l.trim()==='') { h+='<div class="asbr"></div>'; continue }
     h+='<p>'+inl(l)+'</p>';
   }
+  if(cod!==null){ const txt=cod.join('\n'); h+='<div class="ascod"><pre>'+esc(txt)+'</pre><button type="button" data-ascopy="'+esc(txt)+'">Copiar mensagem</button></div>' }
   if(lista) h+='</ul>';
   return h;
 }
@@ -11237,7 +11240,7 @@ async function asPerguntar(q){
 /* etapa 2: cartão de confirmação de uma ação (bloquear, desbloquear, SMS). Vale 10 min; o servidor só executa com o toque. */
 function asConfirmarCard(p){
   const c=$('asChat'); const d=document.createElement('div'); d.className='asb asa asconf'; d.dataset.id=p.id;
-  const perigo=/f[aá]brica|BLOQUEAR o ve|APAGAR|DESATIVAR/.test(p.descricao||'');
+  const perigo=/f[aá]brica|BLOQUEAR o ve|APAGAR|DESATIVAR|DESVINCULAR/.test(p.descricao||'');
   d.innerHTML='<div class="asct">'+(perigo?'⚠️ ':'')+'Confirmar?</div><div class="asdesc">'+esc(p.descricao||'')+'</div>'+
     '<div class="asbts"><button type="button" class="asok'+(perigo?' perigo':'')+'" data-asok="'+esc(p.id)+'">Confirmar</button><button type="button" class="ascan" data-ascan="'+esc(p.id)+'">Cancelar</button></div>';
   c.appendChild(d); c.scrollTop=c.scrollHeight;
@@ -11257,7 +11260,8 @@ async function asExecutar(id,cancelar){
   }catch(e){ bts.innerHTML='<div class="asres aserr2">'+esc(e.message||'Não consegui executar.')+'</div>' }
   $('asChat').scrollTop=$('asChat').scrollHeight;
 }
-$('asChat').addEventListener('click',e=>{ const px=e.target.closest('[data-aspix]'); if(px){ const t=px.dataset.aspix; const ok=()=>{ px.textContent='Copiado ✓'; setTimeout(()=>{ px.textContent='Copiar PIX' },2000) }; try{ navigator.clipboard.writeText(t).then(ok,()=>{ const c=px.previousElementSibling; const g=getSelection(), rg=document.createRange(); rg.selectNodeContents(c); g.removeAllRanges(); g.addRange(rg) }) }catch(_){} return }
+$('asChat').addEventListener('click',e=>{ const cp=e.target.closest('[data-ascopy]'); if(cp){ const t=cp.dataset.ascopy; const ok=()=>{ cp.textContent='Copiado ✓'; setTimeout(()=>{ cp.textContent='Copiar mensagem' },2000) }; try{ navigator.clipboard.writeText(t).then(ok,()=>{ const g=getSelection(), rg=document.createRange(); rg.selectNodeContents(cp.previousElementSibling); g.removeAllRanges(); g.addRange(rg) }) }catch(_){} return }
+  const px=e.target.closest('[data-aspix]'); if(px){ const t=px.dataset.aspix; const ok=()=>{ px.textContent='Copiado ✓'; setTimeout(()=>{ px.textContent='Copiar PIX' },2000) }; try{ navigator.clipboard.writeText(t).then(ok,()=>{ const c=px.previousElementSibling; const g=getSelection(), rg=document.createRange(); rg.selectNodeContents(c); g.removeAllRanges(); g.addRange(rg) }) }catch(_){} return }
   const ok=e.target.closest('[data-asok]'); if(ok){ asExecutar(ok.dataset.asok,false); return } const ca=e.target.closest('[data-ascan]'); if(ca) asExecutar(ca.dataset.ascan,true) });
 function asAltura(){ const t=$('asTxt'); t.style.height='auto'; t.style.height=Math.min(120,t.scrollHeight)+'px' }
 $('aAssist').onclick=()=>{ if(!ehAdmin) return; abrir('mAssist'); if(!asHist.length) asPintarVazio(); setTimeout(()=>{ try{ $('asTxt').focus() }catch(_){} },150) };
