@@ -41,7 +41,7 @@ try{ if(localStorage.getItem('rg_token')||sessionStorage.getItem('rgv_rg_token')
 try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'){document.documentElement.setAttribute('data-tema',t)}}catch(e){}
 </script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="stylesheet" href="app.css?v=33"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
+<link rel="stylesheet" href="app.css?v=34"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
 </head>
 <body>
 
@@ -11289,6 +11289,14 @@ async function wppAbrirPedido(dev,k){
   wppAbrir(dev && veiculos.some(v=>v.id===Number(dev)) ? Number(dev) : 0);
   const cb=$('wppItens').querySelector('input[data-wk="'+(k||'ign')+'"]'); if(cb && !cb.checked){ cb.checked=true; wppTotal() }
 }
+/* 04/11/2026 (dono): link de localização gerado pelo assistente -> caixa com o link e os botões, igual ao Compartilhar do app */
+function asLinkCard(cp){
+  const wa='https://wa.me/'+(cp.wpp?String(cp.wpp).replace(/\D/g,''):'')+'?text='+encodeURIComponent(cp.mensagem||cp.link);
+  return '<div class="aslink"><code>'+esc(cp.link)+'</code><small>Vale até '+esc(cp.validoAte||'')+'</small>'+
+    '<div class="aslbts"><button type="button" data-aslcopy="'+esc(cp.link)+'">Copiar link</button>'+
+    '<a class="aslwpp" href="'+esc(wa)+'" target="_blank" rel="noopener">WhatsApp'+(cp.para?' · '+esc(cp.para):'')+'</a>'+
+    (navigator.share?'<button type="button" data-aslshare="'+esc(cp.mensagem||cp.link)+'">Enviar de outro jeito</button>':'')+'</div></div>';
+}
 async function asExecutar(id,cancelar){
   const card=$('asChat').querySelector('.asconf[data-id="'+id+'"]'); if(!card) return;
   const bts=card.querySelector('.asbts'); bts.innerHTML='<span class="asesp">'+(cancelar?'Cancelando…':'Executando…')+'</span>';
@@ -11299,6 +11307,7 @@ async function asExecutar(id,cancelar){
     if(!r.ok) throw new Error(j.erro||('Erro '+r.status));
     const txt=cancelar?'Cancelado. Nada foi feito.':(j.ok?'✅ '+((j.resultado&&j.resultado.resultado)||'Feito.'):'❌ '+((j.resultado&&j.resultado.erro)||'Não deu certo.'));
     bts.innerHTML='<div class="asres'+(cancelar||!j.ok?' asmut':'')+'">'+esc(txt)+'</div>';
+    const cp=!cancelar&&j.ok&&j.resultado&&j.resultado.compartilhar; if(cp&&cp.link) bts.insertAdjacentHTML('beforeend',asLinkCard(cp)); /* 04/11/2026: link de localização com Copiar / WhatsApp / Enviar */
     asHist.push({papel:'assistente',texto:(cancelar?'[ação cancelada pelo administrador] ':'[ação executada] ')+String(j.descricao||'')+': '+txt}); asHist=asHist.slice(-12);
     try{ if(!cancelar && j.ok){ setTimeout(()=>{ try{ buscarSeguro() }catch(_){} },4000) } }catch(e){}
   }catch(e){ bts.innerHTML='<div class="asres aserr2">'+esc(e.message||'Não consegui executar.')+'</div>' }
@@ -11306,6 +11315,8 @@ async function asExecutar(id,cancelar){
 }
 $('asChat').addEventListener('click',e=>{ const cp=e.target.closest('[data-ascopy]'); if(cp){ const t=cp.dataset.ascopy; const ok=()=>{ cp.textContent='Copiado ✓'; setTimeout(()=>{ cp.textContent='Copiar mensagem' },2000) }; try{ navigator.clipboard.writeText(t).then(ok,()=>{ const g=getSelection(), rg=document.createRange(); rg.selectNodeContents(cp.previousElementSibling); g.removeAllRanges(); g.addRange(rg) }) }catch(_){} return }
   const px=e.target.closest('[data-aspix]'); if(px){ const t=px.dataset.aspix; const ok=()=>{ px.textContent='Copiado ✓'; setTimeout(()=>{ px.textContent='Copiar PIX' },2000) }; try{ navigator.clipboard.writeText(t).then(ok,()=>{ const c=px.previousElementSibling; const g=getSelection(), rg=document.createRange(); rg.selectNodeContents(c); g.removeAllRanges(); g.addRange(rg) }) }catch(_){} return }
+  const lc=e.target.closest('[data-aslcopy]'); if(lc){ const t=lc.dataset.aslcopy; try{ navigator.clipboard.writeText(t).then(()=>{ lc.textContent='Copiado ✓'; setTimeout(()=>{ lc.textContent='Copiar link' },2000) },()=>toast(t,8000)) }catch(_){ toast(t,8000) } return }
+  const ls=e.target.closest('[data-aslshare]'); if(ls){ try{ navigator.share({text:ls.dataset.aslshare}).catch(()=>{}) }catch(_){} return }
   const bt=e.target.closest('[data-asbt]'); if(bt){ asBotaoClique(bt.closest('.asbtc')); return } /* rodada 3 */
   const ok=e.target.closest('[data-asok]'); if(ok){ asExecutar(ok.dataset.asok,false); return } const ca=e.target.closest('[data-ascan]'); if(ca) asExecutar(ca.dataset.ascan,true) });
 function asAltura(){ const t=$('asTxt'); t.style.height='auto'; t.style.height=Math.min(120,t.scrollHeight)+'px' }

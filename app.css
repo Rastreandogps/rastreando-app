@@ -3562,3 +3562,13 @@ body.hist-on #assMapaBtn{display:none!important}
 
 /* 04/11/2026 (dono): sem texto de explicação e sem atalhos no assistente */
 #mAssist .asdica[hidden],#mAssist .assug[hidden]{display:none!important}
+
+/* 04/11/2026 (dono): link de localização gerado pelo assistente */
+#mAssist .aslink{width:100%;margin-top:8px;background:var(--card2);border:1px dashed var(--cyan);border-radius:12px;padding:10px;display:grid;gap:6px}
+#mAssist .aslink code{font-size:12px;word-break:break-all;color:var(--txt);user-select:all}
+#mAssist .aslink small{font-size:12px;color:var(--mut)}
+#mAssist .aslbts{display:flex;gap:8px;flex-wrap:wrap}
+#mAssist .aslbts button,#mAssist .aslbts a{height:38px;padding:0 14px;border-radius:10px;border:0;background:var(--cyan);color:#06262a;font:700 13.5px inherit;font-family:inherit;cursor:pointer;display:inline-flex;align-items:center;text-decoration:none}
+#mAssist .aslbts .aslwpp{background:#25d366;color:#04210f}
+#mAssist .aslbts [data-aslshare]{background:var(--card);color:var(--txt);border:1px solid var(--line)}
+#mAssist .aslbts .aslwpp{height:auto;min-height:38px;padding:8px 14px;line-height:1.25;text-align:left}
