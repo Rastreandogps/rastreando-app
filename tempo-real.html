@@ -10247,7 +10247,7 @@ if(window.visualViewport){ visualViewport.addEventListener('resize',alVV); visua
 $('alIgn').addEventListener('change',async e=>{
   const i=e.target.closest('input[data-ign]'); if(!i) return;
   i.disabled=true;
-  try{ const j=await fnAl('alertasIgnicao',{deviceId:+i.dataset.ign,ligado:i.checked}); alCfg=j.cfg||alCfg; toast(i.checked?'Alerta de ignição ligado.':'Alerta de ignição desligado.') }
+  try{ const j=await fnAl('alertasIgnicao',{deviceId:+i.dataset.ign,ligado:i.checked}); alCfg=j.cfg||alCfg; toast(i.checked?'Alerta de ignição ligado.':(j.saiuWpp?'Alerta de ignição desligado. O veículo também saiu do WhatsApp.':'Alerta de ignição desligado.'),j.saiuWpp?4500:undefined); if(j.saiuWpp) wppCarregar() }
   catch(err){ i.checked=!i.checked; toast(err.message) }
   i.disabled=false; desenharIgn(); desenharVolta();
 });
@@ -10287,7 +10287,7 @@ $('alBat').addEventListener('change',async e=>{
   const s=e.target.closest('select[data-bat]'); if(!s) return;
   const antes=Number((alCfg.bat||{})[s.dataset.bat])||0, lim=Number(s.value)||0;
   s.disabled=true;
-  try{ const j=await fnAl('alertasBateria',{deviceId:+s.dataset.bat,limite:lim}); alCfg=Object.assign({ign:{},volta:{},bat:{}},j.cfg||alCfg); toast(lim?('Aviso ligado: abaixo de '+lim+'%.'):'Aviso de bateria desligado.') }
+  try{ const j=await fnAl('alertasBateria',{deviceId:+s.dataset.bat,limite:lim}); alCfg=Object.assign({ign:{},volta:{},bat:{}},j.cfg||alCfg); if(j.saiuWpp) wppCarregar(); toast(lim?('Aviso ligado: abaixo de '+lim+'%.'):'Aviso de bateria desligado.') }
   catch(err){ s.value=String(antes); toast(err.message) }
   s.disabled=false; desenharBat();
 });
