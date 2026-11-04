@@ -11197,7 +11197,7 @@ const ASSIST_URL='https://southamerica-east1-rastreando-assinaturas.cloudfunctio
 let asHist=[], asOcupado=false;
 function asMd(t){ /* negrito **x**, listas "- " e quebras de linha; nada de HTML vindo do servidor */
   const linhas=String(t||'').split('\n'); let h='', lista=false;
-  const inl=x=>esc(x).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/https?:\/\/[^\s)]+/g,m=>'<a href="'+m+'" target="_blank" rel="noopener">'+(m.indexOf('maps.google')>=0?'ver no mapa':m)+'</a>');
+  const inl=x=>esc(x).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,(m,t,u)=>'<a href="'+u+'" target="_blank" rel="noopener">'+t+'</a>').replace(/(^|[^"])(https?:\/\/[^\s)<]+)/g,(m,p,u)=>p+'<a href="'+u+'" target="_blank" rel="noopener">'+(u.indexOf('maps.google')>=0?'ver no mapa':u)+'</a>');
   for(const l of linhas){
     const m=/^\s*(?:[-•*]|\d+[.)])\s+(.*)$/.exec(l);
     if(m){ if(!lista){ h+='<ul>'; lista=true } h+='<li>'+inl(m[1])+'</li>'; continue }
