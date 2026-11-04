@@ -3551,3 +3551,11 @@ nav button:not(.on) .nemo{filter:saturate(.85)}
 #mAssist .asbtinf{display:block;margin-top:4px;font-weight:500;font-size:12px;color:var(--mut)}
 #mAssist .asbtc .asok{background:#25d366;color:#04210f}
 #mAssist .asbtlink{display:inline-flex;align-items:center;text-decoration:none}
+
+/* 04/11/2026 (dono): assistente no mapa, embaixo do Serviços (mesmo vidro do Serviços) */
+#assMapaBtn{position:absolute;top:116px;left:12px;z-index:420;flex-direction:column;align-items:center;justify-content:center;gap:3px;width:62px;height:54px;padding:4px 3px 3px;border-radius:14px;border:1px solid rgba(255,255,255,.55);background:rgba(255,255,255,.16);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);box-shadow:0 10px 22px rgba(0,0,0,.30),0 2px 5px rgba(0,0,0,.18);color:#0e7490;cursor:pointer;font:inherit;-webkit-tap-highlight-color:transparent;transition:transform .1s}
+#assMapaBtn svg{width:26px;height:26px;stroke:#0891b2;filter:drop-shadow(0 0 3px #fff) drop-shadow(0 2px 2px rgba(0,0,0,.3))}
+#assMapaBtn b{font-size:9.5px;font-weight:800;letter-spacing:.01em;line-height:1;color:#0e7490;text-shadow:0 0 3px #fff,0 0 3px #fff,0 0 6px rgba(255,255,255,.9)}
+#assMapaBtn:active{transform:scale(.95)}
+body.hist-on #assMapaBtn{display:none!important}
+@media (min-width:900px){ #assMapaBtn{left:calc(var(--lado,0px) + 12px);z-index:460} }
