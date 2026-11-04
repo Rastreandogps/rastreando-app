@@ -734,7 +734,7 @@ try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'
 <div class="modal" id="mAssist"><!-- 04/11/2026: assistente do administrador (só consulta nesta versão) -->
   <div class="box2">
     <div class="smtopo"><h3>✨ Assistente</h3><button class="imx" id="asX" type="button" aria-label="Fechar" title="Fechar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
-    <p class="asdica" id="asDica">Pergunte em português sobre clientes, aparelhos, chips, financeiro e acessos. Também pode pedir para <b>bloquear, desbloquear ou mandar SMS</b>: a ação só acontece depois que você tocar em <b>Confirmar</b>.</p>
+    <p class="asdica" id="asDica">Pergunte em português sobre clientes, aparelhos, chips, financeiro e acessos. Também pode pedir trajeto e paradas, <b>bloquear, desbloquear, mandar SMS ou criar cerca</b>: a ação só acontece depois que você tocar em <b>Confirmar</b>.</p>
     <div class="aschat" id="asChat"></div>
     <div class="assug" id="asSug">
       <button type="button" data-asq="Quantos clientes e aparelhos eu tenho?">Resumo geral</button>
@@ -11235,7 +11235,7 @@ async function asPerguntar(q){
 /* etapa 2: cartão de confirmação de uma ação (bloquear, desbloquear, SMS). Vale 10 min; o servidor só executa com o toque. */
 function asConfirmarCard(p){
   const c=$('asChat'); const d=document.createElement('div'); d.className='asb asa asconf'; d.dataset.id=p.id;
-  const perigo=/f[aá]brica/i.test(p.descricao||'');
+  const perigo=/f[aá]brica|BLOQUEAR o ve/.test(p.descricao||'');
   d.innerHTML='<div class="asct">'+(perigo?'⚠️ ':'')+'Confirmar?</div><div class="asdesc">'+esc(p.descricao||'')+'</div>'+
     '<div class="asbts"><button type="button" class="asok'+(perigo?' perigo':'')+'" data-asok="'+esc(p.id)+'">Confirmar</button><button type="button" class="ascan" data-ascan="'+esc(p.id)+'">Cancelar</button></div>';
   c.appendChild(d); c.scrollTop=c.scrollHeight;
