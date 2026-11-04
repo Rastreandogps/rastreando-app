@@ -41,7 +41,7 @@ try{ if(localStorage.getItem('rg_token')||sessionStorage.getItem('rgv_rg_token')
 try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'){document.documentElement.setAttribute('data-tema',t)}}catch(e){}
 </script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="stylesheet" href="app.css?v=30"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
+<link rel="stylesheet" href="app.css?v=31"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
 </head>
 <body>
 
@@ -1933,7 +1933,7 @@ const esc = s => String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&
    localStorage, não é tocado: as outras abas e o app instalado continuam como estavam. Fechou a aba, acabou. */
 const VER=(()=>{ const o={on:false,nome:'',login:'',expiraMs:0}; try{
   const m=/[#&]ver=([^&]+)/.exec(location.hash||'');
-  if(m){ const p=JSON.parse(decodeURIComponent(m[1])); if(p&&p.t){ sessionStorage.setItem('rgv_rg_token',p.t); sessionStorage.setItem('rgv_rg_email',p.l||'cliente'); sessionStorage.setItem('rgv_nome',p.n||''); sessionStorage.setItem('rgv_exp',String(p.e||0)); sessionStorage.setItem('rgv_on','1') }
+  if(m){ const p=JSON.parse(decodeURIComponent(m[1])); if(p&&p.t){ try{ const w=/[#&]wpp=(\d+)\.(ign|cerca|bat|volta)\b/.exec(location.hash||''); if(w) sessionStorage.setItem('rgv_wpp',w[1]+'.'+w[2]) }catch(_){} /* 04/11/2026 (rodada 3): o assistente abriu o app como o cliente direto na compra do alerta no WhatsApp */ sessionStorage.setItem('rgv_rg_token',p.t); sessionStorage.setItem('rgv_rg_email',p.l||'cliente'); sessionStorage.setItem('rgv_nome',p.n||''); sessionStorage.setItem('rgv_exp',String(p.e||0)); sessionStorage.setItem('rgv_on','1') }
     try{ history.replaceState(null,'',location.pathname+location.search) }catch(e){} }
   if(sessionStorage.getItem('rgv_on')==='1'){ o.on=true; o.nome=sessionStorage.getItem('rgv_nome')||''; o.login=sessionStorage.getItem('rgv_rg_email')||''; o.expiraMs=+sessionStorage.getItem('rgv_exp')||0 }
 }catch(e){} return o })();
@@ -3031,7 +3031,7 @@ async function buscarSeguro(){
     indicador('TEMPO REAL',true);
     try{ emergOnline() }catch(e){}
     if(!adminOk && !VER.on){ await descobrirAdmin(); if(adminOk){ carregarPermissoes(); mapaDecidir(); verificarBloqueio(); cercasIniciado=false; cercasReset() } } /* 16/10/2026 (revisão): abriu sem internet -> refaz a checagem de administrador */
-    if(!cercasIniciado){ cercasIniciado=true; carregarCercas().then(()=>carregarAlertas(false)); if(location.hash==='#alertas') setTimeout(()=>irPara('Alertas'),300) }
+    if(!cercasIniciado){ cercasIniciado=true; carregarCercas().then(()=>carregarAlertas(false)); if(location.hash==='#alertas') setTimeout(()=>irPara('Alertas'),300); try{ const w=VER.on&&ssGet('rgv_wpp'); if(w){ sessionStorage.removeItem('rgv_wpp'); const pw=w.split('.'); setTimeout(()=>wppAbrirPedido(+pw[0],pw[1]),900) } }catch(e){} }
   }catch(e){
     if(e.sessao){ sair('Sessão expirada. Entre novamente.') }
     else { indicador('SEM CONEXÃO',false); try{ emergOffline() }catch(e2){} }
@@ -11241,6 +11241,7 @@ async function asPerguntar(q){
     esp.classList.remove('asesp'); esp.innerHTML=asMd(j.resposta||'(sem resposta)')+(j.ferramentas&&j.ferramentas.length?'<div class="asfer" title="Consultas que o assistente fez">🔎 '+esc(j.ferramentas.filter((x,i,a)=>a.indexOf(x)===i).join(' · ').replace(/_/g,' '))+'</div>':'');
     asHist.push({papel:'usuario',texto:q},{papel:'assistente',texto:String(j.resposta||''),ferramentas:(j.ferramentas||[]).filter((x,i,a)=>a.indexOf(x)===i)}); asHist=asHist.slice(-12);
     (j.confirmar||[]).forEach(asConfirmarCard); /* etapa 2 (04/11/2026): ações só rodam depois do Confirmar */
+    (j.botoes||[]).forEach(asBotaoCard); /* rodada 3 (04/11/2026): botão que abre a compra do alerta no WhatsApp */
     $('asInfo').textContent=(j.nDia?j.nDia+'ª pergunta de hoje':'')+(j.ms?' · '+(j.ms/1000).toFixed(1)+' s':'');
   }catch(e){ esp.classList.remove('asesp'); esp.classList.add('aserr'); esp.textContent=e.message||'Não consegui falar com o assistente.' }
   finally{ asOcupado=false; $('asEnviar').disabled=false; $('asChat').scrollTop=$('asChat').scrollHeight; try{ $('asTxt').focus() }catch(_){} }
@@ -11252,6 +11253,39 @@ function asConfirmarCard(p){
   d.innerHTML='<div class="asct">'+(perigo?'⚠️ ':'')+'Confirmar?</div><div class="asdesc">'+esc(p.descricao||'')+'</div>'+
     '<div class="asbts"><button type="button" class="asok'+(perigo?' perigo':'')+'" data-asok="'+esc(p.id)+'">Confirmar</button><button type="button" class="ascan" data-ascan="'+esc(p.id)+'">Cancelar</button></div>';
   c.appendChild(d); c.scrollTop=c.scrollHeight;
+}
+/* rodada 3 (04/11/2026 noite): cartão com botão vindo do assistente — abre a compra do alerta no WhatsApp na aba Alertas.
+   Conta do administrador: fecha o assistente e abre a compra aqui. Cliente: gera o acesso de 1 hora (o mesmo "Entrar como cliente")
+   e abre o app como ele, em outra aba, já na compra (o PIX sai no CPF do cliente). */
+function asBotaoCard(b){
+  if(!b || b.tipo!=='wppCompra') return;
+  const c=$('asChat'), d=document.createElement('div'); d.className='asb asa asconf asbtc'; d._bt=b;
+  d.innerHTML='<div class="asct">📦 '+esc(b.titulo||'Alertas no WhatsApp')+'</div><div class="asdesc">'+esc(b.texto||'')+
+    (b.cliente?'<small class="asbtinf">Abre o app como '+esc(b.cliente)+', já na compra. O PIX sai no CPF dele.</small>':'')+'</div>'+
+    '<div class="asbts"><button type="button" class="asok" data-asbt="1">'+esc(b.rotulo||'Abrir a compra')+'</button></div>';
+  c.appendChild(d); c.scrollTop=c.scrollHeight;
+}
+async function asBotaoClique(card){
+  const b=card&&card._bt; if(!b) return;
+  if(!b.clienteId){ fechar(); wppAbrirPedido(b.aparelhoId,b.funcao); return }
+  const bts=card.querySelector('.asbts'); bts.innerHTML='<span class="asesp">Gerando o acesso de 1 hora…</span>';
+  try{
+    const tok=lsGet('rg_token'); if(!tok) throw new Error('Saia e entre de novo no app para usar isso.');
+    const r=await fetch(ACESSO_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',body:JSON.stringify({acao:'verComo',token:tok,userId:b.clienteId})});
+    const j=await r.json().catch(()=>({}));
+    if(!r.ok||!j.token) throw new Error(j.erro||'Não consegui gerar o acesso (erro '+r.status+').');
+    const dados=encodeURIComponent(JSON.stringify({t:j.token,l:j.login||'',n:j.nome||b.cliente||'',e:j.expiraMs||0}));
+    const url=location.origin+location.pathname+'#ver='+dados+'&wpp='+(Number(b.aparelhoId)||0)+'.'+(b.funcao||'ign');
+    bts.innerHTML='<a class="asok asbtlink" href="'+esc(url)+'" target="_blank" rel="noopener">Abrir o app como '+esc(j.nome||b.cliente||'cliente')+'</a><small class="asbtinf">Abre em outra aba, direto na compra. Esta aba continua como administrador.</small>';
+  }catch(e){ bts.innerHTML='<div class="asres aserr2">'+esc((e instanceof TypeError)?'Não consegui falar com o servidor. Confira a internet.':(e.message||'Não consegui gerar o acesso.'))+'</div>' }
+}
+/* abre a compra do pacote (aba Alertas) com o veículo e o alerta já marcados */
+async function wppAbrirPedido(dev,k){
+  irPara('Alertas');
+  try{ await wppCarregar() }catch(e){}
+  if(!wppEst || !wppEst.podeComprar){ toast('A compra dos alertas no WhatsApp não está disponível para esta conta agora.',6000); return }
+  wppAbrir(dev && veiculos.some(v=>v.id===Number(dev)) ? Number(dev) : 0);
+  const cb=$('wppItens').querySelector('input[data-wk="'+(k||'ign')+'"]'); if(cb && !cb.checked){ cb.checked=true; wppTotal() }
 }
 async function asExecutar(id,cancelar){
   const card=$('asChat').querySelector('.asconf[data-id="'+id+'"]'); if(!card) return;
@@ -11270,6 +11304,7 @@ async function asExecutar(id,cancelar){
 }
 $('asChat').addEventListener('click',e=>{ const cp=e.target.closest('[data-ascopy]'); if(cp){ const t=cp.dataset.ascopy; const ok=()=>{ cp.textContent='Copiado ✓'; setTimeout(()=>{ cp.textContent='Copiar mensagem' },2000) }; try{ navigator.clipboard.writeText(t).then(ok,()=>{ const g=getSelection(), rg=document.createRange(); rg.selectNodeContents(cp.previousElementSibling); g.removeAllRanges(); g.addRange(rg) }) }catch(_){} return }
   const px=e.target.closest('[data-aspix]'); if(px){ const t=px.dataset.aspix; const ok=()=>{ px.textContent='Copiado ✓'; setTimeout(()=>{ px.textContent='Copiar PIX' },2000) }; try{ navigator.clipboard.writeText(t).then(ok,()=>{ const c=px.previousElementSibling; const g=getSelection(), rg=document.createRange(); rg.selectNodeContents(c); g.removeAllRanges(); g.addRange(rg) }) }catch(_){} return }
+  const bt=e.target.closest('[data-asbt]'); if(bt){ asBotaoClique(bt.closest('.asbtc')); return } /* rodada 3 */
   const ok=e.target.closest('[data-asok]'); if(ok){ asExecutar(ok.dataset.asok,false); return } const ca=e.target.closest('[data-ascan]'); if(ca) asExecutar(ca.dataset.ascan,true) });
 function asAltura(){ const t=$('asTxt'); t.style.height='auto'; t.style.height=Math.min(120,t.scrollHeight)+'px' }
 $('aAssist').onclick=()=>{ if(!ehAdmin) return; abrir('mAssist'); if(!asHist.length) asPintarVazio(); setTimeout(()=>{ try{ $('asTxt').focus() }catch(_){} },150) };

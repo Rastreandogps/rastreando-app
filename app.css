@@ -3544,3 +3544,10 @@ nav button:not(.on) .nemo{filter:saturate(.85)}
 #mAssist .astab table{border-collapse:collapse;font-size:12px;min-width:100%;white-space:nowrap}
 #mAssist .astab th,#mAssist .astab td{padding:4px 8px;border-bottom:1px solid rgba(255,255,255,.12);text-align:left;vertical-align:top}
 #mAssist .astab th{font-weight:700;opacity:.85}
+
+/* 04/11/2026 rodada 3: cartão com botão vindo do assistente (compra do alerta no WhatsApp) */
+#mAssist .asbtc{border-color:#25d366}
+#mAssist .asbtc .asct{color:#1faa52}
+#mAssist .asbtinf{display:block;margin-top:4px;font-weight:500;font-size:12px;color:var(--mut)}
+#mAssist .asbtc .asok{background:#25d366;color:#04210f}
+#mAssist .asbtlink{display:inline-flex;align-items:center;text-decoration:none}
