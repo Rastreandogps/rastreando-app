@@ -4416,6 +4416,7 @@ async function carregarPermissoes(){
     const r=await fetch(DESB_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',body:JSON.stringify({acao:'minhas',token:lsGet('rg_token')})});
     if(!r.ok) return;
     const j=await r.json(); permCli=Object.assign({smsBloqueio:false,reset:false,editarNome:false,cercaRapida:false,minhaPosicao:false},j.perm||{},{appBloqueio:permCli.appBloqueio,cercaBloqueio:permCli.cercaBloqueio,semBloqueio:permCli.semBloqueio,frotista:permCli.frotista,semSocorro:permCli.semSocorro,modFrotaAteMs:Number(j.modFrotaAteMs||0),modFrotaTeste:j.modFrotaTeste===true}); cobrCli=j.cobranca||null;
+    try{ lsSet(mfChave(),String(Number(j.modFrotaAteMs||0))) }catch(e){} /* 04/11/2026: guarda para a próxima abertura */
     try{ modFrotaAplicar() }catch(e){}
     mostrarBotoesSms(); fichasAplicar(); try{ retAplicar() }catch(e){} try{ leitorAplicar() }catch(e){} try{ rbAplicar() }catch(e){} try{ drAplicar() }catch(e){} try{ logoAplicar() }catch(e){} try{ ruaRedesenhar() }catch(e){}
   }catch(e){}
@@ -5068,7 +5069,15 @@ function premTesteAplicar(){
   const t='<span>⭐ Este é um recurso Premium e está disponível para você em teste por '+(dias===1?'mais 1 dia (último dia)':dias+' dias')+'.</span>';
   document.querySelectorAll('.rteste .rtt').forEach(el=>{ el.innerHTML=t+t+t+t });
 }
-function modFrota(){ return ehAdmin || Number(permCli&&permCli.modFrotaAteMs||0)>Date.now() }
+/* 04/11/2026 (bug visto pelo dono): ao abrir/atualizar o app, o painel desenhava antes de chegar a resposta do servidor e mostrava
+   "🔒 Premium" por um instante. Agora, até a resposta chegar, vale a última situação guardada neste aparelho para este login. */
+const mfChave=()=>'rg_mf_'+String(lsGet('rg_email')||'').toLowerCase();
+function modFrota(){
+  if(ehAdmin) return true;
+  let ate=permCli&&permCli.modFrotaAteMs;
+  if(ate==null){ try{ ate=Number(lsGet(mfChave())||0) }catch(e){ ate=0 } }
+  return Number(ate||0)>Date.now();
+}
 function modFrotaAplicar(){
   try{ premTesteAplicar() }catch(e){}
   try{ cbMapaAtualizar() }catch(e){}
@@ -10965,7 +10974,7 @@ function lojaPagoOk(s){
     $('ljpOkWpp').style.display='none'; anualInfo=null; try{ if($('fview').classList.contains('show')) abrirFaturas(true) }catch(e){} return;
   }
   if(Number(s.frotaAteMs)>0){ /* 19/10/2026: Módulo Frota liberado na hora */
-    permCli.modFrotaAteMs=Number(s.frotaAteMs); permCli.modFrotaTeste=false; modFrotaAplicar(); /* 26/10/2026: pagou -> some o aviso de teste */ try{ if($('mComb').classList.contains('show')){ $('mComb').classList.remove('semmod'); modFrotaPintarJanela(); cbPintar() } }catch(e){}
+    permCli.modFrotaAteMs=Number(s.frotaAteMs); permCli.modFrotaTeste=false; try{ lsSet(mfChave(),String(Number(s.frotaAteMs))) }catch(e){} modFrotaAplicar(); /* 26/10/2026: pagou -> some o aviso de teste */ try{ if($('mComb').classList.contains('show')){ $('mComb').classList.remove('semmod'); modFrotaPintarJanela(); cbPintar() } }catch(e){}
     $('ljpOkTxt').textContent='Premium liberado até '+new Date(s.frotaAteMs).toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo'})+'. Toque no odômetro de qualquer veículo para usar a contagem regressiva e mostrar no mapa.';
     $('ljpOkWpp').style.display='none'; return;
   }
