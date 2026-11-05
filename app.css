@@ -3614,3 +3614,15 @@ body.hist-on #assMapaBtn{display:none!important}
 #mComb7 .smtopo h3{font-size:19px;margin:0}
 #mComb7 .imx{width:38px;height:38px;flex:none;border-radius:50%;background:var(--card2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--txt)}
 #mComb7 .imx svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round}
+
+/* 04/11/2026: assistente — microfone (só administrador) e cartões de prestador perto do veículo */
+#mAssist .asmic{width:44px;height:44px;flex:none;border-radius:50%;border:1px solid var(--line,rgba(127,127,127,.35));background:var(--card);color:var(--cyan);display:flex;align-items:center;justify-content:center;cursor:pointer}
+#mAssist .asmic[hidden]{display:none}
+#mAssist .asmic svg{width:20px;height:20px}
+#mAssist .asmic.on{background:#ef4444;border-color:#ef4444;color:#fff;animation:asmicp 1.2s ease-in-out infinite}
+@keyframes asmicp{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.55)}50%{box-shadow:0 0 0 8px rgba(239,68,68,0)}}
+#mAssist .asserv{border-color:#f59e0b}
+#mAssist .asserv .asct{color:#d97706}
+#mAssist .asserv .asbts{display:flex;gap:8px;flex-wrap:wrap}
+#mAssist .asserv .asok{background:#25d366;color:#04210f;display:inline-flex;align-items:center;text-decoration:none}
+#mAssist .asserv .ascan{display:inline-flex;align-items:center;text-decoration:none}
