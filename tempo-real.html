@@ -11422,6 +11422,13 @@ function asBotaoCard(b){
       '<div class="asbts">'+(b.wpp?'<a class="asok asbtlink" href="https://wa.me/'+(String(b.wpp).length<=11?'55':'')+esc(b.wpp)+'" target="_blank" rel="noopener">WhatsApp</a>':'')+
       (b.fone?'<a class="ascan asbtlink" href="tel:+'+(String(b.fone).length<=11?'55':'')+esc(b.fone)+'">Ligar</a>':'')+'</div>';
     c.appendChild(d); c.scrollTop=c.scrollHeight; return }
+  if(b && b.tipo==='link'){ /* 05/11/2026 (dono): link da empresa vindo do assistente — Abrir, WhatsApp (cliente ou escolher contato) e Copiar */
+    const c=$('asChat'), d=document.createElement('div'); d.className='asb asa asconf asserv';
+    const wa='https://wa.me/'+(b.wpp?String(b.wpp).replace(/\D/g,''):'')+(b.mensagem?'?text='+encodeURIComponent(b.mensagem):'');
+    d.innerHTML='<div class="asct">🔗 '+esc(b.nome||'Link')+'</div><div class="asdesc">'+(b.cliente?'Para '+esc(b.cliente)+' · ':'')+esc(b.url||'')+'</div>'+
+      '<div class="asbts"><a class="asok asbtlink" href="'+esc(b.url||'#')+'" target="_blank" rel="noopener">Abrir</a>'+
+      (b.mensagem?'<a class="ascan asbtlink" href="'+esc(wa)+'" target="_blank" rel="noopener">'+(b.wpp?'WhatsApp':'Compartilhar')+'</a><button type="button" class="ascan" data-ascopy="'+esc(b.mensagem)+'">Copiar mensagem</button>':'<button type="button" class="ascan" data-aslcopy="'+esc(b.url||'')+'">Copiar link</button>')+'</div>';
+    c.appendChild(d); c.scrollTop=c.scrollHeight; return }
   if(!b || b.tipo!=='wppCompra') return;
   const c=$('asChat'), d=document.createElement('div'); d.className='asb asa asconf asbtc'; d._bt=b;
   d.innerHTML='<div class="asct">📦 '+esc(b.titulo||'Alertas no WhatsApp')+'</div><div class="asdesc">'+esc(b.texto||'')+
