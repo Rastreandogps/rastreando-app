@@ -11449,7 +11449,8 @@ async function wppAbrirPedido(dev,k){
   try{ await wppCarregar() }catch(e){}
   if(!wppEst || !wppEst.podeComprar){ toast('A compra dos alertas no WhatsApp não está disponível para esta conta agora.',6000); return }
   wppAbrir(dev && veiculos.some(v=>v.id===Number(dev)) ? Number(dev) : 0);
-  const cb=$('wppItens').querySelector('input[data-wk="'+(k||'ign')+'"]'); if(cb && !cb.checked){ cb.checked=true; wppTotal() }
+  /* 05/11/2026 (dono): vindo do assistente, marca SÓ o alerta pedido (antes os pacotes que a conta já tem vinham marcados juntos e a cobrança ficava mais cara) */
+  $('wppItens').querySelectorAll('input[data-wk]').forEach(x=>{ x.checked=(x.dataset.wk===(k||'ign')) }); wppTotal()
 }
 /* 04/11/2026 (dono): link de localização gerado pelo assistente -> caixa com o link e os botões, igual ao Compartilhar do app */
 function asLinkCard(cp){
