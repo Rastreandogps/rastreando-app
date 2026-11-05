@@ -10308,7 +10308,13 @@ function wppValidar(){
   $('wppErro').textContent=''; $('wppNum').dataset.ult=wppFone(num);
   return {deviceId:+$('wppVeic').value, itens:itens, numero:num, numero2:num2};
 }
-$('wppVeic').onchange=()=>{ $('wppVeic').classList.remove('wpperro'); $('wppErro').textContent=''; wppPintarItens(true) };
+$('wppVeic').onchange=()=>{ $('wppVeic').classList.remove('wpperro'); $('wppErro').textContent='';
+  /* 04/11/2026 (dono): trocar o veículo não apaga o que já estava marcado nem o número digitado */
+  const marc=[...$('wppItens').querySelectorAll('input[data-wk]:checked')].map(x=>x.dataset.wk), n1=$('wppNum').value, n2=$('wppNum2').value, b2=$('wppNum2Box').hidden;
+  wppPintarItens(true);
+  marc.forEach(k=>{ const cb=$('wppItens').querySelector('input[data-wk="'+k+'"]'); if(cb){ cb.checked=true; cb.closest('.wppop')&&cb.closest('.wppop').classList.add('on') } });
+  if(n1) $('wppNum').value=n1; if(n2){ $('wppNum2').value=n2; $('wppNum2Box').hidden=false; $('wppAdd2').hidden=true } else if(!b2){ $('wppNum2Box').hidden=false; $('wppAdd2').hidden=true }
+  wppTotal() };
 $('wppItens').addEventListener('change',wppTotal);
 $('wppNum').addEventListener('input',()=>{ $('wppErro').textContent='' });
 $('wppAdd2').onclick=()=>{ $('wppNum2Box').hidden=false; $('wppAdd2').hidden=true; $('wppNum2').focus() };
