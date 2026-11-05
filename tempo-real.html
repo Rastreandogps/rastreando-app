@@ -11386,7 +11386,7 @@ function asBolha(papel,texto,extra){
 function asPintarVazio(){ $('asChat').innerHTML=''; $('asInfo').textContent='' }
 async function asPerguntar(q){
   q=String(q||'').trim(); if(!q||asOcupado) return;
-  try{ if(asOuvindo) asRec.stop() }catch(e){}
+  try{ if(asOuvindo){ asVoz.parar=true; asVoz.descartar=true; asRec.stop() } }catch(e){}
   asOcupado=true; $('asEnviar').disabled=true; $('asSug').style.display='none'; $('asTxt').value=''; asAltura();
   asBolha('usuario',q);
   const esp=asBolha('assistente','Consultando…'); esp.classList.add('asesp');
@@ -11486,16 +11486,29 @@ $('assMapaBtn').onclick=()=>{ try{ $('aAssist').onclick() }catch(e){} }; /* 04/1
 /* 04/11/2026 (dono): microfone para falar em vez de digitar — SÓ no administrador. Reconhecimento de voz do próprio navegador
    (Chrome/Edge no PC e Android; Safari no iPhone). O texto cai na caixa; a pergunta só vai quando tocar na seta. */
 const AS_VOZ=window.SpeechRecognition||window.webkitSpeechRecognition; let asRec=null, asOuvindo=false;
+/* 04/11/2026 23h56 (dono: "se eu ficar 1 segundo sem falar ele já desativa"): agora continua ouvindo até ficar 6 segundos
+   em silêncio ou até tocar no microfone de novo. Se o navegador encerrar sozinho na pausa, religa e continua o texto. */
+const AS_SILENCIO_MS=6000; let asVoz={base:'',acum:'',sess:'',ult:0,parar:false,tm:null};
 function asMicAplicar(){ try{ $('asMic').hidden=!(ehAdmin && AS_VOZ) }catch(e){} }
+function asVozMostrar(par){ const t=[asVoz.base,(asVoz.acum+' '+asVoz.sess+' '+(par||'')).replace(/\s+/g,' ').trim()].filter(Boolean).join(' '); $('asTxt').value=t; asAltura() }
+function asVozFim(){ asOuvindo=false; clearInterval(asVoz.tm); $('asMic').classList.remove('on'); $('asMic').title='Falar em vez de digitar'; try{ $('asTxt').focus() }catch(_){} }
+function asVozSessao(){
+  asRec=new AS_VOZ(); asRec.lang='pt-BR'; asRec.interimResults=true; asRec.continuous=true; asVoz.sess='';
+  asRec.onresult=e=>{ if(asVoz.descartar) return; let fin='', par=''; for(let i=0;i<e.results.length;i++){ const t=e.results[i][0].transcript; if(e.results[i].isFinal) fin+=' '+t; else par+=' '+t } asVoz.sess=fin.trim(); asVoz.ult=Date.now(); asVozMostrar(par) };
+  asRec.onerror=e=>{ if(e.error==='not-allowed'||e.error==='service-not-allowed'){ asVoz.parar=true; toast('Libere o microfone para este site nas configurações do navegador.',6000) } else if(e.error!=='no-speech'&&e.error!=='aborted'){ asVoz.parar=true; toast('Não consegui ouvir ('+e.error+'). Tente de novo.') } };
+  asRec.onend=()=>{ if(asVoz.descartar){ asVozFim(); return } /* a pergunta já foi enviada: não escreve de novo na caixa */
+    asVoz.acum=(asVoz.acum+' '+asVoz.sess).trim(); asVoz.sess=''; asVozMostrar('');
+    if(!asVoz.parar && Date.now()-asVoz.ult<AS_SILENCIO_MS){ try{ asVozSessao(); return }catch(e){} } /* pausa curta: o navegador parou sozinho -> continua */
+    asVozFim() };
+  asRec.start();
+}
 $('asMic').onclick=()=>{
   if(!ehAdmin || !AS_VOZ) return;
-  if(asOuvindo){ try{ asRec.stop() }catch(e){} return }
-  const base=$('asTxt').value.trim(); let fim='';
-  asRec=new AS_VOZ(); asRec.lang='pt-BR'; asRec.interimResults=true; asRec.continuous=false;
-  asRec.onresult=e=>{ let par=''; for(let i=e.resultIndex;i<e.results.length;i++){ const t=e.results[i][0].transcript; if(e.results[i].isFinal) fim+=t; else par+=t } $('asTxt').value=(base?base+' ':'')+(fim+par).trim(); asAltura() };
-  asRec.onerror=e=>{ if(e.error==='not-allowed'||e.error==='service-not-allowed') toast('Libere o microfone para este site nas configurações do navegador.',6000); else if(e.error!=='no-speech'&&e.error!=='aborted') toast('Não consegui ouvir ('+e.error+'). Tente de novo.') };
-  asRec.onend=()=>{ asOuvindo=false; $('asMic').classList.remove('on'); $('asMic').title='Falar em vez de digitar'; try{ $('asTxt').focus() }catch(_){} };
-  try{ asRec.start(); asOuvindo=true; $('asMic').classList.add('on'); $('asMic').title='Ouvindo… toque para parar' }catch(e){ toast('Não consegui ligar o microfone.') }
+  if(asOuvindo){ asVoz.parar=true; try{ asRec.stop() }catch(e){ asVozFim() } return }
+  asVoz={base:$('asTxt').value.trim(),acum:'',sess:'',ult:Date.now(),parar:false,tm:null};
+  try{ asVozSessao(); asOuvindo=true; $('asMic').classList.add('on'); $('asMic').title='Ouvindo… toque para parar';
+    asVoz.tm=setInterval(()=>{ if(asOuvindo && Date.now()-asVoz.ult>=AS_SILENCIO_MS){ asVoz.parar=true; try{ asRec.stop() }catch(e){ asVozFim() } } },500) /* 6 s de silêncio: para */
+  }catch(e){ toast('Não consegui ligar o microfone.') }
 };
 $('aAssist').onclick=()=>{ if(!ehAdmin && !(permCli&&permCli.assistenteIA===true)) return; asMicAplicar(); $('asTxt').placeholder=ehAdmin?'Ex.: qual o chip do rastreador do Carlos?':'Ex.: onde está meu carro? Por onde ele passou hoje?'; abrir('mAssist'); if(!asHist.length) asPintarVazio(); setTimeout(()=>{ try{ $('asTxt').focus() }catch(_){} },150) };
 $('asX').onclick=fechar;
