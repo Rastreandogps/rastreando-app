@@ -11493,11 +11493,15 @@ function asMicAplicar(){ try{ $('asMic').hidden=!(ehAdmin && AS_VOZ) }catch(e){}
 function asVozMostrar(par){ const t=[asVoz.base,(asVoz.acum+' '+asVoz.sess+' '+(par||'')).replace(/\s+/g,' ').trim()].filter(Boolean).join(' '); $('asTxt').value=t; asAltura() }
 function asVozFim(){ asOuvindo=false; clearInterval(asVoz.tm); $('asMic').classList.remove('on'); $('asMic').title='Falar em vez de digitar'; try{ $('asTxt').focus() }catch(_){} }
 function asVozSessao(){
-  asRec=new AS_VOZ(); asRec.lang='pt-BR'; asRec.interimResults=true; asRec.continuous=true; asVoz.sess='';
-  asRec.onresult=e=>{ if(asVoz.descartar) return; let fin='', par=''; for(let i=0;i<e.results.length;i++){ const t=e.results[i][0].transcript; if(e.results[i].isFinal) fin+=' '+t; else par+=' '+t } asVoz.sess=fin.trim(); asVoz.ult=Date.now(); asVozMostrar(par) };
+  /* 05/11/2026 (dono: "começa a duplicar"): o Chrome do Android repete a frase inteira a cada pedaço no modo contínuo.
+     Agora cada sessão ouve UMA frase (continuous=false) e usa só o último resultado; na pausa, religa e junta a próxima. */
+  asRec=new AS_VOZ(); asRec.lang='pt-BR'; asRec.interimResults=true; asRec.continuous=false; asVoz.sess=''; asVoz.par='';
+  asRec.onresult=e=>{ if(asVoz.descartar) return; const r=e.results[e.results.length-1]; if(!r) return; const t=String(r[0].transcript||'').trim();
+    if(r.isFinal){ asVoz.sess=t; asVoz.par='' } else asVoz.par=t; asVoz.ult=Date.now(); asVozMostrar(asVoz.sess?'':asVoz.par) };
   asRec.onerror=e=>{ if(e.error==='not-allowed'||e.error==='service-not-allowed'){ asVoz.parar=true; toast('Libere o microfone para este site nas configurações do navegador.',6000) } else if(e.error!=='no-speech'&&e.error!=='aborted'){ asVoz.parar=true; toast('Não consegui ouvir ('+e.error+'). Tente de novo.') } };
   asRec.onend=()=>{ if(asVoz.descartar){ asVozFim(); return } /* a pergunta já foi enviada: não escreve de novo na caixa */
-    asVoz.acum=(asVoz.acum+' '+asVoz.sess).trim(); asVoz.sess=''; asVozMostrar('');
+    const nova=(asVoz.sess||asVoz.par||'').trim(); /* sem final (cortou no meio): fica com o último pedaço ouvido */
+    if(nova && !asVoz.acum.endsWith(nova)) asVoz.acum=(asVoz.acum+' '+nova).trim(); asVoz.sess=''; asVoz.par=''; asVozMostrar('');
     if(!asVoz.parar && Date.now()-asVoz.ult<AS_SILENCIO_MS){ try{ asVozSessao(); return }catch(e){} } /* pausa curta: o navegador parou sozinho -> continua */
     asVozFim() };
   asRec.start();
