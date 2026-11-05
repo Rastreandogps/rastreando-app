@@ -3526,7 +3526,7 @@ nav button:not(.on) .nemo{filter:saturate(.85)}
 @media (min-width:900px){#mAssist .box2{max-height:80vh;border-radius:18px}#mAssist .aschat{min-height:280px}}
 #mAssist .asconf{border-color:var(--cyan);background:var(--card)}
 #mAssist .asct{font-family:inherit;font-weight:800;font-size:13px;letter-spacing:.6px;text-transform:uppercase;color:var(--cyan)}
-#mAssist .asdesc{margin:4px 0 8px;font-weight:600}
+#mAssist .asdesc{margin:4px 0 8px;font-weight:600;white-space:pre-line} /* 04/11/2026: lembrete para terceiros mostra a mensagem com as quebras de linha */
 #mAssist .asbts{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 #mAssist .asok{height:40px;padding:0 18px;border-radius:12px;border:0;background:var(--green);color:#04210f;font:700 14px inherit;font-family:inherit;cursor:pointer}
 #mAssist .asok.perigo{background:var(--red2);color:#fff}
