@@ -3578,3 +3578,39 @@ body.hist-on #assMapaBtn{display:none!important}
 /* 04/11/2026 (dono): histórico com ignição ligada e parado com motor ligado (2ª linha do resumo) */
 .hpanel .hcards .hign{grid-column:span 2}
 .hstop .hmotor{color:#d97706;font-weight:700}
+
+/* 04/11/2026 (sugestão de cliente): combustível gasto por período (filtro) */
+.frres .c7ok{cursor:pointer}
+.frres .c7ok:active{transform:scale(.98)}
+#mComb7 .c7sub{margin:-2px 0 10px;color:var(--mut);font-size:13.5px}
+#mComb7 .c7filtros{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+#mComb7 .c7filtros button{height:36px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:var(--card2);color:var(--txt);font:600 13.5px inherit;font-family:inherit;cursor:pointer}
+#mComb7 .c7filtros button.on{background:#f59e0b;border-color:#f59e0b;color:#1f1300}
+#mComb7 .c7man{display:flex;gap:8px;align-items:flex-end;margin-bottom:10px}
+#mComb7 .c7man label{flex:1;display:grid;gap:3px;font-size:12px;color:var(--mut)}
+#mComb7 .c7man input{height:40px;border-radius:10px;border:1px solid var(--line);background:var(--card2);color:var(--txt);padding:0 8px;font:inherit;min-width:0}
+#mComb7 .c7man .btn{height:40px;width:auto;padding:0 16px;margin:0}
+#mComb7 .c7big{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:8px}
+#mComb7 .c7big span{display:block;font-size:12.5px;color:var(--mut)}
+#mComb7 .c7big b{display:block;font-size:26px;font-weight:800;color:#f59e0b;line-height:1.2}
+#mComb7 .c7big small{font-size:12.5px;color:var(--mut)}
+#mComb7 .c7veics{display:grid;gap:4px;margin-bottom:8px}
+#mComb7 .c7veics div{display:grid;grid-template-columns:1fr auto;column-gap:8px;background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:6px 12px;font-size:13.5px}
+#mComb7 .c7veics b{color:#f59e0b}
+#mComb7 .c7veics small{grid-column:1/-1;font-size:11.5px;color:var(--mut)}
+#mComb7 .c7esp{color:var(--mut);font-size:13.5px;padding:6px 2px}
+#mComb7 .c7lista{display:grid;gap:6px}
+#mComb7 .c7dia{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:8px 12px}
+#mComb7 .c7dia.zero{opacity:.65}
+#mComb7 .c7l1{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:14px}
+#mComb7 .c7l1 b{font-weight:700;text-transform:capitalize}
+#mComb7 .c7l1 b small{font-weight:500;color:var(--mut);text-transform:none}
+#mComb7 .c7l1 span{font-weight:800;color:#f59e0b}
+#mComb7 .c7bar{height:5px;border-radius:3px;background:var(--line);margin:6px 0 3px;overflow:hidden}
+#mComb7 .c7bar i{display:block;height:100%;background:#f59e0b;border-radius:3px}
+#mComb7 .c7dia>small{font-size:12px;color:var(--mut)}
+#mComb7 .c7nota{font-size:11.5px;color:var(--mut);margin:10px 0 0}
+#mComb7 .smtopo{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:4px}
+#mComb7 .smtopo h3{font-size:19px;margin:0}
+#mComb7 .imx{width:38px;height:38px;flex:none;border-radius:50%;background:var(--card2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--txt)}
+#mComb7 .imx svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round}

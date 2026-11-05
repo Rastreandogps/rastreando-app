@@ -41,7 +41,7 @@ try{ if(localStorage.getItem('rg_token')||sessionStorage.getItem('rgv_rg_token')
 try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'){document.documentElement.setAttribute('data-tema',t)}}catch(e){}
 </script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="stylesheet" href="app.css?v=36"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
+<link rel="stylesheet" href="app.css?v=38"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
 </head>
 <body>
 
@@ -1811,6 +1811,18 @@ try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'
     <button class="btn btn-wpp" id="wppPagar" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l4.2 4.2-4.2 4.2-4.2-4.2zM12 13.1l4.2 4.2-4.2 4.2-4.2-4.2zM6.7 7.8l4.2 4.2-4.2 4.2L2.5 12zM17.3 7.8l4.2 4.2-4.2 4.2-4.2-4.2z"/></svg>Pagar com PIX</button>
     <button class="btn btn-out" id="wppAdmin" type="button" style="width:100%;margin-top:8px;display:none">Ativar sem PIX (teste do administrador)</button>
     <p class="alnota" style="text-align:center">Assim que o PIX for confirmado, os alertas começam a chegar no WhatsApp. Quando o pacote acabar, o WhatsApp para e os alertas continuam no app.</p>
+  </div>
+</div>
+<div class="modal alsheet" id="mComb7"><!-- 04/11/2026 (sugestão de cliente): combustível gasto num período, com filtro -->
+  <div class="box2">
+    <div class="smtopo"><h3>⛽ Combustível gasto</h3><button class="imx" type="button" data-close aria-label="Fechar" title="Fechar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <p class="c7sub" id="c7Sub"></p>
+    <div class="c7filtros" id="c7Filtros"><button type="button" data-c7p="hoje">Hoje</button><button type="button" data-c7p="7">7 dias</button><button type="button" data-c7p="30">30 dias</button><button type="button" data-c7p="man">Escolher datas</button></div>
+    <div class="c7man" id="c7Man" hidden><label>De<input type="date" id="c7De"></label><label>Até<input type="date" id="c7Ate"></label><button type="button" class="btn btn-wpp" id="c7Ver">Ver</button></div>
+    <div class="c7tot" id="c7Tot"></div>
+    <div class="c7lista" id="c7Lista"></div>
+    <p class="c7nota">Cada dia vai de meia-noite a meia-noite. O valor usa o consumo (km/L) e o preço do litro configurados hoje em cada veículo. Dá para ver até 90 dias para trás.</p>
+    <button class="btn btn-out" id="c7Ajustar" type="button" style="width:100%;margin-top:8px">Ajustar consumo e preço</button>
   </div>
 </div>
 <div class="modal alsheet" id="mWppTroca"><!-- 03/11/2026 (noite, dono): escolher os veículos que usam o pacote da conta -->
@@ -5113,7 +5125,7 @@ function frDesenhar(){
   const oleoTx = !premium ? '<div class="oleo"><span>🔧 Troca de óleo</span><b>🔒 Premium</b><small>'+MODFROTA_VALOR+'</small></div>'
     : '<div class="oleo '+(nVencido||nAlerta?'ruim':'ok')+'"><span>🔧 Troca de óleo</span><b>'+(nVencido?nVencido+' vencida'+(nVencido>1?'s':''):nAlerta?nAlerta+' perto':nOleo?'Em dia':'—')+'</b><small>'+(nOleo?nOleo+' com contagem':'nenhuma contagem')+'</small></div>';
   let h='<div class="frres">'+
-    (premium ? '<div class="comb"><span>⛽ Combustível</span><b>'+(nComb?cbBrl(rs):'—')+'</b><small>'+(nComb?cbLtTxt(lt)+' · '+nComb+' veíc.':'configure nos veículos')+'</small></div>'
+    (premium ? '<div class="comb'+(nComb?' c7ok':'')+'"'+(nComb?' data-c7todos="1" role="button" tabindex="0" title="Ver o gasto por período"':'')+'><span>⛽ Combustível</span><b>'+(nComb?cbBrl(rs):'—')+'</b><small>'+(nComb?cbLtTxt(lt)+' · '+nComb+' veíc.':'configure nos veículos')+'</small></div>'
              : '<div class="comb"><span>⛽ Combustível</span><b>🔒 Premium</b><small>'+MODFROTA_VALOR+'</small></div>')+
     '<div><span>🚗 Veículos</span><b>'+VS.length+'</b><small>'+VS.filter(v=>v.online).length+' online</small></div>'+
     oleoTx+'</div>';
@@ -5289,6 +5301,7 @@ $('frLista').addEventListener('click',e=>{
   if(e.target.closest('.frchkin')) return;
   const ck=e.target.closest('[data-chk]'); if(ck){ frChkSalvar(+ck.dataset.chk); return }
   const lk=e.target.closest('[data-chklk]'); if(lk){ chkLinkAbrir(+lk.dataset.chklk); return }
+  const c7=e.target.closest('[data-c7todos]'); if(c7){ c7Abrir(frDados().filter(x=>x.g).map(x=>x.v.id)); return } /* 04/11/2026 */
   const fo=e.target.closest('[data-chkfoto]'); if(fo){ chkFotoAbrir(+fo.dataset.chkfoto); return }
   const tr=e.target.closest('[data-frtira]'); if(tr){ /* 20/10/2026: atalho para tirar (é o mesmo que desmarcar "Mostrar na aba Frota") */
     const id=+tr.dataset.frtira, vv=veiculos.find(x=>x.id===id); if(!vv) return;
@@ -5297,9 +5310,79 @@ $('frLista').addEventListener('click',e=>{
     frDesenhar(); try{ frBadgePintar() }catch(_){} toast('"'+vv.nome+'" saiu da aba Frota.'); return }
   const b=e.target.closest('button[data-fr]'); if(!b) return;
   const v=veiculos.find(x=>String(x.id)===b.dataset.id); if(!v) return;
+  if(b.dataset.fr==='comb' && b.classList.contains('comb') && modFrota()){ c7Abrir([v.id]); return } /* 04/11/2026: já configurado -> gasto por período (filtro) */
   frVoltar=true; escolherVeiculo(v,true); setTimeout(()=>{ abrirComb(b.dataset.fr); if(!$('mComb').classList.contains('show')){ frVoltar=false; irPara('Frota') } },120);
 });
 let frVoltar=false;
+/* 04/11/2026 (sugestão de cliente): combustível gasto num período, com filtro (Hoje / 7 dias / 30 dias / datas).
+   Dia = meia-noite a meia-noite (Brasília). km = relatório "summary" do Traccar; litros e R$ pelo km/L e preço de HOJE de cada
+   veículo (estimativa). 1 consulta para o total do período + 1 por dia para a lista dia a dia (até 31 dias). Nada fica guardado. */
+let c7Ids=[], c7Ver=0, c7Per='7';
+const c7Dia=ms=>new Intl.DateTimeFormat('pt-BR',{timeZone:'America/Sao_Paulo',weekday:'short',day:'2-digit',month:'2-digit'}).format(new Date(ms)).replace('.','').replace(',','');
+const c7Iso=ms=>new Intl.DateTimeFormat('en-CA',{timeZone:'America/Sao_Paulo'}).format(new Date(ms));
+const c7Meia=iso=>Date.parse(iso+'T03:00:00Z'); /* meia-noite de Brasília (UTC-3, sem horário de verão) */
+function c7Custo(lista){ let km=0, lt=0, rs=0; const porV={};
+  (lista||[]).forEach(x=>{ const v=veiculos.find(y=>y.id===x.deviceId); const c=v&&cbLer(v.id), kml=c&&cbNumDec(c.kml), pr=c&&cbNumDec(c.preco); const k=Math.max(0,Number(x.distance)||0)/1000; if(!(kml>0&&pr>0)) return;
+    km+=k; lt+=k/kml; rs+=k/kml*pr; const a=porV[x.deviceId]||(porV[x.deviceId]={km:0,lt:0,rs:0}); a.km+=k; a.lt+=k/kml; a.rs+=k/kml*pr });
+  return {km,lt,rs,porV};
+}
+async function c7Resumo(ids,t0,t1){
+  const r=await api('/api/reports/summary?'+ids.map(i=>'deviceId='+i).join('&')+'&from='+encodeURIComponent(new Date(t0).toISOString())+'&to='+encodeURIComponent(new Date(t1).toISOString()));
+  if(!r.ok) throw new Error('Não consegui ler o histórico (erro '+r.status+').');
+  return c7Custo(await r.json());
+}
+function c7Abrir(ids){
+  ids=(ids||[]).filter(id=>{ const v=veiculos.find(x=>x.id===id); return v && cbGasto(v) }); if(!ids.length) return false;
+  c7Ids=ids; const um=ids.length===1;
+  $('c7Sub').textContent=um?veiculos.find(x=>x.id===ids[0]).nome:ids.length+' veículos da aba Frota';
+  $('c7Ajustar').style.display=um?'':'none';
+  const hoje=c7Iso(Date.now()); $('c7De').max=hoje; $('c7Ate').max=hoje; $('c7De').min=c7Iso(Date.now()-90*86400000); $('c7Ate').min=$('c7De').min;
+  if(!$('c7De').value){ $('c7De').value=c7Iso(Date.now()-6*86400000); $('c7Ate').value=hoje }
+  try{ const m=$('mComb7'); m.style.zIndex='1400'; document.body.appendChild(m) }catch(e){}
+  abrir('mComb7'); c7Mostrar(c7Per); return true;
+}
+function c7Mostrar(per){
+  c7Per=per; $('c7Filtros').querySelectorAll('[data-c7p]').forEach(b=>b.classList.toggle('on',b.dataset.c7p===per));
+  $('c7Man').hidden=per!=='man';
+  const hoje=c7Iso(Date.now());
+  let de, ate;
+  if(per==='hoje'){ de=hoje; ate=hoje }
+  else if(per==='7'||per==='30'){ de=c7Iso(Date.now()-(+per-1)*86400000); ate=hoje }
+  else { de=$('c7De').value; ate=$('c7Ate').value;
+    if(!de||!ate){ $('c7Tot').innerHTML=''; $('c7Lista').innerHTML='<div class="c7dia c7esp">Escolha as duas datas e toque em Ver.</div>'; return }
+    if(de>ate){ const t=de; de=ate; ate=t }
+  }
+  c7Calcular(de,ate);
+}
+async function c7Calcular(de,ate){
+  const ver=++c7Ver, ids=c7Ids, agora=Date.now();
+  const t0=c7Meia(de), t1=Math.min(c7Meia(ate)+86400000,agora), nd=Math.round((c7Meia(ate)-t0)/86400000)+1;
+  const dd=x=>x.split('-').reverse().slice(0,2).join('/');
+  const tit=de===ate?(de===c7Iso(agora)?'Hoje (até agora)':c7Dia(t0)):dd(de)+' a '+dd(ate)+' · '+nd+' dias';
+  $('c7Tot').innerHTML='<div class="c7esp">Calculando…</div>'; $('c7Lista').innerHTML='';
+  if(t0<agora-91*86400000){ $('c7Tot').innerHTML='<div class="c7esp">Guardamos só os últimos 90 dias. Escolha uma data mais recente.</div>'; return }
+  try{
+    const tot=await c7Resumo(ids,t0,t1); if(ver!==c7Ver) return;
+    let h='<div class="c7big"><span>'+esc(tit)+'</span><b>'+cbBrl(tot.rs)+'</b><small>'+kmTxt(tot.km)+' · '+cbLtTxt(tot.lt)+'</small></div>';
+    if(ids.length>1) h+='<div class="c7veics">'+ids.map(id=>({id,g:tot.porV[id]||{km:0,lt:0,rs:0}})).sort((a,b)=>b.g.rs-a.g.rs).map(x=>'<div><span>'+esc((veiculos.find(v=>v.id===x.id)||{}).nome||'')+'</span><b>'+cbBrl(x.g.rs)+'</b><small>'+kmTxt(x.g.km)+'</small></div>').join('')+'</div>';
+    $('c7Tot').innerHTML=h;
+    if(nd<2) return;
+    if(nd>31){ $('c7Lista').innerHTML='<div class="c7dia c7esp">Para ver dia a dia, escolha até 31 dias.</div>'; return }
+    $('c7Lista').innerHTML='<div class="c7dia c7esp">Carregando dia a dia…</div>';
+    const dias=[]; for(let i=0;i<nd;i++){ const a=t0+i*86400000; if(a<agora) dias.push(a) }
+    const res=new Array(dias.length);
+    for(let i=0;i<dias.length;i+=5){ /* 5 dias por vez, para não pesar */
+      await Promise.all(dias.slice(i,i+5).map((a,k)=>c7Resumo(ids,a,Math.min(a+86400000,agora)).then(g=>{ res[i+k]=g })));
+      if(ver!==c7Ver) return;
+    }
+    const mx=Math.max(...res.map(g=>g.rs),0.01), hojeIso=c7Iso(agora);
+    $('c7Lista').innerHTML=dias.map((a,k)=>({a,g:res[k]})).reverse().map(x=>'<div class="c7dia'+(x.g.rs>0?'':' zero')+'"><div class="c7l1"><b>'+esc(c7Dia(x.a))+(c7Iso(x.a)===hojeIso?' <small>(hoje)</small>':'')+'</b><span>'+cbBrl(x.g.rs)+'</span></div>'+
+      '<div class="c7bar"><i style="width:'+Math.round(x.g.rs/mx*100)+'%"></i></div><small>'+kmTxt(x.g.km)+' · '+cbLtTxt(x.g.lt)+'</small></div>').join('');
+  }catch(e){ if(ver===c7Ver){ $('c7Tot').innerHTML='<div class="c7esp">'+esc(e.message||'Não consegui calcular. Confira a internet.')+'</div>'; $('c7Lista').innerHTML='' } }
+}
+$('c7Filtros').addEventListener('click',e=>{ const b=e.target.closest('[data-c7p]'); if(b) c7Mostrar(b.dataset.c7p) });
+$('c7Ver').onclick=()=>c7Mostrar('man');
+$('c7Ajustar').onclick=()=>{ const id=c7Ids[0], v=veiculos.find(x=>x.id===id); if(!v) return; fechar(); frVoltar=true; escolherVeiculo(v,true); setTimeout(()=>{ abrirComb('comb'); if(!$('mComb').classList.contains('show')){ frVoltar=false; irPara('Frota') } },120) };
 $('frAtualizar').onclick=async()=>{ /* 20/10/2026: mostra que está atualizando (antes parecia não fazer nada) */
   const b=$('frAtualizar'); if(b.dataset.ocupado) return; b.dataset.ocupado='1'; const t=b.textContent; b.textContent='Atualizando…';
   try{ await vcSincronizar(); try{ await buscarSeguro() }catch(e){} }catch(e){}
