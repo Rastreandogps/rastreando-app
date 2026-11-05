@@ -41,7 +41,7 @@ try{ if(localStorage.getItem('rg_token')||sessionStorage.getItem('rgv_rg_token')
 try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'){document.documentElement.setAttribute('data-tema',t)}}catch(e){}
 </script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="stylesheet" href="app.css?v=40"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
+<link rel="stylesheet" href="app.css?v=41"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
 </head>
 <body>
 
@@ -5958,11 +5958,14 @@ function compPassHtml(x){
 function compCardHtml(x,agora,comVeic){
   const tc=x.tipo==='tec', fr=x.tipo==='frota'||tc, falta=x.expiraMs-agora, tot=Math.max(1,x.expiraMs-x.criadoMs); /* tec = "técnico a caminho" do APP Técnico (15/10/2026) */
   const vv=comVeic ? veiculos.find(q=>q.id===x.deviceId) : null;
-  const tit = tc ? 'Técnico a caminho'+(x.tecnico?' · '+x.tecnico:'') : (fr?(x.titulo||'Serviço a caminho'):'Localização compartilhada');
+  /* 05/11/2026: link criado para um PEDIDO DE SERVIÇO (assistente/Telegram): LED com o tipo e o protocolo da fila do APP Técnico */
+  const SV={retirada:['🔩','RETIRADA','ret'],manutencao:['🔧','MANUTENÇÃO','man'],substituicao:['🔁','SUBSTITUIÇÃO','sub']}[x.servico||''];
+  const tit = tc ? 'Técnico a caminho'+(x.tecnico?' · '+x.tecnico:'') : (fr?(x.titulo||'Serviço a caminho'):(SV?'Localização para o técnico':'Localização compartilhada'));
   const pts=compPontos(x);
-  const sub = tc ? (x.os?'OS '+x.os+' · ':'')+'Criado '+compQuando(x.criadoMs) : (fr&&pts.length>1?pts.map((pt,i)=>CAM_LET[i]+': '+(pt.endereco||(pt.lat.toFixed(4)+', '+pt.lon.toFixed(4)))).join(' → '):(fr&&x.destEnd?'Destino: '+x.destEnd:'Criado '+compQuando(x.criadoMs)));
+  const sub = tc ? (x.os?'OS '+x.os+' · ':'')+'Criado '+compQuando(x.criadoMs) : SV ? (x.os?'Pedido '+x.os+' · ':'')+'Criado '+compQuando(x.criadoMs) : (fr&&pts.length>1?pts.map((pt,i)=>CAM_LET[i]+': '+(pt.endereco||(pt.lat.toFixed(4)+', '+pt.lon.toFixed(4)))).join(' → '):(fr&&x.destEnd?'Destino: '+x.destEnd:'Criado '+compQuando(x.criadoMs)));
   return '<div class="lkcard'+(fr?' frota':'')+(falta<10*60000?' acabando':'')+'" data-c="'+esc(x.codigo)+'">'+
           (comVeic?'<div class="lkveic"><b>'+esc(vv?vv.nome:('Veículo '+x.deviceId))+'</b><span class="lkvb">'+(vv&&x.destLat!=null?'<button type="button" class="lkrbt'+(CPR.cod===x.codigo?' on':'')+'" data-cprota="'+esc(x.codigo)+'">Ver rota</button>':'')+(x.tipo==='frota'?'<button type="button" data-cped="'+esc(x.codigo)+'" title="Editar os pontos">✏️ Pontos</button>':'')+(vv?'<button type="button" data-cpver="'+x.deviceId+'">Ver no mapa</button>':'')+'</span></div>':'')+
+          (SV?'<div class="lkled lkled-'+SV[2]+'"><i></i>'+SV[0]+' '+SV[1]+'</div>':'')+
           '<div class="lktop"><span class="lkic">'+(fr?IC_CAMINHAO:IC_LINK)+'</span>'+
             '<span class="lkt"><b>'+esc(tit)+'</b><small>'+esc(sub)+'</small></span>'+
             '<span class="lkcd"><b>'+esc(tempoFalta(falta))+'</b><small>até '+esc(new Date(x.expiraMs).toDateString()===new Date().toDateString()?compQuando(x.expiraMs).replace(/^\d\d\/\d\d às /,''):compQuando(x.expiraMs))+'</small></span></div>'+

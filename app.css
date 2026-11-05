@@ -2202,6 +2202,14 @@ nav .nl-pc{display:none} nav .nl-cel{display:inline}
 header nav .nl-pc{display:inline} header nav .nl-cel{display:none}
 #cpLista .lkcard{margin-bottom:10px}
 .lkveic{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:-2px 0 8px;font-size:12.5px;color:var(--mut)}
+/* 05/11/2026: LED do pedido de serviço no cartão do link (retirada / manutenção / substituição) */
+.lkled{display:inline-flex;align-items:center;gap:6px;margin:0 0 8px;padding:3px 10px 3px 8px;border-radius:999px;font-size:11px;font-weight:800;letter-spacing:.4px;border:1px solid}
+.lkled i{width:7px;height:7px;border-radius:50%;background:currentColor;box-shadow:0 0 6px currentColor;animation:lkledp 1.6s ease-in-out infinite}
+@keyframes lkledp{0%,100%{opacity:1}50%{opacity:.35}}
+@media (prefers-reduced-motion:reduce){.lkled i{animation:none}}
+.lkled-ret{color:#dc2626;background:rgba(220,38,38,.10);border-color:rgba(220,38,38,.45)}
+.lkled-man{color:#d97706;background:rgba(217,119,6,.12);border-color:rgba(217,119,6,.45)}
+.lkled-sub{color:#7c3aed;background:rgba(124,58,237,.12);border-color:rgba(124,58,237,.45)}
 .lkveic b{color:var(--txt);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 /* 15/10/2026: rota do link dentro da aba Compartilhados (um mapinha por vez, mapa grátis) */
 .lkveic .lkvb{display:flex;gap:6px;flex:none}
