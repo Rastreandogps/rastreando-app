@@ -1821,7 +1821,7 @@ try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'
     <div class="c7man" id="c7Man" hidden><label>De<input type="date" id="c7De"></label><label>Até<input type="date" id="c7Ate"></label><button type="button" class="btn btn-wpp" id="c7Ver">Ver</button></div>
     <div class="c7tot" id="c7Tot"></div>
     <div class="c7lista" id="c7Lista"></div>
-    <p class="c7nota">Cada dia vai de meia-noite a meia-noite. O valor usa o consumo (km/L) e o preço do litro configurados hoje em cada veículo. Dá para ver até 90 dias para trás.</p>
+    <p class="c7nota">Cada dia vai de meia-noite a meia-noite. Só conta depois do “Contando do zero” de cada veículo. O valor usa o consumo (km/L) e o preço do litro configurados hoje. Dá para ver até 90 dias para trás.</p>
     <button class="btn btn-out" id="c7Ajustar" type="button" style="width:100%;margin-top:8px">Ajustar consumo e preço</button>
   </div>
 </div>
@@ -5326,10 +5326,36 @@ function c7Custo(lista){ let km=0, lt=0, rs=0; const porV={};
     km+=k; lt+=k/kml; rs+=k/kml*pr; const a=porV[x.deviceId]||(porV[x.deviceId]={km:0,lt:0,rs:0}); a.km+=k; a.lt+=k/kml; a.rs+=k/kml*pr });
   return {km,lt,rs,porV};
 }
+/* 04/11/2026 (correção, teste do dono no ALEX): (1) respeita o "Contando do zero": nada antes do momento em que foi zerado
+   entra na conta; (2) o relatório do Traccar calcula km = odômetro no fim − odômetro no começo, então AJUSTAR o odômetro
+   (ex.: digitar 961.283 km do painel) virava "km rodado". Se o km do período for impossível (média acima de 150 km/h),
+   refaz a conta somando o trajeto posição a posição (atributo "distance" de cada posição, que não muda com o ajuste). */
+const C7_KMH_MAX=150;
+async function c7KmTrajeto(id,a,b){
+  const r=await api('/api/reports/route?deviceId='+id+'&from='+encodeURIComponent(new Date(a).toISOString())+'&to='+encodeURIComponent(new Date(b).toISOString()));
+  if(!r.ok) throw new Error('Não consegui ler o trajeto (erro '+r.status+').');
+  const l=(await r.json()).filter(p=>p.valid!==false && !posZero(p)).sort((x,y)=>Date.parse(x.fixTime)-Date.parse(y.fixTime));
+  let m=0;
+  for(let i=1;i<l.length;i++){
+    const d=Number(l[i].attributes&&l[i].attributes.distance), dt=(Date.parse(l[i].fixTime)-Date.parse(l[i-1].fixTime))/1000;
+    const dd=isFinite(d)&&d>=0?d:distHist([l[i-1].latitude,l[i-1].longitude],[l[i].latitude,l[i].longitude]);
+    if(dd<5000 || (dt>0 && dd/dt<70)) m+=dd; /* ignora "pulo" de GPS impossível, igual ao Histórico */
+  }
+  return m;
+}
 async function c7Resumo(ids,t0,t1){
-  const r=await api('/api/reports/summary?'+ids.map(i=>'deviceId='+i).join('&')+'&from='+encodeURIComponent(new Date(t0).toISOString())+'&to='+encodeURIComponent(new Date(t1).toISOString()));
-  if(!r.ok) throw new Error('Não consegui ler o histórico (erro '+r.status+').');
-  return c7Custo(await r.json());
+  const lista=[];
+  await Promise.all(ids.map(async id=>{
+    const z=cbZeroDe(id), a=Math.max(t0,(z&&z.zeroEm)||0); /* respeita o "Contando do zero" */
+    if(a>=t1){ lista.push({deviceId:id,distance:0}); return }
+    const r=await api('/api/reports/summary?deviceId='+id+'&from='+encodeURIComponent(new Date(a).toISOString())+'&to='+encodeURIComponent(new Date(t1).toISOString()));
+    if(!r.ok) throw new Error('Não consegui ler o histórico (erro '+r.status+').');
+    const l=await r.json(); let dist=Math.max(0,Number((l[0]||{}).distance)||0);
+    const horas=Math.max((t1-a)/3600000,1/60);
+    if(dist/1000/horas>C7_KMH_MAX) dist=await c7KmTrajeto(id,a,t1); /* salto do odômetro (ajuste): conta o trajeto de verdade */
+    lista.push({deviceId:id,distance:dist});
+  }));
+  return c7Custo(lista);
 }
 function c7Abrir(ids){
   ids=(ids||[]).filter(id=>{ const v=veiculos.find(x=>x.id===id); return v && cbGasto(v) }); if(!ids.length) return false;
