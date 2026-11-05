@@ -3130,11 +3130,30 @@ requestAnimationFrame(animar);
 function deslizePintar(){ const b=$('deslizeBtn'); if(!b) return; b.style.display='none'; try{ $('pontoBtn').style.display=ehAdmin?'inline-flex':'none' }catch(e){} try{ $('sheet').classList.add('spdtopon') }catch(e){} /* 30/10/2026: velocímetro ao lado do nome no celular (teste só admin) */ try{ const sb=$('socBtn'); sb.style.display=(!ehAdmin&&permCli&&permCli.semSocorro)?'none':'flex'; sb.style.top=ehAdmin?'54px':'12px' }catch(e){} try{ const ab=$('assMapaBtn'), cliIA=!ehAdmin&&permCli&&permCli.assistenteIA===true; ab.style.display=((ehAdmin&&!VER.on)||cliIA)?'flex':'none'; ab.style.top=ehAdmin?'116px':(getComputedStyle($('socBtn')).display!=='none'?'74px':'12px'); zoomPos() }catch(e){} /* 04/11/2026: assistente no mapa; cliente com a permissão "Assistente de IA" também (embaixo do Serviços) */ /* 30/10/2026 (dono): botão Serviços liberado para todos; sem a lupa (cliente), sobe para o topo */ const on=deslizeLigado(); b.classList.toggle('on',on); $('deslizeTxt').textContent=on?'ligado':'desligado' }
 /* ===== MARCAR PONTO NO MAPA (19/10/2026, pedido do dono; só administrador) =====
    Lupa abaixo do "Deslize contínuo": busca um endereço (OpenStreetMap, grátis) ou aceita "latitude, longitude",
-   escolhe o ícone (casa, pino ou bandeira) e marca no mapa. Fica guardado neste computador; dá para remover. */
+   escolhe o ícone (casa, pino ou bandeira) e marca no mapa. Dá para remover.
+   05/11/2026 (dono): as marcações ficam no SERVIDOR (iguais em todos os aparelhos dos administradores; o assistente também marca).
+   "rg_pontos" vira só a cópia local para desenhar rápido; as antigas deste aparelho sobem uma vez ("rg_pontos_sub"). */
 let ptSel=null, ptIc='casa', ptCamada=null;
 const PT_IC={casa:'🏠',pino:'📍',bandeira:'🚩'};
 function ptLer(){ try{ const a=JSON.parse(lsGet('rg_pontos')||'[]'); return Array.isArray(a)?a:[] }catch(e){ return [] } }
 function ptGravar(a){ lsSet('rg_pontos',JSON.stringify(a)); ptDesenharMapa(); ptLista() }
+let ptSyncOcup=false, ptSyncEm=0;
+async function ptServ(corpo){
+  const r=await fetch(ASSIST_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',body:JSON.stringify(Object.assign({acao:'pontos',token:lsGet('rg_token')},corpo))});
+  let j={}; try{ j=await r.json() }catch(e){}
+  if(!r.ok || !Array.isArray(j.itens)) throw new Error(j.erro||'Não consegui falar com o servidor.');
+  return j;
+}
+async function ptSync(){ /* busca as marcações do servidor; na 1ª vez sobe as antigas deste aparelho */
+  if(!ehAdmin || ptSyncOcup) return; ptSyncOcup=true;
+  try{
+    let j=await ptServ({op:'listar'});
+    if(lsGet('rg_pontos_sub')!=='1'){ const loc=ptLer(); if(loc.length) j=await ptServ({op:'importar',itens:loc}); lsSet('rg_pontos_sub','1') }
+    ptSyncEm=Date.now();
+    if(JSON.stringify(j.itens)!==lsGet('rg_pontos')) ptGravar(j.itens);
+  }catch(e){ /* sem servidor: fica a cópia local */ }
+  ptSyncOcup=false;
+}
 function ptDesenharMapa(){
   if(ptCamada){ try{ map.removeLayer(ptCamada) }catch(e){} }
   ptCamada=L.layerGroup().addTo(map);
@@ -3151,7 +3170,7 @@ function ptLista(){
   const a=ptLer();
   $('ptLista').innerHTML=a.length?'<h4>Marcações no mapa ('+a.length+')</h4>'+a.map(p=>'<div class="ptit"><span class="ic">'+(PT_IC[p.ic]||'📍')+'</span><div class="tx"><b>'+esc(p.nome||'Marcação')+'</b><small>'+esc(p.end||(p.lat.toFixed(6)+', '+p.lon.toFixed(6)))+'</small></div><button type="button" data-ptver="'+p.id+'">Ver</button><button type="button" class="del" data-ptdel="'+p.id+'">Remover</button></div>').join(''):'';
 }
-function ptRemover(id){ ptGravar(ptLer().filter(p=>p.id!==id)); try{ map.closePopup() }catch(e){} toast('Marcação removida.') }
+async function ptRemover(id){ try{ const j=await ptServ({op:'remover',id:id}); ptGravar(j.itens); try{ map.closePopup() }catch(e){} toast('Marcação removida.') }catch(e){ toast(e.message||'Não consegui remover agora.') } }
 function ptCoords(t){ const m=String(t).trim().match(/^(-?\d{1,2}(?:[.,]\d+)?)\s*[,; ]\s*(-?\d{1,3}(?:[.,]\d+)?)$/); if(!m) return null; const la=+m[1].replace(',','.'), lo=+m[2].replace(',','.'); return (Math.abs(la)<=90&&Math.abs(lo)<=180&&(la||lo))?{lat:la,lon:lo}:null }
 function ptEscolher(o){
   ptSel=o; $('ptEscolha').hidden=false;
@@ -3180,11 +3199,13 @@ $('ptBuscar').onclick=ptBuscar;
 $('ptBusca').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); ptBuscar() } });
 $('ptRes').addEventListener('click',e=>{ const b=e.target.closest('[data-pti]'); if(!b) return; ptEscolher(window._ptOps[+b.dataset.pti]); $('ptRes').innerHTML='' });
 $('ptIcs').addEventListener('click',e=>{ const b=e.target.closest('[data-ic]'); if(!b) return; ptIc=b.dataset.ic; $('ptIcs').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b)) });
-$('ptMarcar').onclick=()=>{
-  if(!ptSel) return;
+$('ptMarcar').onclick=async()=>{
+  if(!ptSel) return; const bt=$('ptMarcar'); if(bt.disabled) return;
   const p={id:'p'+Date.now().toString(36),lat:ptSel.lat,lon:ptSel.lon,ic:ptIc,nome:$('ptNome').value.trim().slice(0,40),end:ptSel.end||''};
-  const a=ptLer(); a.push(p); ptGravar(a);
-  fechar(); try{ setSeguir(false) }catch(e){} map.setView([p.lat,p.lon],16); toast('Marcado no mapa.');
+  bt.disabled=true;
+  try{ const j=await ptServ({op:'add',ponto:p}); ptGravar(j.itens); fechar(); try{ setSeguir(false) }catch(e){} map.setView([p.lat,p.lon],16); toast('Marcado no mapa.') }
+  catch(e){ toast(e.message||'Não consegui marcar agora. Tente de novo.') }
+  bt.disabled=false;
 };
 $('ptLista').addEventListener('click',e=>{
   const v=e.target.closest('[data-ptver]'), d=e.target.closest('[data-ptdel]');
@@ -3196,8 +3217,10 @@ $('ptLista').addEventListener('click',e=>{
   function mover(){ const alvo=mq.matches?$('placaBts'):document.querySelector('#sheet .vname'); if(!alvo) return; ids.forEach(i=>{ const e=$(i); if(e&&e.parentNode!==alvo) alvo.appendChild(e) }) }
   try{ mq.addEventListener('change',mover) }catch(e){ try{ mq.addListener(mover) }catch(_){} } mover() })();
 $('socBtn').onclick=()=>{ try{ rbAbrir() }catch(e){} }; /* 29/10/2026: mesmo caminho do Mais › Socorro e serviços (com o aviso) */
-$('pontoBtn').onclick=()=>{ if(!ehAdmin) return; $('ptBusca').value=''; $('ptRes').innerHTML=''; $('ptNome').value=''; $('ptEscolha').hidden=true; ptSel=null; ptLista(); abrir('mPonto'); setTimeout(()=>$('ptBusca').focus(),60) };
-setTimeout(()=>{ try{ if(ehAdmin) ptDesenharMapa() }catch(e){} },1500);
+$('pontoBtn').onclick=()=>{ if(!ehAdmin) return; $('ptBusca').value=''; $('ptRes').innerHTML=''; $('ptNome').value=''; $('ptEscolha').hidden=true; ptSel=null; ptLista(); abrir('mPonto'); setTimeout(()=>$('ptBusca').focus(),60); ptSync() };
+setTimeout(()=>{ try{ if(ehAdmin){ ptDesenharMapa(); ptSync() } }catch(e){} },1500);
+setInterval(()=>{ try{ if(ehAdmin && !document.hidden && Date.now()-ptSyncEm>60000) ptSync() }catch(e){} },15000); /* 05/11/2026: marcação feita em outro aparelho ou pelo assistente aparece em até ~1 min */
+document.addEventListener('visibilitychange',()=>{ try{ if(!document.hidden && ehAdmin && Date.now()-ptSyncEm>15000) ptSync() }catch(e){} });
 setInterval(()=>{ try{ if(ehAdmin && !ptCamada) ptDesenharMapa() }catch(e){} },5000);
 $('deslizeBtn').onclick=()=>{ lsSet('rg_deslize',deslizeLigado()?'0':'1'); deslizePintar(); toast(deslizeLigado()?'Deslize contínuo ligado (teste). O veículo aparece com até 2 minutos de atraso.':'Deslize contínuo desligado: posição mais recente, como antes.',4000) };
 setInterval(deslizePintar,3000); setTimeout(deslizePintar,500);
@@ -11480,6 +11503,7 @@ async function asExecutar(id,cancelar){
     const cp=!cancelar&&j.ok&&j.resultado&&j.resultado.compartilhar; if(cp&&cp.link) bts.insertAdjacentHTML('beforeend',asLinkCard(cp)); /* 04/11/2026: link de localização com Copiar / WhatsApp / Enviar */
     asHist.push({papel:'assistente',texto:(cancelar?'[ação cancelada] ':'[ação executada] ')+String(j.descricao||'')+': '+txt}); asHist=asHist.slice(-12);
     try{ if(!cancelar && j.ok){ setTimeout(()=>{ try{ buscarSeguro() }catch(_){} },4000) } }catch(e){}
+    try{ if(!cancelar && j.ok && /marca[cç][aã]o|Marcado no mapa/i.test(String(j.descricao||'')+txt)){ ptSync() } }catch(e){} /* 05/11/2026: marcação feita pelo assistente aparece na hora */
   }catch(e){ bts.innerHTML='<div class="asres aserr2">'+esc(e.message||'Não consegui executar.')+'</div>' }
   $('asChat').scrollTop=$('asChat').scrollHeight;
 }
