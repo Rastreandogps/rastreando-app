@@ -2544,7 +2544,7 @@ function euLigar(){
   },{enableHighAccuracy:true,maximumAge:5000,timeout:25000});
 }
 $('zoomMais').onclick=()=>map.zoomIn(); $('zoomMenos').onclick=()=>map.zoomOut(); /* 21/10/2026 */
-function zoomPos(){ try{ const p=$('pontoBtn'), d=$('deslizeBtn'), tem=x=>x&&getComputedStyle(x).display!=='none'; const sc=$('socBtn'); if(tem($('assMapaBtn'))){ $('zoomBox').style.top='178px'; return } $('zoomBox').style.top=tem(sc)?(tem(p)?'116px':'74px'):tem(p)?'54px':tem(d)?'54px':'12px' }catch(e){} } /* administrador tem a lupa e o deslize em cima; cliente não */
+function zoomPos(){ try{ const p=$('pontoBtn'), d=$('deslizeBtn'), tem=x=>x&&getComputedStyle(x).display!=='none'; const sc=$('socBtn'); if(tem($('assMapaBtn'))){ $('zoomBox').style.top=((parseInt($('assMapaBtn').style.top,10)||116)+62)+'px'; return } $('zoomBox').style.top=tem(sc)?(tem(p)?'116px':'74px'):tem(p)?'54px':tem(d)?'54px':'12px' }catch(e){} } /* administrador tem a lupa e o deslize em cima; cliente não */
 [1500,4000,9000].forEach(t=>setTimeout(zoomPos,t));
 $('btnEu').onclick=()=>{ if(eu.on) euDesligar(); else euLigar() };
 setInterval(()=>{ if(eu.on){ euAtualizarTela(); euRumoPintar() } },2000);
@@ -3126,7 +3126,7 @@ function animar(now){
   requestAnimationFrame(animar);
 }
 requestAnimationFrame(animar);
-function deslizePintar(){ const b=$('deslizeBtn'); if(!b) return; b.style.display='none'; try{ $('pontoBtn').style.display=ehAdmin?'inline-flex':'none' }catch(e){} try{ $('sheet').classList.add('spdtopon') }catch(e){} /* 30/10/2026: velocímetro ao lado do nome no celular (teste só admin) */ try{ const sb=$('socBtn'); sb.style.display=(!ehAdmin&&permCli&&permCli.semSocorro)?'none':'flex'; sb.style.top=ehAdmin?'54px':'12px' }catch(e){} try{ $('assMapaBtn').style.display=(ehAdmin&&!VER.on)?'flex':'none'; zoomPos() }catch(e){} /* 04/11/2026: assistente no mapa */ /* 30/10/2026 (dono): botão Serviços liberado para todos; sem a lupa (cliente), sobe para o topo */ const on=deslizeLigado(); b.classList.toggle('on',on); $('deslizeTxt').textContent=on?'ligado':'desligado' }
+function deslizePintar(){ const b=$('deslizeBtn'); if(!b) return; b.style.display='none'; try{ $('pontoBtn').style.display=ehAdmin?'inline-flex':'none' }catch(e){} try{ $('sheet').classList.add('spdtopon') }catch(e){} /* 30/10/2026: velocímetro ao lado do nome no celular (teste só admin) */ try{ const sb=$('socBtn'); sb.style.display=(!ehAdmin&&permCli&&permCli.semSocorro)?'none':'flex'; sb.style.top=ehAdmin?'54px':'12px' }catch(e){} try{ const ab=$('assMapaBtn'), cliIA=!ehAdmin&&permCli&&permCli.assistenteIA===true; ab.style.display=((ehAdmin&&!VER.on)||cliIA)?'flex':'none'; ab.style.top=ehAdmin?'116px':(getComputedStyle($('socBtn')).display!=='none'?'74px':'12px'); zoomPos() }catch(e){} /* 04/11/2026: assistente no mapa; cliente com a permissão "Assistente de IA" também (embaixo do Serviços) */ /* 30/10/2026 (dono): botão Serviços liberado para todos; sem a lupa (cliente), sobe para o topo */ const on=deslizeLigado(); b.classList.toggle('on',on); $('deslizeTxt').textContent=on?'ligado':'desligado' }
 /* ===== MARCAR PONTO NO MAPA (19/10/2026, pedido do dono; só administrador) =====
    Lupa abaixo do "Deslize contínuo": busca um endereço (OpenStreetMap, grátis) ou aceita "latitude, longitude",
    escolhe o ícone (casa, pino ou bandeira) e marca no mapa. Fica guardado neste computador; dá para remover. */
@@ -4411,11 +4411,11 @@ async function carregarPermissoes(){
   if(ehAdmin){ permCli={smsBloqueio:true,reset:true,editarNome:true,cercaRapida:true,minhaPosicao:true,appBloqueio:true,cercaBloqueio:true,semBloqueio:false,frotista:true}; cobrCli=null; mostrarBotoesSms(); try{ frAbaAplicar() }catch(e){} try{ retAplicar() }catch(e){} return }
   if(!lsGet('rg_token')) return;
   /* permissões guardadas no usuário do Traccar: Bloquear/Desbloquear pelo app e cerca que bloqueia (padrão: liberado) */
-  try{ const rs=await minhaSessao(); if(rs.ok){ const me=await rs.json(); permCli.appBloqueio=permAttr(me,'appBloqueio'); permCli.cercaBloqueio=permAttr(me,'cercaBloqueio'); permCli.semBloqueio=attrLig(me,'semBloqueio'); permCli.frotista=attrLig(me,'frotista'); permCli.semSocorro=attrLig(me,'semSocorro'); mostrarBotoesSms(); try{ rbAplicar() }catch(e){} try{ frAbaAplicar() }catch(e){} try{ const cv=cartao(); if(cv) motLinha(cv) }catch(e){} } }catch(e){ if(e.sessao) return }
+  try{ const rs=await minhaSessao(); if(rs.ok){ const me=await rs.json(); permCli.appBloqueio=permAttr(me,'appBloqueio'); permCli.cercaBloqueio=permAttr(me,'cercaBloqueio'); permCli.semBloqueio=attrLig(me,'semBloqueio'); permCli.frotista=attrLig(me,'frotista'); permCli.semSocorro=attrLig(me,'semSocorro'); permCli.assistenteIA=attrLig(me,'assistenteIA'); /* 04/11/2026 */ mostrarBotoesSms(); try{ deslizePintar() }catch(e){} try{ rbAplicar() }catch(e){} try{ frAbaAplicar() }catch(e){} try{ const cv=cartao(); if(cv) motLinha(cv) }catch(e){} } }catch(e){ if(e.sessao) return }
   try{
     const r=await fetch(DESB_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',body:JSON.stringify({acao:'minhas',token:lsGet('rg_token')})});
     if(!r.ok) return;
-    const j=await r.json(); permCli=Object.assign({smsBloqueio:false,reset:false,editarNome:false,cercaRapida:false,minhaPosicao:false},j.perm||{},{appBloqueio:permCli.appBloqueio,cercaBloqueio:permCli.cercaBloqueio,semBloqueio:permCli.semBloqueio,frotista:permCli.frotista,semSocorro:permCli.semSocorro,modFrotaAteMs:Number(j.modFrotaAteMs||0),modFrotaTeste:j.modFrotaTeste===true}); cobrCli=j.cobranca||null;
+    const j=await r.json(); permCli=Object.assign({smsBloqueio:false,reset:false,editarNome:false,cercaRapida:false,minhaPosicao:false},j.perm||{},{appBloqueio:permCli.appBloqueio,cercaBloqueio:permCli.cercaBloqueio,semBloqueio:permCli.semBloqueio,frotista:permCli.frotista,semSocorro:permCli.semSocorro,assistenteIA:permCli.assistenteIA,modFrotaAteMs:Number(j.modFrotaAteMs||0),modFrotaTeste:j.modFrotaTeste===true}); cobrCli=j.cobranca||null;
     try{ lsSet(mfChave(),String(Number(j.modFrotaAteMs||0))) }catch(e){} /* 04/11/2026: guarda para a próxima abertura */
     try{ modFrotaAplicar() }catch(e){}
     mostrarBotoesSms(); fichasAplicar(); try{ retAplicar() }catch(e){} try{ leitorAplicar() }catch(e){} try{ rbAplicar() }catch(e){} try{ drAplicar() }catch(e){} try{ logoAplicar() }catch(e){} try{ ruaRedesenhar() }catch(e){}
@@ -10665,6 +10665,7 @@ function sair(msg){
   try{ alCfg={ign:{},volta:{}}; kmLista=[] }catch(e){}
   cercasReset();
   document.body.classList.remove('premteste'); /* 26/10/2026 */
+  try{ asHist=[]; $('asChat').innerHTML=''; $('asInfo').textContent=''; $('assMapaBtn').style.display='none'; $('mAssist').classList.remove('show') }catch(e){} /* 04/11/2026: a conversa do assistente não passa para o próximo login */
   permCli={smsBloqueio:false,reset:false,editarNome:false,cercaRapida:false,minhaPosicao:false,appBloqueio:true,cercaBloqueio:true,semBloqueio:false,frotista:false}; cobrCli=null; try{ FCH.saldo=null; FCH.em=0; fichasAplicar() }catch(e){} /* 15/10/2026: fichas do login anterior saem */ try{ LG.meu=null; LG.carregou=false; logoAplicar() }catch(e){} /* 20/10/2026: logo do login anterior sai */
   ehAdmin=false; usuarios=[]; $('aview').classList.remove('show'); try{ $('mapCar').classList.remove('show') }catch(e){}
   try{ frAbaAplicar() }catch(e){} /* 19/10/2026: a aba Frota some ao sair */
@@ -11390,7 +11391,7 @@ async function asPerguntar(q){
     asHist.push({papel:'usuario',texto:q},{papel:'assistente',texto:String(j.resposta||''),ferramentas:(j.ferramentas||[]).filter((x,i,a)=>a.indexOf(x)===i)}); asHist=asHist.slice(-12);
     (j.confirmar||[]).forEach(asConfirmarCard); /* etapa 2 (04/11/2026): ações só rodam depois do Confirmar */
     (j.botoes||[]).forEach(asBotaoCard); /* rodada 3 (04/11/2026): botão que abre a compra do alerta no WhatsApp */
-    $('asInfo').textContent=(j.nDia?j.nDia+'ª pergunta de hoje':'')+(j.ms?' · '+(j.ms/1000).toFixed(1)+' s':'');
+    $('asInfo').textContent=j.cliente?(j.nDia&&j.limite?j.nDia+' de '+j.limite+' perguntas hoje':''):(j.nDia?j.nDia+'ª pergunta de hoje':'')+(j.ms?' · '+(j.ms/1000).toFixed(1)+' s':''); /* 04/11/2026: cliente vê quantas perguntas já usou */
   }catch(e){ esp.classList.remove('asesp'); esp.classList.add('aserr'); esp.textContent=e.message||'Não consegui falar com o assistente.' }
   finally{ asOcupado=false; $('asEnviar').disabled=false; $('asChat').scrollTop=$('asChat').scrollHeight; try{ $('asTxt').focus() }catch(_){} }
 }
@@ -11454,7 +11455,7 @@ async function asExecutar(id,cancelar){
     const txt=cancelar?'Cancelado. Nada foi feito.':(j.ok?'✅ '+((j.resultado&&j.resultado.resultado)||'Feito.'):'❌ '+((j.resultado&&j.resultado.erro)||'Não deu certo.'));
     bts.innerHTML='<div class="asres'+(cancelar||!j.ok?' asmut':'')+'">'+esc(txt)+'</div>';
     const cp=!cancelar&&j.ok&&j.resultado&&j.resultado.compartilhar; if(cp&&cp.link) bts.insertAdjacentHTML('beforeend',asLinkCard(cp)); /* 04/11/2026: link de localização com Copiar / WhatsApp / Enviar */
-    asHist.push({papel:'assistente',texto:(cancelar?'[ação cancelada pelo administrador] ':'[ação executada] ')+String(j.descricao||'')+': '+txt}); asHist=asHist.slice(-12);
+    asHist.push({papel:'assistente',texto:(cancelar?'[ação cancelada] ':'[ação executada] ')+String(j.descricao||'')+': '+txt}); asHist=asHist.slice(-12);
     try{ if(!cancelar && j.ok){ setTimeout(()=>{ try{ buscarSeguro() }catch(_){} },4000) } }catch(e){}
   }catch(e){ bts.innerHTML='<div class="asres aserr2">'+esc(e.message||'Não consegui executar.')+'</div>' }
   $('asChat').scrollTop=$('asChat').scrollHeight;
@@ -11467,7 +11468,7 @@ $('asChat').addEventListener('click',e=>{ const cp=e.target.closest('[data-ascop
   const ok=e.target.closest('[data-asok]'); if(ok){ asExecutar(ok.dataset.asok,false); return } const ca=e.target.closest('[data-ascan]'); if(ca) asExecutar(ca.dataset.ascan,true) });
 function asAltura(){ const t=$('asTxt'); t.style.height='auto'; t.style.height=Math.min(120,t.scrollHeight)+'px' }
 $('assMapaBtn').onclick=()=>{ try{ $('aAssist').onclick() }catch(e){} }; /* 04/11/2026: atalho do mapa abre o mesmo assistente */
-$('aAssist').onclick=()=>{ if(!ehAdmin) return; abrir('mAssist'); if(!asHist.length) asPintarVazio(); setTimeout(()=>{ try{ $('asTxt').focus() }catch(_){} },150) };
+$('aAssist').onclick=()=>{ if(!ehAdmin && !(permCli&&permCli.assistenteIA===true)) return; $('asTxt').placeholder=ehAdmin?'Ex.: qual o chip do rastreador do Carlos?':'Ex.: onde está meu carro? Por onde ele passou hoje?'; abrir('mAssist'); if(!asHist.length) asPintarVazio(); setTimeout(()=>{ try{ $('asTxt').focus() }catch(_){} },150) };
 $('asX').onclick=fechar;
 $('asEnviar').onclick=()=>asPerguntar($('asTxt').value);
 $('asTxt').addEventListener('keydown',e=>{ if(e.key==='Enter' && !e.shiftKey && !e.isComposing){ e.preventDefault(); asPerguntar($('asTxt').value) } });
