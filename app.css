@@ -3634,3 +3634,15 @@ body.hist-on #assMapaBtn{display:none!important}
 #mAssist .asserv .asbts{display:flex;gap:8px;flex-wrap:wrap}
 #mAssist .asserv .asok{background:#25d366;color:#04210f;display:inline-flex;align-items:center;text-decoration:none}
 #mAssist .asserv .ascan{display:inline-flex;align-items:center;text-decoration:none}
+
+/* 06/11/2026 (dono): ATALHO de veículos — botão redondo embaixo do Assistente, mesmo vidro, um pouco menor */
+#atalhoBtn{position:absolute;top:178px;left:20px;z-index:420;display:none;align-items:center;justify-content:center;width:46px;height:46px;padding:0;border-radius:50%;border:1px solid rgba(255,255,255,.55);background:rgba(255,255,255,.16);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);box-shadow:0 10px 22px rgba(0,0,0,.30),0 2px 5px rgba(0,0,0,.18);color:#0e7490;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .1s;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+#atalhoBtn svg{width:24px;height:24px;stroke:#0891b2;filter:drop-shadow(0 0 3px #fff) drop-shadow(0 2px 2px rgba(0,0,0,.3))}
+#atalhoBtn i{position:absolute;top:-4px;right:-4px;min-width:18px;height:18px;padding:0 4px;border-radius:9px;background:#0891b2;color:#fff;font:700 11px/18px inherit;font-style:normal;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+#atalhoBtn i:empty{display:none}
+#atalhoBtn.on{background:rgba(8,145,178,.85);border-color:#fff}
+#atalhoBtn.on svg{stroke:#fff;filter:drop-shadow(0 1px 2px rgba(0,0,0,.4))}
+#atalhoBtn.on i{background:#f59e0b}
+#atalhoBtn:active{transform:scale(.93)}
+body.hist-on #atalhoBtn{display:none!important}
+@media (min-width:900px){ #atalhoBtn{left:calc(var(--lado,0px) + 20px);z-index:460} }

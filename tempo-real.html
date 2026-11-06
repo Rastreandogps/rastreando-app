@@ -41,7 +41,7 @@ try{ if(localStorage.getItem('rg_token')||sessionStorage.getItem('rgv_rg_token')
 try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'){document.documentElement.setAttribute('data-tema',t)}}catch(e){}
 </script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="stylesheet" href="app.css?v=41"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
+<link rel="stylesheet" href="app.css?v=42"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
 </head>
 <body>
 
@@ -127,6 +127,8 @@ try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'
   <button id="socBtn" type="button" title="Serviços: reboque, chaveiro, mecânico e mais" aria-label="Serviços: reboque, chaveiro, mecânico e mais"><img src="icv/servicos-reboque.webp" alt=""><b>Serviços</b></button>
   <!-- 04/11/2026 (dono): atalho do assistente no mapa, embaixo do Serviços (só administrador; o botão da aba Admin continua) -->
   <button id="assMapaBtn" type="button" style="display:none" title="Assistente Rastreando GPS" aria-label="Abrir o Assistente Rastreando GPS"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 4.6L18.5 9.4l-4.7 1.8L12 16l-1.8-4.8L5.5 9.4l4.7-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg><b>Assistente</b></button>
+  <!-- 06/11/2026 (dono): ATALHO — botão redondo embaixo do Assistente; mostra no mapa só os veículos escolhidos (ex.: moto do técnico). Segurar = trocar os veículos -->
+  <button id="atalhoBtn" type="button" style="display:none" title="Atalho: mostrar só os veículos escolhidos (segure para trocar)" aria-label="Atalho de veículos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.2"/><path d="M12 1.8v3M12 19.2v3M1.8 12h3M19.2 12h3"/></svg><i id="atalhoN"></i></button>
   <button id="pontoBtn" type="button" style="display:none" title="Marcar um ponto no mapa (endereço ou coordenadas)" aria-label="Marcar um ponto no mapa"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><b id="pontoN"></b></button>
   <button id="retChip" type="button" style="display:none" title="Tirar do mapa os veículos para retirar">📍 Para retirar no mapa <span aria-hidden="true">✕</span></button>
   <button id="deslizeBtn" type="button" title="Teste: o veículo desliza sem parar, mostrando o trajeto com até 2 minutos de atraso">〰️ Deslize contínuo: <span id="deslizeTxt">desligado</span></button>
@@ -824,6 +826,16 @@ try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'
 </div>
 
 <!-- Cliente novo -->
+<div class="modal" id="mAtalho">
+  <div class="box2">
+    <h3>🎯 Atalho de veículos</h3>
+    <p>Escolha os veículos do atalho. Tocar no botão redondo mostra <b>só esses</b> no mapa; tocar de novo volta a mostrar todos. Para trocar, segure o botão.</p>
+    <input class="fld" id="atalhoBusca" type="search" placeholder="Buscar nome ou placa" autocomplete="off">
+    <div id="atalhoLista" style="max-height:46vh;overflow:auto;margin:8px 0"></div>
+    <div style="display:flex;gap:8px"><button type="button" class="btn sec" id="atalhoLimpar" style="flex:1">Limpar</button><button type="button" class="btn" id="atalhoSalvar" style="flex:2">Salvar e mostrar</button></div>
+    <button type="button" class="btn sec" style="margin-top:8px;width:100%" onclick="fechar()">Fechar</button>
+  </div>
+</div>
 <div class="modal" id="mCliente">
   <div class="box2">
     <h3 id="cTitulo">Novo cliente</h3>
@@ -2545,7 +2557,7 @@ function euLigar(){
   },{enableHighAccuracy:true,maximumAge:5000,timeout:25000});
 }
 $('zoomMais').onclick=()=>map.zoomIn(); $('zoomMenos').onclick=()=>map.zoomOut(); /* 21/10/2026 */
-function zoomPos(){ try{ const p=$('pontoBtn'), d=$('deslizeBtn'), tem=x=>x&&getComputedStyle(x).display!=='none'; const sc=$('socBtn'); if(tem($('assMapaBtn'))){ $('zoomBox').style.top=((parseInt($('assMapaBtn').style.top,10)||116)+62)+'px'; return } $('zoomBox').style.top=tem(sc)?(tem(p)?'116px':'74px'):tem(p)?'54px':tem(d)?'54px':'12px' }catch(e){} } /* administrador tem a lupa e o deslize em cima; cliente não */
+function zoomPos(){ try{ const p=$('pontoBtn'), d=$('deslizeBtn'), tem=x=>x&&getComputedStyle(x).display!=='none'; const sc=$('socBtn'); atalhoPos(); if(tem($('atalhoBtn'))){ $('zoomBox').style.top=((parseInt($('atalhoBtn').style.top,10)||178)+54)+'px'; return } if(tem($('assMapaBtn'))){ $('zoomBox').style.top=((parseInt($('assMapaBtn').style.top,10)||116)+62)+'px'; return } $('zoomBox').style.top=tem(sc)?(tem(p)?'116px':'74px'):tem(p)?'54px':tem(d)?'54px':'12px' }catch(e){} } /* administrador tem a lupa e o deslize em cima; cliente não */
 [1500,4000,9000].forEach(t=>setTimeout(zoomPos,t));
 $('btnEu').onclick=()=>{ if(eu.on) euDesligar(); else euLigar() };
 setInterval(()=>{ if(eu.on){ euAtualizarTela(); euRumoPintar() } },2000);
@@ -3216,6 +3228,42 @@ $('ptLista').addEventListener('click',e=>{
 (function(){ const mq=matchMedia('(max-width:899px)'), ids=['vIgn','btnRenome','btnIcone','btnRuaVer','ruaGiroCont'];
   function mover(){ const alvo=mq.matches?$('placaBts'):document.querySelector('#sheet .vname'); if(!alvo) return; ids.forEach(i=>{ const e=$(i); if(e&&e.parentNode!==alvo) alvo.appendChild(e) }) }
   try{ mq.addEventListener('change',mover) }catch(e){ try{ mq.addListener(mover) }catch(_){} } mover() })();
+/* ===== 06/11/2026 (dono): ATALHO DE VEÍCULOS — botão redondo embaixo do Assistente ===== */
+const ATALHO={on:false,antes:null};
+function atalhoChave(){ return 'rg_atalho_'+String(lsGet('rg_email')||'').toLowerCase() }
+function atalhoIds(){ try{ const l=JSON.parse(localStorage.getItem(atalhoChave())||'[]'); return Array.isArray(l)?l.map(Number).filter(id=>veiculos.some(v=>v.id===id)):[] }catch(e){ return [] } }
+function atalhoGravar(ids){ try{ localStorage.setItem(atalhoChave(),JSON.stringify(ids)) }catch(e){} }
+function atalhoPos(){ try{ const b=$('atalhoBtn'); if(!b) return; const tem=x=>x&&getComputedStyle(x).display!=='none'; if(!veiculos.length){ b.style.display='none'; return } b.style.display='flex'; const ab=$('assMapaBtn'), sc=$('socBtn'); b.style.top=(tem(ab)?(parseInt(ab.style.top,10)||116)+62:tem(sc)?(parseInt(sc.style.top,10)||54)+62:12)+'px' }catch(e){} }
+function atalhoPintar(){ const b=$('atalhoBtn'); if(!b) return; const n=atalhoIds().length; b.classList.toggle('on',ATALHO.on); $('atalhoN').textContent=n?String(n):''; b.title=ATALHO.on?'Mostrando só o atalho — toque para ver todos':(n?'Mostrar só os '+n+' veículos do atalho (segure para trocar)':'Escolher veículos do atalho') }
+function atalhoLigar(){
+  const ids=atalhoIds(); if(!ids.length){ atalhoAbrir(); return }
+  if(!ATALHO.on) ATALHO.antes=veiculos.map(v=>[v.id,v.visivel]);
+  ATALHO.on=true; const set=new Set(ids);
+  veiculos.forEach(v=>{ v.visivel=set.has(v.id) });
+  try{ sincronizarChecks() }catch(e){} mudouSelecao(); atalhoPintar();
+}
+function atalhoDesligar(){
+  if(ATALHO.antes){ const m=new Map(ATALHO.antes); veiculos.forEach(v=>{ v.visivel=m.has(v.id)?m.get(v.id):true }) } else veiculos.forEach(v=>{ v.visivel=true });
+  ATALHO.on=false; ATALHO.antes=null; try{ sincronizarChecks() }catch(e){} mudouSelecao(); atalhoPintar();
+}
+function atalhoListaPintar(){
+  const q=semAcentoAt($('atalhoBusca').value), sel=new Set(ATALHO.marcados||[]);
+  const l=veiculos.slice().sort((a,b)=>(sel.has(b.id)-sel.has(a.id))||String(a.nome).localeCompare(String(b.nome))).filter(v=>!q||semAcentoAt(v.nome+' '+(v.placa||'')).includes(q)).slice(0,300);
+  $('atalhoLista').innerHTML=l.map(v=>'<label style="display:flex;align-items:center;gap:10px;padding:9px 4px;border-bottom:1px solid var(--line);cursor:pointer"><input type="checkbox" data-id="'+v.id+'"'+(sel.has(v.id)?' checked':'')+' style="width:20px;height:20px"><span><b>'+esc(v.nome)+'</b>'+(v.placa?' <span style="color:var(--mut);font-size:12px">'+esc(v.placa)+'</span>':'')+'</span></label>').join('')||'<p>Nenhum veículo.</p>';
+}
+function semAcentoAt(s){ return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim() }
+function atalhoAbrir(){ ATALHO.marcados=atalhoIds(); $('atalhoBusca').value=''; atalhoListaPintar(); abrir('mAtalho') }
+$('atalhoBusca').addEventListener('input',atalhoListaPintar);
+$('atalhoLista').addEventListener('change',e=>{ const c=e.target.closest('input[data-id]'); if(!c) return; const id=+c.dataset.id; const s=new Set(ATALHO.marcados||[]); c.checked?s.add(id):s.delete(id); ATALHO.marcados=[...s] });
+$('atalhoLimpar').onclick=()=>{ ATALHO.marcados=[]; atalhoListaPintar() };
+$('atalhoSalvar').onclick=()=>{ const ids=(ATALHO.marcados||[]).slice(0,50); atalhoGravar(ids); fechar(); if(ids.length){ atalhoLigar(); try{ if(!localStorage.getItem('rg_atalho_dica')){ toast('Atalho salvo. Toque no botão para ver todos de novo; segure para trocar os veículos.',5000); localStorage.setItem('rg_atalho_dica','1') } }catch(e){} } else { if(ATALHO.on) atalhoDesligar(); atalhoPintar() } };
+(function(){ const b=$('atalhoBtn'); let t=null, longo=false;
+  const ini=()=>{ longo=false; clearTimeout(t); t=setTimeout(()=>{ longo=true; try{ navigator.vibrate&&navigator.vibrate(30) }catch(e){} atalhoAbrir() },600) };
+  const fim=()=>clearTimeout(t);
+  b.addEventListener('pointerdown',ini); b.addEventListener('pointerup',fim); b.addEventListener('pointerleave',fim); b.addEventListener('pointercancel',fim);
+  b.addEventListener('contextmenu',e=>e.preventDefault());
+  b.addEventListener('click',e=>{ if(longo){ longo=false; return } ATALHO.on?atalhoDesligar():atalhoLigar() });
+})();
 $('socBtn').onclick=()=>{ try{ rbAbrir() }catch(e){} }; /* 29/10/2026: mesmo caminho do Mais › Socorro e serviços (com o aviso) */
 $('pontoBtn').onclick=()=>{ if(!ehAdmin) return; $('ptBusca').value=''; $('ptRes').innerHTML=''; $('ptNome').value=''; $('ptEscolha').hidden=true; ptSel=null; ptLista(); abrir('mPonto'); setTimeout(()=>$('ptBusca').focus(),60); ptSync() };
 setTimeout(()=>{ try{ if(ehAdmin){ ptDesenharMapa(); ptSync() } }catch(e){} },1500);
@@ -3740,7 +3788,7 @@ function atualizarContagem(){
   const n=visiveis().length, tot=veiculos.filter(abaMostra).length;
   $('vCount').textContent=n+' de '+tot+' no mapa'+(abaAtiva()?' · aba '+abaAtiva().nome:'');
   $('vAll').textContent = (n===tot && n>0) ? 'Desmarcar todos' : 'Selecionar todos';
-  abaSeloPintar();
+  abaSeloPintar(); try{ if(getComputedStyle($('atalhoBtn')).display==='none'&&veiculos.length) zoomPos(); atalhoPintar() }catch(e){} /* 06/11/2026: atalho de veículos */
   salvarVisibilidade();
   try{ ajBtnTodos() }catch(e){}
 }
