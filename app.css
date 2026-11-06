@@ -3646,3 +3646,7 @@ body.hist-on #assMapaBtn{display:none!important}
 #atalhoBtn:active{transform:scale(.93)}
 body.hist-on #atalhoBtn{display:none!important}
 @media (min-width:900px){ #atalhoBtn{left:calc(var(--lado,0px) + 20px);z-index:460} }
+/* 06/11/2026 (dono): botões da janela do atalho com cara de botão (Salvar em destaque, na cor do atalho) */
+#atalhoSalvar{background:#0891b2;color:#fff;border:0}
+#atalhoSalvar:active{background:#0e7490}
+#mAtalho .btn-out{color:inherit}

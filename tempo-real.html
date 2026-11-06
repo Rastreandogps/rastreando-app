@@ -41,7 +41,7 @@ try{ if(localStorage.getItem('rg_token')||sessionStorage.getItem('rgv_rg_token')
 try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'){document.documentElement.setAttribute('data-tema',t)}}catch(e){}
 </script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="stylesheet" href="app.css?v=42"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
+<link rel="stylesheet" href="app.css?v=43"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
 </head>
 <body>
 
@@ -832,8 +832,8 @@ try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'
     <p>Escolha os veículos do atalho. Tocar no botão redondo mostra <b>só esses</b> no mapa; tocar de novo volta a mostrar todos. Para trocar, segure o botão.</p>
     <input class="fld" id="atalhoBusca" type="search" placeholder="Buscar nome ou placa" autocomplete="off">
     <div id="atalhoLista" style="max-height:46vh;overflow:auto;margin:8px 0"></div>
-    <div style="display:flex;gap:8px"><button type="button" class="btn sec" id="atalhoLimpar" style="flex:1">Limpar</button><button type="button" class="btn" id="atalhoSalvar" style="flex:2">Salvar e mostrar</button></div>
-    <button type="button" class="btn sec" style="margin-top:8px;width:100%" onclick="fechar()">Fechar</button>
+    <div style="display:flex;gap:8px"><button type="button" class="btn btn-out" id="atalhoLimpar" style="flex:1">Limpar</button><button type="button" class="btn" id="atalhoSalvar" style="flex:2">Salvar e mostrar</button></div>
+    <button type="button" class="btn btn-out" style="margin-top:8px;width:100%" onclick="fechar()">Fechar</button>
   </div>
 </div>
 <div class="modal" id="mCliente">
