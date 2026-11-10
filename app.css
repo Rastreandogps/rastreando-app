@@ -3651,3 +3651,17 @@ body.hist-on #atalhoBtn{display:none!important}
 #atalhoSalvar{background:#0891b2;color:#fff;border:0}
 #atalhoSalvar:active{background:#0e7490}
 #mAtalho .btn-out{color:inherit}
+
+/* 10/11/2026 (pedido do dono): no CELULAR do cliente, a aba Faturas fica na barra de baixo no lugar de Links ("na cara do gol");
+   Links foi para dentro de "Mais". Administrador e computador continuam como eram. */
+nav button[data-tab="Faturas"] .nemo{background:url(icv/mais-faturas.webp) center/contain no-repeat;font-size:0!important;color:transparent!important;width:28px;height:26px;margin:0 auto}
+@media (max-width:899.98px){
+  body.cli nav button[data-tab="Faturas"]{display:flex!important}
+  body.cli nav button[data-tab="Links"]{display:none!important}
+  body.cli #maisBadge{display:none!important}
+}
+@media (min-width:900px){
+  header nav button[data-tab="Faturas"]{order:1}
+  header nav button[data-tab="Mais"],header nav button[data-tab="Admin"]{order:2}
+  header nav #fatBadge{display:none!important}
+}

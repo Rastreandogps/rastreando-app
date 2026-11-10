@@ -41,7 +41,7 @@ try{ if(localStorage.getItem('rg_token')||sessionStorage.getItem('rgv_rg_token')
 try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'){document.documentElement.setAttribute('data-tema',t)}}catch(e){}
 </script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="stylesheet" href="app.css?v=44"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
+<link rel="stylesheet" href="app.css?v=45"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
 </head>
 <body>
 
@@ -337,6 +337,7 @@ try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'
       <div class="maisgrid">
         <button class="maiscard" id="maisLoja" type="button"><span class="mic l"><svg viewBox="0 0 24 24"><path d="M6 6h15l-1.5 9h-12z"/><path d="M6 6L5 3H2"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/></svg></span><b>Loja</b><small>🎁 Adesivo de emergência grátis, rastreador portátil e mais</small></button>
         <button class="maiscard" id="maisFat" type="button"><span class="mdot" id="maisFatDot">!</span><span class="mic f"><svg viewBox="0 0 24 24"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6M9 13h8M9 17h8"/></svg></span><b>Faturas</b><small id="maisFatTxt">Mensalidades, PIX e segunda via</small></button>
+        <button class="maiscard" id="maisLinks" type="button"><span class="mdot" id="maisLinksDot"></span><img class="mimg" alt="" decoding="async" src="icv/ab-links.webp"><span class="mic f"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg></span><b>Links</b><small id="maisLinksTxt">Links de localização que você compartilhou</small></button>
         <button class="maiscard" id="maisServ" type="button"><span class="mic s"><svg viewBox="0 0 24 24"><rect x="7" y="11" width="10" height="10" rx="2.2"/><circle cx="12" cy="16" r="1.3"/><path d="M9 8a4.2 4.2 0 0 1 6 0"/><path d="M6.4 5.4a8 8 0 0 1 11.2 0"/></svg></span><b>Meu rastreador</b><small>Manutenção, retirada, titularidade e troca de veículo</small></button>
         <button class="maiscard" id="maisIndique" type="button"><span class="mic g"><svg viewBox="0 0 24 24"><path d="M20 12v9H4v-9"/><path d="M2 7h20v5H2z"/><path d="M12 22V7"/><path d="M12 7H7.5a2.5 2.5 0 010-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 000-5C13 2 12 7 12 7z"/></svg></span><b>Indique e ganhe</b><small>Pegue o seu link de indicação</small></button>
         <button class="maiscard" id="maisConta" type="button"><span class="mic c"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0116 0"/></svg></span><b>Sua conta</b><small>Trocar senha e sair do app</small></button>
@@ -447,9 +448,10 @@ try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'
   <button data-tab="Histórico"><span class="nemo" aria-hidden="true">🕘</span>Histórico</button>
   <button data-tab="Cercas"><span class="nemo" aria-hidden="true"><svg viewBox="0 0 24 24" style="width:24px;height:22px;display:block;margin:0 auto"><circle cx="12" cy="13" r="9.5" fill="rgba(34,197,94,.18)" stroke="#16a34a" stroke-width="2" stroke-dasharray="3.2 2.4"/><path d="M12 5.2a3.6 3.6 0 00-3.6 3.6c0 2.7 3.6 6.4 3.6 6.4s3.6-3.7 3.6-6.4A3.6 3.6 0 0012 5.2z" fill="#e3262f" stroke="#fff" stroke-width="1"/><circle cx="12" cy="8.8" r="1.3" fill="#fff"/></svg></span>Cercas</button><!-- 15/10/2026: ícone próprio (área tracejada com o pino), escolha do dono -->
   <button data-tab="Alertas"><span class="nemo" aria-hidden="true">🔔</span>Alertas<span class="nbadge" id="alBadge"></span></button>
+  <!-- 10/11/2026 (dono): no celular do cliente, Faturas fica no lugar de Links; Links foi para dentro de "Mais" -->
+  <button data-tab="Faturas" style="display:none"><span class="nemo" aria-hidden="true">🧾</span>Faturas<span class="nbadge" id="fatBadge">!</span></button>
   <button data-tab="Links"><span class="nemo" aria-hidden="true">🔗</span><span class="nl-pc">Compartilhados</span><span class="nl-cel">Links</span><span class="nbadge" id="cpBadge"></span></button>
   <button data-tab="Frota" style="display:none"><span class="nemo" aria-hidden="true">📊</span>Frota<span class="nbadge" id="frBadge"></span></button>
-  <button data-tab="Faturas" style="display:none"><span class="nemo" aria-hidden="true">🧾</span>Faturas</button>
   <button data-tab="Mais" style="display:none"><span class="nemo txt" aria-hidden="true">☰</span>Mais<span class="nbadge" id="maisBadge">!</span></button>
   <button data-tab="Admin" style="display:none"><span class="nemo" aria-hidden="true">⚙️</span>Admin</button>
 </nav>
@@ -6049,6 +6051,7 @@ async function cpCarregar(){
   try{
     const j=await fnAl('compLista',{}); cpLista=(j.lista||[]).filter(x=>x.expiraMs>Date.now()).sort((a,b)=>a.expiraMs-b.expiraMs); /* 16/10/2026 (revisão): vencido não entra */
     const b=$('cpBadge'); b.textContent=cpLista.length; b.classList.toggle('show',cpLista.length>0);
+    try{ const md=$('maisLinksDot'); if(md){ md.textContent=cpLista.length; md.classList.toggle('show',cpLista.length>0) } }catch(e){}
     if($('cpview').classList.contains('show')) cpDesenhar();
   }catch(e){} finally{ cpCarregando=false }
 }
@@ -6472,7 +6475,7 @@ function irPara(tab){
   $('fview').classList.toggle('show',tab==='Faturas');
   $('maisview').classList.toggle('show',tab==='Mais');
   if(tab==='Mais') try{ maisNovo() }catch(e){}
-  if(tab==='Faturas' && !ehAdmin && !window.matchMedia('(min-width:900px)').matches) document.querySelector('nav button[data-tab="Mais"]').classList.add('on'); /* Faturas mora dentro de "Mais" (no computador ela tem aba própria) */
+  if(tab==='Links' && !ehAdmin && !window.matchMedia('(min-width:900px)').matches) document.querySelector('nav button[data-tab="Mais"]').classList.add('on'); /* 10/11/2026 (dono): no celular do cliente, Links mora dentro de "Mais" e Faturas tem botão próprio na barra */
   $('cview').classList.toggle('show',tab==='Cercas');
   $('alview').classList.toggle('show',tab==='Alertas');
   $('cpview').classList.toggle('show',tab==='Links'); if(tab==='Links'){ cpDesenhar(); cpCarregar() }
@@ -10254,11 +10257,23 @@ async function carregarCfgAlertas(){
 /* ===== 01/11/2026 (pedido do dono): aba MAIS nova, com ícones 3D grandes. 01/11 (dono): só para os CLIENTES (no admin fica a aba antiga).
    Não muda o que os botões fazem: só põe a figura e a classe "mnovo". Cartão sem figura própria mantém o ícone antigo. ===== */
 const MAIS_ICO={maisLoja:'loja',maisFat:'faturas',maisServ:'rastreador',maisIndique:'indique',maisConta:'conta',maisParceiro:'parceiro',maisRetirar:'ferramentas',maisReboques:'socorro',maisMeuReboque:'socorro'};
+/* 10/11/2026 (dono): no celular a barra de baixo tem Faturas e o cartão de "Mais" vira Links; no computador fica como era */
+const MAIS_TROCA={fat:null,lk:null};
+function maisTroca(){
+  const g=document.querySelector('#maisview .maisgrid'); if(!g) return;
+  MAIS_TROCA.fat=MAIS_TROCA.fat||$('maisFat'); MAIS_TROCA.lk=MAIS_TROCA.lk||$('maisLinks');
+  const f=MAIS_TROCA.fat, l=MAIS_TROCA.lk; if(!f||!l) return;
+  const pc=window.matchMedia('(min-width:900px)').matches, fica=pc?f:l, sai=pc?l:f;
+  const sb=$('maisSub'); if(sb && /^(Faturas|Links), serviços/.test(sb.textContent)) sb.textContent=(pc?'Faturas':'Links')+', serviços, loja, indicação e sua conta';
+  if(sai.parentNode===g){ if(fica.parentNode!==g) g.replaceChild(fica,sai); else sai.remove() }
+  else if(fica.parentNode!==g){ const ref=$('maisServ'); if(ref&&ref.parentNode===g) g.insertBefore(fica,ref); else g.appendChild(fica) }
+}
 function maisNovo(){
   const mv=$('maisview'); if(!mv) return;
   if(!maisNovo.obs && window.MutationObserver){ const g=mv.querySelector('.maisgrid'); if(g){ maisNovo.obs=new MutationObserver(()=>{ if(!ehAdmin) maisNovo() }); maisNovo.obs.observe(g,{childList:true}) } } /* cartões que entram depois (Socorro, Para retirar...) */
   mv.classList.toggle('mnovo',!ehAdmin);
   if(ehAdmin) return;
+  try{ maisTroca() }catch(e){}
   mv.querySelectorAll('.maiscard').forEach(c=>{
     if(!c.querySelector('.mseta')){ const sa=document.createElement('span'); sa.className='mseta'; sa.setAttribute('aria-hidden','true'); sa.textContent='\u203A'; c.appendChild(sa) }
     const ic=MAIS_ICO[c.id]; if(!ic || c.querySelector('img.mimg')) return;
@@ -10866,6 +10881,7 @@ function maisAtualizar(){
   const alerta = nivel==='aviso'||nivel==='bloqueado'||nivel==='confianca';
   if(dot) dot.classList.toggle('show',alerta);
   if(nb) nb.classList.toggle('show',alerta);
+  const fb=$('fatBadge'); if(fb) fb.classList.toggle('show',alerta);
   if(tx) tx.textContent = nivel==='bloqueado' ? 'Acesso suspenso: pague para liberar' : nivel==='aviso' ? 'Fatura vencida: toque para pagar' : nivel==='confianca' ? 'Pague a fatura em aberto' : 'Mensalidades, PIX e segunda via';
   const w=$('maisWpp'); if(w) w.href='https://wa.me/'+LOJA_WPP;
 }
@@ -11403,6 +11419,7 @@ $('pmFichasLancar').onclick=async()=>{
 const LOJA_SVG_CAR='<svg viewBox="0 0 24 24"><path d="M6 6h15l-1.5 9h-12z"/><path d="M6 6L5 3H2"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/></svg>';
 $('lojaCarBtn').onclick=()=>{ lojaCarAberto=true; const c=$('lojaCar'); if(c) c.classList.add('aberto'); $('lojaRola').scrollTo({top:0,behavior:'smooth'}) };
 $('maisFat').onclick=()=>irPara('Faturas');
+$('maisLinks').onclick=()=>irPara('Links');
 $('maisServ').onclick=()=>abrir('mServ');
 /* ===== LEITOR DE PLACAS (23/10/2026, pedido do dono) =====
    Cliente com a permissão "Leitor de placas": cartão no Mais. Administrador: botão na barra do Admin.
