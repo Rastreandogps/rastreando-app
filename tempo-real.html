@@ -41,7 +41,7 @@ try{ if(localStorage.getItem('rg_token')||sessionStorage.getItem('rgv_rg_token')
 try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'){document.documentElement.setAttribute('data-tema',t)}}catch(e){}
 </script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="stylesheet" href="app.css?v=43"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
+<link rel="stylesheet" href="app.css?v=44"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
 </head>
 <body>
 
@@ -7783,6 +7783,7 @@ function cartaoEquip(v,userId){
     '<div class="s">'+(v.placa?'Placa: <b>'+esc(v.placa)+'</b> · ':'')+'Chip: '+(v.fone?'<b>'+esc(soDigitos(v.fone))+'</b><button class="chipcp" type="button" data-a="copiar" aria-label="Copiar número do chip" title="Copiar número">'+ICO_COP+'</button><button class="chipcp chip55'+(c55Tem(v.fone)?' on':'')+'" type="button" data-a="chip55" aria-label="Juntar este chip na lista para cancelar" title="Juntar na lista de chips para cancelar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>':'não cadastrado')+'</div>'+ /* 29/10/2026 (dono): número tudo junto + copiar pequeno */
     '</div></div><div class="eclis2">'+pills+'</div>'+
     '<span class="eacoes">'+
+      '<button class="ico mapa" data-a="mapa" aria-label="Ver no mapa" title="Ver no mapa"><span aria-hidden="true">🗺️</span></button>'+ /* 09/11/2026 (dono): ir direto ao mapa com o veículo */
       (v.fone?'<button class="ico cop" data-a="copiar" aria-label="Copiar número do chip" title="Copiar número">'+ICO_COP+'</button>':'')+
       '<button class="ico" data-a="editar" aria-label="Editar equipamento" title="Editar">'+ICO_PEN+'</button>'+
       (userId
@@ -8180,6 +8181,7 @@ $('aList').addEventListener('click',e=>{
   if(b.dataset.a==='chip55'){ c55Alternar(v.fone); return } /* 29/10/2026 (dono) */
   if(b.dataset.a==='copiar') copiar(soDigitos(v.fone)).then(()=>toast('Número copiado')).catch(()=>toast('Não foi possível copiar'));
   else if(b.dataset.a==='editar') abrirEquip(id);
+  else if(b.dataset.a==='mapa'){ escolherVeiculo(v,true); if(!v.pos) toast('Este aparelho ainda não mandou posição.') } /* 09/11/2026 (dono) */
   else if(/^cfg(ip|apn|reset|imediato|fabrica)$/.test(b.dataset.a)) smsConfig(v, b.dataset.a.slice(3));
   /* "sms" é um link normal: abre o aplicativo de mensagens do celular */
 });

@@ -2617,6 +2617,7 @@ nav button.on .nemo.txt{color:var(--red2)}
 #aview .ico{width:34px;height:34px;border-radius:11px;border:0;background:var(--card2);color:var(--mut);transition:background .15s,color .15s}
 #aview .ico:active{transform:scale(.94)}
 #aview .ico.cop{color:var(--cyan);background:rgba(10,143,149,.10)}
+#aview .ico.mapa{font-size:15px;line-height:1;background:rgba(10,143,149,.06)} /* 09/11/2026: ver no mapa */
 #aview .ico.lix{border:0;background:rgba(227,38,47,.08)}
 #aview details.eq .seta{font-size:16px;opacity:.6}
 #aview details.eq .corpo{padding:2px 12px 14px;border-top:1px solid var(--line)}
