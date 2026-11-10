@@ -9681,6 +9681,8 @@ $('cSalvar').onclick=async ()=>{
     if(novo && novo.id){
       try{ await protegerCliente(novo) }
       catch(e){ if(e.sessao) throw e; toast('Cliente criado, mas os botões de bloqueio não foram liberados. Use "Proteger comandos dos clientes".') }
+      /* 10/11/2026 (dono): cliente novo já nasce com "Editar o nome do veículo" ligada; se falhar, só não liga (dá para ligar em Permissões) */
+      try{ await fetch(DESB_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',body:JSON.stringify({acao:'permSalvar',token:lsGet('rg_token'),userId:novo.id,perm:{editarNome:true}})}) }catch(e){}
     }
     const idsAp=marcados('cAparelhos');
     await carregarUsuarios();
