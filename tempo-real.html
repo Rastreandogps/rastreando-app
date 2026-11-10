@@ -2014,10 +2014,11 @@ const GM_ESCURO=[{elementType:'geometry',stylers:[{color:'#242f3e'}]},{elementTy
   {featureType:'road.highway',elementType:'geometry',stylers:[{color:'#746855'}]},{featureType:'road.highway',elementType:'geometry.stroke',stylers:[{color:'#1f2835'}]},{featureType:'road.highway',elementType:'labels.text.fill',stylers:[{color:'#f3d19c'}]},
   {featureType:'transit',elementType:'geometry',stylers:[{color:'#2f3948'}]},{featureType:'transit.station',elementType:'labels.text.fill',stylers:[{color:'#d59563'}]},
   {featureType:'water',elementType:'geometry',stylers:[{color:'#17263c'}]},{featureType:'water',elementType:'labels.text.fill',stylers:[{color:'#515c6d'}]},{featureType:'water',elementType:'labels.text.stroke',stylers:[{color:'#17263c'}]}];
+let gmMotivo='abrir'; /* 09/11/2026: por que o mapa do Google foi (re)criado — conta no servidor */
 let gmCamada=null, gmEstado='osm', gmPref='gratis', gmTemaAtual='', meuUsuario=null, gmCarregando=null, gmTentativas=0;
 /* mapa ou satélite (Google): escolha lembrada neste aparelho; o satélite custa o mesmo que o mapa normal (por abertura) */
 let gmTipo='roadmap'; try{ if(localStorage.getItem('rg_mapa_tipo')==='hybrid') gmTipo='hybrid' }catch(e){}
-$('btnSat').onclick=()=>{ gmTipo=gmTipo==='hybrid'?'roadmap':'hybrid'; try{ localStorage.setItem('rg_mapa_tipo',gmTipo) }catch(e){} mapaBotoes(); mapaGoogleLigar(); toast(gmTipo==='hybrid'?'Satélite ligado.':'Mapa normal.') };
+$('btnSat').onclick=()=>{ gmMotivo='satelite'; gmTipo=gmTipo==='hybrid'?'roadmap':'hybrid'; try{ localStorage.setItem('rg_mapa_tipo',gmTipo) }catch(e){} mapaBotoes(); mapaGoogleLigar(); toast(gmTipo==='hybrid'?'Satélite ligado.':'Mapa normal.') };
 const temaEscuro=()=>document.documentElement.getAttribute('data-tema')!=='claro';
 function carregarScript(urls){
   return new Promise((ok,falha)=>{
@@ -2108,6 +2109,7 @@ async function mapaGoogleLigar(){
   if(gmPref!=='google') return;
   const escuro=temaEscuro() && document.documentElement.getAttribute('data-tema')!=='misto', marca=(escuro?'escuro':'claro')+'/'+gmTipo; /* 30/10/2026: no modo "misto" o mapa fica claro */
   if(gmCamada && gmEstado==='google' && gmTemaAtual===marca) return;
+  try{ const mt=gmMotivo; gmMotivo='abrir'; fnAdm('gmAbriu',{motivo:mt}).catch(()=>{}) }catch(e){} /* 09/11/2026 (dono): conta cada abertura do mapa do Google (franquia grátis) */
   const nova=L.gridLayer.googleMutant({type:gmTipo,maxZoom:19,maxNativeZoom:19,zIndex:2,styles:(escuro&&gmTipo==='roadmap')?GM_ESCURO:[]});
   const antiga=gmCamada; gmCamada=nova; gmTemaAtual=marca;
   let pronto=false, avisou=false, t=null;
@@ -12854,7 +12856,7 @@ $('emLista').addEventListener('click',async e=>{
     try{localStorage.setItem('tema',novo)}catch(e){}
     ajusta();
     try{ if(typeof toast==='function') toast(novo==='claro'?'Modo claro.':(novo==='misto'?'Mapa claro com comandos escuros.':'Modo escuro.')) }catch(e){}
-    try{ if(typeof mapaGoogleLigar==='function' && gmPref==='google') mapaGoogleLigar() }catch(e){} /* refaz o mapa do Google no tema novo */
+    try{ if(typeof mapaGoogleLigar==='function' && gmPref==='google'){ gmMotivo='tema'; mapaGoogleLigar() } }catch(e){} /* refaz o mapa do Google no tema novo */
   });
 })();
 </script>
