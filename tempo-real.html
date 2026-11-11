@@ -226,6 +226,7 @@ try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'
       <button type="button" class="hdia on" data-d="0">Hoje</button>
       <button type="button" class="hdia" data-d="1">Ontem</button>
       <button type="button" class="hdia" data-d="7">7 dias</button>
+      <button type="button" class="hdia" data-d="h1">1h</button><!-- 11/11/2026 (dono): a última hora -->
     </div>
     <div class="hper">
       <label>De<input type="date" id="hData"></label>
@@ -6532,7 +6533,14 @@ function histVeiculos(){
 }
 function histMarcarDia(){
   const d=$('hData').value, d2=$('hData2').value;
-  document.querySelectorAll('.hdia').forEach(b=>{ const n=+b.dataset.d; b.classList.toggle('on', n===7 ? (d===diaMenos(6)&&d2===hojeSP()) : (d===diaMenos(n)&&d2===d)) });
+  document.querySelectorAll('.hdia').forEach(b=>{ if(b.dataset.d==='h1'){ b.classList.remove('on'); return } const n=+b.dataset.d; b.classList.toggle('on', n===7 ? (d===diaMenos(6)&&d2===hojeSP()) : (d===diaMenos(n)&&d2===d)) });
+}
+/* 11/11/2026 (dono): botão "1h" = da hora de agora menos 1 hora até agora (hora de Brasília; vira o dia sozinho) */
+function histUltimaHora(){
+  const f=t=>{ const p={}; new Intl.DateTimeFormat('en-CA',{timeZone:'America/Sao_Paulo',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(new Date(t)).forEach(x=>p[x.type]=x.value); return { d:p.year+'-'+p.month+'-'+p.day, h:p.hour+':'+p.minute } };
+  const a=f(Date.now()-3600000), b=f(Date.now());
+  $('hData').value=a.d; $('hDe').value=a.h; $('hData2').value=b.d; $('hAte').value=b.h;
+  histMarcarDia(); const bt=document.querySelector('.hdia[data-d="h1"]'); if(bt) bt.classList.add('on');
 }
 function histEntrar(){
   if(hist.on) { histVeiculos(); return }
@@ -6631,12 +6639,14 @@ $('hBusca').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefaul
 $('hAlterar').onclick=()=>{ histLimpar(); $('hMsg').textContent='Guardamos os últimos 90 dias.' };
 $('hVeic').addEventListener('change',()=>{ if(hist.modo==='dorme'){ $('hDorme').click(); return } if(hist.modo==='eventos'){ $('hEventos').click(); return } if(hist.pts.length||$('hpanel').classList.contains('achou')) $('hBuscar').click() });
 document.querySelectorAll('.hdia').forEach(b=>b.onclick=()=>{
+  if(b.dataset.d==='h1'){ histUltimaHora(); return }
   const d=+b.dataset.d;
   if(d===7){ $('hData').value=diaMenos(6); $('hData2').value=hojeSP() } else { $('hData').value=diaMenos(d); $('hData2').value=diaMenos(d) }
   $('hDe').value='00:00'; $('hAte').value='23:59'; histMarcarDia();
 });
 $('hData').addEventListener('input',()=>{ if(!$('hData2').value || $('hData2').value<$('hData').value) $('hData2').value=$('hData').value; histMarcarDia() });
 $('hData2').addEventListener('input',histMarcarDia);
+['hDe','hAte'].forEach(id=>$(id).addEventListener('input',()=>{ const bt=document.querySelector('.hdia[data-d="h1"]'); if(bt) bt.classList.remove('on') }));
 /* filtro de paradas: a escolha fica lembrada neste aparelho */
 $('hParMin2').innerHTML=$('hParMin').innerHTML;
 try{ const pm=localStorage.getItem('rg_hist_parmin'); if(pm){ $('hParMin').value=pm; $('hParMin2').value=pm } else { $('hParMin').value='5'; $('hParMin2').value='5' } }catch(e){ $('hParMin').value='5'; $('hParMin2').value='5' }
