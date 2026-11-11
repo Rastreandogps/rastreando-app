@@ -247,6 +247,18 @@ try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'
     </label>
     <button type="button" class="hbuscar" id="hBuscar">Ver trajeto</button>
     <button type="button" class="hevbtn" id="hEventos" style="display:none">📋 Consultar eventos</button><!-- 31/10/2026 (dono): só o administrador -->
+    <!-- 11/11/2026 (dono): há quanto tempo está parado no último ponto (último movimento + ignição desligada) -->
+    <div class="hparag"><button type="button" class="hparagbtn" id="hParAgora">⏸️ Há quanto tempo está parado?</button><div class="hparagres" id="hParAgoraRes"></div></div>
+    <style>
+      .hpanel .hparag{margin-top:8px}
+      .hpanel .hparagbtn{width:100%;height:42px;border-radius:13px;border:1px solid #0ea5e9;background:rgba(14,165,233,.13);color:var(--txt);font:inherit;font-size:14.5px;font-weight:700;cursor:pointer}
+      .hpanel .hparagbtn:disabled{opacity:.7;cursor:wait}
+      .hpanel .hparagres{display:none;margin-top:8px;border:1px solid var(--line);background:var(--card2);border-radius:13px;padding:10px 12px;font-size:13.5px;line-height:1.5}
+      .hpanel .hparagres.show{display:block}
+      .hpanel .hparagres .t{font-size:17px;font-weight:800;margin-bottom:4px}
+      .hpanel .hparagres .av{margin-top:6px;font-size:12.5px;color:var(--mut,#94a3b8)}
+      .hpanel.tab-ev .hparag,.hpanel.tab-per .hparag,.hpanel.achou .hparag,.hpanel.dorme .hparag{display:none!important}
+    </style>
     <!-- 23/10/2026: ONDE O VEÍCULO DORME (PRD 4.86) -->
     <div class="hdorme">
       <div class="hdormeop">
@@ -6558,7 +6570,7 @@ function histEntrar(){
   setTimeout(()=>{ try{ map.invalidateSize() }catch(e){} },50);
 }
 function histLimpar(){
-  dormeLimpar(); try{ eventosLimpar() }catch(e){}
+  dormeLimpar(); try{ eventosLimpar() }catch(e){} try{ parAgoraLimpar() }catch(e){}
   histParar(); geoFilaGer++; hist.pdf=null; $('hPdfWpp').style.display='none';
   if(hist.camada){ map.removeLayer(hist.camada); hist.camada=null }
   hist.marc=null; hist.pts=[]; hist.tv=[]; hist.total=0; hist.t=0;
@@ -7003,6 +7015,76 @@ $('hDorme').onclick=async()=>{
     setTimeout(()=>{ try{ if(lug.length===1) histFocar(lug[0].ll,16); else map.fitBounds(L.latLngBounds(lug.map(x=>x.ll)),Object.assign({maxZoom:16},histPadding())) }catch(e){} },60);
   }catch(e){ if(ger===dorGer && !e.sessao) $('hMsg').textContent=e.message||'Não consegui ler o histórico.'; if(ger===dorGer) hist.modo='' }
   finally{ if(dorAtivo===ger){ dorAtivo=0; b.disabled=false; b.textContent='🛏️ Consultar pernoites' } }
+};
+/* ===== HÁ QUANTO TEMPO ESTÁ PARADO (11/11/2026, pedido do dono) =====
+   Lê o trajeto de trás para a frente (2 dias por vez, até 7 dias) e acha o ÚLTIMO MOVIMENTO: o último ponto a mais de
+   100 m do lugar onde está agora (tag: 250 m, a posição vem de celulares perto) ou com mais de 5 km/h e ignição ligada.
+   Também acha a hora em que a ignição DESLIGOU naquele lugar. Parado desde = último movimento. */
+let parGer=0;
+function parAgoraLimpar(){ parGer++; if(hist.camPar){ try{ map.removeLayer(hist.camPar) }catch(e){} hist.camPar=null } const r=$('hParAgoraRes'); if(r){ r.classList.remove('show'); r.innerHTML='' } }
+function parHora(t){ const d=new Date(t), hj=hojeSP(), dia=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Sao_Paulo'}).format(d), hh=d.toLocaleTimeString('pt-BR',{timeZone:'America/Sao_Paulo',hour:'2-digit',minute:'2-digit'});
+  return dia===hj ? hh : dia===diaMenos(1) ? 'ontem, '+hh : d.toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo',day:'2-digit',month:'2-digit'})+' '+hh }
+function parAnalisar(pos, ehTag){ /* pos: posições em ordem de tempo. Devolve o resultado do cálculo (sem tela) */
+  const pts=pos.filter(p=>p.valid!==false && !posZero(p)).map(p=>({ll:[p.latitude,p.longitude],t:Date.parse(p.fixTime),kmh:(Number(p.speed)||0)*1.852,ign:(p.attributes||{}).ignition}))
+    .filter(p=>isFinite(p.t)).sort((a,b)=>a.t-b.t);
+  if(!pts.length) return null;
+  const u=pts[pts.length-1], raio=ehTag?250:100;
+  let iMov=-1;
+  for(let i=pts.length-1;i>=0;i--){ const p=pts[i]; if(distHist(p.ll,u.ll)>raio || (!ehTag && p.kmh>5 && p.ign===true)){ iMov=i; break } }
+  let ignOff=null, ignAgora=null;
+  if(!ehTag){
+    for(let i=pts.length-1;i>=0;i--){ if(typeof pts[i].ign==='boolean'){ ignAgora=pts[i].ign; break } }
+    for(let i=pts.length-1;i>Math.max(iMov,0);i--){ if(pts[i].ign===false && pts[i-1] && pts[i-1].ign===true){ ignOff=pts[i].t; break } }
+    if(ignOff===null && iMov>=0 && pts[iMov].ign===true && pts[iMov+1] && pts[iMov+1].ign===false) ignOff=pts[iMov+1].t;
+  }
+  return { ll:u.ll, ultimoPonto:u.t, ultimoMov:iMov>=0?pts[iMov].t:null, primeiro:pts[0].t, ignOff, ignAgora };
+}
+$('hParAgora').onclick=async()=>{
+  const id=+$('hVeic').value; if(!id){ toast('Escolha um veículo.'); return }
+  const v=veiculos.find(x=>x.id===id), ehTag=!!(v&&v.tag);
+  parAgoraLimpar(); const ger=parGer, b=$('hParAgora'), res=$('hParAgoraRes');
+  b.disabled=true;
+  const agora=Date.now(), DIA=86400000, MAX=7, pos=[]; let r=null;
+  try{
+    for(let k=0;k<MAX;k+=2){
+      b.textContent='Lendo o histórico... '+(k+2>MAX?MAX:k+2)+' de '+MAX+' dias';
+      const ate=agora-k*DIA, de=agora-Math.min(k+2,MAX)*DIA;
+      const q='deviceId='+id+'&from='+encodeURIComponent(new Date(de).toISOString())+'&to='+encodeURIComponent(new Date(ate).toISOString());
+      const rr=await api('/api/reports/route?'+q);
+      if(ger!==parGer || !hist.on) return;
+      if(!rr.ok) throw new Error('O servidor respondeu erro '+rr.status+' ao ler o histórico.');
+      (await rr.json()).forEach(p=>pos.push(p));
+      r=parAnalisar(pos,ehTag);
+      if(r && r.ultimoMov!==null) break;
+    }
+    if(!r){ res.innerHTML='Sem posições nos últimos 7 dias (o rastreador pode estar desligado ou sem GPS).'; res.classList.add('show'); return }
+    const semSinal=v && v.ultimo && agora-v.ultimo>30*60000;
+    const desde=r.ultimoMov, linhas=[];
+    let titulo;
+    if(desde===null) titulo='⏸️ Parado há mais de 7 dias';
+    else if(agora-r.ultimoPonto<10*60000 && r.ultimoPonto-desde<3*60000 && !(r.ignAgora===false)) titulo='🚗 Em movimento agora (ou parou há menos de 3 min)';
+    else titulo='⏸️ Parado há '+durTxt(agora-desde);
+    linhas.push('📍 <span id="hParEnd">'+esc(enderecoGuardado(r.ll)||'Buscando endereço...')+'</span>');
+    linhas.push('🚶 Último movimento: <b>'+(desde===null?'antes de '+parHora(r.primeiro):parHora(desde))+'</b>');
+    if(!ehTag){
+      if(r.ignAgora===true) linhas.push('🔑 Ignição <b>LIGADA</b>'+(desde!==null?' (parado com o motor ligado)':''));
+      else if(r.ignOff!==null) linhas.push('🔑 Ignição desligada: <b>'+parHora(r.ignOff)+'</b> (há '+durTxt(agora-r.ignOff)+')');
+      else if(r.ignAgora===false) linhas.push('🔑 Ignição desligada'+(desde===null?' (desde antes de '+parHora(r.primeiro)+')':''));
+    }
+    linhas.push('🕒 Agora: '+parHora(agora));
+    const av=[];
+    if(semSinal) av.push('⚠️ Sem comunicação desde '+parHora(v.ultimo)+': depois disso não dá para saber se ele saiu.');
+    if(ehTag) av.push('Tag: a posição vem de celulares que passam perto, então pode variar um pouco.');
+    res.innerHTML='<div class="t">'+titulo+'</div>'+linhas.join('<br>')+(av.length?'<div class="av">'+av.join('<br>')+'</div>':'');
+    res.classList.add('show');
+    const g=L.layerGroup();
+    L.circle(r.ll,{radius:ehTag?250:100,color:'#0ea5e9',weight:1.5,fillColor:'#0ea5e9',fillOpacity:.10,interactive:false}).addTo(g);
+    L.marker(r.ll,{icon:L.divIcon({className:'hmk',html:'<div class="hpinarea" style="width:44px;height:44px"><div class="hpin dor top">⏸</div></div>',iconSize:[44,44],iconAnchor:[22,22]})}).addTo(g);
+    g.addTo(map); hist.camPar=g;
+    setTimeout(()=>{ try{ histFocar(r.ll,17) }catch(e){} },60);
+    if(enderecoGuardado(r.ll)===null) enderecosParadas([{ll:r.ll}],(i,t)=>{ if(ger!==parGer) return; const e=$('hParEnd'); if(e) e.textContent=t });
+  }catch(e){ if(ger===parGer && !e.sessao){ res.innerHTML=esc(e.message||'Não consegui ler o histórico.'); res.classList.add('show') } }
+  finally{ if(ger===parGer){ b.disabled=false; b.textContent='⏸️ Há quanto tempo está parado?' } }
 };
 /* ===== PDF das paradas (10/10/2026) =====
    Montado no próprio aparelho (bibliotecas jsPDF e AutoTable, carregadas só quando o botão é tocado). Respeita o filtro de paradas. */
