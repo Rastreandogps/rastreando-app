@@ -3665,3 +3665,6 @@ nav button[data-tab="Faturas"] .nemo{background:url(icv/mais-faturas.webp) cente
   header nav button[data-tab="Mais"],header nav button[data-tab="Admin"]{order:2}
   header nav #fatBadge{display:none!important}
 }
+
+/* 12/11/2026 (dono): login do cliente embaixo da placa, discreto */
+.ladonm small.ladolg, main .lado .ladonm small.ladolg{margin-top:1px;letter-spacing:0;opacity:.8;text-transform:none}

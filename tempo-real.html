@@ -41,7 +41,7 @@ try{ if(localStorage.getItem('rg_token')||sessionStorage.getItem('rgv_rg_token')
 try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'){document.documentElement.setAttribute('data-tema',t)}}catch(e){}
 </script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="stylesheet" href="app.css?v=45"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
+<link rel="stylesheet" href="app.css?v=46"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
 </head>
 <body>
 
@@ -3525,6 +3525,9 @@ function ladoBase(){
     return b.includes(q) || (qd.length>=3 && b.replace(/\D/g,'').includes(qd));
   }).sort((a,b)=> ladoFiltro==='ret' ? ((a.retirado?1:0)-(b.retirado?1:0)) || /* 19/10/2026: os fixados (📌) ficam no topo */ ((a.retDono||'~').localeCompare(b.retDono||'~','pt-BR') || a.nome.localeCompare(b.nome,'pt-BR')) : a.nome.localeCompare(b.nome,'pt-BR')); /* 19/10/2026: em Para retirar, agrupado pelo dono */
 }
+/* 12/11/2026 (dono): login do cliente embaixo da placa, discreto (só administrador) */
+function ladoLogin(v){ try{ const ls=clientesDoEquip(v).map(u=>loginDe(u).replace(EMAIL_FALSO,'')).filter(Boolean); return ls.length?'<small class="ladolg">'+esc(ls.join(', '))+'</small>':'' }catch(e){ return '' } }
+function ladoAssinExtra(){ try{ return ehAdmin?'|'+usuarios.length+'.'+Object.keys(vinculos||{}).length:'' }catch(e){ return '' } }
 function ladoDesenhar(){
   const el=$('ladoLista'); if(!el) return;
   const lista=ladoBase();
@@ -3532,12 +3535,12 @@ function ladoDesenhar(){
     const e=ladoEst(v);
     return '<div class="ladoit'+(v.id===selId?' on':'')+(ehAdmin?' adm':(abaAtiva()?' comaba':''))+'" data-id="'+v.id+'">'+
       '<label class="ladock" title="Mostrar ou esconder no mapa"><input type="checkbox"'+(v.visivel?' checked':'')+' aria-label="Mostrar '+esc(v.nome)+' no mapa"><span></span></label>'+
-      '<button type="button" class="ladonm"><b>'+(ladoFiltro==='ret'&&!v.retirado&&retFixo(v.id)?'📌 ':'')+esc(v.nome)+'</b>'+(ladoFiltro==='ret'&&v.retDono?'<small>👤 '+esc(v.retDono)+'</small>':(v.placa?'<small>'+esc(v.placa)+'</small>':''))+'</button>'+
+      '<button type="button" class="ladonm"><b>'+(ladoFiltro==='ret'&&!v.retirado&&retFixo(v.id)?'📌 ':'')+esc(v.nome)+'</b>'+(ladoFiltro==='ret'&&v.retDono?'<small>👤 '+esc(v.retDono)+'</small>':(v.placa?'<small>'+esc(v.placa)+'</small>':''))+(ehAdmin&&ladoFiltro!=='ret'?ladoLogin(v):'')+'</button>'+
       '<span class="ladost '+e[0]+'"><em>'+esc(e[1])+'</em>'+(e[2]?'<small>'+esc(e[2])+'</small>':'')+'</span>'+
       '<button type="button" class="ladoshr" aria-label="Compartilhar a localização de '+esc(v.nome)+'" title="Compartilhar localização"><svg viewBox="0 0 40 18"><circle cx="8" cy="9" r="7.5" fill="#dc2626"/><text x="8" y="12.6" text-anchor="middle" font-size="10" font-weight="800" fill="#fff" font-family="system-ui,sans-serif">A</text><path d="M17.5 9h6.5" stroke="#16a34a" stroke-width="2.2" stroke-linecap="round"/><path d="M22 5.6 25.4 9 22 12.4" fill="none" stroke="#16a34a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="32" cy="9" r="7.5" fill="#2563eb"/><text x="32" y="12.6" text-anchor="middle" font-size="10" font-weight="800" fill="#fff" font-family="system-ui,sans-serif">B</text></svg></button>'+
       (ehAdmin?'<button type="button" class="ladomais" aria-label="Mais opções de '+esc(v.nome)+'" title="Mais opções">⋮</button>':(abaAtiva()?'<button type="button" class="ladomais ladorem" aria-label="Tirar '+esc(v.nome)+' da aba" title="Tirar da aba '+esc(abaAtiva().nome)+'">×</button>':''))+'</div>'; /* 17/10/2026: menu de 3 pontinhos (administrador); 23/10/2026: frotista com subaba ativa -> × tira da aba */
   }).join('') || '<div class="ladovz">Nenhum veículo'+(ladoFiltro!=='todos'||$('ladoBusca').value?' com esse filtro.':'.')+'</div>';
-  ladoAssin = lista.map(v=>v.id).join(',')+'|'+ladoFiltro+'|'+AB.ativa;
+  ladoAssin = lista.map(v=>v.id).join(',')+'|'+ladoFiltro+'|'+AB.ativa+ladoAssinExtra();
   ladoCabecalho(lista);
 }
 function ladoCabecalho(lista){
@@ -3560,7 +3563,7 @@ function ladoAtualizar(){
   if(!ladoLigado()) return;
   const agora=Date.now();
   if(agora<ladoRolandoAte || agora-ladoUltMs<4000) return; ladoUltMs=agora;
-  const lista=ladoBase(), assin=lista.map(v=>v.id).join(',')+'|'+ladoFiltro+'|'+AB.ativa;
+  const lista=ladoBase(), assin=lista.map(v=>v.id).join(',')+'|'+ladoFiltro+'|'+AB.ativa+ladoAssinExtra();
   if(assin!==ladoAssin){ ladoDesenhar(); return }
   const porId=new Map(veiculos.map(v=>[v.id,v]));
   const linhas=$('ladoLista').children;
