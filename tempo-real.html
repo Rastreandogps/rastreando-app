@@ -1857,6 +1857,7 @@ try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'
   <div class="box2">
     <h3 id="wtTit">Veículos no WhatsApp</h3>
     <p id="wtTxt">Marque os veículos que vão avisar no WhatsApp. Todos gastam do mesmo pacote: quanto mais veículos, mais rápido ele acaba.</p>
+    <input class="fld" id="wtBusca" type="search" placeholder="🔍 Buscar veículo ou placa" autocomplete="off" autocapitalize="none" spellcheck="false" data-lpignore="true" data-1p-ignore style="margin:4px 0 2px"><!-- 12/11/2026 (dono): buscador na lista -->
     <button class="linkbtn" type="button" id="wtTodos" style="margin:2px 0 6px">Marcar todos</button>
     <div id="wtLista" class="wtlista"></div>
     <p class="wpperrotx" id="wtErro" style="color:var(--red2);font-size:13px;min-height:18px;margin:6px 0 0"></p>
@@ -10555,11 +10556,23 @@ function wppTrocaAbrir(k){
   $('wtTxt').textContent=nm?'Marque os veículos que avisam "'+nm+'" no WhatsApp. Todos gastam do mesmo pacote: quanto mais veículos, mais rápido ele acaba.':'Marque os veículos que vão avisar no WhatsApp. Todos gastam do mesmo pacote: quanto mais veículos, mais rápido ele acaba.';
   const lista=veiculos.slice().sort((a,b)=>(marc.includes(b.id)-marc.includes(a.id))||a.nome.localeCompare(b.nome,'pt-BR')); /* 03/11/2026: ativos no topo */
   $('wtErro').textContent='';
-  $('wtLista').innerHTML=lista.map(x=>'<div class="igrow wtit"><span>'+esc(x.nome)+(x.placa?'<small>'+esc(x.placa)+'</small>':'')+'</span><label class="sw"><input type="checkbox" data-wtv="'+x.id+'"'+(marc.includes(x.id)?' checked':'')+'><span></span></label></div>').join('');
+  $('wtLista').innerHTML=lista.map(x=>'<div class="igrow wtit"><span>'+esc(x.nome)+(x.placa?'<small>'+esc(x.placa)+'</small>':'')+'</span><label class="sw"><input type="checkbox" data-wtb="'+esc(wtNorm(x.nome+' '+(x.placa||'')))+'" data-wtv="'+x.id+'"'+(marc.includes(x.id)?' checked':'')+'><span></span></label></div>').join('');
   $('wtTodos').hidden=lista.length<2;
+  $('wtBusca').value=''; $('wtBusca').hidden=lista.length<6; wtFiltrar();
   abrir('mWppTroca');
 }
-$('wtTodos').onclick=()=>{ const cs=[...$('wtLista').querySelectorAll('input[data-wtv]')], todos=cs.every(c=>c.checked); cs.forEach(c=>c.checked=!todos); $('wtTodos').textContent=todos?'Marcar todos':'Desmarcar todos' };
+/* 12/11/2026 (dono): buscador na lista; o que está escondido pela busca continua marcado/desmarcado como estava e é salvo junto */
+function wtNorm(t){ return String(t||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]/g,'') }
+function wtVisiveis(){ return [...$('wtLista').querySelectorAll('input[data-wtv]')].filter(c=>c.closest('.wtit').style.display!=='none') }
+function wtFiltrar(){
+  const q=wtNorm($('wtBusca').value);
+  $('wtLista').querySelectorAll('input[data-wtv]').forEach(c=>{ c.closest('.wtit').style.display=(!q||c.dataset.wtb.includes(q))?'':'none' });
+  const vs=wtVisiveis(), todos=vs.length&&vs.every(c=>c.checked);
+  $('wtTodos').textContent=(todos?'Desmarcar ':'Marcar ')+(q?(vs.length===1?'o da busca':'os '+vs.length+' da busca'):'todos');
+  $('wtTodos').hidden=vs.length<2 && !q || !vs.length;
+}
+$('wtBusca').addEventListener('input',wtFiltrar);
+$('wtTodos').onclick=()=>{ const cs=wtVisiveis(), todos=cs.every(c=>c.checked); cs.forEach(c=>c.checked=!todos); wtFiltrar() };
 $('wtOk').onclick=async()=>{
   const lista=[...$('wtLista').querySelectorAll('input[data-wtv]:checked')].map(c=>+c.dataset.wtv);
   if(!lista.length && !confirm(wppTrocaItem?'Nenhum veículo marcado: este aviso para de chegar no WhatsApp. Salvar assim?':'Nenhum veículo marcado: o WhatsApp fica parado e o pacote não é gasto. Salvar assim?')) return;
