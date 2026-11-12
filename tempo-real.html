@@ -41,7 +41,7 @@ try{ if(localStorage.getItem('rg_token')||sessionStorage.getItem('rgv_rg_token')
 try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'){document.documentElement.setAttribute('data-tema',t)}}catch(e){}
 </script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="stylesheet" href="app.css?v=46"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
+<link rel="stylesheet" href="app.css?v=47"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
 </head>
 <body>
 
@@ -70,6 +70,8 @@ try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'
   </div>
 </header>
 <div id="avisoPag"></div>
+<!-- 12/11/2026 (dono): "Pague em dia e ganhe desconto" — só no dia do vencimento, só cliente, só se o desconto ainda vale -->
+<section id="avisoDesc" role="region" aria-label="Desconto por pagamento em dia"><button type="button" class="adx" aria-label="Fechar aviso">×</button><div class="adtop"><svg class="adic" viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="rgDescTag" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#42ff91"/><stop offset="1" stop-color="#00883c"/></linearGradient></defs><path d="M7 29 29 7h21a7 7 0 0 1 7 7v21L35 57a7 7 0 0 1-10 0L7 39a7 7 0 0 1 0-10Z" fill="url(#rgDescTag)" stroke="#8effbb" stroke-width="2"/><circle cx="45" cy="19" r="5" fill="#083a23"/><text x="30" y="43" font-family="Arial,sans-serif" font-size="30" font-weight="bold" text-anchor="middle" fill="#fff">%</text></svg><div><h2>Pague em dia e ganhe desconto</h2><p>Sua fatura vence hoje. Aproveite o desconto!</p></div></div><button type="button" class="adcta" id="avisoDescBt"><svg class="adgift" viewBox="0 0 64 64" aria-hidden="true"><rect x="9" y="28" width="46" height="30" rx="5" fill="#13b95d" stroke="#a4ffb5" stroke-width="2"/><path d="M27 28h10v30H27z" fill="#ffcf50"/><rect x="6" y="21" width="52" height="13" rx="4" fill="#19d56d"/><path d="M27 21h10v37H27z" fill="#ffdc67"/><path d="M32 21C8 19 14 3 24 8c5 2 8 13 8 13Zm0 0C56 19 50 3 40 8c-5 2-8 13-8 13Z" fill="none" stroke="#ffd95e" stroke-width="6" stroke-linejoin="round"/></svg><span>Garanta seu desconto</span><span class="adarr" aria-hidden="true">›</span></button></section>
 <!-- 16/10/2026: faixa do administrador vendo o app como um cliente -->
 <div id="verComo"><span class="vcolho"><svg viewBox="0 0 24 24"><path d="M1.5 12S5.5 5 12 5s10.5 7 10.5 7-4 7-10.5 7S1.5 12 1.5 12z"/><circle cx="12" cy="12" r="3"/></svg></span><span class="vctx">Você está vendo o app como <b id="vcNome"></b><small id="vcAte"></small></span><button type="button" id="vcSair">Sair</button></div>
 
@@ -7368,7 +7370,37 @@ function aplicarBloqueio(b){
   if($('fview').classList.contains('show')) bar.classList.remove('show');
   try{ setTimeout(()=>map.invalidateSize(),50) }catch(e){}
   if(trav) irPara('Faturas');
+  try{ descAviso() }catch(e){}
 }
+/* 12/11/2026 (dono): aviso "Pague em dia e ganhe desconto" no dia do vencimento (o servidor só manda 'desconto' se ele ainda vale hoje) */
+let descFatId='';
+function descAviso(){
+  const el=$('avisoDesc'); if(!el) return;
+  const d=faturasDados, f=(!ehAdmin && d && Array.isArray(d.abertas) && bloqueioNivel==='ok') ? d.abertas.find(x=>!x.vencida && x.vencimento===d.hoje && Number(x.desconto)>0 && x.forma!=='CREDIT_CARD') : null;
+  const fechado = f && lsGet('rg_desc_fechado')===d.hoje+'|'+f.id;
+  const mostra = !!f && !fechado;
+  descFatId = mostra ? f.id : '';
+  if(el.classList.contains('show')!==mostra){ el.classList.toggle('show',mostra); try{ setTimeout(()=>map.invalidateSize(),50) }catch(e){} }
+}
+$('avisoDesc').addEventListener('click',async e=>{
+  if(e.target.closest('.adx')){ e.stopPropagation(); if(faturasDados&&descFatId) lsSet('rg_desc_fechado',faturasDados.hoje+'|'+descFatId); $('avisoDesc').classList.remove('show'); try{ setTimeout(()=>map.invalidateSize(),50) }catch(x){} return }
+  const b=e.target.closest('#avisoDescBt'); if(!b || b.disabled) return;
+  if(!descFatId){ irPara('Faturas'); return }
+  b.disabled=true; const sp=b.querySelector('span'), t0=sp.textContent; sp.textContent='Gerando PIX...';
+  try{
+    const r=await fn('pix',{id:descFatId});
+    if(r.paga){ toast('Esta fatura já está paga. Obrigado!'); $('avisoDesc').classList.remove('show'); verificarBloqueio() }
+    else if(r.semPix){ if(r.link) window.open(r.link,'_blank','noopener'); else irPara('Faturas') }
+    else{
+      $('pixInfo').textContent='Valor '+brl(r.valor)+' · vencimento '+dmy(r.vencimento)+'. Abra o app do seu banco e escaneie, ou copie o código.';
+      $('pixQr').src='data:image/png;base64,'+r.imagem;
+      $('pixCode').textContent=r.copiaCola;
+      $('pixCopiar').onclick=()=>copiar(r.copiaCola).then(()=>toast('Código PIX copiado')).catch(()=>toast('Não foi possível copiar'));
+      abrir('mPix');
+    }
+  }catch(err){ toast(err.message); irPara('Faturas') }
+  b.disabled=false; sp.textContent=t0;
+});
 $('avisoPag').onclick=e=>{
   if(e.target.closest('.apx')){ /* fecha só até amanhã */
     e.stopPropagation(); lsSet('rg_aviso_fechado',new Date(Date.now()-3*3600000).toISOString().slice(0,10));
