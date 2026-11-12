@@ -3670,7 +3670,7 @@ nav button[data-tab="Faturas"] .nemo{background:url(icv/mais-faturas.webp) cente
 .ladonm small.ladolg, main .lado .ladonm small.ladolg{margin-top:1px;letter-spacing:0;opacity:.8;text-transform:none}
 
 /* 12/11/2026 (dono): aviso "Pague em dia e ganhe desconto" (desenho do dono) */
-#avisoDesc{display:none;position:relative;flex:none;margin:8px 10px 2px;overflow:hidden;border:1px solid #2fba79;border-radius:15px;padding:12px 14px;background:radial-gradient(ellipse at 100% 0%,#105437 0%,transparent 65%),linear-gradient(135deg,#071a13,#092b1c);box-shadow:0 8px 26px #0005,inset 0 1px #ffffff12;text-align:left;z-index:5}
+#avisoDesc{display:none;position:relative;flex:none;margin:8px 10px 2px;max-width:520px;box-sizing:border-box;overflow:hidden;border:1px solid #2fba79;border-radius:15px;padding:12px 14px;background:radial-gradient(ellipse at 100% 0%,#105437 0%,transparent 65%),linear-gradient(135deg,#071a13,#092b1c);box-shadow:0 8px 26px #0005,inset 0 1px #ffffff12;text-align:left;z-index:5}
 #avisoDesc.show{display:block}
 #avisoDesc .adx{position:absolute;right:8px;top:6px;border:0;background:transparent;color:#b5d8c7;cursor:pointer;font-size:22px;line-height:1;padding:2px 6px}
 #avisoDesc .adtop{display:flex;align-items:center;gap:10px;padding-right:22px}
@@ -3686,3 +3686,4 @@ html[data-tema="claro"] #avisoDesc{border-color:#34b878;background:radial-gradie
 html[data-tema="claro"] #avisoDesc h2{color:#0b3d24}
 html[data-tema="claro"] #avisoDesc p{color:#2f5e45}
 html[data-tema="claro"] #avisoDesc .adx{color:#3c7a58}
+@media (min-width:900px){#avisoDesc{margin:8px auto 2px;width:calc(100% - 20px)}}
