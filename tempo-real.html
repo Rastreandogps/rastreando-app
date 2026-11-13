@@ -7376,7 +7376,18 @@ function aplicarBloqueio(b){
 let descFatId='';
 function descAviso(){
   const el=$('avisoDesc'); if(!el) return;
-  const d=faturasDados, f=(!ehAdmin && d && Array.isArray(d.abertas) && bloqueioNivel==='ok') ? d.abertas.find(x=>!x.vencida && x.vencimento===d.hoje && Number(x.desconto)>0 && x.forma!=='CREDIT_CARD') : null;
+  const d=faturasDados, ab=(!ehAdmin && d && Array.isArray(d.abertas) && bloqueioNivel==='ok') ? d.abertas.filter(x=>!x.vencida && x.vencimento===d.hoje && x.forma!=='CREDIT_CARD') : [];
+  /* 13/11/2026 (dono): boleto que vence HOJE sem desconto (avulso: tag, serviço; ou mensalidade sem desconto) também ganha a tarja, só no dia */
+  const fD=ab.find(x=>Number(x.desconto)>0), f=fD||ab[0]||null, comDesc=!!fD;
+  if(f){
+    const h2=el.querySelector('h2'), pp=el.querySelector('.adtop p'), tx=el.querySelector('.adic text'), gf=el.querySelector('.adgift'), sp=el.querySelector('#avisoDescBt span');
+    if(h2) h2.textContent=comDesc?'Pague em dia e ganhe desconto':'Sua fatura vence hoje';
+    if(pp) pp.textContent=comDesc?'Sua fatura vence hoje. Aproveite o desconto!':('Valor '+brl(f.valor)+(f.descricao?' · '+f.descricao.slice(0,60):'')+'. Pague pelo PIX e fique em dia.');
+    if(tx) tx.textContent=comDesc?'%':'$';
+    if(gf) gf.style.display=comDesc?'':'none';
+    if(sp && !$('avisoDescBt').disabled) sp.textContent=comDesc?'Garanta seu desconto':'Pagar pelo PIX';
+    el.setAttribute('aria-label',comDesc?'Desconto por pagamento em dia':'Fatura que vence hoje');
+  }
   const fechado = f && lsGet('rg_desc_fechado')===d.hoje+'|'+f.id;
   const mostra = !!f && !fechado;
   descFatId = mostra ? f.id : '';
