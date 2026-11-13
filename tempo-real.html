@@ -10640,7 +10640,10 @@ function desenharIgn(){
   const ign=alCfg.ign||{}, lista=alOrdenar(ign);
   const n=lista.filter(v=>ign[String(v.id)]).length;
   $('alIgnResumo').textContent=n?(n+(n===1?' veículo':' veículos')):'Desligado'; $('alTIgn').classList.toggle('on',n>0);
-  $('alIgn').innerHTML=lista.map(v=>'<div class="igrow" data-busca="'+esc((v.nome+' '+(v.placa||'')+' '+(v.imei||'')).toLowerCase())+'"><span>'+esc(v.nome)+'</span><label class="sw"><input type="checkbox" data-ign="'+v.id+'"'+(ign[String(v.id)]?' checked':'')+'><span></span></label></div>').join('') || '<div class="igrow"><span>Nenhum veículo.</span></div>';
+  /* 13/11/2026 (dono): no admin, mostra discretamente o cliente de cada veículo (ex.: dois "VOYAGE") e dá para buscar pelo nome dele */
+  const cliIgn=v=>{ if(!ehAdmin) return ''; try{ const cs=clientesDoEquip(v); return cs.length?cs.map(u=>u.name||loginDe(u).replace(EMAIL_FALSO,'')).join(', '):(v.contato?String(v.contato).replace(EMAIL_FALSO,''):'') }catch(e){ return '' } };
+  if(ehAdmin && !desenharIgn.carregou){ desenharIgn.carregou=true; (usuarios.length?Promise.resolve():carregarUsuarios()).then(()=>{ desenharIgn(); if(!Object.keys(vinculos).length) return carregarVinculos().then(()=>desenharIgn()) }).catch(()=>{}) }
+  $('alIgn').innerHTML=lista.map(v=>{ const c=cliIgn(v); return '<div class="igrow" data-busca="'+esc((v.nome+' '+(v.placa||'')+' '+(v.imei||'')+' '+c).toLowerCase())+'"><span style="min-width:0">'+esc(v.nome)+(c?'<small style="display:block;margin-top:2px;font-size:12.5px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">👤 '+esc(c)+'</small>':'')+'</span><label class="sw"><input type="checkbox" data-ign="'+v.id+'"'+(ign[String(v.id)]?' checked':'')+'><span></span></label></div>' }).join('') || '<div class="igrow"><span>Nenhum veículo.</span></div>';
   alFiltrar('alIgn');
 }
 /* 13/10/2026 (pedido do dono): buscador nas listas de Ignição e Volta do sinal (a lista já ficou grande) */
