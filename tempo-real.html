@@ -11334,8 +11334,12 @@ const asC=c=>brl((c||0)/100);
 const asDt=x=>x?String(x).split('-').reverse().join('/'):'';
 async function fnAdm(acao,extra){
   const tok=lsGet('rg_token'); if(!tok) throw new Error('Para usar a mensalidade aqui, saia do app e entre de novo.');
-  let r; try{ r=await fetch(DESB_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',body:JSON.stringify(Object.assign({acao,token:tok},extra||{}))}) }
-  catch(e){ throw new Error('Não consegui falar com o servidor. Confira a internet.') }
+  const corpo=JSON.stringify(Object.assign({acao,token:tok},extra||{}));
+  let r; try{ r=await fetch(DESB_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',body:corpo}) }
+  catch(e){ /* 13/11/2026 (cliente não conseguiu abrir o Premium): falha de rede passageira (sinal fraco, servidor acordando) -> tenta mais 1 vez */
+    await new Promise(ok=>setTimeout(ok,1500));
+    try{ r=await fetch(DESB_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',body:corpo}) }
+    catch(e2){ throw new Error('Não consegui falar com o servidor. Confira a internet e tente de novo.') } }
   let j={}; try{ j=await r.json() }catch(e){}
   if(!r.ok) throw new Error(j.erro||('Erro '+r.status));
   return j;
