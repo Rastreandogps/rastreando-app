@@ -10934,7 +10934,21 @@ function sair(msg){
   bioBotao();
   mostrarLogin(msg);
 }
+/* 14/11/2026 (dono: clientes com "senha errada" que depois entra): o servidor diferencia maiúscula de minúscula no login
+   (todos são criados em minúsculas) e o teclado do celular às vezes põe maiúscula no começo ou um espaço no fim da senha.
+   Agora o app tenta primeiro como foi digitado e, se o servidor recusar, tenta sozinho o login em minúsculas e a senha sem
+   espaço nas pontas. Devolve o login que funcionou. */
 async function entrar(email,senha){
+  const e0=String(email||'').trim(), s0=String(senha||''), eMin=e0.toLowerCase(), sT=s0.trim();
+  const tent=[[e0,s0]]; [[eMin,s0],[e0,sT],[eMin,sT]].forEach(t=>{ if(t[1] && !tent.some(x=>x[0]===t[0]&&x[1]===t[1])) tent.push(t) });
+  let erro=null;
+  for(const t of tent){
+    try{ await entrarUma(t[0],t[1]); return t[0] }
+    catch(e){ if(!e.recusado) throw e; erro=erro||e }
+  }
+  throw erro;
+}
+async function entrarUma(email,senha){
   const basic='Basic '+btoa(unescape(encodeURIComponent(email+':'+senha)));
   /* 20/10/2026: se o servidor não responder em 20 s, avisa (antes o botão ficava em "Entrando..." para sempre, sem motivo) */
   const ctl=new AbortController(), tm=setTimeout(()=>ctl.abort(),20000);
@@ -10942,7 +10956,7 @@ async function entrar(email,senha){
   try{ r=await fetch(API+'/api/devices',{headers:{Authorization:basic,Accept:'application/json'},credentials:'omit',signal:ctl.signal}) }
   catch(e){ throw new Error(e&&e.name==='AbortError'?'Verifique sua conexão com a internet. Se estiver tudo certo, tente de novo em alguns minutos.':'Verifique sua conexão com a internet.') }
   finally{ clearTimeout(tm) }
-  if(r.status===401||r.status===403) throw new Error('Login ou senha incorretos, ou acesso desativado. Se precisar, fale com a Rastreando GPS.');
+  if(r.status===401||r.status===403){ const er=new Error('Login ou senha incorretos, ou acesso desativado. Se precisar, fale com a Rastreando GPS.'); er.recusado=(r.status===401); throw er }
   if(!r.ok) throw new Error('O servidor respondeu com erro '+r.status+'.');
   // tenta trocar a senha por um token de 30 dias, para não guardar a senha no aparelho
   let token=null;
@@ -10964,8 +10978,7 @@ $('lform').addEventListener('submit',async e=>{
   e.preventDefault();
   const btn=$('lBtn'); btn.disabled=true; btn.textContent='Entrando...'; $('lErr').textContent='';
   try{
-    const emailLogin=$('lEmail').value.trim();
-    await entrar(emailLogin,$('lSenha').value);
+    const emailLogin=(await entrar($('lEmail').value.trim(),$('lSenha').value)) || $('lEmail').value.trim();
     lsSet('rg_email',emailLogin);
     $('lSenha').value='';
     $('login').classList.remove('show');
