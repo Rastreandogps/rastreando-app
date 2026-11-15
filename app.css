@@ -36,9 +36,6 @@ body.mapa-google #map .leaflet-top.leaflet-left > [data-gm="attr"]{margin:6px 0 
    e com o pisca-pisca ligado o logo e os créditos descem para baixo do fio, para não tampar as lâmpadas. */
 body.mapa-google #map .leaflet-top.leaflet-left > [data-gm="attr"] > *{display:inline-flex!important;flex-wrap:nowrap!important;white-space:nowrap}
 body.mapa-google #map .leaflet-top.leaflet-left > [data-gm="attr"]{max-width:min(48vw,300px);overflow:hidden;line-height:14px}
-body.natal-luz.mapa-google #map .leaflet-top.leaflet-left{top:34px}
-body.natal-luz.mapa-google #map .leaflet-top.leaflet-left > [data-gm="logo"]{margin-left:82px!important;transform:scale(.7)!important}
-body.natal-luz.mapa-google #map .leaflet-top.leaflet-left > [data-gm="attr"]{margin:3px 0 0 -12px!important;opacity:.8}
 .contamapa{display:none;align-items:center;gap:10px;margin:0 0 14px;font-size:14px}
 .contamapa select{flex:1;height:42px;border-radius:10px;border:1px solid var(--line);background:var(--card2);color:var(--txt);font:inherit;padding:0 10px}
 .pmmapa select{height:42px}
@@ -3744,11 +3741,15 @@ body.mapa-google #map .leaflet-top.leaflet-left > [data-gm="attr"] .gm-style-cc 
 body.mapa-google #map .leaflet-top.leaflet-left > [data-gm="attr"]{font-size:8px!important;opacity:.62!important;max-width:min(40vw,230px);text-shadow:0 0 2px #fff,0 0 2px #fff}
 body.mapa-google #map .leaflet-top.leaflet-left > [data-gm="attr"] *{font-size:8px!important}
 body.mapa-google #map .leaflet-top.leaflet-left > [data-gm="logo"]{transform:scale(.6)!important;opacity:.8;margin-right:-18px!important}
-body.natal-luz.mapa-google #map .leaflet-top.leaflet-left > [data-gm="logo"]{transform:scale(.6)!important}
-body.natal-luz.mapa-google #map .leaflet-top.leaflet-left > [data-gm="attr"]{margin:4px 0 0 0!important;opacity:.62!important}
 /* 15/11/2026 18h10 (dono): "Atualizado às…" sobe para logo abaixo do selo da situação, no canto de cima; o nome cede um pedaço da largura para não encostar nele */
 @media (max-width:899px){
   #sheet.spdtopon #vUpd{position:absolute;top:31px;right:16px;z-index:3;font-size:10px;line-height:13px;text-align:right}
   #sheet.spdtopon .stwrap{margin-top:0}
   #sheet.spdtopon .vname{width:calc(100vw - 68px - 58px - 104px)}
 }
+/* 15/11/2026 18h15 (dono): logo e créditos do Google numa faixa fina no topo, logo ACIMA do botão Serviços (antes ficavam ao lado dele,
+   em cima dos nomes do mapa). A coluna de botões da esquerda desce um pouco só quando o mapa do Google está ligado, para abrir esse espaço. */
+body.mapa-google #map .leaflet-top.leaflet-left{top:1px!important}
+body.mapa-google #map .leaflet-top.leaflet-left > [data-gm="logo"]{margin:0 -22px 0 8px!important;transform:scale(.58)!important;transform-origin:left top;opacity:.85}
+body.mapa-google #map .leaflet-top.leaflet-left > [data-gm="attr"]{margin:1px 0 0 0!important}
+body.mapa-google #pontoBtn,body.mapa-google #socBtn,body.mapa-google #assMapaBtn,body.mapa-google #atalhoBtn,body.mapa-google #zoomBox,body.mapa-google #deslizeBtn{margin-top:18px}
