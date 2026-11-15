@@ -13079,7 +13079,7 @@ function natalChaoLoop(){ /* 15/11 (dono): a neve desce e sobe junto com o cart�
     const agora=performance.now(); if(fora || (agora>(natal.mexeAte||0) && agora-(natal.medEm||0)<250)){ natal.chaoRaf=requestAnimationFrame(f); return } natal.medEm=agora;
     if(window.RGNatal && window.RGNatal.chao){ const ch=natalChao(); if(ch!==natal.chAnt){ natal.chAnt=ch; natal.mexeAte=agora+500 } let extra=0;
       if(natal.arte){ /* 15/11 (dono): arte fixa de neve com pinheiros. Celular: largura toda, em cima do cartão. Computador (cartão estreito): só em cima do cartão, na largura dele */
-        const cz=ch>0?null:natalCartaoEstreito(), bw=natal.box.clientWidth;
+        const cz=null, bw=natal.box.clientWidth; /* 15/11 18h02 (dono): no computador a arte volta para o pé do mapa, por trás do cartão (em cima dele não ficou bom) */
         let larg=cz?cz.w:bw, esq=cz?cz.x:0; const h=Math.min(larg*200/1170,cz?150:96), bot=cz?cz.b:Math.max(0,ch-3); if(cz && larg*200/1170>h+1){ const l2=h*1170/200; esq+=(larg-l2)/2; larg=l2 } /* cartão largo no computador: a arte fica inteira, no tamanho certo, centralizada em cima dele (não repete) */ const k=[larg|0,h|0,esq|0,bot|0].join(',');
         if(k!==natal.arteK){ natal.arteK=k; const st=natal.arte.style; st.left=esq+'px'; st.width=larg+'px'; st.right='auto'; st.height=h.toFixed(1)+'px'; st.bottom=bot+'px'; const rep=larg*200/1170>h+1; st.backgroundSize=rep?'auto 100%':'100% 100%'; st.backgroundRepeat=rep?'repeat-x':'no-repeat' }
         extra=cz?0:h*.3 }
