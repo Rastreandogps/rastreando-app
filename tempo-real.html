@@ -3101,7 +3101,7 @@ async function buscarSeguro(){
   buscando = false;
 }
 setInterval(()=>{ if(document.visibilityState==='visible') buscarSeguro() },INTERVALO);
-document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') buscarSeguro() });
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible'){ buscarSeguro(); setTimeout(()=>{ try{ tokenRenovar() }catch(e){} },8000) } });
 
 /* ===== ANIMAÇÃO SUAVE (feita no app) ===== */
 /* ===== DESLIZE CONTÍNUO (15/10/2026, teste do administrador) =====
@@ -10951,7 +10951,7 @@ function mostrarLogin(msg){
 }
 function sair(msg){
   if(VER.on){ const n=VER.nome||VER.login||'cliente'; verComoSair(); msg='Você saiu da conta de '+n+'. Pode fechar esta aba.' } /* 16/10/2026: "vendo como" não mexe no login de administrador */
-  else { lsDel('rg_token'); lsDel('rg_email'); lsDel('rg_emerg_ok'); lsDel('rg_emerg_reg'); try{sessionStorage.removeItem('rg_basic')}catch(e){} }
+  else { lsDel('rg_token'); lsDel('rg_email'); lsDel('rg_emerg_ok'); lsDel('rg_emerg_reg'); try{ localStorage.removeItem('rg_tok_em'); localStorage.removeItem('rg_tok_tent') }catch(e){} try{sessionStorage.removeItem('rg_basic')}catch(e){} }
   try{ $('btnEmerg').classList.remove('show'); emergFalhas=0 }catch(e){}
   /* 16/10/2026 (revisão): nada da conta anterior fica para a próxima no mesmo aparelho */
   try{ fechar() }catch(e){}
@@ -11015,8 +11015,29 @@ async function entrarUma(email,senha){
       if(txt && teste.ok) token=txt;
     }
   }catch(_){}
-  if(token){ auth='Bearer '+token; lsSet('rg_token',token) }
+  if(token){ auth='Bearer '+token; lsSet('rg_token',token); try{ localStorage.setItem('rg_tok_em',String(Date.now())); localStorage.removeItem('rg_tok_tent') }catch(e){} }
   else { auth=basic; ssSet('rg_basic',basic) }
+}
+/* ===== RENOVAÇÃO AUTOMÁTICA DO ACESSO (15/11/2026, pedido do dono: clientes deslogados a cada 30 dias) =====
+   O acesso guardado vale 30 dias. Quando ele tem mais de 5 dias (ou idade desconhecida: quem já estava logado), o app pede
+   ao servidor um acesso novo de 30 dias, sem senha, e troca sozinho. Só cai quem ficar mais de 30 dias sem abrir o app.
+   Não vale para administrador nem para "Entrar como cliente". No máximo 1 tentativa a cada 6 h. Falhou = fica como está. */
+async function tokenRenovar(){
+  try{
+    if(VER.on || ehAdmin || !adminOk || !auth || auth.indexOf('Bearer ')!==0) return;
+    const agora=Date.now(); let em=0, tent=0;
+    try{ em=Number(localStorage.getItem('rg_tok_em')||0); tent=Number(localStorage.getItem('rg_tok_tent')||0) }catch(e){ return }
+    if(em && agora-em<5*86400000) return;
+    if(agora-tent<6*3600000) return;
+    try{ localStorage.setItem('rg_tok_tent',String(agora)) }catch(e){}
+    const atual=auth;
+    const r=await fetch(ACESSO_URL,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',body:JSON.stringify({acao:'renovar',token:atual.slice(7)})});
+    if(!r.ok) return;
+    const j=await r.json(); if(!j || !j.ok || !j.token) return;
+    const teste=await fetch(API+'/api/devices',{headers:{Authorization:'Bearer '+j.token,Accept:'application/json'},credentials:'omit'});
+    if(!teste.ok || auth!==atual) return; /* saiu ou trocou de conta enquanto renovava: não mexe */
+    auth='Bearer '+j.token; lsSet('rg_token',j.token); try{ localStorage.setItem('rg_tok_em',String(agora)) }catch(e){}
+  }catch(e){}
 }
 $('lform').addEventListener('submit',async e=>{
   e.preventDefault();
@@ -13030,6 +13051,7 @@ $('emLista').addEventListener('click',async e=>{
     registrarAcesso();
     await buscarSeguro();
     try{ abaRestaurar() }catch(e){} /* 21/10/2026: volta na aba em que estava */
+    setTimeout(()=>{ tokenRenovar() },8000); /* 15/11/2026: renova o acesso de 30 dias sozinho */
   } else { ABA_SALVA=null; mostrarLogin(''); bioChecar() }
 })();
 
