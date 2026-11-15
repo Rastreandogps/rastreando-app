@@ -180,6 +180,7 @@
     }
     function desenhar() {
       if (!s.w || !s.h) return;
+      ctx.setTransform(s.dpr, 0, 0, s.dpr, 0, 0); /* 15/11/2026: o celular pode zerar a escala do desenho ao voltar de outro app (a neve aparecia pela metade, no meio do mapa) */
       ctx.clearRect(0, 0, s.w, s.h);
       if (!reduzido.matches) { desenharFlocos(); desenharQueda(); }
       desenharAcumulo(reduzido.matches ? 1 : limitar((performance.now() - s.inicio) / 120000, 0, 1));
@@ -245,7 +246,8 @@
       s.monte = Math.max(0, s.monte - desceu / 46);
       s.caiuEm = performance.now();
     };
-    s.aoVisivel = iniciar;
+    s.aoVisivel = function () { if (!document.hidden) ajustar(); iniciar(); };
+    canvas.addEventListener('contextrestored', function () { ajustar(); iniciar(); });
     s.aoReducao = iniciar;
     document.addEventListener('visibilitychange', s.aoVisivel);
     if (reduzido.addEventListener) reduzido.addEventListener('change', s.aoReducao);
