@@ -163,21 +163,22 @@
        Antes cada floco criava um degradê e uma sombra a cada quadro (pesado em celular fraco). */
     function carimboFloco() {
       if (s.carimbo) return s.carimbo;
-      const T = 48, c = document.createElement('canvas'); c.width = c.height = T;
+      const T = 64, c = document.createElement('canvas'); c.width = c.height = T;
       const x = c.getContext('2d'), m = T / 2;
-      const som = x.createRadialGradient(m, m + 1.5, T * .12, m, m + 1.5, T * .5);
-      som.addColorStop(0, 'rgba(24,43,62,.26)'); som.addColorStop(1, 'rgba(24,43,62,0)');
-      x.fillStyle = som; x.fillRect(0, 0, T, T);
-      const g = x.createRadialGradient(m - T * .05, m - T * .05, .5, m, m, T * .36);
-      g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(.36, 'rgba(255,255,255,.96)'); g.addColorStop(1, 'rgba(236,247,255,0)');
-      x.fillStyle = g; x.beginPath(); x.arc(m, m, T * .36, 0, DOIS_PI); x.fill();
+      /* contorno escuro suave em volta (é ele que faz o floco branco aparecer em mapa claro) */
+      const som = x.createRadialGradient(m, m + 1, T * .16, m, m + 1, T * .5);
+      som.addColorStop(0, 'rgba(20,38,56,.38)'); som.addColorStop(.55, 'rgba(20,38,56,.15)'); som.addColorStop(1, 'rgba(20,38,56,0)');
+      x.fillStyle = som; x.beginPath(); x.arc(m, m + 1, T * .5, 0, DOIS_PI); x.fill();
+      const g = x.createRadialGradient(m - T * .04, m - T * .04, .5, m, m, T * .34);
+      g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(.55, 'rgba(255,255,255,1)'); g.addColorStop(1, 'rgba(240,248,255,0)');
+      x.fillStyle = g; x.beginPath(); x.arc(m, m, T * .34, 0, DOIS_PI); x.fill();
       return (s.carimbo = c);
     }
     function desenharFlocos() {
       const c = carimboFloco();
       for (const f of s.flocos) {
-        const d = f.raio * 5; /* o miolo branco ocupa 72% do carimbo: mesmo tamanho de antes (raio × 1,8) */
-        ctx.globalAlpha = f.opacidade;
+        const d = f.raio * 6.2 + 1.5;
+        ctx.globalAlpha = Math.min(1, f.opacidade + .12);
         ctx.drawImage(c, f.x - d / 2, f.y - d / 2, d, d);
       }
       ctx.globalAlpha = 1;
