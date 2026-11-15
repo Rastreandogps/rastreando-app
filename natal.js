@@ -28,7 +28,7 @@
     const ctx = canvas.getContext('2d', { alpha: true });
     if (!ctx) { camada.remove(); return; }
     const s = { elemento, camada, canvas, ctx, config, reduzido, w: 0, h: 0, dpr: 1,
-      flocos: [], depositos: [], lampadas: [], raf: 0, ultimo: 0, tempo: 0,
+      flocos: [], depositos: [], lampadas: [], monte: 1, queda: [], chao: 0, raf: 0, ultimo: 0, tempo: 0,
       inicio: performance.now(), ativo: true, amostras: [], lento: false, vento: 0,
       observador: null, aoVisivel: null, aoReducao: null };
     instancia = s;
@@ -86,7 +86,7 @@
       const ondulacao = 1.2 * Math.sin(x * .039 + .5) + .7 * Math.sin(x * .103);
       const i = limitar(Math.floor(x / 7), 0, s.depositos.length - 1);
       const deposicao = s.depositos[i] || 0;
-      return Math.max(0, (altura + ondulacao) * progresso * (.985 + .015 * deposicao));
+      return Math.max(0, (altura + ondulacao) * progresso * (.985 + .015 * deposicao) * s.monte);
     }
     function caminhoNeve(progresso) {
       ctx.beginPath(); ctx.moveTo(0, piso());
@@ -157,6 +157,12 @@
       }
       ctx.restore();
     }
+    function desenharQueda() {
+      if (!s.queda.length) return;
+      ctx.save(); ctx.fillStyle = '#f4faff'; ctx.shadowColor = 'rgba(24,43,62,.25)'; ctx.shadowBlur = 2;
+      for (const q of s.queda) { ctx.globalAlpha = Math.max(0, Math.min(1, q.a)); ctx.beginPath(); ctx.arc(q.x, q.y, q.r, 0, DOIS_PI); ctx.fill(); }
+      ctx.restore();
+    }
     function desenharFlocos() {
       for (const f of s.flocos) {
         const r = f.raio;
@@ -175,7 +181,7 @@
     function desenhar() {
       if (!s.w || !s.h) return;
       ctx.clearRect(0, 0, s.w, s.h);
-      if (!reduzido.matches) desenharFlocos();
+      if (!reduzido.matches) { desenharFlocos(); desenharQueda(); }
       desenharAcumulo(reduzido.matches ? 1 : limitar((performance.now() - s.inicio) / 120000, 0, 1));
       desenharLuzes();
     }
@@ -187,6 +193,13 @@
       s.tempo += dt;
       s.vento = 8 * Math.sin(s.tempo * .17) + 3 * Math.sin(s.tempo * .071 + 1.2);
       const progresso = limitar((agora - s.inicio) / 120000, 0, 1);
+      /* 15/11/2026 (dono): o cartão desceu = a neve acumulada despenca e o monte se refaz embaixo */
+      if (s.queda.length) {
+        const chaoY = piso();
+        for (const q of s.queda) { q.vy += 950 * dt; q.y += q.vy * dt; q.x += q.vx * dt; q.a -= dt * .25; }
+        s.queda = s.queda.filter((q) => q.y < chaoY - 2 && q.a > .05);
+      }
+      if (s.monte < 1 && agora - (s.caiuEm || 0) > 260) s.monte = Math.min(1, s.monte + dt / 1.1);
       for (const f of s.flocos) {
         f.y += f.velocidade * dt;
         f.x += (s.vento * (.4 + f.profundidade * .3) +
@@ -220,6 +233,18 @@
         s.raf = requestAnimationFrame(quadro);
       }
     }
+    s.despencar = function (desceu) { /* chamado ANTES de o chão mudar: os pedaços nascem na linha do monte antigo */
+      if (!config.acumular || reduzido.matches || !s.w || !s.h) return;
+      const progresso = limitar((performance.now() - s.inicio) / 120000, 0, 1);
+      if (progresso * s.monte < .04) { s.caiuEm = performance.now(); return; }
+      const n = Math.min(34, Math.max(4, Math.round(desceu * 1.3 * s.monte * s.w / 390)));
+      for (let i = 0; i < n && s.queda.length < 320; i++) {
+        const x = aleatorio(0, s.w), topo = topoNeve(x, progresso);
+        s.queda.push({ x, y: piso() - aleatorio(0, topo), vx: aleatorio(-18, 18), vy: aleatorio(0, 70), r: aleatorio(1.4, 4.2) * (.6 + .4 * progresso), a: aleatorio(.75, 1) });
+      }
+      s.monte = Math.max(0, s.monte - desceu / 46);
+      s.caiuEm = performance.now();
+    };
     s.aoVisivel = iniciar;
     s.aoReducao = iniciar;
     document.addEventListener('visibilitychange', s.aoVisivel);
@@ -246,6 +271,11 @@
     s.camada.remove();
     s.flocos.length = 0; s.lampadas.length = 0; s.depositos.length = 0;
   }
-  function chao(px) { if (instancia) instancia.chao = Math.max(0, Number(px) || 0); }
+  function chao(px) {
+    const s = instancia; if (!s) return;
+    const novo = Math.max(0, Number(px) || 0), desceu = (s.chao || 0) - novo;
+    if (desceu > 1.5 && s.despencar) s.despencar(desceu);
+    s.chao = novo;
+  }
   window.RGNatal = { ligar, desligar, chao };
 })();

@@ -13067,7 +13067,7 @@ function natalTick(){
     const t=natalTreno(); if(t!==natal.trenoOn){ natal.trenoOn=t; try{ veiculos.forEach(v=>{ try{ icTrocar(v) }catch(_){} }) }catch(_){} }
     const nc=natalC(), quer=natalPode() && !!nc.neve, chave=quer?[nc.forte?1:0,nc.acumulo?1:0,nc.luzes?1:0].join(''):'';
     if(!quer){ if(natal.box){ try{ window.RGNatal&&window.RGNatal.desligar() }catch(e){} natal.box.remove(); natal.box=null; natal.chave='' } return }
-    if(!window.RGNatal){ if(!natal.carregando){ natal.carregando=true; const sc=document.createElement('script'); sc.src='natal.js?v=3'; sc.onload=()=>{ natal.carregando=false; natalTick() }; sc.onerror=()=>{ natal.carregando=false }; document.head.appendChild(sc) } return }
+    if(!window.RGNatal){ if(!natal.carregando){ natal.carregando=true; const sc=document.createElement('script'); sc.src='natal.js?v=4'; sc.onload=()=>{ natal.carregando=false; natalTick() }; sc.onerror=()=>{ natal.carregando=false }; document.head.appendChild(sc) } return }
     if(!natal.box){ const b=document.createElement('div'); b.id='natalBox'; b.setAttribute('aria-hidden','true'); const m=$('map'); m.parentNode.insertBefore(b,m.nextSibling); natal.box=b; natal.chave='' }
     natalChaoLoop();
     if(chave!==natal.chave){ natal.chave=chave; window.RGNatal.ligar(natal.box,{intensidade:nc.forte?'caprichada':'discreta',acumular:!!nc.acumulo,luzes:!!nc.luzes}) }
