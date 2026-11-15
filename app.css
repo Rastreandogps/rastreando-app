@@ -3704,7 +3704,11 @@ body.hist-cine #hCentro.tem{top:calc(14px + env(safe-area-inset-top))}
 
 /* ===== MODO NATAL — simulação do administrador (15/11/2026) ===== */
 #natalBox{position:absolute;left:0;right:0;top:0;bottom:0;z-index:440;pointer-events:none;overflow:hidden}
-#natalArte{position:absolute;left:0;right:0;bottom:0;height:66px;background:url(icv/natal-chao.webp) center bottom/auto 100% repeat-x;pointer-events:none} /* 15/11 (dono): arte fixa de neve com pinheiros; no computador ela se repete na largura em vez de esticar */
+#natalArte{position:absolute;left:0;right:0;bottom:0;height:66px;background:url(icv/natal-chao.webp) center bottom/100% 100% no-repeat;pointer-events:none}
+#natalLuzes{position:absolute;left:0;top:-2px;display:flex;flex-wrap:nowrap;pointer-events:none;z-index:2}
+#natalLuzes i{display:block;flex:none;height:100%;background-image:url(icv/natal-pisca.webp);background-repeat:no-repeat;animation:natalPisca 2.4s ease-in-out infinite}
+@keyframes natalPisca{0%,100%{opacity:1}50%{opacity:.5}}
+@media (prefers-reduced-motion:reduce){#natalLuzes i{animation:none}} /* 15/11 (dono): arte fixa de neve com pinheiros; no computador ela se repete na largura em vez de esticar */
 :root:not([data-tema="claro"]):not([data-tema="misto"]) #natalArte{filter:brightness(.8) saturate(.9)}
 .car.natalv svg{overflow:visible;filter:drop-shadow(0 3px 4px rgba(0,0,0,.35))}
 .car.veic.natalv .nlado{transform-box:fill-box;transform-origin:center;transition:transform .25s ease}
