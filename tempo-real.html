@@ -41,7 +41,7 @@ try{ if(localStorage.getItem('rg_token')||sessionStorage.getItem('rgv_rg_token')
 try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'){document.documentElement.setAttribute('data-tema',t)}}catch(e){}
 </script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="stylesheet" href="app.css?v=54"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
+<link rel="stylesheet" href="app.css?v=55"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
 </head>
 <body>
 
@@ -13058,7 +13058,7 @@ function natalChao(){ /* a neve "pousa" em cima do cartão do veículo / do play
 }
 function natalChaoLoop(){ /* 15/11 (dono): a neve desce e sobe junto com o cartão, na hora (antes só acertava a cada 0,7 s e ficava uma faixa branca no meio do mapa) */
   if(natal.chaoRaf) return;
-  const f=()=>{ natal.chaoRaf=0; if(!natal.box) return; try{ if(!document.hidden && window.RGNatal && window.RGNatal.chao) window.RGNatal.chao(natalChao()) }catch(e){} natal.chaoRaf=requestAnimationFrame(f) };
+  const f=()=>{ natal.chaoRaf=0; if(!natal.box) return; try{ if(!document.hidden && window.RGNatal && window.RGNatal.chao){ const ch=natalChao(); let extra=0; if(natal.arte){ const h=Math.min(natal.box.clientWidth*200/1170,96); if(h!==natal.arteH){ natal.arteH=h; natal.arte.style.height=h.toFixed(1)+'px' } if(ch!==natal.arteCh){ natal.arteCh=ch; natal.arte.style.bottom=Math.max(0,ch-3)+'px' } extra=h*.3 } window.RGNatal.chao(ch+extra) } }catch(e){} /* 15/11 16h22 (dono): arte fixa de neve com pinheiros no pé do mapa; os flocos somem dentro dela */ natal.chaoRaf=requestAnimationFrame(f) };
   natal.chaoRaf=requestAnimationFrame(f);
 }
 function natalLado(){ /* vira o trenó para o lado em que o veículo está indo (com folga, para não ficar trocando quando vai reto para cima/baixo) */
@@ -13072,18 +13072,20 @@ function natalTick(){
     /* trenó: liga/desliga refaz o desenho dos marcadores */
     const t=natalTreno(); if(t!==natal.trenoOn){ natal.trenoOn=t; try{ veiculos.forEach(v=>{ try{ icTrocar(v) }catch(_){} }) }catch(_){} }
     const nc=natalC(), quer=natalPode() && !!nc.neve, chave=quer?[nc.forte?1:0,nc.acumulo?1:0,nc.luzes?1:0].join(''):'';
-    if(!quer){ if(natal.box){ try{ window.RGNatal&&window.RGNatal.desligar() }catch(e){} natal.box.remove(); natal.box=null; natal.chave='' } return }
+    if(!quer){ if(natal.box){ try{ window.RGNatal&&window.RGNatal.desligar() }catch(e){} natal.box.remove(); natal.box=null; natal.arte=null; natal.chave='' } return }
     if(!window.RGNatal){ if(!natal.carregando){ natal.carregando=true; const sc=document.createElement('script'); sc.src='natal.js?v=6'; sc.onload=()=>{ natal.carregando=false; natalTick() }; sc.onerror=()=>{ natal.carregando=false }; document.head.appendChild(sc) } return }
     if(!natal.box){ const b=document.createElement('div'); b.id='natalBox'; b.setAttribute('aria-hidden','true'); const m=$('map'); m.parentNode.insertBefore(b,m.nextSibling); natal.box=b; natal.chave='' }
     natalChaoLoop();
-    if(chave!==natal.chave){ natal.chave=chave; window.RGNatal.ligar(natal.box,{intensidade:nc.forte?'caprichada':'discreta',acumular:!!nc.acumulo,luzes:!!nc.luzes}) }
+    if(chave!==natal.chave){ natal.chave=chave; window.RGNatal.ligar(natal.box,{intensidade:nc.forte?'caprichada':'discreta',acumular:false,luzes:!!nc.luzes});
+      if(natal.arte){ natal.arte.remove(); natal.arte=null }
+      if(nc.acumulo){ const a=document.createElement('div'); a.id='natalArte'; natal.box.insertBefore(a,natal.box.firstChild); natal.arte=a; natal.arteH=0; natal.arteCh=-1 } }
   }catch(e){}
 }
 function natalPainel(){
   let p=$('natalPn');
   if(p){ p.remove(); return }
   p=document.createElement('div'); p.id='natalPn';
-  const it=[['neve','Neve caindo'],['forte','Neve caprichada (mais flocos)'],['acumulo','Neve acumulando embaixo'],['luzes','Pisca-pisca em cima'],['treno','Veículos viram trenó']];
+  const it=[['neve','Neve caindo'],['forte','Neve caprichada (mais flocos)'],['acumulo','Neve e pinheiros embaixo'],['luzes','Pisca-pisca em cima'],['treno','Veículos viram trenó']];
   p.innerHTML='<div class="npt"><img src="icv/natal-noel.webp" alt=""><div><b>Simulação de Natal</b><small>Só você vê. Os clientes não veem nada.</small></div><button type="button" class="npx" aria-label="Fechar">×</button></div>'+
     it.map(x=>'<label class="npl"><input type="checkbox" data-k="'+x[0]+'"'+(natal.cfg[x[0]]?' checked':'')+'><span>'+x[1]+'</span></label>').join('')+
     '<button type="button" class="npv">Ver no mapa</button>';
