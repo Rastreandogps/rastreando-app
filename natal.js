@@ -60,7 +60,7 @@
       if (!largura || !altura) { s.w = 0; s.h = 0; return; }
       const antigoW = s.w, antigoH = s.h;
       s.w = largura; s.h = altura;
-      s.dpr = Math.min(window.devicePixelRatio || 1, 2);
+      s.dpr = Math.min(window.devicePixelRatio || 1, 1.5);
       canvas.width = Math.max(1, Math.round(s.w * s.dpr));
       canvas.height = Math.max(1, Math.round(s.h * s.dpr));
       ctx.setTransform(s.dpr, 0, 0, s.dpr, 0, 0);
@@ -159,20 +159,28 @@
       for (const q of s.queda) { ctx.globalAlpha = Math.max(0, Math.min(1, q.a)); ctx.beginPath(); ctx.arc(q.x, q.y, q.r, 0, DOIS_PI); ctx.fill(); }
       ctx.restore();
     }
+    /* 15/11/2026 (revisão): o floco é desenhado UMA vez num carimbo e depois só copiado.
+       Antes cada floco criava um degradê e uma sombra a cada quadro (pesado em celular fraco). */
+    function carimboFloco() {
+      if (s.carimbo) return s.carimbo;
+      const T = 48, c = document.createElement('canvas'); c.width = c.height = T;
+      const x = c.getContext('2d'), m = T / 2;
+      const som = x.createRadialGradient(m, m + 1.5, T * .12, m, m + 1.5, T * .5);
+      som.addColorStop(0, 'rgba(24,43,62,.26)'); som.addColorStop(1, 'rgba(24,43,62,0)');
+      x.fillStyle = som; x.fillRect(0, 0, T, T);
+      const g = x.createRadialGradient(m - T * .05, m - T * .05, .5, m, m, T * .36);
+      g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(.36, 'rgba(255,255,255,.96)'); g.addColorStop(1, 'rgba(236,247,255,0)');
+      x.fillStyle = g; x.beginPath(); x.arc(m, m, T * .36, 0, DOIS_PI); x.fill();
+      return (s.carimbo = c);
+    }
     function desenharFlocos() {
+      const c = carimboFloco();
       for (const f of s.flocos) {
-        const r = f.raio;
-        ctx.save();
+        const d = f.raio * 5; /* o miolo branco ocupa 72% do carimbo: mesmo tamanho de antes (raio × 1,8) */
         ctx.globalAlpha = f.opacidade;
-        ctx.shadowColor = 'rgba(24,43,62,.21)'; ctx.shadowColor = 'rgba(24,43,62,.30)'; ctx.shadowBlur = f.profundidade === 0 ? 3 : 1.2;
-        const g = ctx.createRadialGradient(f.x - r * .25, f.y - r * .25, .1, f.x, f.y, r * 1.8);
-        g.addColorStop(0, 'rgba(255,255,255,1)');
-        g.addColorStop(.36, 'rgba(255,255,255,.96)');
-        g.addColorStop(1, 'rgba(236,247,255,0)');
-        ctx.fillStyle = g;
-        ctx.beginPath(); ctx.arc(f.x, f.y, r * 1.8, 0, DOIS_PI); ctx.fill();
-        ctx.restore();
+        ctx.drawImage(c, f.x - d / 2, f.y - d / 2, d, d);
       }
+      ctx.globalAlpha = 1;
     }
     function desenhar() {
       if (!s.w || !s.h) return;
@@ -184,7 +192,7 @@
     }
     function quadro(agora) {
       s.raf = 0;
-      if (!s.ativo || document.hidden || reduzido.matches) return;
+      if (!s.ativo || s.pausado || document.hidden || reduzido.matches) return;
       const dt = s.ultimo ? limitar((agora - s.ultimo) / 1000, 0, .05) : 0;
       s.ultimo = agora;
       s.tempo += dt;
@@ -226,7 +234,7 @@
     function iniciar() {
       cancelAnimationFrame(s.raf); s.raf = 0; s.ultimo = 0;
       desenhar();
-      if (s.ativo && !document.hidden && !reduzido.matches && s.w && s.h) {
+      if (s.ativo && !s.pausado && !document.hidden && !reduzido.matches && s.w && s.h) {
         s.raf = requestAnimationFrame(quadro);
       }
     }
@@ -242,6 +250,7 @@
       s.monte = Math.max(0, s.monte - desceu / 46);
       s.caiuEm = performance.now();
     };
+    s.retomar = iniciar;
     s.aoVisivel = function () { if (!document.hidden) ajustar(); iniciar(); };
     canvas.addEventListener('contextrestored', function () { ajustar(); iniciar(); });
     s.aoReducao = iniciar;
@@ -275,5 +284,11 @@
     if (desceu > 1.5 && s.despencar) s.despencar(desceu);
     s.chao = novo;
   }
-  window.RGNatal = { ligar, desligar, chao };
+  function pausar(sim) { /* 15/11/2026 (revisão): para de desenhar quando o mapa não está na tela (outras abas do app) */
+    const s = instancia; if (!s || !!s.pausado === !!sim) return;
+    s.pausado = !!sim;
+    if (sim) { cancelAnimationFrame(s.raf); s.raf = 0; }
+    else if (s.retomar) s.retomar();
+  }
+  window.RGNatal = { ligar, desligar, chao, pausar };
 })();
