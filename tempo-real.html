@@ -41,7 +41,7 @@ try{ if(localStorage.getItem('rg_token')||sessionStorage.getItem('rgv_rg_token')
 try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'){document.documentElement.setAttribute('data-tema',t)}}catch(e){}
 </script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="stylesheet" href="app.css?v=58"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
+<link rel="stylesheet" href="app.css?v=59"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
 </head>
 <body>
 
@@ -3328,7 +3328,7 @@ function maxOff(){
   let fim = zone.getBoundingClientRect().bottom;
   /* 31/10/2026 (dono): no celular do ADMINISTRADOR, o cartão recolhido mostra só velocímetro, nome e a linha de botões (chave, lápis, ícone);
      IMEI, motorista, chip e situação ficam escondidos embaixo. */
-  try{ if(ehAdmin && !telaLarga()){ let b=0; [$('placaLinha'),$('spdTop')].forEach(e=>{ if(e && e.offsetParent){ const r=e.getBoundingClientRect(); if(r.height) b=Math.max(b,r.bottom) } }); if(b) fim=Math.min(fim,b-6) } }catch(e){} /* -6: a linha do IMEI não aparece nem um pouquinho */
+  try{ if(!telaLarga()){ /* 15/11/2026 (dono): o cliente passa a ter o mesmo cartão recolhido baixo do administrador */ let b=0; [$('placaLinha'),$('spdTop')].forEach(e=>{ if(e && e.offsetParent){ const r=e.getBoundingClientRect(); if(r.height) b=Math.max(b,r.bottom) } }); if(b) fim=Math.min(fim,b-6) } }catch(e){} /* -6: a linha do IMEI não aparece nem um pouquinho */
   const peek = fim - sheet.getBoundingClientRect().top + 12;
   return Math.max(0, sheet.offsetHeight - peek);
 }
@@ -13093,10 +13093,11 @@ function natalTick(){
     /* trenó: liga/desliga refaz o desenho dos marcadores */
     const t=natalTreno(); if(t!==natal.trenoOn){ natal.trenoOn=t; try{ veiculos.forEach(v=>{ try{ icTrocar(v) }catch(_){} }) }catch(_){} }
     const nc=natalC(), quer=natalPode() && !!nc.neve, chave=quer?[nc.forte?1:0,nc.acumulo?1:0,nc.luzes?1:0].join(''):'';
-    if(!quer){ if(natal.box){ try{ window.RGNatal&&window.RGNatal.desligar() }catch(e){} natal.box.remove(); natal.box=null; natal.arte=null; natal.luz=null; natal.chave='' } return }
+    if(!quer){ if(natal.box){ try{ window.RGNatal&&window.RGNatal.desligar() }catch(e){} natal.box.remove(); natal.box=null; natal.arte=null; natal.luz=null; natal.chave=''; try{ document.body.classList.remove('natal-luz') }catch(e){} } return }
     if(!window.RGNatal){ if(!natal.carregando){ natal.carregando=true; const sc=document.createElement('script'); sc.src='natal.js?v=7'; sc.onload=()=>{ natal.carregando=false; natalTick() }; sc.onerror=()=>{ natal.carregando=false }; document.head.appendChild(sc) } return }
     if(!natal.box){ const b=document.createElement('div'); b.id='natalBox'; b.setAttribute('aria-hidden','true'); const m=$('map'); m.parentNode.insertBefore(b,m.nextSibling); natal.box=b; natal.chave='' }
     natalChaoLoop();
+    try{ document.body.classList.toggle('natal-luz',!!nc.luzes) }catch(e){}
     if(chave!==natal.chave){ natal.chave=chave; window.RGNatal.ligar(natal.box,{intensidade:nc.forte?'caprichada':'discreta',acumular:false,luzes:false}); natal.fora=null;
       if(natal.luz){ natal.luz.remove(); natal.luz=null }
       if(nc.luzes){ const l=document.createElement('div'); l.id='natalLuzes'; natal.box.appendChild(l); natal.luz=l; natal.luzW=0 }

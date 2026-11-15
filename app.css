@@ -32,6 +32,13 @@ body.mapa-google #map .leaflet-top.leaflet-left > [data-gm]{position:relative!im
 body.mapa-google #map .leaflet-top.leaflet-left > [data-gm] > *{position:relative!important;top:auto!important;right:auto!important;bottom:auto!important;left:auto!important;display:inline-block!important;vertical-align:middle;margin:0!important}
 body.mapa-google #map .leaflet-top.leaflet-left > [data-gm="logo"]{margin:3px 0 0 58px!important;transform:scale(.8)!important;transform-origin:left top}
 body.mapa-google #map .leaflet-top.leaflet-left > [data-gm="attr"]{margin:6px 0 0 0!important;font-size:9px!important;opacity:.85}
+/* 15/11 16h53 (dono: "o logo do mapa está atrapalhando"): os créditos voltam a ficar numa linha só (como o Google monta), cortados na largura que couber;
+   e com o pisca-pisca ligado o logo e os créditos descem para baixo do fio, para não tampar as lâmpadas. */
+body.mapa-google #map .leaflet-top.leaflet-left > [data-gm="attr"] > *{display:inline-flex!important;flex-wrap:nowrap!important;white-space:nowrap}
+body.mapa-google #map .leaflet-top.leaflet-left > [data-gm="attr"]{max-width:min(48vw,300px);overflow:hidden;line-height:14px}
+body.natal-luz.mapa-google #map .leaflet-top.leaflet-left{top:34px}
+body.natal-luz.mapa-google #map .leaflet-top.leaflet-left > [data-gm="logo"]{margin-left:82px!important;transform:scale(.7)!important}
+body.natal-luz.mapa-google #map .leaflet-top.leaflet-left > [data-gm="attr"]{margin:3px 0 0 -12px!important;opacity:.8}
 .contamapa{display:none;align-items:center;gap:10px;margin:0 0 14px;font-size:14px}
 .contamapa select{flex:1;height:42px;border-radius:10px;border:1px solid var(--line);background:var(--card2);color:var(--txt);font:inherit;padding:0 10px}
 .pmmapa select{height:42px}
@@ -3703,8 +3710,9 @@ body.hist-on #hCentro.tem{display:flex;top:14px;right:14px;z-index:471}
 body.hist-cine #hCentro.tem{top:calc(14px + env(safe-area-inset-top))}
 
 /* ===== MODO NATAL — simulação do administrador (15/11/2026) ===== */
-#natalBox{position:absolute;left:0;right:0;top:0;bottom:0;z-index:440;pointer-events:none;overflow:hidden}
+#natalBox{position:absolute;left:0;right:0;top:0;bottom:0;z-index:410;pointer-events:none;overflow:hidden}
 #natalArte{position:absolute;left:0;right:0;bottom:0;height:66px;background:url(icv/natal-chao2.webp) center bottom/100% 100% no-repeat;pointer-events:none}
+body.natal-luz .follow{z-index:411} /* 15/11 (dono): a neve e o pisca-pisca passam POR TRÁS dos botões do mapa (lupa, Serviços, seta), não por cima */
 #natalLuzes{position:absolute;left:0;top:-2px;display:flex;flex-wrap:nowrap;pointer-events:none;z-index:2}
 #natalLuzes i{display:block;flex:none;height:100%;background-image:url(icv/natal-pisca.webp);background-repeat:no-repeat;animation:natalPisca 2.4s ease-in-out infinite}
 #natalBox.pausa #natalLuzes i{animation-play-state:paused}
