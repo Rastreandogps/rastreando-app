@@ -39,7 +39,7 @@
       return { x: aleatorio(0, s.w), y: aleatorioY ? aleatorio(0, s.h) : -aleatorio(3, 55),
         raio: escalas[camada] * aleatorio(.65, 1.5),
         velocidade: [12, 23, 40][camada] * aleatorio(.7, 1.3),
-        opacidade: [.29, .63, .91][camada] * aleatorio(.65, 1),
+        opacidade: [.40, .72, .94][camada] * aleatorio(.65, 1),
         fase: aleatorio(0, DOIS_PI), frequencia: aleatorio(.7, 1.65),
         balanco: aleatorio(3, 10), profundidade: camada };
     }
@@ -70,7 +70,7 @@
       s.depositos = new Array(Math.max(2, Math.ceil(s.w / 7) + 1)).fill(0);
       s.lampadas = [];
       for (let x = 12, i = 0; x < s.w - 3; x += 25, i++) {
-        s.lampadas.push({ x, y: 7 + 5.5 * Math.sin((x / Math.max(s.w, 1)) * Math.PI * 3),
+        s.lampadas.push({ x, y: 13 + 3.4 * Math.sin((x / Math.max(s.w, 1)) * Math.PI * 3) + 1.6 * Math.sin(x * .071 + 1.1), /* 15/11 (dono): fio mais abaixo da barra, curva mais natural */
           cor: ['#ff6454', '#ffc267', '#75dba0', '#83c7ff'][i % 4],
           fase: aleatorio(0, DOIS_PI), periodo: aleatorio(1.8, 3.2) });
       }
@@ -80,13 +80,13 @@
     /* Curva de acúmulo: mais alta nas extremidades e suavemente ondulada. */
     /* 15/11/2026: o chão da neve acompanha o cartão de baixo quadro a quadro (RGNatal.chao), sem refazer a tela */
     function piso() { return s.h - (s.chao || 0); }
-    function topoNeve(x, progresso) {
+    function topoNeve(x, progresso) { /* 15/11 (dono): montinhos brancos, com relevo, sem a faixa azulada */
       const margem = Math.abs(2 * x / Math.max(s.w, 1) - 1);
-      const altura = 26 + 18 * Math.pow(margem, 2.5);
-      const ondulacao = 1.2 * Math.sin(x * .039 + .5) + .7 * Math.sin(x * .103);
+      const base = 22.5 + 18.5 * Math.pow(margem, 3.2);
+      const montes = 2.0 * Math.sin(x * .023 + .9) + 1.25 * Math.sin(x * .059 + 2.3) + .55 * Math.sin(x * .113);
       const i = limitar(Math.floor(x / 7), 0, s.depositos.length - 1);
-      const deposicao = s.depositos[i] || 0;
-      return Math.max(0, (altura + ondulacao) * progresso * (.985 + .015 * deposicao) * s.monte);
+      const deposito = s.depositos[i] || 0;
+      return limitar((base + montes + 1.8 * deposito) * progresso, 0, 26 + 18 * Math.pow(margem, 3.2)) * s.monte;
     }
     function caminhoNeve(progresso) {
       ctx.beginPath(); ctx.moveTo(0, piso());
@@ -95,64 +95,60 @@
       ctx.lineTo(s.w, piso()); ctx.closePath();
     }
     function desenharAcumulo(progresso) {
-      if (!config.acumular || progresso <= 0) return;
+      if (!config.acumular || progresso <= 0 || s.monte <= .01) return;
+      const ch = piso();
       ctx.save();
+      /* Sombra de contato restrita a poucos pixels: não invade o mapa. */
+      ctx.beginPath();
+      for (let x = 0; x <= s.w; x += 3) { const y = ch - topoNeve(x, progresso); if (!x) ctx.moveTo(x, y); else ctx.lineTo(x, y); }
+      ctx.strokeStyle = 'rgba(44,67,80,.13)'; ctx.lineWidth = 3; ctx.shadowColor = 'rgba(37,57,70,.12)'; ctx.shadowBlur = 4; ctx.stroke(); ctx.shadowBlur = 0;
       caminhoNeve(progresso);
-      const neve = ctx.createLinearGradient(0, piso() - 48, 0, piso());
-      neve.addColorStop(0, '#ffffff');
-      neve.addColorStop(.23, '#f5fbff');
-      neve.addColorStop(.72, '#e1eff9');
-      neve.addColorStop(1, '#c5dbea');
-      ctx.fillStyle = neve;
-      ctx.shadowColor = 'rgba(24,49,70,.24)'; ctx.shadowBlur = 9; ctx.shadowOffsetY = -3;
-      ctx.fill();
-      ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
+      const corpo = ctx.createLinearGradient(0, ch - 46, 0, ch);
+      corpo.addColorStop(0, '#ffffff'); corpo.addColorStop(.40, '#fcfdff'); corpo.addColorStop(.78, '#f2f6fa'); corpo.addColorStop(1, '#eaf0f6');
+      ctx.fillStyle = corpo; ctx.fill();
       ctx.save(); caminhoNeve(progresso); ctx.clip();
-      /* Camadas de sombreamento difuso criam volume sem uma faixa chapada. */
-      const sombra = ctx.createLinearGradient(0, piso() - 42, 0, piso());
-      sombra.addColorStop(0, 'rgba(255,255,255,.35)');
-      sombra.addColorStop(.48, 'rgba(255,255,255,0)');
-      sombra.addColorStop(1, 'rgba(92,135,163,.17)');
-      ctx.fillStyle = sombra; ctx.fillRect(0, piso() - 48, s.w, 48);
+      /* Sombras localizadas nos montinhos, quase imperceptíveis. */
+      for (let x = -30; x < s.w + 50; x += 69) {
+        const y = ch - topoNeve(limitar(x + 25, 0, s.w), progresso) + 10;
+        const brilho = ctx.createRadialGradient(x + 25, y, 1, x + 25, y, 40);
+        brilho.addColorStop(0, 'rgba(206,221,234,.20)'); brilho.addColorStop(1, 'rgba(206,221,234,0)');
+        ctx.fillStyle = brilho; ctx.fillRect(x - 15, ch - 48, 85, 48);
+      }
       ctx.restore();
       ctx.beginPath();
-      for (let x = 0; x <= s.w; x += 3) {
-        const y = piso() - topoNeve(x, progresso);
-        if (x === 0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
-      }
-      ctx.strokeStyle = 'rgba(255,255,255,.95)'; ctx.lineWidth = 1.7;
-      ctx.shadowColor = 'rgba(255,255,255,.7)'; ctx.shadowBlur = 3; ctx.stroke();
+      for (let x = 0; x <= s.w; x += 3) { const y = ch - topoNeve(x, progresso); if (!x) ctx.moveTo(x, y); else ctx.lineTo(x, y); }
+      ctx.strokeStyle = 'rgba(255,255,255,.95)'; ctx.lineWidth = 1.2; ctx.stroke();
       ctx.restore();
     }
     function desenharLuzes() {
       if (!config.luzes || !s.lampadas.length) return;
       ctx.save();
       /* Fio em curva contínua, com pequena queda entre os pontos. */
-      ctx.beginPath(); ctx.moveTo(0, 6);
+      ctx.beginPath(); ctx.moveTo(0, 9);
       for (let i = 0; i < s.lampadas.length; i++) {
         const l = s.lampadas[i];
-        const anterior = i ? s.lampadas[i-1] : {x:0,y:6};
-        ctx.quadraticCurveTo((anterior.x+l.x)/2, Math.max(anterior.y,l.y)+3, l.x,l.y);
+        const anterior = i ? s.lampadas[i-1] : {x:0,y:9};
+        ctx.quadraticCurveTo((anterior.x+l.x)/2, Math.max(anterior.y,l.y)+3.6, l.x,l.y);
       }
-      ctx.lineTo(s.w, 6);
-      ctx.strokeStyle = 'rgba(28,36,42,.87)'; ctx.lineWidth = 1.35; ctx.stroke();
+      ctx.lineTo(s.w, 9);
+      ctx.strokeStyle = 'rgba(32,40,44,.80)'; ctx.lineWidth = 1.1; ctx.stroke();
       for (const l of s.lampadas) {
         const pulso = reduzido.matches ? 1 : (.30 + .70 * (.5 + .5 * Math.sin(s.tempo * DOIS_PI / l.periodo + l.fase)));
-        const y = l.y + 6;
+        const y = l.y + 4.6;
         ctx.strokeStyle = 'rgba(36,43,48,.9)'; ctx.lineWidth = 1.4;
-        ctx.beginPath(); ctx.moveTo(l.x,l.y); ctx.lineTo(l.x,l.y+3); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(l.x,l.y); ctx.lineTo(l.x,l.y+2.4); ctx.stroke();
         /* Halo radial em vez de sombra dura: luzes pequenas, mas luminosas. */
-        ctx.save(); ctx.globalAlpha = pulso * .53;
-        const halo = ctx.createRadialGradient(l.x,y,0,l.x,y,10);
+        ctx.save(); ctx.globalAlpha = pulso * .40;
+        const halo = ctx.createRadialGradient(l.x,y,0,l.x,y,7.5);
         halo.addColorStop(0,l.cor); halo.addColorStop(.32,l.cor); halo.addColorStop(1,'rgba(255,255,255,0)');
-        ctx.fillStyle = halo; ctx.beginPath(); ctx.arc(l.x,y,10,0,DOIS_PI); ctx.fill();
+        ctx.fillStyle = halo; ctx.beginPath(); ctx.arc(l.x,y,7.5,0,DOIS_PI); ctx.fill();
         ctx.restore();
         ctx.save(); ctx.globalAlpha = pulso;
-        ctx.fillStyle = l.cor; ctx.shadowColor = l.cor; ctx.shadowBlur = 5;
-        ctx.beginPath(); ctx.ellipse(l.x,y,2.4,3.2,0,0,DOIS_PI); ctx.fill();
+        ctx.fillStyle = l.cor; ctx.shadowColor = l.cor; ctx.shadowBlur = 3.5;
+        ctx.beginPath(); ctx.ellipse(l.x,y,1.9,2.7,0,0,DOIS_PI); ctx.fill();
         ctx.shadowBlur = 0;
         ctx.fillStyle = 'rgba(255,255,255,.74)';
-        ctx.beginPath(); ctx.ellipse(l.x-.65,y-1, .55,.95,-.3,0,DOIS_PI); ctx.fill();
+        ctx.beginPath(); ctx.ellipse(l.x-.5,y-.8, .42,.7,-.3,0,DOIS_PI); ctx.fill();
         ctx.restore();
       }
       ctx.restore();
@@ -168,7 +164,7 @@
         const r = f.raio;
         ctx.save();
         ctx.globalAlpha = f.opacidade;
-        ctx.shadowColor = 'rgba(24,43,62,.21)'; ctx.shadowBlur = f.profundidade === 0 ? 4 : 1.3;
+        ctx.shadowColor = 'rgba(24,43,62,.21)'; ctx.shadowColor = 'rgba(24,43,62,.30)'; ctx.shadowBlur = f.profundidade === 0 ? 3 : 1.2;
         const g = ctx.createRadialGradient(f.x - r * .25, f.y - r * .25, .1, f.x, f.y, r * 1.8);
         g.addColorStop(0, 'rgba(255,255,255,1)');
         g.addColorStop(.36, 'rgba(255,255,255,.96)');
