@@ -25,6 +25,13 @@ body.mapa-google .leaflet-tile-pane{filter:none!important}
 body.mapa-google #map .leaflet-top.leaflet-left{left:var(--mapa-lado,0px);z-index:590} /* 13/10/2026: abaixo das telas Admin/Veículos/etc. (600); antes (1000) o logo do Google aparecia por cima delas */
 body.mapa-google #map .leaflet-top.leaflet-left .gmlogo{margin:6px 0 0 8px}
 body.mapa-google #map .leaflet-top.leaflet-left .leaflet-control-attribution{margin:2px 0 0 6px!important;height:auto!important;font-size:10px}
+/* 15/11/2026 (dono: "no cantinho de cima ainda aparece o nome do mapa", cortado): o logo e os créditos do Google vinham presos
+   pela BASE num canto sem altura e ficavam para fora do mapa, só com um pedaço aparecendo. Agora ficam inteiros, pequenos,
+   numa linha só, à direita da lupa. (Não dá para tirar: o Google exige o logo e os créditos visíveis.) */
+body.mapa-google #map .leaflet-top.leaflet-left > [data-gm]{position:relative!important;top:auto!important;right:auto!important;bottom:auto!important;left:auto!important;float:left!important;clear:none!important;transform:none!important;height:auto!important;width:auto!important;white-space:nowrap}
+body.mapa-google #map .leaflet-top.leaflet-left > [data-gm] > *{position:relative!important;top:auto!important;right:auto!important;bottom:auto!important;left:auto!important;display:inline-block!important;vertical-align:middle;margin:0!important}
+body.mapa-google #map .leaflet-top.leaflet-left > [data-gm="logo"]{margin:3px 0 0 58px!important;transform:scale(.8)!important;transform-origin:left top}
+body.mapa-google #map .leaflet-top.leaflet-left > [data-gm="attr"]{margin:6px 0 0 0!important;font-size:9px!important;opacity:.85}
 .contamapa{display:none;align-items:center;gap:10px;margin:0 0 14px;font-size:14px}
 .contamapa select{flex:1;height:42px;border-radius:10px;border:1px solid var(--line);background:var(--card2);color:var(--txt);font:inherit;padding:0 10px}
 .pmmapa select{height:42px}
