@@ -41,7 +41,7 @@ try{ if(localStorage.getItem('rg_token')||sessionStorage.getItem('rgv_rg_token')
 try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'){document.documentElement.setAttribute('data-tema',t)}}catch(e){}
 </script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="stylesheet" href="app.css?v=49"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
+<link rel="stylesheet" href="app.css?v=50"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
 </head>
 <body>
 
@@ -335,6 +335,7 @@ try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'
         <button class="aico" id="aSmsFat" data-l="No boleto" title="Lançar no próximo boleto (SMS e avulso)" aria-label="Lançar no próximo boleto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M14.5 8.5c-.5-.8-1.4-1.2-2.5-1.2-1.4 0-2.4.7-2.4 1.7 0 2.3 5 1.1 5 3.5 0 1-1.1 1.8-2.6 1.8-1.2 0-2.2-.5-2.7-1.3M12 6v1.3M12 14.3v1.4"/></svg></button>
         <button class="aico" id="aAssist" data-l="Assistente" title="Pergunte ao assistente (só consulta)" aria-label="Pergunte ao assistente"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 4.6L18.5 9.4l-4.7 1.8L12 16l-1.8-4.8L5.5 9.4l4.7-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg></button><!-- 04/11/2026: assistente do administrador -->
         <button class="aico" id="aPlacas" data-l="Placas" title="Leitor de placas" aria-label="Leitor de placas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M2 9.5h20"/><path d="M6 14h3M11 14h2M15 14h3"/></svg></button><!-- 23/10/2026 -->
+        <button class="aico" id="aNatal" data-l="Natal" title="Simulação de Natal no mapa (só você vê)" aria-label="Simulação de Natal no mapa"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5 7.5 9h2.6L6 15h4.6v0H6l-1 0M12 2.5 16.5 9h-2.6L18 15h-4.6"/><path d="M6 15h12"/><path d="M12 15v6.5"/><path d="M9.5 21.5h5"/></svg></button>
         <button class="aico adr" id="aDourada" data-l="Fichas" title="Fichas douradas: pendências" aria-label="Fichas douradas: pendências"><span class="drcoin"></span><span class="fila" id="aDouradaN"></span></button><!-- 25/10/2026 -->
         <button class="aico adr" id="aParc" data-l="Prestadores" title="Mapa dos prestadores" aria-label="Mapa dos prestadores"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m11 17 2 2a1 1 0 1 0 3-3"/><path d="m14 14 2.5 2.5a1 1 0 1 0 3-3l-3.88-3.88a3 3 0 0 0-4.24 0l-.88.88a1 1 0 1 1-3-3l2.81-2.81a5.79 5.79 0 0 1 7.06-.87l.47.28a2 2 0 0 0 1.42.25L21 4"/><path d="m21 3 1 11h-2"/><path d="M3 3 2 14l6.5 6.5a1 1 0 1 0 3-3"/><path d="M3 4h8"/></svg></button><!-- 25/10/2026 -->
         <button class="aico" id="aEmerg" data-l="Emergência" title="Modo emergência (lista copiada, planilha e SMS para a plataforma reserva)" aria-label="Modo emergência"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18v.5"/></svg></button> <!-- 27/10/2026: emergência no fim, separada e em vermelho -->
@@ -2373,7 +2374,18 @@ function veicSvg(tipo,cor,mini){
     '<g class="vgir"><g transform="scale('+sc+')">'+T.d(c)+'</g></g>'+
     (mini?'':'<g class="cadb" transform="translate(19,-19)"><circle r="8.5" fill="#dc2626" stroke="#fff" stroke-width="2"/><path d="M-2.8 -.6V-2.6A2.8 2.8 0 0 1 2.8 -2.6V-.6" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/><rect x="-4" y="-.8" width="8" height="5.6" rx="1.3" fill="#fff"/></g>')+'</svg>';
 }
-function carHtml(v){ return v.icone ? /* 04/11/2026 (dono): tag também pode ter ícone; sem escolha = marcador roxo da tag */ '<div class="car veic">'+veicSvg(v.icone,v.iconeCor)+'</div>' : '<div class="car">'+carSvg+'</div>' }
+/* ===== MODO NATAL — SIMULAÇÃO SÓ DO ADMINISTRADOR (15/11/2026, ideia do dono) =====
+   Neve, neve acumulando, pisca-pisca (natal.js, carregado só quando ligado) e todos os veículos como trenó.
+   Nada é gravado no cadastro: o app só MOSTRA o trenó; desligou, cada veículo volta ao ícone dele.
+   Por enquanto só o administrador vê (botão 🎄 na barra do Admin); a escolha fica no aparelho (rg_natal_sim). */
+const natal={cfg:{neve:false,forte:false,acumulo:true,luzes:true,treno:false},box:null,chave:'',trenoOn:null,carregando:false};
+try{ Object.assign(natal.cfg,JSON.parse(localStorage.getItem('rg_natal_sim')||'{}')) }catch(e){}
+function natalPode(){ try{ return !!ehAdmin && !VER.on }catch(e){ return false } }
+function natalTreno(){ return natalPode() && !!natal.cfg.treno }
+function natalSvg(){ return '<svg viewBox="-30 -30 60 60" width="54" height="54"><circle class="anelv" r="25" stroke-width="2.4"/>'+
+  '<g class="vgir"><image href="icv/natal-treno.webp" x="-19" y="-34" width="38" height="68"/></g>'+
+  '<g class="cadb" transform="translate(19,-19)"><circle r="8.5" fill="#dc2626" stroke="#fff" stroke-width="2"/><path d="M-2.8 -.6V-2.6A2.8 2.8 0 0 1 2.8 -2.6V-.6" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/><rect x="-4" y="-.8" width="8" height="5.6" rx="1.3" fill="#fff"/></g></svg>' }
+function carHtml(v){ if(natalTreno()) return '<div class="car veic natalv">'+natalSvg()+'</div>'; return v.icone ? /* 04/11/2026 (dono): tag também pode ter ícone; sem escolha = marcador roxo da tag */ '<div class="car veic">'+veicSvg(v.icone,v.iconeCor)+'</div>' : '<div class="car">'+carSvg+'</div>' }
 /* troca o nome escrito no mapa na hora (sem F5) */
 /* rótulo do mapa: nome e, se ligado na calculadora, o gasto de combustível de hoje (11/10/2026) */
 /* chips do rótulo: ⛽ gasto pelo odômetro e 🔧 km que faltam para a meta; opcional esconder o nome (11/10/2026) */
@@ -2399,7 +2411,7 @@ function rotularMarcador(v){
   }catch(e){}
 }
 function icTrocar(v){ /* o ícone mudou (cadastro ou virou tag): refaz o desenho do marcador sem recriar */
-  if(!v.marker) return; const k=(v.tag?'tag':'')+(v.icone||'')+'|'+(v.iconeCor||'')+'|'+icRealOn(); if(k===v.icoChave) return; v.icoChave=k;
+  if(!v.marker) return; const k=(v.tag?'tag':'')+(v.icone||'')+'|'+(v.iconeCor||'')+'|'+icRealOn()+'|'+(natalTreno()?'N':''); if(k===v.icoChave) return; v.icoChave=k;
   try{ const ic=v.marker.options.icon; ic.options.html=carHtml(v)+'<div class="'+rotuloClasse(v)+'">'+rotuloHtml(v)+'</div>'; v.marker.setIcon(ic) }catch(e){}
 }
 function criarMarcador(v){
@@ -13031,6 +13043,42 @@ $('emLista').addEventListener('click',async e=>{
   }
 });
 
+function natalSalvar(){ try{ localStorage.setItem('rg_natal_sim',JSON.stringify(natal.cfg)) }catch(e){} }
+function natalChao(){ /* a neve "pousa" em cima do cartão do veículo / do player do histórico, não atrás deles */
+  try{
+    const w=$('map').parentNode.getBoundingClientRect(); let topo=w.bottom;
+    ['sheet','hpanel','hMini'].forEach(id=>{ const el=$(id); if(!el) return; const cs=getComputedStyle(el); if(cs.display==='none'||cs.visibility==='hidden') return;
+      const r=el.getBoundingClientRect(); if(r.height>8 && r.top<w.bottom && r.top>w.top+120 && r.width>w.width*.5) topo=Math.min(topo,r.top+3) });
+    return Math.max(0,Math.round(w.bottom-topo));
+  }catch(e){ return 0 }
+}
+function natalTick(){
+  try{
+    /* trenó: liga/desliga refaz o desenho dos marcadores */
+    const t=natalTreno(); if(t!==natal.trenoOn){ natal.trenoOn=t; try{ veiculos.forEach(v=>{ try{ icTrocar(v) }catch(_){} }) }catch(_){} }
+    const quer=natalPode() && !!natal.cfg.neve, chave=quer?[natal.cfg.forte?1:0,natal.cfg.acumulo?1:0,natal.cfg.luzes?1:0].join(''):'';
+    if(!quer){ if(natal.box){ try{ window.RGNatal&&window.RGNatal.desligar() }catch(e){} natal.box.remove(); natal.box=null; natal.chave='' } return }
+    if(!window.RGNatal){ if(!natal.carregando){ natal.carregando=true; const sc=document.createElement('script'); sc.src='natal.js?v=1'; sc.onload=()=>{ natal.carregando=false; natalTick() }; sc.onerror=()=>{ natal.carregando=false }; document.head.appendChild(sc) } return }
+    if(!natal.box){ const b=document.createElement('div'); b.id='natalBox'; b.setAttribute('aria-hidden','true'); const m=$('map'); m.parentNode.insertBefore(b,m.nextSibling); natal.box=b; natal.chave='' }
+    natal.box.style.bottom=natalChao()+'px';
+    if(chave!==natal.chave){ natal.chave=chave; window.RGNatal.ligar(natal.box,{intensidade:natal.cfg.forte?'caprichada':'discreta',acumular:!!natal.cfg.acumulo,luzes:!!natal.cfg.luzes}) }
+  }catch(e){}
+}
+function natalPainel(){
+  let p=$('natalPn');
+  if(p){ p.remove(); return }
+  p=document.createElement('div'); p.id='natalPn';
+  const it=[['neve','Neve caindo'],['forte','Neve caprichada (mais flocos)'],['acumulo','Neve acumulando embaixo'],['luzes','Pisca-pisca em cima'],['treno','Veículos viram trenó']];
+  p.innerHTML='<div class="npt"><img src="icv/natal-noel.webp" alt=""><div><b>Simulação de Natal</b><small>Só você vê. Os clientes não veem nada.</small></div><button type="button" class="npx" aria-label="Fechar">×</button></div>'+
+    it.map(x=>'<label class="npl"><input type="checkbox" data-k="'+x[0]+'"'+(natal.cfg[x[0]]?' checked':'')+'><span>'+x[1]+'</span></label>').join('')+
+    '<button type="button" class="npv">Ver no mapa</button>';
+  document.body.appendChild(p);
+  p.querySelector('.npx').onclick=()=>p.remove();
+  p.querySelector('.npv').onclick=()=>{ p.remove(); try{ document.querySelector('nav [data-tab="Mapa"]').click() }catch(e){} };
+  p.querySelectorAll('input').forEach(i=>{ i.onchange=()=>{ natal.cfg[i.dataset.k]=i.checked; natalSalvar(); natalTick() } });
+}
+try{ $('aNatal').onclick=natalPainel }catch(e){}
+try{ setInterval(natalTick,700) }catch(e){}
 (async function iniciar(){
   setSeguir(false);
   const tok=lsGet('rg_token'), basic=ssGet('rg_basic');
