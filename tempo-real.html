@@ -2378,7 +2378,7 @@ function veicSvg(tipo,cor,mini){
    Neve, neve acumulando, pisca-pisca (natal.js, carregado só quando ligado) e todos os veículos como trenó.
    Nada é gravado no cadastro: o app só MOSTRA o trenó; desligou, cada veículo volta ao ícone dele.
    Por enquanto só o administrador vê (botão 🎄 na barra do Admin); a escolha fica no aparelho (rg_natal_sim). */
-const natal={cfg:{neve:false,forte:false,acumulo:true,luzes:true,treno:false},box:null,chave:'',trenoOn:null,carregando:false};
+const natal={cfg:{neve:false,forte:false,acumulo:true,luzes:true,treno:false},box:null,chave:'',trenoOn:false,carregando:false};
 try{ Object.assign(natal.cfg,JSON.parse(localStorage.getItem('rg_natal_sim')||'{}')) }catch(e){}
 function natalPode(){ try{ return !!ehAdmin && !VER.on }catch(e){ return false } }
 function natalTreno(){ return natalPode() && !!natal.cfg.treno }
@@ -2412,14 +2412,14 @@ function rotularMarcador(v){
 }
 function icTrocar(v){ /* o ícone mudou (cadastro ou virou tag): refaz o desenho do marcador sem recriar */
   if(!v.marker) return; const k=(v.tag?'tag':'')+(v.icone||'')+'|'+(v.iconeCor||'')+'|'+icRealOn()+'|'+(natalTreno()?'N':''); if(k===v.icoChave) return; v.icoChave=k;
-  try{ const ic=v.marker.options.icon; ic.options.html=carHtml(v)+'<div class="'+rotuloClasse(v)+'">'+rotuloHtml(v)+'</div>'; v.marker.setIcon(ic) }catch(e){}
+  try{ const ic=v.marker.options.icon; ic.options.html=carHtml(v)+'<div class="'+rotuloClasse(v)+'">'+rotuloHtml(v)+'</div>'; v.marker.setIcon(ic); v._icoEl=null /* 15/11: o desenho foi refeito; a animação pega as peças novas (senão o ícone parava de girar) */ }catch(e){}
 }
 function criarMarcador(v){
   v.marker = L.marker(v.pos,{icon:L.divIcon({
     className:'',iconSize:[44,44],iconAnchor:[22,22],
     html:carHtml(v)+'<div class="'+rotuloClasse(v)+'">'+rotuloHtml(v)+'</div>'
   })});
-  v.rotuloNome=v.nome+'|'+(v.placaMapa?v.placa:''); v.icoChave=(v.tag?'tag':'')+(v.icone||'')+'|'+(v.iconeCor||'')+'|'+icRealOn();
+  v.rotuloNome=v.nome+'|'+(v.placaMapa?v.placa:''); v.icoChave=(v.tag?'tag':'')+(v.icone||'')+'|'+(v.iconeCor||'')+'|'+icRealOn()+'|'+(natalTreno()?'N':'');
   v.marker.on('click',()=>{ selId = v.id; recolhido = false; atualizar(); });
   if(v.visivel && abaMostra(v)) v.marker.addTo(map);
 }
