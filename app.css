@@ -3746,3 +3746,9 @@ body.mapa-google #map .leaflet-top.leaflet-left > [data-gm="attr"] *{font-size:8
 body.mapa-google #map .leaflet-top.leaflet-left > [data-gm="logo"]{transform:scale(.6)!important;opacity:.8;margin-right:-18px!important}
 body.natal-luz.mapa-google #map .leaflet-top.leaflet-left > [data-gm="logo"]{transform:scale(.6)!important}
 body.natal-luz.mapa-google #map .leaflet-top.leaflet-left > [data-gm="attr"]{margin:4px 0 0 0!important;opacity:.62!important}
+/* 15/11/2026 18h10 (dono): "Atualizado às…" sobe para logo abaixo do selo da situação, no canto de cima; o nome cede um pedaço da largura para não encostar nele */
+@media (max-width:899px){
+  #sheet.spdtopon #vUpd{position:absolute;top:31px;right:16px;z-index:3;font-size:10px;line-height:13px;text-align:right}
+  #sheet.spdtopon .stwrap{margin-top:0}
+  #sheet.spdtopon .vname{width:calc(100vw - 68px - 58px - 104px)}
+}
