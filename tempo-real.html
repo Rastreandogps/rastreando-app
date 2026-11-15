@@ -13052,7 +13052,7 @@ function natalChao(){ /* a neve "pousa" em cima do cartão do veículo / do play
   try{
     const w=$('map').parentNode.getBoundingClientRect(); let topo=w.bottom;
     ['sheet','hpanel','hMini'].forEach(id=>{ const el=$(id); if(!el) return; const cs=getComputedStyle(el); if(cs.display==='none'||cs.visibility==='hidden') return;
-      const r=el.getBoundingClientRect(); if(r.height>8 && r.top<w.bottom && r.top>w.top+120 && r.width>w.width*.5) topo=Math.min(topo,r.top+3) });
+      const r=el.getBoundingClientRect(); if(r.height>8 && r.top<w.bottom && r.top>w.top+120 && r.width>w.width*.9) topo=Math.min(topo,r.top+3) });
     return Math.max(0,Math.round(w.bottom-topo));
   }catch(e){ return 0 }
 }
