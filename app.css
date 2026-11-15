@@ -3698,6 +3698,7 @@ body.hist-cine #hCentro.tem{top:calc(14px + env(safe-area-inset-top))}
 /* ===== MODO NATAL — simulação do administrador (15/11/2026) ===== */
 #natalBox{position:absolute;left:0;right:0;top:0;bottom:0;z-index:440;pointer-events:none;overflow:hidden}
 .car.natalv svg{overflow:visible;filter:drop-shadow(0 3px 4px rgba(0,0,0,.35))}
+.car.veic.natalv .anelv{display:none} /* 15/11 (dono): no modo trenó, sem o círculo em volta */
 #natalPn{position:fixed;left:50%;bottom:calc(86px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:5000;width:min(340px,calc(100vw - 28px));background:var(--card);color:var(--text);border:1px solid var(--line);border-radius:18px;padding:12px 14px 14px;box-shadow:0 18px 44px rgba(0,0,0,.45)}
 #natalPn .npt{display:flex;align-items:center;gap:10px;margin-bottom:8px}
 #natalPn .npt img{width:54px;height:auto;flex:none}
