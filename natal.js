@@ -72,7 +72,7 @@
       for (let x = 12, i = 0; x < s.w - 3; x += 25, i++) {
         s.lampadas.push({ x, y: 7 + 5.5 * Math.sin((x / Math.max(s.w, 1)) * Math.PI * 3),
           cor: ['#ff6454', '#ffc267', '#75dba0', '#83c7ff'][i % 4],
-          fase: aleatorio(0, DOIS_PI), periodo: aleatorio(2.7, 5.2) });
+          fase: aleatorio(0, DOIS_PI), periodo: aleatorio(1.8, 3.2) });
       }
       distribuir();
       desenhar();
@@ -135,7 +135,7 @@
       ctx.lineTo(s.w, 6);
       ctx.strokeStyle = 'rgba(28,36,42,.87)'; ctx.lineWidth = 1.35; ctx.stroke();
       for (const l of s.lampadas) {
-        const pulso = reduzido.matches ? 1 : (.64 + .36 * (.5 + .5 * Math.sin(s.tempo * DOIS_PI / l.periodo + l.fase)));
+        const pulso = reduzido.matches ? 1 : (.30 + .70 * (.5 + .5 * Math.sin(s.tempo * DOIS_PI / l.periodo + l.fase)));
         const y = l.y + 6;
         ctx.strokeStyle = 'rgba(36,43,48,.9)'; ctx.lineWidth = 1.4;
         ctx.beginPath(); ctx.moveTo(l.x,l.y); ctx.lineTo(l.x,l.y+3); ctx.stroke();
