@@ -7253,9 +7253,15 @@ function histPosicionar(){
    (descontando o painel / o player) e é o mapa que anda, em qualquer zoom. Não briga com o dedo arrastando nem com o zoom. */
 hist.centro=false; try{ hist.centro=localStorage.getItem('rg_hcentro')==='1' }catch(e){}
 hist.arrasta=false; map.on('dragstart',()=>{ hist.arrasta=true }); map.on('dragend',()=>{ hist.arrasta=false });
+/* 15/11/2026 (dono): ao dar zoom com o Centralizar ligado a marcação sumia/travava — o centralizar brigava com o zoom.
+   Agora ele ESPERA: enquanto houver 2 dedos na tela, zoom em andamento ou até 350 ms depois, não mexe no mapa. */
+hist.zoomAte=0; hist.dedos=0;
+map.on('zoomstart',()=>{ hist.zoomAte=Date.now()+1500 }); map.on('zoom',()=>{ hist.zoomAte=Math.max(hist.zoomAte,Date.now()+350) }); map.on('zoomend',()=>{ hist.zoomAte=Date.now()+350 });
+(function(){ const c=map.getContainer(), conta=e=>{ hist.dedos=(e.touches||[]).length; if(hist.dedos>=2) hist.zoomAte=Math.max(hist.zoomAte,Date.now()+350) };
+  ['touchstart','touchmove','touchend','touchcancel'].forEach(n=>c.addEventListener(n,conta,{passive:true})) })();
 function histCentrar(ll){
   try{
-    if(hist.arrasta || map._animatingZoom) return;
+    if(hist.arrasta || map._animatingZoom || hist.dedos>=2 || Date.now()<hist.zoomAte || (map.touchZoom && map.touchZoom._zooming)) return;
     const sz=map.getSize(), pn=$('hpanel'), cine=document.body.classList.contains('hist-cine'), mini=$('hMini');
     let tx=sz.x/2, ty=sz.y/2;
     if(telaLarga()){ if(pn && pn.offsetWidth) tx=(sz.x+pn.offsetWidth+16)/2 }
