@@ -41,7 +41,7 @@ try{ if(localStorage.getItem('rg_token')||sessionStorage.getItem('rgv_rg_token')
 try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'){document.documentElement.setAttribute('data-tema',t)}}catch(e){}
 </script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="stylesheet" href="app.css?v=48"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
+<link rel="stylesheet" href="app.css?v=49"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
 </head>
 <body>
 
@@ -95,6 +95,11 @@ try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'
   <button class="follow" id="follow" aria-pressed="false" title="Seguir o veículo" aria-label="Seguir o veículo">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5 19.5 20 12 16.2 4.5 20z"/></svg>
     <span class="lbl" id="followTxt">Seguir</span>
+  </button>
+  <!-- 15/11/2026 (dono): no Histórico, mantém o veículo no centro do mapa durante a reprodução, em qualquer zoom -->
+  <button class="follow" id="hCentro" type="button" aria-pressed="false" title="Manter o veículo no centro do mapa" aria-label="Manter o veículo no centro do mapa">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="6.5"/><circle cx="12" cy="12" r="1.6" fill="currentColor"/><path d="M12 2v3.5M12 18.5V22M2 12h3.5M18.5 12H22"/></svg>
+    <span class="lbl">Centralizar</span>
   </button>
   <button class="follow" id="btnEu" aria-pressed="false" title="Minha posição" aria-label="Minha posição">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8"/><path d="M12 1v3M12 20v3M1 12h3M20 12h3"/></svg>
@@ -7240,8 +7245,32 @@ function histPosicionar(){
   $('hVelPt').innerHTML='<b>'+(f<.5?p.vel:q.vel)+' km/h</b>';
   $('hBarra').value=String(Math.round(hist.t/hist.total*1000));
   try{ hmSync(real,f<.5?p.vel:q.vel) }catch(e){}
-  if(hist.toca && !map.getBounds().pad(-0.15).contains(ll)) map.panTo(ll,{animate:true});
+  try{ $('hCentro').classList.add('tem') }catch(e){}
+  if(hist.centro){ histCentrar(ll) }
+  else if(hist.toca && !map.getBounds().pad(-0.15).contains(ll)) map.panTo(ll,{animate:true});
 }
+/* 15/11/2026 (dono): botão "Centralizar" do Histórico. Ligado, o veículo fica sempre no meio da parte LIVRE do mapa
+   (descontando o painel / o player) e é o mapa que anda, em qualquer zoom. Não briga com o dedo arrastando nem com o zoom. */
+hist.centro=false; try{ hist.centro=localStorage.getItem('rg_hcentro')==='1' }catch(e){}
+hist.arrasta=false; map.on('dragstart',()=>{ hist.arrasta=true }); map.on('dragend',()=>{ hist.arrasta=false });
+function histCentrar(ll){
+  try{
+    if(hist.arrasta || map._animatingZoom) return;
+    const sz=map.getSize(), pn=$('hpanel'), cine=document.body.classList.contains('hist-cine'), mini=$('hMini');
+    let tx=sz.x/2, ty=sz.y/2;
+    if(telaLarga()){ if(pn && pn.offsetWidth) tx=(sz.x+pn.offsetWidth+16)/2 }
+    else { const tampa=cine?((mini&&mini.offsetHeight)||0)+28:((pn&&pn.offsetHeight)||0); ty=Math.max(120,sz.y-tampa)/2 }
+    const pt=map.latLngToContainerPoint(ll), dx=pt.x-tx, dy=pt.y-ty;
+    if(Math.abs(dx)>1 || Math.abs(dy)>1) map.panBy([dx,dy],{animate:false});
+  }catch(e){}
+}
+function hCentroPinta(){ const b=$('hCentro'); b.setAttribute('aria-pressed',hist.centro?'true':'false'); b.classList.toggle('on',hist.centro); b.title=hist.centro?'Veículo no centro do mapa (ligado). Toque para desligar':'Manter o veículo no centro do mapa' }
+$('hCentro').onclick=()=>{
+  hist.centro=!hist.centro; try{ localStorage.setItem('rg_hcentro',hist.centro?'1':'0') }catch(e){}
+  hCentroPinta(); try{ toast(hist.centro?'Veículo no centro do mapa: ligado':'Veículo no centro do mapa: desligado') }catch(e){}
+  if(hist.centro && hist.marc) histCentrar(hist.marc.getLatLng());
+};
+hCentroPinta();
 function histParar(){ hist.toca=false; cancelAnimationFrame(hist.raf); $('hPlay').innerHTML=ICO_PLAY; $('hPlay').setAttribute('aria-label','Reproduzir'); try{ $('hmPlay').innerHTML=ICO_PLAY; $('hmPlay').setAttribute('aria-label','Reproduzir') }catch(e){} }
 function histQuadro(agora){
   if(!hist.toca) return;

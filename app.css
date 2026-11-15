@@ -3687,3 +3687,10 @@ html[data-tema="claro"] #avisoDesc h2{color:#0b3d24}
 html[data-tema="claro"] #avisoDesc p{color:#2f5e45}
 html[data-tema="claro"] #avisoDesc .adx{color:#3c7a58}
 @media (min-width:900px){#avisoDesc{margin:8px auto 2px;width:calc(100% - 20px)}}
+
+/* ===== HISTÓRICO: botão "Centralizar" (15/11/2026, pedido do dono) — só aparece no Histórico, com trajeto na tela ===== */
+#hCentro{display:none}
+body.hist-on #hCentro.tem{display:flex;top:14px;right:14px;z-index:471}
+#hCentro.on{background:#2563eb;border-color:#2563eb;color:#fff;box-shadow:0 4px 16px rgba(37,99,235,.55)}
+
+body.hist-cine #hCentro.tem{top:calc(14px + env(safe-area-inset-top))}
