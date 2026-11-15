@@ -41,7 +41,7 @@ try{ if(localStorage.getItem('rg_token')||sessionStorage.getItem('rgv_rg_token')
 try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'){document.documentElement.setAttribute('data-tema',t)}}catch(e){}
 </script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="stylesheet" href="app.css?v=53"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
+<link rel="stylesheet" href="app.css?v=54"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
 </head>
 <body>
 
@@ -2387,7 +2387,7 @@ function natalC(){ return natalCli() ? NATAL_CLI : natal.cfg }
 function natalPode(){ try{ return natalCli() || (!!ehAdmin && !VER.on) }catch(e){ return false } }
 function natalTreno(){ return natalPode() && !!natalC().treno }
 function natalSvg(){ return '<svg viewBox="-30 -30 60 60" width="54" height="54"><circle class="anelv" r="25" stroke-width="2.4"/>'+
-  '<g class="vgir"></g><g class="nlado"><image href="icv/natal-treno-lado2.webp" x="-44" y="-26" width="88" height="44"/></g>'+ /* 15/11 (dono): trenó visto de lado; não gira, só vira para a esquerda ou para a direita */
+  '<g class="vgir"><image href="icv/natal-treno.webp" x="-19" y="-34" width="38" height="68"/></g>'+ /* 15/11 16h10 (dono): voltou o trenó visto de cima, que gira na direção do veículo (o de lado ficou guardado em icv/natal-treno-lado2.webp) */
   '<g class="cadb" transform="translate(19,-19)"><circle r="8.5" fill="#dc2626" stroke="#fff" stroke-width="2"/><path d="M-2.8 -.6V-2.6A2.8 2.8 0 0 1 2.8 -2.6V-.6" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/><rect x="-4" y="-.8" width="8" height="5.6" rx="1.3" fill="#fff"/></g></svg>' }
 function carHtml(v){ if(natalTreno()) return '<div class="car veic natalv">'+natalSvg()+'</div>'; return v.icone ? /* 04/11/2026 (dono): tag também pode ter ícone; sem escolha = marcador roxo da tag */ '<div class="car veic">'+veicSvg(v.icone,v.iconeCor)+'</div>' : '<div class="car">'+carSvg+'</div>' }
 /* troca o nome escrito no mapa na hora (sem F5) */
@@ -13067,7 +13067,6 @@ function natalLado(){ /* vira o trenó para o lado em que o veículo está indo 
     if(r>195&&r<345) esq=true; else if(r>15&&r<165) esq=false;
     if(esq!==c.classList.contains('nesq')) c.classList.toggle('nesq',esq) }) }catch(e){}
 }
-setInterval(natalLado,350);
 function natalTick(){
   try{
     /* trenó: liga/desliga refaz o desenho dos marcadores */
