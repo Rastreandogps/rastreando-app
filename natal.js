@@ -78,6 +78,8 @@
       desenhar();
     }
     /* Curva de acúmulo: mais alta nas extremidades e suavemente ondulada. */
+    /* 15/11/2026: o chão da neve acompanha o cartão de baixo quadro a quadro (RGNatal.chao), sem refazer a tela */
+    function piso() { return s.h - (s.chao || 0); }
     function topoNeve(x, progresso) {
       const margem = Math.abs(2 * x / Math.max(s.w, 1) - 1);
       const altura = 26 + 18 * Math.pow(margem, 2.5);
@@ -87,16 +89,16 @@
       return Math.max(0, (altura + ondulacao) * progresso * (.985 + .015 * deposicao));
     }
     function caminhoNeve(progresso) {
-      ctx.beginPath(); ctx.moveTo(0, s.h);
-      for (let x = 0; x <= s.w; x += 3) ctx.lineTo(x, s.h - topoNeve(x, progresso));
-      ctx.lineTo(s.w, s.h - topoNeve(s.w, progresso));
-      ctx.lineTo(s.w, s.h); ctx.closePath();
+      ctx.beginPath(); ctx.moveTo(0, piso());
+      for (let x = 0; x <= s.w; x += 3) ctx.lineTo(x, piso() - topoNeve(x, progresso));
+      ctx.lineTo(s.w, piso() - topoNeve(s.w, progresso));
+      ctx.lineTo(s.w, piso()); ctx.closePath();
     }
     function desenharAcumulo(progresso) {
       if (!config.acumular || progresso <= 0) return;
       ctx.save();
       caminhoNeve(progresso);
-      const neve = ctx.createLinearGradient(0, s.h - 48, 0, s.h);
+      const neve = ctx.createLinearGradient(0, piso() - 48, 0, piso());
       neve.addColorStop(0, '#ffffff');
       neve.addColorStop(.23, '#f5fbff');
       neve.addColorStop(.72, '#e1eff9');
@@ -107,15 +109,15 @@
       ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
       ctx.save(); caminhoNeve(progresso); ctx.clip();
       /* Camadas de sombreamento difuso criam volume sem uma faixa chapada. */
-      const sombra = ctx.createLinearGradient(0, s.h - 42, 0, s.h);
+      const sombra = ctx.createLinearGradient(0, piso() - 42, 0, piso());
       sombra.addColorStop(0, 'rgba(255,255,255,.35)');
       sombra.addColorStop(.48, 'rgba(255,255,255,0)');
       sombra.addColorStop(1, 'rgba(92,135,163,.17)');
-      ctx.fillStyle = sombra; ctx.fillRect(0, s.h - 48, s.w, 48);
+      ctx.fillStyle = sombra; ctx.fillRect(0, piso() - 48, s.w, 48);
       ctx.restore();
       ctx.beginPath();
       for (let x = 0; x <= s.w; x += 3) {
-        const y = s.h - topoNeve(x, progresso);
+        const y = piso() - topoNeve(x, progresso);
         if (x === 0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
       }
       ctx.strokeStyle = 'rgba(255,255,255,.95)'; ctx.lineWidth = 1.7;
@@ -191,7 +193,7 @@
           Math.sin(s.tempo * f.frequencia + f.fase) * f.balanco) * dt;
         if (f.x < -10) f.x = s.w + 8;
         if (f.x > s.w + 10) f.x = -8;
-        if (f.y > s.h - (config.acumular ? topoNeve(f.x, progresso) : 0)) {
+        if (f.y > piso() - (config.acumular ? topoNeve(f.x, progresso) : 0)) {
           if (config.acumular && s.depositos.length) {
             const i = limitar(Math.floor(f.x / 7), 0, s.depositos.length - 1);
             s.depositos[i] = limitar(s.depositos[i] + .08, 0, 1);
@@ -244,5 +246,6 @@
     s.camada.remove();
     s.flocos.length = 0; s.lampadas.length = 0; s.depositos.length = 0;
   }
-  window.RGNatal = { ligar, desligar };
+  function chao(px) { if (instancia) instancia.chao = Math.max(0, Number(px) || 0); }
+  window.RGNatal = { ligar, desligar, chao };
 })();
