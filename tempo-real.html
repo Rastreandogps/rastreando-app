@@ -975,6 +975,7 @@ try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'
     </section>
     <section class="pmsec"><h4>🪙 Fichas e extras</h4>
       <label class="fchk pmit"><input type="checkbox" id="pmDourada"><span class="pmtx"><b>Fichas douradas</b><small>Crédito de R$ 1 por ficha para os parceiros do app: aporte no boleto, adição avulsa e venda a R$ 0,94; ainda em teste</small></span><span class="pmsw" aria-hidden="true"></span></label>
+      <label class="fchk pmit"><input type="checkbox" id="pmNatal"><span class="pmtx"><b>🎄 Modo Natal</b><small>Liberação temporária: neve, pisca-pisca e os veículos como trenó no mapa deste cliente. Desmarque para voltar ao normal</small></span><span class="pmsw" aria-hidden="true"></span></label>
       <label class="fchk pmit"><input type="checkbox" id="pmFichas"><span class="pmtx"><b>Cobrar fichas no compartilhar</b><small>1 ficha por link; o cliente compra pacotes por PIX no app</small></span><span class="pmsw" aria-hidden="true"></span></label>
     <div class="pmfichas" id="pmLogoBox"><span class="sp"><button type="button" class="pmi" data-pmi="logo" aria-label="O que é isto?" title="O que é isto?">i</button>🖼️ Logo do cliente: <b id="pmLogoSt">—</b></span><button type="button" id="pmLogoAbrir">Ver / enviar logo</button></div>
     <div class="pmfichas" id="pmModBox"><span class="sp"><button type="button" class="pmi" data-pmi="premium" aria-label="O que é isto?" title="O que é isto?">i</button>⭐ Premium (odômetro/mapa): <b id="pmModSt">—</b></span><input class="fld" id="pmModDias" type="text" inputmode="numeric" maxlength="3" value="30" autocomplete="off" title="Dias de teste grátis"><button type="button" data-mf="dar">Liberar dias</button><button type="button" data-mf="boleto" style="background:#7c3aed" title="Premium incluído na mensalidade: fica ativo sem prazo até você tirar">♾️ No boleto</button><button type="button" data-mf="0" style="background:#64748b">Tirar</button></div>
@@ -2380,8 +2381,11 @@ function veicSvg(tipo,cor,mini){
    Por enquanto só o administrador vê (botão 🎄 na barra do Admin); a escolha fica no aparelho (rg_natal_sim). */
 const natal={cfg:{neve:false,forte:false,acumulo:true,luzes:true,treno:false},box:null,chave:'',trenoOn:false,carregando:false};
 try{ Object.assign(natal.cfg,JSON.parse(localStorage.getItem('rg_natal_sim')||'{}')) }catch(e){}
-function natalPode(){ try{ return !!ehAdmin && !VER.on }catch(e){ return false } }
-function natalTreno(){ return natalPode() && !!natal.cfg.treno }
+function natalCli(){ try{ return !!(permCli && permCli.modoNatal===true) && (!ehAdmin || VER.on) }catch(e){ return false } } /* 15/11 (dono): liberação temporária por cliente (Permissões do app › Modo Natal) */
+const NATAL_CLI={neve:true,forte:false,acumulo:true,luzes:true,treno:true};
+function natalC(){ return natalCli() ? NATAL_CLI : natal.cfg }
+function natalPode(){ try{ return natalCli() || (!!ehAdmin && !VER.on) }catch(e){ return false } }
+function natalTreno(){ return natalPode() && !!natalC().treno }
 function natalSvg(){ return '<svg viewBox="-30 -30 60 60" width="54" height="54"><circle class="anelv" r="25" stroke-width="2.4"/>'+
   '<g class="vgir"><image href="icv/natal-treno.webp" x="-19" y="-34" width="38" height="68"/></g>'+
   '<g class="cadb" transform="translate(19,-19)"><circle r="8.5" fill="#dc2626" stroke="#fff" stroke-width="2"/><path d="M-2.8 -.6V-2.6A2.8 2.8 0 0 1 2.8 -2.6V-.6" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/><rect x="-4" y="-.8" width="8" height="5.6" rx="1.3" fill="#fff"/></g></svg>' }
@@ -4892,7 +4896,7 @@ async function salvarPermTraccar(u){
 }
 function mostrarPerm(j){
   const p=j.perm||{}, c=j.cobranca||{pendentes:0,valor:0};
-  $('pmSms').checked=!!p.smsBloqueio; $('pmReset').checked=!!p.reset; $('pmNome').checked=!!p.editarNome; $('pmAncora').checked=!!p.cercaRapida; $('pmEu').checked=!!p.minhaPosicao; $('pmIcone').checked=p.trocarIcone!==false; $('pmRetirar').checked=!!p.verRetirar; $('pmPlacas').checked=!!p.leitorPlacas; $('pmRuaCel').checked=!!p.ruaCelular; $('pmReboque').checked=!!p.reboquista; $('pmDourada').checked=!!p.fichasDouradas;
+  $('pmSms').checked=!!p.smsBloqueio; $('pmReset').checked=!!p.reset; $('pmNome').checked=!!p.editarNome; $('pmAncora').checked=!!p.cercaRapida; $('pmEu').checked=!!p.minhaPosicao; $('pmIcone').checked=p.trocarIcone!==false; $('pmRetirar').checked=!!p.verRetirar; $('pmPlacas').checked=!!p.leitorPlacas; $('pmRuaCel').checked=!!p.ruaCelular; $('pmReboque').checked=!!p.reboquista; $('pmDourada').checked=!!p.fichasDouradas; $('pmNatal').checked=!!p.modoNatal;
   $('pmCob').innerHTML='SMS pela plataforma a cobrar: <b>'+c.pendentes+'</b> = <b>'+brl2(c.valor)+'</b>'+
     (c.faturadoEm?'<br><span style="color:var(--mut);font-size:12px">Último zerado em '+fmtHora(c.faturadoEm)+' · total já faturado: '+(c.totalFaturado||0)+' SMS</span>':'');
   $('pmZerar').disabled=!c.pendentes;
@@ -4913,7 +4917,7 @@ $('pmSalvar').onclick=async()=>{
   try{
     const u=usuarios.find(x=>x.id===permUserId); if(!u) throw new Error('Cliente não encontrado. Feche e abra de novo.');
     await salvarPermTraccar(u);
-    mostrarPerm(await chamarPerm('permSalvar',{perm:{smsBloqueio:$('pmSms').checked,reset:$('pmReset').checked,editarNome:$('pmNome').checked,cercaRapida:$('pmAncora').checked,minhaPosicao:$('pmEu').checked,fichas:$('pmFichas').checked,trocarIcone:$('pmIcone').checked,verRetirar:$('pmRetirar').checked,leitorPlacas:$('pmPlacas').checked,ruaCelular:$('pmRuaCel').checked,reboquista:$('pmReboque').checked,fichasDouradas:$('pmDourada').checked}}));
+    mostrarPerm(await chamarPerm('permSalvar',{perm:{smsBloqueio:$('pmSms').checked,reset:$('pmReset').checked,editarNome:$('pmNome').checked,cercaRapida:$('pmAncora').checked,minhaPosicao:$('pmEu').checked,fichas:$('pmFichas').checked,trocarIcone:$('pmIcone').checked,verRetirar:$('pmRetirar').checked,leitorPlacas:$('pmPlacas').checked,ruaCelular:$('pmRuaCel').checked,reboquista:$('pmReboque').checked,fichasDouradas:$('pmDourada').checked,modoNatal:$('pmNatal').checked}}));
     await carregarUsuarios(); const u2=usuarios.find(x=>x.id===permUserId); if(u2) mostrarPermTraccar(u2);
     desenharAdmin(); toast('Permissões salvas.')
   }
@@ -13056,12 +13060,12 @@ function natalTick(){
   try{
     /* trenó: liga/desliga refaz o desenho dos marcadores */
     const t=natalTreno(); if(t!==natal.trenoOn){ natal.trenoOn=t; try{ veiculos.forEach(v=>{ try{ icTrocar(v) }catch(_){} }) }catch(_){} }
-    const quer=natalPode() && !!natal.cfg.neve, chave=quer?[natal.cfg.forte?1:0,natal.cfg.acumulo?1:0,natal.cfg.luzes?1:0].join(''):'';
+    const nc=natalC(), quer=natalPode() && !!nc.neve, chave=quer?[nc.forte?1:0,nc.acumulo?1:0,nc.luzes?1:0].join(''):'';
     if(!quer){ if(natal.box){ try{ window.RGNatal&&window.RGNatal.desligar() }catch(e){} natal.box.remove(); natal.box=null; natal.chave='' } return }
     if(!window.RGNatal){ if(!natal.carregando){ natal.carregando=true; const sc=document.createElement('script'); sc.src='natal.js?v=2'; sc.onload=()=>{ natal.carregando=false; natalTick() }; sc.onerror=()=>{ natal.carregando=false }; document.head.appendChild(sc) } return }
     if(!natal.box){ const b=document.createElement('div'); b.id='natalBox'; b.setAttribute('aria-hidden','true'); const m=$('map'); m.parentNode.insertBefore(b,m.nextSibling); natal.box=b; natal.chave='' }
     natal.box.style.bottom=natalChao()+'px';
-    if(chave!==natal.chave){ natal.chave=chave; window.RGNatal.ligar(natal.box,{intensidade:natal.cfg.forte?'caprichada':'discreta',acumular:!!natal.cfg.acumulo,luzes:!!natal.cfg.luzes}) }
+    if(chave!==natal.chave){ natal.chave=chave; window.RGNatal.ligar(natal.box,{intensidade:nc.forte?'caprichada':'discreta',acumular:!!nc.acumulo,luzes:!!nc.luzes}) }
   }catch(e){}
 }
 function natalPainel(){
