@@ -3738,3 +3738,11 @@ body.natal-luz .follow{z-index:411} /* 15/11 (dono): a neve e o pisca-pisca pass
   #sheet.spdtopon .row > div:not(.stwrap){align-self:flex-start}
   #sheet.spdtopon #vStatus{position:absolute;top:5px;right:14px;z-index:3;font-size:11px;padding:4px 9px}
 }
+/* 15/11/2026 17h13 (dono: "não dá para remover o Google / Dados cartográficos?"): não pode sair (regra do Google Maps), mas fica o mais discreto possível:
+   sem a tarja branca atrás do texto, letra menor e mais clara, logo menor. */
+body.mapa-google #map .leaflet-top.leaflet-left > [data-gm="attr"] .gm-style-cc > div:first-child{opacity:0!important}
+body.mapa-google #map .leaflet-top.leaflet-left > [data-gm="attr"]{font-size:8px!important;opacity:.62!important;max-width:min(40vw,230px);text-shadow:0 0 2px #fff,0 0 2px #fff}
+body.mapa-google #map .leaflet-top.leaflet-left > [data-gm="attr"] *{font-size:8px!important}
+body.mapa-google #map .leaflet-top.leaflet-left > [data-gm="logo"]{transform:scale(.6)!important;opacity:.8;margin-right:-18px!important}
+body.natal-luz.mapa-google #map .leaflet-top.leaflet-left > [data-gm="logo"]{transform:scale(.6)!important}
+body.natal-luz.mapa-google #map .leaflet-top.leaflet-left > [data-gm="attr"]{margin:4px 0 0 0!important;opacity:.62!important}
