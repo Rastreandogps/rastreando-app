@@ -3731,3 +3731,10 @@ body.natal-luz .follow{z-index:411} /* 15/11 (dono): a neve e o pisca-pisca pass
 #natalPn .npl input{width:20px;height:20px;accent-color:#16a34a;flex:none}
 #natalPn .npv{width:100%;margin-top:8px;border:0;border-radius:12px;padding:11px;background:#16a34a;color:#fff;font:600 14.5px inherit;font-family:inherit;cursor:pointer}
 
+/* 15/11/2026 17h03 (dono): no celular, o nome do veículo sobe para junto do velocímetro (antes ficava centralizado numa linha que o status
+   deixava alta, sobrando um vão em cima) e o selo da situação (Ligado/Desligado/Em movimento) vai para o canto de cima do cartão,
+   na altura do puxador, para aparecer inteiro com o cartão recolhido. "Atualizado às…" continua embaixo, à direita. */
+@media (max-width:899px){
+  #sheet.spdtopon .row > div:not(.stwrap){align-self:flex-start}
+  #sheet.spdtopon #vStatus{position:absolute;top:5px;right:14px;z-index:3;font-size:11px;padding:4px 9px}
+}
