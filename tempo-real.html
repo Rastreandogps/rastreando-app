@@ -13083,7 +13083,7 @@ function natalCapPintar(){ /* 16/11/2026 (dono): no computador, neve com pinheir
     if(!quer){ if(c) c.style.display='none'; if(natal.arte) natal.arte.style.visibility=''; return }
     if(!c){ c=document.createElement('div'); c.id='natalCap'; sh.parentElement.appendChild(c) }
     natal.arte.style.visibility='hidden';
-    const pr=sh.parentElement.getBoundingClientRect(), r=sh.getBoundingClientRect(), h=r.width*274/1600, sobre=r.width*26/1600;
+    const pr=sh.parentElement.getBoundingClientRect(), r=sh.getBoundingClientRect(), h=Math.min(r.width*274/1600,125), sobre=h*26/274; /* 16/11 (dono: 'ficou grande'): no máximo 125 px de altura, achatando um pouco */
     const k=[r.left-pr.left,r.width,r.top-pr.top].map(x=>x|0).join(',');
     if(c.style.display==='none') c.style.display='';
     if(k!==natal.capK){ natal.capK=k; c.style.left=(r.left-pr.left)+'px'; c.style.width=r.width+'px'; c.style.height=h.toFixed(1)+'px'; c.style.top=(r.top-pr.top-h+sobre).toFixed(1)+'px' }
