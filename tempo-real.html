@@ -13109,7 +13109,7 @@ function natalChaoLoop(){ /* 15/11 (dono): a neve desce e sobe junto com o cart�
   if(!natal.mexeOk){ natal.mexeOk=true; const m=()=>{ natal.mexeAte=performance.now()+900 }; ['pointerdown','pointermove','touchmove','wheel','transitionrun','resize'].forEach(t=>{ try{ window.addEventListener(t,m,{passive:true,capture:true}) }catch(e){} }) }
   const f=()=>{ natal.chaoRaf=0; if(!natal.box) return; try{
     const fora=document.hidden || document.body.classList.contains('foramapa'); if(fora!==natal.fora){ natal.fora=fora; try{ window.RGNatal&&window.RGNatal.pausar&&window.RGNatal.pausar(fora) }catch(e){} natal.box.classList.toggle('pausa',fora) }
-    const agora=performance.now(); if(!fora && agora-(natal.vigiaEm||0)>1500){ natal.vigiaEm=agora; try{ window.RGNatal&&window.RGNatal.acordar&&window.RGNatal.acordar() }catch(e){} } /* 16/11 (dono: 'a neve para de cair'): vigia */
+    if(!fora && performance.now()-(natal.vigiaEm||0)>1500){ natal.vigiaEm=performance.now(); try{ window.RGNatal&&window.RGNatal.acordar&&window.RGNatal.acordar() }catch(e){} } /* 16/11 (dono: 'a neve para de cair'): vigia */
     const agora=performance.now(); if(fora || (agora>(natal.mexeAte||0) && agora-(natal.medEm||0)<250)){ natal.chaoRaf=requestAnimationFrame(f); return } natal.medEm=agora;
     if(window.RGNatal && window.RGNatal.chao){ const ch=natalChao(); if(ch!==natal.chAnt){ natal.chAnt=ch; natal.mexeAte=agora+500 } let extra=0;
       if(natal.arte){ /* 15/11 (dono): arte fixa de neve com pinheiros. Celular: largura toda, em cima do cartão. Computador (cartão estreito): só em cima do cartão, na largura dele */
