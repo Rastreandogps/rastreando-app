@@ -187,13 +187,13 @@
       if (!s.w || !s.h) return;
       ctx.setTransform(s.dpr, 0, 0, s.dpr, 0, 0); /* 15/11/2026: o celular pode zerar a escala do desenho ao voltar de outro app (a neve aparecia pela metade, no meio do mapa) */
       ctx.clearRect(0, 0, s.w, s.h);
-      if (!reduzido.matches) { desenharFlocos(); desenharQueda(); }
-      desenharAcumulo(reduzido.matches ? 1 : limitar((performance.now() - s.inicio) / 120000, 0, 1));
+      desenharFlocos(); desenharQueda(); /* 16/11/2026 (dono: 'a neve para de cair'): com o modo economia de bateria o celular liga 'reduzir animações' e a neve parava; agora só fica mais leve */
+      desenharAcumulo(limitar((performance.now() - s.inicio) / 120000, 0, 1));
       desenharLuzes();
     }
     function quadro(agora) {
       s.raf = 0;
-      if (!s.ativo || s.pausado || document.hidden || reduzido.matches) return;
+      if (!s.ativo || s.pausado || document.hidden) return;
       const dt = s.ultimo ? limitar((agora - s.ultimo) / 1000, 0, .05) : 0;
       s.ultimo = agora;
       s.tempo += dt;
@@ -233,9 +233,10 @@
       s.raf = requestAnimationFrame(quadro);
     }
     function iniciar() {
-      cancelAnimationFrame(s.raf); s.raf = 0; s.ultimo = 0;
+      cancelAnimationFrame(s.raf); s.raf = 0; s.ultimo = 0; s.amostras.length = 0; /* não conta os primeiros quadros ao voltar como 'celular lento' */
+      if (reduzido.matches && !s.lento) { s.lento = true; distribuir(); } /* reduzir animações = metade dos flocos */
       desenhar();
-      if (s.ativo && !s.pausado && !document.hidden && !reduzido.matches && s.w && s.h) {
+      if (s.ativo && !s.pausado && !document.hidden && s.w && s.h) {
         s.raf = requestAnimationFrame(quadro);
       }
     }
@@ -291,5 +292,10 @@
     if (sim) { cancelAnimationFrame(s.raf); s.raf = 0; }
     else if (s.retomar) s.retomar();
   }
-  window.RGNatal = { ligar, desligar, chao, pausar };
+  function acordar() { /* 16/11/2026 (dono): vigia — se a animação morreu sozinha (celular congelou o app em segundo plano), recomeça */
+    const s = instancia; if (!s || !s.ativo || s.pausado || document.hidden || s.raf || !s.retomar) return false;
+    if (!s.w || !s.h) { try { s.ajustar(); } catch (e) {} }
+    s.retomar(); return true;
+  }
+  window.RGNatal = { ligar, desligar, chao, pausar, acordar };
 })();
