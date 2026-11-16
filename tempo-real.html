@@ -41,7 +41,7 @@ try{ if(localStorage.getItem('rg_token')||sessionStorage.getItem('rgv_rg_token')
 try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'){document.documentElement.setAttribute('data-tema',t)}}catch(e){}
 </script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="stylesheet" href="app.css?v=67"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
+<link rel="stylesheet" href="app.css?v=68"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
 </head>
 <body>
 
@@ -13076,6 +13076,19 @@ function natalLuzMontar(bw){ /* 15/11 (dono): pisca-pisca com a arte dele; cada 
     html+='<i style="width:'+(b-a).toFixed(2)+'px;background-size:'+tw.toFixed(2)+'px '+h.toFixed(2)+'px;background-position:-'+a.toFixed(2)+'px 0;animation-duration:'+(1.8+((i*7+t*3)%9)*.22).toFixed(2)+'s;animation-delay:-'+(((i*5+t*11)%13)*.31).toFixed(2)+'s"></i>' }
   el.style.height=h.toFixed(1)+'px'; el.innerHTML=html;
 }
+function natalCapPintar(){ /* 16/11/2026 (dono): no computador, neve com pinheiros e boneco "assentada" em cima do cartão do veículo (arte do dono); a do pé do mapa some */
+  try{
+    const sh=$('sheet'), quer=!!(natal.box && natal.arte && telaLarga() && sh && getComputedStyle(sh).display!=='none' && sh.offsetHeight>8);
+    let c=$('natalCap');
+    if(!quer){ if(c) c.style.display='none'; if(natal.arte) natal.arte.style.visibility=''; return }
+    if(!c){ c=document.createElement('div'); c.id='natalCap'; sh.parentElement.appendChild(c) }
+    natal.arte.style.visibility='hidden';
+    const pr=sh.parentElement.getBoundingClientRect(), r=sh.getBoundingClientRect(), h=r.width*274/1600, sobre=r.width*26/1600;
+    const k=[r.left-pr.left,r.width,r.top-pr.top].map(x=>x|0).join(',');
+    if(c.style.display==='none') c.style.display='';
+    if(k!==natal.capK){ natal.capK=k; c.style.left=(r.left-pr.left)+'px'; c.style.width=r.width+'px'; c.style.height=h.toFixed(1)+'px'; c.style.top=(r.top-pr.top-h+sobre).toFixed(1)+'px' }
+  }catch(e){}
+}
 function natalChaoLoop(){ /* 15/11 (dono): a neve desce e sobe junto com o cartão, na hora (antes só acertava a cada 0,7 s e ficava uma faixa branca no meio do mapa) */
   if(natal.chaoRaf) return;
   /* 15/11/2026 (revisão): medir a posição do cartão a cada quadro só enquanto há toque/arrasto ou o cartão está se movendo;
@@ -13091,6 +13104,7 @@ function natalChaoLoop(){ /* 15/11 (dono): a neve desce e sobe junto com o cart�
         if(k!==natal.arteK){ natal.arteK=k; const st=natal.arte.style; st.left=esq+'px'; st.width=larg+'px'; st.right='auto'; st.height=h.toFixed(1)+'px'; st.bottom=bot+'px'; const rep=larg*200/1170>h+1; st.backgroundSize=rep?'auto 100%':'100% 100%'; st.backgroundRepeat=rep?'repeat-x':'no-repeat' }
         extra=cz?0:h*.3 }
       window.RGNatal.chao(ch+extra);
+      natalCapPintar();
       if(natal.luz){ const bw=natal.box.clientWidth; if(bw!==natal.luzW){ natal.luzW=bw; natalLuzMontar(bw) } }
     } }catch(e){} natal.chaoRaf=requestAnimationFrame(f) };
   natal.chaoRaf=requestAnimationFrame(f);
@@ -13125,7 +13139,7 @@ function natalTick(){
     /* trenó: liga/desliga refaz o desenho dos marcadores */
     const t=natalTreno(); if(t!==natal.trenoOn){ natal.trenoOn=t; try{ veiculos.forEach(v=>{ try{ icTrocar(v) }catch(_){} }) }catch(_){} }
     const nc=natalC(), quer=natalPode() && !!nc.neve, chave=quer?[nc.forte?1:0,nc.acumulo?1:0,nc.luzes?1:0].join(''):'';
-    if(!quer){ if(natal.box){ try{ window.RGNatal&&window.RGNatal.desligar() }catch(e){} natal.box.remove(); natal.box=null; natal.arte=null; natal.luz=null; natal.chave=''; try{ document.body.classList.remove('natal-luz') }catch(e){} } return }
+    if(!quer){ if(natal.box){ try{ window.RGNatal&&window.RGNatal.desligar() }catch(e){} natal.box.remove(); natal.box=null; natal.arte=null; natal.luz=null; natal.chave=''; try{ const c=$('natalCap'); if(c) c.remove(); natal.capK='' }catch(e){} try{ document.body.classList.remove('natal-luz') }catch(e){} } return }
     if(!window.RGNatal){ if(!natal.carregando){ natal.carregando=true; const sc=document.createElement('script'); sc.src='natal.js?v=8'; sc.onload=()=>{ natal.carregando=false; natalTick() }; sc.onerror=()=>{ natal.carregando=false }; document.head.appendChild(sc) } return }
     if(!natal.box){ const b=document.createElement('div'); b.id='natalBox'; b.setAttribute('aria-hidden','true'); const m=$('map'); m.parentNode.insertBefore(b,m.nextSibling); natal.box=b; natal.chave='' }
     natalChaoLoop();
@@ -13133,7 +13147,7 @@ function natalTick(){
     if(chave!==natal.chave){ natal.chave=chave; window.RGNatal.ligar(natal.box,{intensidade:nc.forte?'caprichada':'discreta',acumular:false,luzes:false}); natal.fora=null;
       if(natal.luz){ natal.luz.remove(); natal.luz=null }
       if(nc.luzes){ const l=document.createElement('div'); l.id='natalLuzes'; natal.box.appendChild(l); natal.luz=l; natal.luzW=0 }
-      if(natal.arte){ natal.arte.remove(); natal.arte=null }
+      if(natal.arte){ natal.arte.remove(); natal.arte=null } try{ const c=$('natalCap'); if(c) c.remove(); natal.capK='' }catch(e){}
       if(nc.acumulo){ const a=document.createElement('div'); a.id='natalArte'; natal.box.insertBefore(a,natal.box.firstChild); natal.arte=a; natal.arteK='' } }
   }catch(e){}
 }
