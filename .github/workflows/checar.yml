@@ -1,0 +1,8 @@
+name: Checar o app
+on: { push: { branches: [main] } }
+jobs:
+  sintaxe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: node .github/checar.js

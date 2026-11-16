@@ -2,7 +2,7 @@
    Neve caindo, neve acumulando e pisca-pisca por cima do mapa. Código da animação feito por outra IA a pedido do dono
    (arquivo natal_mapa_premium.html), revisado por Claude: só a parte da animação (sem a página de demonstração).
    Só é carregado quando o modo Natal está ligado. API: window.RGNatal.ligar(elemento, opcoes) / window.RGNatal.desligar(). */
-(function(){ try{ if(!document.getElementById('natal-css')){ var st=document.createElement('style'); st.id='natal-css'; st.textContent='.natal-camada{position:absolute;inset:0;z-index:1;pointer-events:none;background:transparent;overflow:hidden;contain:layout paint}.natal-canvas{display:block;width:100%;height:100%;pointer-events:none}'; document.head.appendChild(st) } }catch(e){} })();
+(function(){ try{ if(!document.getElementById('natal-css')){ var st=document.createElement('style'); st.id='natal-css'; st.textContent='.natal-camada{position:absolute;left:0;top:0;right:0;bottom:0;z-index:1;pointer-events:none;background:transparent;overflow:hidden;contain:layout paint}.natal-canvas{display:block;width:100%;height:100%;pointer-events:none}'; document.head.appendChild(st) } }catch(e){} })();
 (function () {
   'use strict';
   let instancia = null;
@@ -194,7 +194,10 @@
     function quadro(agora) {
       s.raf = 0;
       if (!s.ativo || s.pausado || document.hidden) return;
-      const dt = s.ultimo ? limitar((agora - s.ultimo) / 1000, 0, .05) : 0;
+      /* 16/11/2026 (auditoria): no máximo ~30 quadros por segundo (neve não precisa de 60/120; poupa bateria) */
+      if (s.ultimo && agora - s.ultimo < 31) { s.raf = requestAnimationFrame(quadro); return; }
+      const bruto = s.ultimo ? Math.min(1, (agora - s.ultimo) / 1000) : 0; /* tempo REAL do quadro, para medir celular lento */
+      const dt = limitar(bruto, 0, .05);
       s.ultimo = agora;
       s.tempo += dt;
       s.vento = 8 * Math.sin(s.tempo * .17) + 3 * Math.sin(s.tempo * .071 + 1.2);
@@ -222,10 +225,10 @@
       }
       /* Média de FPS numa janela de 2 segundos; reduz uma única vez. */
       if (dt > 0) {
-        s.amostras.push({ t: agora, dt });
+        s.amostras.push({ t: agora, dt: bruto }); /* 16/11/2026 (auditoria): antes usava o tempo limitado a 0,05 s e, abaixo de ~20 quadros/s, a redução nunca disparava */
         while (s.amostras.length && agora - s.amostras[0].t > 2000) s.amostras.shift();
         const duracao = s.amostras.reduce((a, b) => a + b.dt, 0);
-        if (!s.lento && duracao >= 1.95 && s.amostras.length / duracao < 40) {
+        if (!s.lento && duracao >= 1.95 && s.amostras.length / duracao < 22) {
           s.lento = true; distribuir(); s.amostras.length = 0;
         }
       }

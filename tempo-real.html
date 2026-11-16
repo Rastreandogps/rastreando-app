@@ -2386,7 +2386,7 @@ const natal={cfg:{neve:false,forte:false,acumulo:true,luzes:true,treno:false},bo
 try{ Object.assign(natal.cfg,JSON.parse(localStorage.getItem('rg_natal_sim')||'{}')) }catch(e){}
 function natalPerm(){ try{ return !!(permCli && permCli.modoNatal===true) && (!ehAdmin || VER.on) }catch(e){ return false } }
 const natalChaveOff=()=>'rg_natal_off_'+String(lsGet('rg_email')||'').trim().toLowerCase();
-function natalOff(){ try{ return lsGet(natalChaveOff())==='1' }catch(e){ return false } }
+function natalOff(){ try{ const k=natalChaveOff(); if(natal.offMem && k in natal.offMem) return natal.offMem[k]; return lsGet(k)==='1' }catch(e){ return false } } /* 16/11 (auditoria): vale também só na memória, se o celular não deixar gravar */
 function natalCli(){ return natalPerm() && !natalOff() } /* 16/11 (dono): o cliente liga/desliga pela árvore de Natal do mapa */ /* 15/11 (dono): liberação temporária por cliente (Permissões do app › Modo Natal) */
 const NATAL_CLI={neve:true,forte:false,acumulo:true,luzes:true,treno:true};
 function natalC(){ return natalCli() ? NATAL_CLI : natal.cfg }
@@ -13106,7 +13106,7 @@ function natalChaoLoop(){ /* 15/11 (dono): a neve desce e sobe junto com o cart�
   if(natal.chaoRaf) return;
   /* 15/11/2026 (revisão): medir a posição do cartão a cada quadro só enquanto há toque/arrasto ou o cartão está se movendo;
      parado, confere 4 vezes por segundo. E com o mapa fora da tela (outras abas), a animação para. */
-  if(!natal.mexeOk){ natal.mexeOk=true; const m=()=>{ natal.mexeAte=performance.now()+900 }; ['pointerdown','pointermove','touchmove','wheel','transitionrun','resize'].forEach(t=>{ try{ window.addEventListener(t,m,{passive:true,capture:true}) }catch(e){} }) }
+  if(!natal.mexeOk){ natal.mexeOk=true; const m=(e)=>{ try{ if(e && e.target && e.target.closest && e.target.closest('#map')) return }catch(_){} /* 16/11 (auditoria): arrastar o MAPA não mexe no cartão; não medir a cada quadro */ natal.mexeAte=performance.now()+900 }; ['pointerdown','pointermove','touchmove','wheel','transitionrun','resize'].forEach(t=>{ try{ window.addEventListener(t,m,{passive:true,capture:true}) }catch(e){} }) }
   const f=()=>{ natal.chaoRaf=0; if(!natal.box) return; try{
     const fora=document.hidden || document.body.classList.contains('foramapa'); if(fora!==natal.fora){ natal.fora=fora; try{ window.RGNatal&&window.RGNatal.pausar&&window.RGNatal.pausar(fora) }catch(e){} natal.box.classList.toggle('pausa',fora) }
     if(!fora && performance.now()-(natal.vigiaEm||0)>1500){ natal.vigiaEm=performance.now(); try{ window.RGNatal&&window.RGNatal.acordar&&window.RGNatal.acordar() }catch(e){} } /* 16/11 (dono: 'a neve para de cair'): vigia */
@@ -13134,17 +13134,17 @@ function natalBtnPintar(){ /* 16/11/2026 (dono): árvore no lugar do atalho, par
 }
 function natalDica(){ /* aviso uma vez por login: como desligar */
   const k='rg_natal_dica_'+String(lsGet('rg_email')||'').trim().toLowerCase();
-  if(lsGet(k)==='1' || $('natalDica') || document.querySelector('.modal.show, .ov.show')) return;
+  if(natal.dicaVista===k || lsGet(k)==='1' || $('natalDica') || document.querySelector('.modal.show, .ov.show')) return;
   const b=$('natalBtn'); if(!b || !b.offsetParent) return; const r=b.getBoundingClientRect();
   const d=document.createElement('div'); d.id='natalDica';
   d.innerHTML='<div class="nd-card" style="top:'+Math.max(70,r.top-18)+'px;left:'+(r.right+16)+'px"><i class="nd-seta"></i><b>🎄 Feliz Natal!</b><p>O seu mapa ganhou o clima de Natal.</p><p>Se quiser <b>desligar</b> (ou ligar de novo), é só tocar na <b>árvore</b> aqui ao lado.</p><button type="button" id="ndOk">Entendi</button></div>';
   document.body.appendChild(d); b.classList.add('pulsa');
-  const fim=()=>{ try{ lsSet(k,'1') }catch(e){} d.remove(); b.classList.remove('pulsa') };
+  const fim=()=>{ natal.dicaVista=k; /* 16/11 (auditoria): não reabre se o celular não gravar */ try{ lsSet(k,'1') }catch(e){} d.remove(); b.classList.remove('pulsa') };
   $('ndOk').onclick=fim; d.addEventListener('click',e=>{ if(e.target===d) fim() });
 }
 $('natalBtn').onclick=()=>{
-  const off=!natalOff(); try{ lsSet(natalChaveOff(),off?'1':'0') }catch(e){}
-  try{ const dd=$('natalDica'); if(dd){ dd.remove(); lsSet('rg_natal_dica_'+String(lsGet('rg_email')||'').trim().toLowerCase(),'1') } }catch(e){}
+  const off=!natalOff(); try{ (natal.offMem=natal.offMem||{})[natalChaveOff()]=off; lsSet(natalChaveOff(),off?'1':'0') }catch(e){}
+  try{ const dd=$('natalDica'); if(dd){ dd.remove(); natal.dicaVista='rg_natal_dica_'+String(lsGet('rg_email')||'').trim().toLowerCase(); $('natalBtn').classList.remove('pulsa'); lsSet('rg_natal_dica_'+String(lsGet('rg_email')||'').trim().toLowerCase(),'1') } }catch(e){}
   toast(off?'Modo Natal desligado. Toque na árvore para ligar de novo.':'🎄 Modo Natal ligado!',3500); natalTick();
 };
 function natalTick(){
@@ -13154,7 +13154,7 @@ function natalTick(){
     const t=natalTreno(); if(t!==natal.trenoOn){ natal.trenoOn=t; try{ veiculos.forEach(v=>{ try{ icTrocar(v) }catch(_){} }) }catch(_){} }
     const nc=natalC(), quer=natalPode() && !!nc.neve, chave=quer?[nc.forte?1:0,nc.acumulo?1:0,nc.luzes?1:0].join(''):'';
     if(!quer){ if(natal.box){ try{ window.RGNatal&&window.RGNatal.desligar() }catch(e){} natal.box.remove(); natal.box=null; natal.arte=null; natal.luz=null; natal.chave=''; try{ const c=$('natalCap'); if(c) c.remove(); natal.capK='' }catch(e){} try{ document.body.classList.remove('natal-luz') }catch(e){} } return }
-    if(!window.RGNatal){ if(!natal.carregando){ natal.carregando=true; const sc=document.createElement('script'); sc.src='natal.js?v=9'; sc.onload=()=>{ natal.carregando=false; natalTick() }; sc.onerror=()=>{ natal.carregando=false }; document.head.appendChild(sc) } return }
+    if(!window.RGNatal){ if(!natal.carregando && Date.now()>(natal.tentarEm||0)){ natal.carregando=true; const sc=document.createElement('script'); sc.src='natal.js?v=10'; sc.onload=()=>{ natal.carregando=false; natalTick() }; sc.onerror=()=>{ natal.carregando=false; natal.tentarEm=Date.now()+30000; try{ sc.remove() }catch(e){} /* 16/11 (auditoria): sem internet, tenta de novo só depois de 30 s */ }; document.head.appendChild(sc) } return }
     if(!natal.box){ const b=document.createElement('div'); b.id='natalBox'; b.setAttribute('aria-hidden','true'); const m=$('map'); m.parentNode.insertBefore(b,m.nextSibling); natal.box=b; natal.chave='' }
     natalChaoLoop();
     try{ document.body.classList.toggle('natal-luz',!!nc.luzes) }catch(e){}
@@ -13204,6 +13204,22 @@ try{ setInterval(natalTick,700) }catch(e){}
   } else { ABA_SALVA=null; mostrarLogin(''); bioChecar() }
 })();
 
+
+window.__rgOk=1; /* 16/11/2026: o código principal chegou ao fim sem erro (ver a rede de segurança logo abaixo) */
+</script>
+<script>
+/* 16/11/2026 — REDE DE SEGURANÇA: se o código principal do app não rodou até o fim (erro de publicação), o cliente não fica
+   olhando uma tela em branco: o app tenta recarregar sozinho uma vez e mostra um aviso com botão. Bloco separado de propósito. */
+(function(){ try{
+  if(window.__rgOk) { try{ sessionStorage.removeItem('rg_rede') }catch(e){} return }
+  var novo=function(){ location.replace(location.pathname+'?r='+Date.now()+location.hash) };
+  var ja=null; try{ ja=sessionStorage.getItem('rg_rede') }catch(e){}
+  var d=document.createElement('div');
+  d.setAttribute('style','position:fixed;left:0;top:0;right:0;bottom:0;z-index:99999;background:#0f1722;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:28px;font:16px system-ui,sans-serif');
+  d.innerHTML='<div style="font-size:42px">🔄</div><b style="font-size:19px;margin-top:10px">Estamos atualizando o aplicativo</b><p style="margin:10px 0 18px;opacity:.85;max-width:320px">Isso leva poucos minutos. Toque no botão para tentar de novo.</p><button type="button" style="border:0;border-radius:12px;padding:14px 26px;background:#16a34a;color:#fff;font:700 16px system-ui,sans-serif">Tentar de novo</button>';
+  document.body.appendChild(d); d.querySelector('button').onclick=novo;
+  if(!ja){ try{ sessionStorage.setItem('rg_rede','1') }catch(e){} setTimeout(novo,20000) }
+}catch(e){} })();
 </script>
 <script>
 (function(){
