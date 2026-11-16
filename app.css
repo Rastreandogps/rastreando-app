@@ -3780,3 +3780,19 @@ body.hist-on #natalBtn{display:none!important}
 
 /* 16/11/2026 (dono): computador — neve em cima do cartão do veículo */
 #natalCap{position:absolute;z-index:451;pointer-events:none;background:url(icv/natal-cap.webp) center bottom/100% 100% no-repeat}
+
+/* 16/11/2026 (dono): Serviços menor no administrador */
+#socBtn.mini{width:46px;height:40px;padding:2px 2px 1px;border-radius:11px}
+#socBtn.mini img{width:38px;height:21px}
+#socBtn.mini b{font-size:8px}
+/* 16/11/2026 (dono, ideia do Uber): coluna da direita recolhida no celular, com a setinha */
+#colBtn{display:none}
+@media (max-width:899px){
+  #colBtn{position:absolute;top:14px;right:0;z-index:412;display:flex;align-items:center;justify-content:center;width:28px;height:48px;padding:0;border-radius:14px 0 0 14px;background:var(--card);border:1px solid var(--line);border-right:0;color:inherit;box-shadow:0 4px 14px rgba(0,0,0,.4);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:opacity .2s,transform .2s}
+  #colBtn svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+  #colBtn.aviso{color:#e3262f;border-color:#e3262f;animation:colAviso 1.2s ease-in-out infinite}
+  @keyframes colAviso{50%{background:rgba(227,38,47,.18)}}
+  .follow{transition:transform .25s ease,opacity .25s ease}
+  body.col-off:not(.hist-on) .follow{transform:translateX(76px);opacity:0;pointer-events:none}
+  body:not(.col-off) #colBtn,body.hist-on #colBtn,body.desenhando #colBtn{opacity:0;pointer-events:none;transform:translateX(30px)}
+}
