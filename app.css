@@ -3752,7 +3752,7 @@ body.mapa-google #map .leaflet-top.leaflet-left > [data-gm="logo"]{transform:sca
 body.mapa-google #map .leaflet-top.leaflet-left{top:1px!important}
 body.mapa-google #map .leaflet-top.leaflet-left > [data-gm="logo"]{margin:0 -22px 0 8px!important;transform:scale(.58)!important;transform-origin:left top;opacity:.85}
 body.mapa-google #map .leaflet-top.leaflet-left > [data-gm="attr"]{margin:1px 0 0 0!important}
-body.mapa-google #pontoBtn,body.mapa-google #socBtn,body.mapa-google #assMapaBtn,body.mapa-google #atalhoBtn,body.mapa-google #zoomBox,body.mapa-google #deslizeBtn{margin-top:18px}
+body.mapa-google #pontoBtn,body.mapa-google #socBtn,body.mapa-google #assMapaBtn,body.mapa-google #atalhoBtn,body.mapa-google #natalBtn,body.mapa-google #zoomBox,body.mapa-google #deslizeBtn{margin-top:18px}
 
 /* 16/11/2026 (dono): trenó novo (visto de cima, renas na frente) é mais comprido: o nome sobe para não ficar em cima das renas */
 .car.veic.natalv~.carlabel{bottom:62px}
