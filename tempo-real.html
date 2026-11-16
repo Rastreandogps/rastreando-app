@@ -41,7 +41,7 @@ try{ if(localStorage.getItem('rg_token')||sessionStorage.getItem('rgv_rg_token')
 try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'){document.documentElement.setAttribute('data-tema',t)}}catch(e){}
 </script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="stylesheet" href="app.css?v=66"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
+<link rel="stylesheet" href="app.css?v=67"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
 </head>
 <body>
 
@@ -135,6 +135,7 @@ try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'
   <!-- 04/11/2026 (dono): atalho do assistente no mapa, embaixo do Serviços (só administrador; o botão da aba Admin continua) -->
   <button id="assMapaBtn" type="button" style="display:none" title="Assistente Rastreando GPS" aria-label="Abrir o Assistente Rastreando GPS"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 4.6L18.5 9.4l-4.7 1.8L12 16l-1.8-4.8L5.5 9.4l4.7-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg><b>Assistente</b></button>
   <!-- 06/11/2026 (dono): ATALHO — botão redondo embaixo do Assistente; mostra no mapa só os veículos escolhidos (ex.: moto do técnico). Segurar = trocar os veículos -->
+  <button id="natalBtn" type="button" style="display:none" title="Modo Natal: tocar liga ou desliga" aria-label="Ligar ou desligar o modo Natal"><span>🎄</span></button>
   <button id="atalhoBtn" type="button" style="display:none" title="Atalho: mostrar só os veículos escolhidos (segure para trocar)" aria-label="Atalho de veículos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.2"/><path d="M12 1.8v3M12 19.2v3M1.8 12h3M19.2 12h3"/></svg><i id="atalhoN"></i></button>
   <button id="pontoBtn" type="button" style="display:none" title="Marcar um ponto no mapa (endereço ou coordenadas)" aria-label="Marcar um ponto no mapa"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><b id="pontoN"></b></button>
   <button id="retChip" type="button" style="display:none" title="Tirar do mapa os veículos para retirar">📍 Para retirar no mapa <span aria-hidden="true">✕</span></button>
@@ -2381,7 +2382,10 @@ function veicSvg(tipo,cor,mini){
    Por enquanto só o administrador vê (botão 🎄 na barra do Admin); a escolha fica no aparelho (rg_natal_sim). */
 const natal={cfg:{neve:false,forte:false,acumulo:true,luzes:true,treno:false},box:null,chave:'',trenoOn:false,carregando:false};
 try{ Object.assign(natal.cfg,JSON.parse(localStorage.getItem('rg_natal_sim')||'{}')) }catch(e){}
-function natalCli(){ try{ return !!(permCli && permCli.modoNatal===true) && (!ehAdmin || VER.on) }catch(e){ return false } } /* 15/11 (dono): liberação temporária por cliente (Permissões do app › Modo Natal) */
+function natalPerm(){ try{ return !!(permCli && permCli.modoNatal===true) && (!ehAdmin || VER.on) }catch(e){ return false } }
+const natalChaveOff=()=>'rg_natal_off_'+String(lsGet('rg_email')||'').trim().toLowerCase();
+function natalOff(){ try{ return lsGet(natalChaveOff())==='1' }catch(e){ return false } }
+function natalCli(){ return natalPerm() && !natalOff() } /* 16/11 (dono): o cliente liga/desliga pela árvore de Natal do mapa */ /* 15/11 (dono): liberação temporária por cliente (Permissões do app › Modo Natal) */
 const NATAL_CLI={neve:true,forte:false,acumulo:true,luzes:true,treno:true};
 function natalC(){ return natalCli() ? NATAL_CLI : natal.cfg }
 function natalPode(){ try{ return natalCli() || (!!ehAdmin && !VER.on) }catch(e){ return false } }
@@ -13091,7 +13095,32 @@ function natalChaoLoop(){ /* 15/11 (dono): a neve desce e sobe junto com o cart�
     } }catch(e){} natal.chaoRaf=requestAnimationFrame(f) };
   natal.chaoRaf=requestAnimationFrame(f);
 }
+function natalBtnPintar(){ /* 16/11/2026 (dono): árvore no lugar do atalho, para o cliente com o Modo Natal liberado */
+  const b=$('natalBtn'); if(!b) return; const pode=natalPerm() && !document.body.classList.contains('hist-on');
+  if(!pode){ if(b.style.display!=='none') b.style.display='none'; return }
+  const tem=x=>x&&getComputedStyle(x).display!=='none', ab=$('assMapaBtn'), sc=$('socBtn');
+  const top=(tem(ab)?(parseInt(ab.style.top,10)||108)+62:tem(sc)?(parseInt(sc.style.top,10)||12)+54:12)+'px';
+  if(b.style.top!==top) b.style.top=top; if(b.style.display!=='flex') b.style.display='flex';
+  b.classList.toggle('off',natalOff());
+  if(!natalOff()) natalDica();
+}
+function natalDica(){ /* aviso uma vez por login: como desligar */
+  const k='rg_natal_dica_'+String(lsGet('rg_email')||'').trim().toLowerCase();
+  if(lsGet(k)==='1' || $('natalDica') || document.querySelector('.modal.show, .ov.show')) return;
+  const b=$('natalBtn'); if(!b || !b.offsetParent) return; const r=b.getBoundingClientRect();
+  const d=document.createElement('div'); d.id='natalDica';
+  d.innerHTML='<div class="nd-card" style="top:'+Math.max(70,r.top-18)+'px;left:'+(r.right+16)+'px"><i class="nd-seta"></i><b>🎄 Feliz Natal!</b><p>O seu mapa ganhou o clima de Natal.</p><p>Se quiser <b>desligar</b> (ou ligar de novo), é só tocar na <b>árvore</b> aqui ao lado.</p><button type="button" id="ndOk">Entendi</button></div>';
+  document.body.appendChild(d); b.classList.add('pulsa');
+  const fim=()=>{ try{ lsSet(k,'1') }catch(e){} d.remove(); b.classList.remove('pulsa') };
+  $('ndOk').onclick=fim; d.addEventListener('click',e=>{ if(e.target===d) fim() });
+}
+$('natalBtn').onclick=()=>{
+  const off=!natalOff(); try{ lsSet(natalChaveOff(),off?'1':'0') }catch(e){}
+  try{ const dd=$('natalDica'); if(dd){ dd.remove(); lsSet('rg_natal_dica_'+String(lsGet('rg_email')||'').trim().toLowerCase(),'1') } }catch(e){}
+  toast(off?'Modo Natal desligado. Toque na árvore para ligar de novo.':'🎄 Modo Natal ligado!',3500); natalTick();
+};
 function natalTick(){
+  try{ natalBtnPintar() }catch(e){}
   try{
     /* trenó: liga/desliga refaz o desenho dos marcadores */
     const t=natalTreno(); if(t!==natal.trenoOn){ natal.trenoOn=t; try{ veiculos.forEach(v=>{ try{ icTrocar(v) }catch(_){} }) }catch(_){} }
