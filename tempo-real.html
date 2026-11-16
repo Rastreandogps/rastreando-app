@@ -41,7 +41,7 @@ try{ if(localStorage.getItem('rg_token')||sessionStorage.getItem('rgv_rg_token')
 try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'){document.documentElement.setAttribute('data-tema',t)}}catch(e){}
 </script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="stylesheet" href="app.css?v=65"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
+<link rel="stylesheet" href="app.css?v=66"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
 </head>
 <body>
 
@@ -2598,7 +2598,7 @@ function euLigar(){
   },{enableHighAccuracy:true,maximumAge:5000,timeout:25000});
 }
 $('zoomMais').onclick=()=>map.zoomIn(); $('zoomMenos').onclick=()=>map.zoomOut(); /* 21/10/2026 */
-function zoomPos(){ try{ const p=$('pontoBtn'), d=$('deslizeBtn'), tem=x=>x&&getComputedStyle(x).display!=='none'; const sc=$('socBtn'); atalhoPos(); if(tem($('atalhoBtn'))){ $('zoomBox').style.top=((parseInt($('atalhoBtn').style.top,10)||178)+54)+'px'; return } if(tem($('assMapaBtn'))){ $('zoomBox').style.top=((parseInt($('assMapaBtn').style.top,10)||116)+62)+'px'; return } $('zoomBox').style.top=tem(sc)?(tem(p)?'116px':'74px'):tem(p)?'54px':tem(d)?'54px':'12px' }catch(e){} } /* administrador tem a lupa e o deslize em cima; cliente não */
+function zoomPos(){ try{ const p=$('pontoBtn'), d=$('deslizeBtn'), tem=x=>x&&getComputedStyle(x).display!=='none'; const sc=$('socBtn'); atalhoPos(); if(tem($('atalhoBtn'))){ $('zoomBox').style.top=((parseInt($('atalhoBtn').style.top,10)||178)+54)+'px'; return } if(tem($('assMapaBtn'))){ $('zoomBox').style.top=((parseInt($('assMapaBtn').style.top,10)||108)+62)+'px'; return } $('zoomBox').style.top=tem(sc)?(tem(p)?'116px':'74px'):tem(p)?'54px':tem(d)?'54px':'12px' }catch(e){} } /* administrador tem a lupa e o deslize em cima; cliente não */
 [1500,4000,9000].forEach(t=>setTimeout(zoomPos,t));
 $('btnEu').onclick=()=>{ if(eu.on) euDesligar(); else euLigar() };
 setInterval(()=>{ if(eu.on){ euAtualizarTela(); euRumoPintar() } },2000);
@@ -3187,7 +3187,7 @@ function animar(now){
   requestAnimationFrame(animar);
 }
 requestAnimationFrame(animar);
-function deslizePintar(){ const b=$('deslizeBtn'); if(!b) return; b.style.display='none'; try{ $('pontoBtn').style.display=ehAdmin?'inline-flex':'none' }catch(e){} try{ $('sheet').classList.add('spdtopon') }catch(e){} /* 30/10/2026: velocímetro ao lado do nome no celular (teste só admin) */ try{ const sb=$('socBtn'); sb.style.display=(!ehAdmin&&permCli&&permCli.semSocorro)?'none':'flex'; sb.style.top=ehAdmin?'54px':'12px' }catch(e){} try{ const ab=$('assMapaBtn'), cliIA=!ehAdmin&&permCli&&permCli.assistenteIA===true; ab.style.display=((ehAdmin&&!VER.on)||cliIA)?'flex':'none'; ab.style.top=ehAdmin?'116px':(getComputedStyle($('socBtn')).display!=='none'?'74px':'12px'); zoomPos() }catch(e){} /* 04/11/2026: assistente no mapa; cliente com a permissão "Assistente de IA" também (embaixo do Serviços) */ /* 30/10/2026 (dono): botão Serviços liberado para todos; sem a lupa (cliente), sobe para o topo */ const on=deslizeLigado(); b.classList.toggle('on',on); $('deslizeTxt').textContent=on?'ligado':'desligado' }
+function deslizePintar(){ const b=$('deslizeBtn'); if(!b) return; b.style.display='none'; try{ $('pontoBtn').style.display=ehAdmin?'inline-flex':'none' }catch(e){} try{ $('sheet').classList.add('spdtopon') }catch(e){} /* 30/10/2026: velocímetro ao lado do nome no celular (teste só admin) */ try{ const sb=$('socBtn'); sb.style.display=(!ehAdmin&&permCli&&permCli.semSocorro)?'none':'flex'; sb.style.top=ehAdmin?'54px':'12px' }catch(e){} try{ const ab=$('assMapaBtn'), cliIA=!ehAdmin&&permCli&&permCli.assistenteIA===true; ab.style.display=((ehAdmin&&!VER.on)||cliIA)?'flex':'none'; ab.style.top=ehAdmin?'108px':(getComputedStyle($('socBtn')).display!=='none'?'66px':'12px'); /* 16/11: Serviços ficou menor */ zoomPos() }catch(e){} /* 04/11/2026: assistente no mapa; cliente com a permissão "Assistente de IA" também (embaixo do Serviços) */ /* 30/10/2026 (dono): botão Serviços liberado para todos; sem a lupa (cliente), sobe para o topo */ const on=deslizeLigado(); b.classList.toggle('on',on); $('deslizeTxt').textContent=on?'ligado':'desligado' }
 /* ===== MARCAR PONTO NO MAPA (19/10/2026, pedido do dono; só administrador) =====
    Lupa abaixo do "Deslize contínuo": busca um endereço (OpenStreetMap, grátis) ou aceita "latitude, longitude",
    escolhe o ícone (casa, pino ou bandeira) e marca no mapa. Dá para remover.
@@ -3281,7 +3281,7 @@ const ATALHO={on:false,antes:null};
 function atalhoChave(){ return 'rg_atalho_'+String(lsGet('rg_email')||'').toLowerCase() }
 function atalhoIds(){ try{ const l=JSON.parse(localStorage.getItem(atalhoChave())||'[]'); return Array.isArray(l)?l.map(Number).filter(id=>veiculos.some(v=>v.id===id)):[] }catch(e){ return [] } }
 function atalhoGravar(ids){ try{ localStorage.setItem(atalhoChave(),JSON.stringify(ids)) }catch(e){} }
-function atalhoPos(){ try{ const b=$('atalhoBtn'); if(!b) return; const tem=x=>x&&getComputedStyle(x).display!=='none'; if(!veiculos.length){ b.style.display='none'; return } b.style.display='flex'; const ab=$('assMapaBtn'), sc=$('socBtn'); b.style.top=(tem(ab)?(parseInt(ab.style.top,10)||116)+62:tem(sc)?(parseInt(sc.style.top,10)||54)+62:12)+'px' }catch(e){} }
+function atalhoPos(){ try{ const b=$('atalhoBtn'); if(!b) return; const tem=x=>x&&getComputedStyle(x).display!=='none'; if(!veiculos.length || !ehAdmin){ b.style.display='none'; return } /* 16/11/2026 (dono): atalho de veículos só no administrador por enquanto */ b.style.display='flex'; const ab=$('assMapaBtn'), sc=$('socBtn'); b.style.top=(tem(ab)?(parseInt(ab.style.top,10)||108)+62:tem(sc)?(parseInt(sc.style.top,10)||54)+54:12)+'px' }catch(e){} }
 function atalhoPintar(){ const b=$('atalhoBtn'); if(!b) return; const n=atalhoIds().length; b.classList.toggle('on',ATALHO.on); $('atalhoN').textContent=n?String(n):''; b.title=ATALHO.on?'Mostrando só o atalho — toque para ver todos':(n?'Mostrar só os '+n+' veículos do atalho (segure para trocar)':'Escolher veículos do atalho') }
 function atalhoLigar(){
   const ids=atalhoIds(); if(!ids.length){ atalhoAbrir(); return }

@@ -3756,3 +3756,8 @@ body.mapa-google #pontoBtn,body.mapa-google #socBtn,body.mapa-google #assMapaBtn
 
 /* 16/11/2026 (dono): trenó novo (visto de cima, renas na frente) é mais comprido: o nome sobe para não ficar em cima das renas */
 .car.veic.natalv~.carlabel{bottom:62px}
+
+/* 16/11/2026 (dono): botão Serviços um pouco menor */
+#socBtn{width:54px;height:46px;padding:3px 2px 2px;border-radius:12px}
+#socBtn img{width:44px;height:25px}
+#socBtn b{font-size:9px}
