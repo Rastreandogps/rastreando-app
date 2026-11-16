@@ -8539,8 +8539,12 @@ function htmlAparelhos(excluirIds){
   const ex=new Set(excluirIds||[]);
   const lista=veiculos.filter(v=>!ex.has(v.id)).sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
   if(!lista.length) return '<div class="apvazio">Nenhum aparelho disponível. Cadastre o aparelho na aba Equipamentos.</div>';
-  const chave=v=>[v.nome,v.imei,v.placa,v.fone,v.contato].join(' ').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
-  return lista.map(v=>'<label class="apit" data-busca="'+esc(chave(v))+'"><input type="checkbox" value="'+v.id+'"><span><b>'+esc(v.nome)+'</b><br><small>IMEI '+esc(v.imei)+(v.contato?' · cliente atual: '+esc(v.contato):' · sem cliente')+'</small></span></label>').join('');
+  /* 16/11/2026 (dono: 'PCX aparece sem cliente, mas tem'): usa o vínculo REAL (o mesmo do card do cliente); o e-mail gravado no aparelho só se o vínculo ainda não carregou */
+  const donos={}; let temVinc=true; /* só confia no 'sem cliente' quando o vínculo de TODOS os clientes já carregou */
+  try{ usuarios.filter(u=>!u.administrator).forEach(u=>{ const l=vinculos[u.id]; if(!l){ temVinc=false; return } l.forEach(id=>{ (donos[id]=donos[id]||[]).push(u.name||u.email) }) }) }catch(e){}
+  const cliTxt=v=>{ const d=donos[v.id]; if(d&&d.length) return ' · cliente: '+esc(d.slice(0,3).join(', ')+(d.length>3?' +'+(d.length-3):'')); if(temVinc) return ' · sem cliente'; return v.contato?' · cliente atual: '+esc(v.contato):' · sem cliente' };
+  const chave=v=>[v.nome,v.imei,v.placa,v.fone,v.contato,(donos[v.id]||[]).join(' ')].join(' ').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+  return lista.map(v=>'<label class="apit" data-busca="'+esc(chave(v))+'"><input type="checkbox" value="'+v.id+'"><span><b>'+esc(v.nome)+'</b><br><small>IMEI '+esc(v.imei)+cliTxt(v)+'</small></span></label>').join('');
 }
 const marcados = idDiv => Array.prototype.map.call($(idDiv).querySelectorAll('input:checked'),i=>+i.value);
 /* buscador da lista de aparelhos: esconde o que não bate; os marcados ficam sempre à vista */
