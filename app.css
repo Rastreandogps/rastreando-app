@@ -3796,3 +3796,9 @@ body.hist-on #natalBtn{display:none!important}
   body.col-off:not(.hist-on) .follow{transform:translateX(76px);opacity:0;pointer-events:none}
   body:not(.col-off) #colBtn,body.hist-on #colBtn,body.desenhando #colBtn{opacity:0;pointer-events:none;transform:translateX(30px)}
 }
+/* 17/11/2026 (dono): logo do Google e "Dados cartográficos" EM PÉ, colados na borda esquerda do mapa (lidos de baixo para cima);
+   continuam visíveis e legíveis (termos do Google). O topo fica livre para o pisca-pisca e os botões da esquerda não descem mais. */
+body.mapa-google #map .leaflet-top.leaflet-left{left:var(--mapa-lado,0px)!important;top:70px!important;transform:rotate(-90deg) translateX(-100%)!important;transform-origin:0 0!important;white-space:nowrap;display:flex!important;flex-direction:row-reverse;align-items:center}
+body.mapa-google #map .leaflet-top.leaflet-left > [data-gm="logo"]{margin:0 0 0 4px!important;transform:scale(.58)!important;transform-origin:left center}
+body.mapa-google #map .leaflet-top.leaflet-left > [data-gm]{float:none!important}
+body.mapa-google #pontoBtn,body.mapa-google #socBtn,body.mapa-google #assMapaBtn,body.mapa-google #atalhoBtn,body.mapa-google #natalBtn,body.mapa-google #zoomBox,body.mapa-google #deslizeBtn{margin-top:0}
