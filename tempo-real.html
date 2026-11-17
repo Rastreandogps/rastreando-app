@@ -6250,7 +6250,7 @@ function shareMostrarResultado(url,expiraMs,nome,cam){
   shareUrl=url; shareWppPara='';
   const st=$('shareWppSt'); st.style.display='none';
   if(cam){
-    shareTexto=cam.titulo+(cam.empresa?' - '+cam.empresa:'')+(cam.motorista?'\nMotorista: '+cam.motorista+(cam.motFone?' · WhatsApp '+fmtWpp(cam.motFone):''):'')+'\nAcompanhe em tempo real: '+url+'\nLink válido até '+compQuando(expiraMs)+'.';
+    shareTexto='🚗 '+cam.titulo+(cam.empresa?' - '+cam.empresa:'')+(cam.motorista?'\n👤 Motorista: '+cam.motorista+(cam.motFone?' · WhatsApp '+fmtWpp(cam.motFone):''):'')+'\n\n📍 Acompanhe em tempo real:\n'+url+'\n\n⏰ Link válido até '+compQuando(expiraMs)+'.'; /* 17/11/2026: texto mais separado, com emoji */
     shareWppPara=cam.cliWpp||'';
     if(cam.cliWpp){
       const ok=cam.wpp&&cam.wpp.ok;
