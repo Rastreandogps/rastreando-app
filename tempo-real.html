@@ -13085,10 +13085,10 @@ const NATAL_LUZ_CORTES=[0,.0626,.1469,.2302,.2947,.3642,.4353,.4954,.5589,.6425,
 /* 17/11/2026 (dono): arte nova do pisca-pisca, uma para o celular e outra para o computador, sem emenda; a coroa do meio fica parada e cada lâmpada pisca sozinha */
 const NATAL_PISCA={"cel":{"src":"icv/natal-pisca-cel.webp","w":1290,"h":226,"cortes":[0.0,0.0819,0.1645,0.2537,0.3413,0.4118,0.59,0.6577,0.7436,0.8332,0.9165,1.0],"fixo":5},"pc":{"src":"icv/natal-pisca-pc.webp","w":2172,"h":262,"cortes":[0.0,0.0346,0.0648,0.095,0.1266,0.1586,0.1893,0.2196,0.2499,0.2791,0.3074,0.3367,0.3673,0.3974,0.4263,0.453,0.5488,0.5764,0.605,0.634,0.6641,0.6933,0.7208,0.7492,0.7798,0.8109,0.8421,0.8735,0.9049,0.9353,0.9654,1.0],"fixo":15}};
 function natalLuzMontar(bw){
-  const el=natal.luz; if(!el) return; const pc=telaLarga(), c=pc?NATAL_PISCA.pc:NATAL_PISCA.cel, PROP=c.w/c.h;
+  const el=natal.luz; if(!el) return; const pc=telaLarga(), c=NATAL_PISCA.pc, PROP=c.w/c.h; /* 17/11 (dono): a do celular ficava faltando dos lados; a arte do computador serve nos dois, cortando o que sobra */
   let lado=0; if(pc){ try{ lado=Math.max(0,Math.round(parseFloat(getComputedStyle(natal.box).getPropertyValue('--lado'))||0)) }catch(e){} } /* computador: só na parte do mapa (sem a lista da esquerda), com a coroa no meio do mapa */
-  let tw=Math.max(200,bw-lado), h=tw/PROP; if(pc) h=Math.min(h,140); else if(h>50){ h=50; tw=h*PROP } /* 17/11 (dono): pisca-pisca e guirlanda menores no celular (72 → 50 px), centralizados */ /* computador: largura toda do mapa e no máximo 140 px de altura (pode esticar um pouco na largura) */
-  const esq=pc?lado:Math.max(0,(bw-tw)/2); let html='';
+  let tw=Math.max(200,bw-lado), h=tw/PROP; if(pc) h=Math.min(h,140); else { h=Math.max(50,bw/PROP); tw=h*PROP } /* celular: 50 px (ou o que precisar para cobrir a largura), coroa no meio, pontas cortadas pela borda */ /* 17/11 (dono): pisca-pisca e guirlanda menores no celular (72 → 50 px), centralizados */ /* computador: largura toda do mapa e no máximo 140 px de altura (pode esticar um pouco na largura) */
+  const esq=pc?lado:(bw-tw)/2; let html='';
   for(let i=0;i<c.cortes.length-1;i++){ const a=c.cortes[i]*tw, b=c.cortes[i+1]*tw, fixo=i===c.fixo;
     html+='<i style="width:'+(b-a).toFixed(2)+'px;background-image:url('+c.src+');background-size:'+tw.toFixed(2)+'px '+h.toFixed(2)+'px;background-position:-'+a.toFixed(2)+'px 0;'+(fixo?'animation:none':'animation-duration:'+(1.8+((i*7)%9)*.22).toFixed(2)+'s;animation-delay:-'+(((i*5)%13)*.31).toFixed(2)+'s')+'"></i>' }
   el.style.height=h.toFixed(1)+'px'; el.style.left=esq.toFixed(1)+'px'; el.innerHTML=html;
