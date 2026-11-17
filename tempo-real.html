@@ -13103,11 +13103,12 @@ function natalCapPintar(){ /* 16/11/2026 (dono): no computador, neve com pinheir
   }catch(e){}
 }
 function natalChaoLoop(){ /* 15/11 (dono): a neve desce e sobe junto com o cartão, na hora (antes só acertava a cada 0,7 s e ficava uma faixa branca no meio do mapa) */
+  if(natal.chaoRaf && !document.hidden && performance.now()-(natal.chaoEm||0)>3000){ cancelAnimationFrame(natal.chaoRaf); natal.chaoRaf=0 } /* 17/11 (dono): laço preso depois de muito tempo em segundo plano = recomeça */
   if(natal.chaoRaf) return;
   /* 15/11/2026 (revisão): medir a posição do cartão a cada quadro só enquanto há toque/arrasto ou o cartão está se movendo;
      parado, confere 4 vezes por segundo. E com o mapa fora da tela (outras abas), a animação para. */
   if(!natal.mexeOk){ natal.mexeOk=true; const m=(e)=>{ try{ if(e && e.target && e.target.closest && e.target.closest('#map')) return }catch(_){} /* 16/11 (auditoria): arrastar o MAPA não mexe no cartão; não medir a cada quadro */ natal.mexeAte=performance.now()+900 }; ['pointerdown','pointermove','touchmove','wheel','transitionrun','resize'].forEach(t=>{ try{ window.addEventListener(t,m,{passive:true,capture:true}) }catch(e){} }) }
-  const f=()=>{ natal.chaoRaf=0; if(!natal.box) return; try{
+  const f=()=>{ natal.chaoRaf=0; natal.chaoEm=performance.now(); if(!natal.box) return; try{
     const fora=document.hidden || document.body.classList.contains('foramapa'); if(fora!==natal.fora){ natal.fora=fora; try{ window.RGNatal&&window.RGNatal.pausar&&window.RGNatal.pausar(fora) }catch(e){} natal.box.classList.toggle('pausa',fora) }
     if(!fora && performance.now()-(natal.vigiaEm||0)>1500){ natal.vigiaEm=performance.now(); try{ window.RGNatal&&window.RGNatal.acordar&&window.RGNatal.acordar() }catch(e){} } /* 16/11 (dono: 'a neve para de cair'): vigia */
     const agora=performance.now(); if(fora || (agora>(natal.mexeAte||0) && agora-(natal.medEm||0)<250)){ natal.chaoRaf=requestAnimationFrame(f); return } natal.medEm=agora;
@@ -13154,9 +13155,10 @@ function natalTick(){
     const t=natalTreno(); if(t!==natal.trenoOn){ natal.trenoOn=t; try{ veiculos.forEach(v=>{ try{ icTrocar(v) }catch(_){} }) }catch(_){} }
     const nc=natalC(), quer=natalPode() && !!nc.neve, chave=quer?[nc.forte?1:0,nc.acumulo?1:0,nc.luzes?1:0].join(''):'';
     if(!quer){ if(natal.box){ try{ window.RGNatal&&window.RGNatal.desligar() }catch(e){} natal.box.remove(); natal.box=null; natal.arte=null; natal.luz=null; natal.chave=''; try{ const c=$('natalCap'); if(c) c.remove(); natal.capK='' }catch(e){} try{ document.body.classList.remove('natal-luz') }catch(e){} } return }
-    if(!window.RGNatal){ if(!natal.carregando && Date.now()>(natal.tentarEm||0)){ natal.carregando=true; const sc=document.createElement('script'); sc.src='natal.js?v=10'; sc.onload=()=>{ natal.carregando=false; natalTick() }; sc.onerror=()=>{ natal.carregando=false; natal.tentarEm=Date.now()+30000; try{ sc.remove() }catch(e){} /* 16/11 (auditoria): sem internet, tenta de novo só depois de 30 s */ }; document.head.appendChild(sc) } return }
+    if(!window.RGNatal){ if(!natal.carregando && Date.now()>(natal.tentarEm||0)){ natal.carregando=true; const sc=document.createElement('script'); sc.src='natal.js?v=11'; sc.onload=()=>{ natal.carregando=false; natalTick() }; sc.onerror=()=>{ natal.carregando=false; natal.tentarEm=Date.now()+30000; try{ sc.remove() }catch(e){} /* 16/11 (auditoria): sem internet, tenta de novo só depois de 30 s */ }; document.head.appendChild(sc) } return }
     if(!natal.box){ const b=document.createElement('div'); b.id='natalBox'; b.setAttribute('aria-hidden','true'); const m=$('map'); m.parentNode.insertBefore(b,m.nextSibling); natal.box=b; natal.chave='' }
     natalChaoLoop();
+    try{ if(!document.hidden && !document.body.classList.contains('foramapa') && window.RGNatal.acordar) window.RGNatal.acordar() }catch(e){} /* 17/11: vigia também pelo relógio de 0,7 s, que continua vivo quando o laço do desenho morre */
     try{ document.body.classList.toggle('natal-luz',!!nc.luzes) }catch(e){}
     if(chave!==natal.chave){ natal.chave=chave; window.RGNatal.ligar(natal.box,{intensidade:nc.forte?'caprichada':'discreta',acumular:false,luzes:false}); natal.fora=null;
       if(natal.luz){ natal.luz.remove(); natal.luz=null }

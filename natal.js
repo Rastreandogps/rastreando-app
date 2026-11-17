@@ -27,7 +27,7 @@
     elemento.appendChild(camada);
     const ctx = canvas.getContext('2d', { alpha: true });
     if (!ctx) { camada.remove(); return; }
-    const s = { elemento, camada, canvas, ctx, config, reduzido, w: 0, h: 0, dpr: 1,
+    const s = { elemento, camada, canvas, ctx, config, reduzido, opcoes: opcoes || {}, quadroEm: 0, w: 0, h: 0, dpr: 1,
       flocos: [], depositos: [], lampadas: [], monte: 1, queda: [], chao: 0, raf: 0, ultimo: 0, tempo: 0,
       inicio: performance.now(), ativo: true, amostras: [], lento: false, vento: 0,
       observador: null, aoVisivel: null, aoReducao: null };
@@ -192,7 +192,7 @@
       desenharLuzes();
     }
     function quadro(agora) {
-      s.raf = 0;
+      s.raf = 0; s.quadroEm = performance.now();
       if (!s.ativo || s.pausado || document.hidden) return;
       /* 16/11/2026 (auditoria): no máximo ~30 quadros por segundo (neve não precisa de 60/120; poupa bateria) */
       if (s.ultimo && agora - s.ultimo < 31) { s.raf = requestAnimationFrame(quadro); return; }
@@ -296,7 +296,12 @@
     else if (s.retomar) s.retomar();
   }
   function acordar() { /* 16/11/2026 (dono): vigia — se a animação morreu sozinha (celular congelou o app em segundo plano), recomeça */
-    const s = instancia; if (!s || !s.ativo || s.pausado || document.hidden || s.raf || !s.retomar) return false;
+    const s = instancia; if (!s || !s.ativo || s.pausado || document.hidden || !s.retomar) return false;
+    /* 17/11/2026 (dono: 'depois de muito tempo em segundo plano a neve para'): o celular pode jogar fora o desenho (canvas)
+       ou deixar o laço preso sem rodar. Desenho perdido = liga de novo do zero; laço parado há 3 s = recomeça. */
+    try { if (s.ctx.isContextLost && s.ctx.isContextLost()) { const el = s.elemento, op = s.opcoes; ligar(el, op); return true; } } catch (e) {}
+    if (s.raf && performance.now() - (s.quadroEm || 0) > 3000) { cancelAnimationFrame(s.raf); s.raf = 0; }
+    if (s.raf) return false;
     if (!s.w || !s.h) { try { s.ajustar(); } catch (e) {} }
     s.retomar(); return true;
   }
