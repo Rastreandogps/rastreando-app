@@ -13110,18 +13110,8 @@ function natalLuzMontar(bw){ /* 17/11/2026 (dono): a arte do computador nos dois
     html+='<i style="width:'+((f.b-f.a)*k).toFixed(2)+'px;background-image:url('+c.src+');background-size:'+(W*k).toFixed(2)+'px '+h+'px;background-position:-'+(f.a*k).toFixed(2)+'px 0;'+(fixo?'animation:none':'animation-duration:'+(1.8+((n*7)%9)*.22).toFixed(2)+'s;animation-delay:-'+(((n*5)%13)*.31).toFixed(2)+'s')+'"></i>' }
   el.style.height=h+'px'; el.style.left=esq.toFixed(1)+'px'; el.innerHTML=html;
 }
-function natalCapPintar(){ /* 16/11/2026 (dono): no computador, neve com pinheiros e boneco "assentada" em cima do cartão do veículo (arte do dono); a do pé do mapa some */
-  try{
-    const sh=$('sheet'), quer=!!(natal.box && natal.arte && telaLarga() && sh && getComputedStyle(sh).display!=='none' && sh.offsetHeight>8);
-    let c=$('natalCap');
-    if(!quer){ if(c) c.style.display='none'; if(natal.arte) natal.arte.style.visibility=''; return }
-    if(!c){ c=document.createElement('div'); c.id='natalCap'; sh.parentElement.appendChild(c) }
-    natal.arte.style.visibility='hidden';
-    const pr=sh.parentElement.getBoundingClientRect(), r=sh.getBoundingClientRect(), h=Math.min(r.width*274/1600,125), sobre=h*26/274; /* 16/11 (dono: 'ficou grande'): no máximo 125 px de altura, achatando um pouco */
-    const k=[r.left-pr.left,r.width,r.top-pr.top].map(x=>x|0).join(',');
-    if(c.style.display==='none') c.style.display='';
-    if(k!==natal.capK){ natal.capK=k; c.style.left=(r.left-pr.left)+'px'; c.style.width=r.width+'px'; c.style.height=h.toFixed(1)+'px'; c.style.top=(r.top-pr.top-h+sobre).toFixed(1)+'px' }
-  }catch(e){}
+function natalCapPintar(){ /* 17/11/2026 (dono): no computador, NADA em cima do cartão (removida a arte natal-cap, neve com pinheiros e boneco); a neve fixa fica só no pé do mapa, como no celular */
+  try{ const c=$('natalCap'); if(c) c.style.display='none'; if(natal.arte) natal.arte.style.visibility=''; }catch(e){}
 }
 function natalChaoLoop(){ /* 15/11 (dono): a neve desce e sobe junto com o cartão, na hora (antes só acertava a cada 0,7 s e ficava uma faixa branca no meio do mapa) */
   if(natal.chaoRaf && !document.hidden && performance.now()-(natal.chaoEm||0)>3000){ cancelAnimationFrame(natal.chaoRaf); natal.chaoRaf=0 } /* 17/11 (dono): laço preso depois de muito tempo em segundo plano = recomeça */
