@@ -3804,3 +3804,7 @@ body.mapa-google #map .leaflet-top.leaflet-left > [data-gm]{float:none!important
 body.mapa-google #pontoBtn,body.mapa-google #socBtn,body.mapa-google #assMapaBtn,body.mapa-google #atalhoBtn,body.mapa-google #natalBtn,body.mapa-google #zoomBox,body.mapa-google #deslizeBtn{margin-top:0}
 /* 17/11/2026 (dono): a faixa do Google em pé passava POR CIMA do cartão do veículo. Agora fica abaixo do cartão (450) e acima da neve (410). */
 body.mapa-google #map .leaflet-top.leaflet-left{z-index:440!important}
+/* 17/11/2026 (dono): faixa do Google em pé mais encostada na borda da tela */
+body.mapa-google #map .leaflet-top.leaflet-left{align-items:flex-start!important}
+body.mapa-google #map .leaflet-top.leaflet-left > [data-gm="attr"]{margin:0!important}
+body.mapa-google #map .leaflet-top.leaflet-left > [data-gm="logo"]{transform-origin:left top!important}
