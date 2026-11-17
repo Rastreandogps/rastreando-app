@@ -6257,7 +6257,7 @@ function shareMostrarResultado(url,expiraMs,nome,cam){
       st.textContent=ok?'Mensagem automática enviada para '+fmtWpp(cam.cliWpp)+'.':'A mensagem automática não foi enviada ('+((cam.wpp&&cam.wpp.erro)||'sem resposta')+'). Use o botão WhatsApp abaixo para mandar você mesmo.';
       st.style.background=ok?'rgba(26,158,87,.12)':'rgba(227,38,47,.10)'; st.style.color=ok?'var(--green)':'var(--red2)'; st.style.display='';
     }
-  } else shareTexto='Acompanhe a localização de '+nome+' em tempo real:\n'+url+'\nLink válido até '+compQuando(expiraMs)+'.\nRastreando GPS';
+  } else shareTexto='📍 Acompanhe a localização de '+nome+' em tempo real:\n'+url+'\n\n⏰ Link válido até '+compQuando(expiraMs)+'.\n\nRastreando GPS';
   $('shareLink').textContent=url; $('shareRes').style.display='';
   $('shareNativo').style.display=navigator.share?'':'none';
 }
