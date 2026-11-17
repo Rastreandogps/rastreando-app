@@ -10758,6 +10758,19 @@ function alVV(){
 }
 if(window.visualViewport){ visualViewport.addEventListener('resize',alVV); visualViewport.addEventListener('scroll',alVV) }
 ['alIgn','alVolta','alBat'].forEach(id=>{ const i=$(id+'Busca'); if(!i) return; i.addEventListener('focus',()=>setTimeout(alVV,350)); i.addEventListener('blur',()=>setTimeout(alVV,100)) });
+/* 17/11/2026 (dono): "Atalho de veículos" — com o teclado aberto a busca e a lista ficavam atrás dele. Mesma solução das janelas acima:
+   a janela fica ACIMA do teclado, o texto de explicação some enquanto digita e a lista rola dentro. */
+function atalhoVV(){
+  const m=$('mAtalho'), l=$('atalhoLista'), vv=window.visualViewport, txt=m&&m.querySelector('.box2 > p'); if(!m||!l) return;
+  const ativo=vv && m.classList.contains('show') && !window.matchMedia('(min-width:900px)').matches && document.activeElement===$('atalhoBusca');
+  if(!ativo){ m.style.top=m.style.height=m.style.bottom=''; l.style.maxHeight='46vh'; if(txt) txt.style.display=''; return }
+  if(txt) txt.style.display='none';
+  m.style.top=vv.offsetTop+'px'; m.style.bottom='auto'; m.style.height=vv.height+'px';
+  const box=m.querySelector('.box2'), fixo=l.getBoundingClientRect().top-box.getBoundingClientRect().top+(box.scrollTop||0)+120; /* topo até a lista + botões */
+  l.style.maxHeight=Math.max(110,vv.height-fixo-12)+'px';
+}
+if(window.visualViewport){ visualViewport.addEventListener('resize',atalhoVV); visualViewport.addEventListener('scroll',atalhoVV) }
+try{ const ab=$('atalhoBusca'); ab.addEventListener('focus',()=>setTimeout(atalhoVV,350)); ab.addEventListener('blur',()=>setTimeout(atalhoVV,100)) }catch(e){}
 $('alIgn').addEventListener('change',async e=>{
   const i=e.target.closest('input[data-ign]'); if(!i) return;
   i.disabled=true;
