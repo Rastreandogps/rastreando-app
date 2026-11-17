@@ -13169,8 +13169,14 @@ $('natalBtn').onclick=()=>{
   try{ const dd=$('natalDica'); if(dd){ dd.remove(); natal.dicaVista='rg_natal_dica_'+String(lsGet('rg_email')||'').trim().toLowerCase(); $('natalBtn').classList.remove('pulsa'); lsSet('rg_natal_dica_'+String(lsGet('rg_email')||'').trim().toLowerCase(),'1') } }catch(e){}
   toast(off?'Modo Natal desligado. Toque na árvore para ligar de novo.':'🎄 Modo Natal ligado!',3500); natalTick();
 };
+function natalAvisar(){ /* 17/11/2026 (dono): 'quero ver quem desativou o tema'. O app do CLIENTE avisa o servidor se a árvore está ligada ou desligada: ao abrir e a cada troca. O dono entrando como cliente não conta. */
+  try{ if(ehAdmin || VER.on || !natalPerm()) return; const k=(lsGet('rg_email')||'')+'|'+(natalOff()?'1':'0');
+    if(natal.avK===k || natal.avIndo || Date.now()<(natal.avEm||0)) return; natal.avIndo=true;
+    fnAdm('natalEstado',{off:natalOff()}).then(()=>{ natal.avK=k }).catch(()=>{ natal.avEm=Date.now()+60000 }).then(()=>{ natal.avIndo=false }) }catch(e){ natal.avIndo=false }
+}
 function natalTick(){
   try{ natalBtnPintar() }catch(e){}
+  try{ natalAvisar() }catch(e){}
   try{
     /* trenó: liga/desliga refaz o desenho dos marcadores */
     const t=natalTreno(); if(t!==natal.trenoOn){ natal.trenoOn=t; try{ veiculos.forEach(v=>{ try{ icTrocar(v) }catch(_){} }) }catch(_){} }
