@@ -13136,17 +13136,52 @@ function natalLuzMontar(bw){ /* 18/11/2026 (dono): no CELULAR a guirlanda REALIS
     }catch(e){}
     return;
   }
-  el.style.display=''; el.style.width=''; el.style.top='';
+  el.style.display=''; el.style.width=''; el.style.top=''; natal.luzCanvas=null; natal.luzSprites=null; /* o celular não reaproveita o canvas do computador */
   const c=NATAL_PISCA.pc, W=c.w, h=80, k=h/c.h;
   let lado=0; try{ lado=Math.max(0,Math.round(parseFloat(getComputedStyle(natal.box).getPropertyValue('--lado'))||0)) }catch(e){}
   const area=Math.max(200,bw-lado), cx=c.cortes.map(f=>f*W), fat=[]; for(let i=0;i<cx.length-1;i++) fat.push({a:cx[i],b:cx[i+1],i});
   const ini=543,fim=1627, meio=fat.filter(f=>f.a>=ini-1&&f.b<=fim+1), U=fat.filter(f=>f.a>=fim-1).concat(fat.filter(f=>f.b<=ini+1));
   const larg=l=>l.reduce((t,f)=>t+(f.b-f.a)*k,0), uW=larg(U), meioW=larg(meio);
   const lado1=Math.max(0,Math.ceil(((area-meioW)/2)/uW)); let seq=[]; for(let r=0;r<lado1;r++) seq=seq.concat(U); seq=seq.concat(meio); for(let r=0;r<lado1;r++) seq=seq.concat(U);
-  const esq=lado+(area-meioW)/2-lado1*uW; let html='', n=0;
-  for(const f of seq){ const fixo=f.i===c.fixo; n++;
-    html+='<i style="width:'+((f.b-f.a)*k).toFixed(2)+'px;background-image:url('+c.src+');background-size:'+(W*k).toFixed(2)+'px '+h+'px;background-position:-'+(f.a*k).toFixed(2)+'px 0;'+(fixo?'animation:none':'animation-duration:'+(1.8+((n*7)%9)*.22).toFixed(2)+'s;animation-delay:-'+(((n*5)%13)*.31).toFixed(2)+'s')+'"></i>' }
-  el.style.height=h+'px'; el.style.left=esq.toFixed(1)+'px'; el.innerHTML=html;
+  const esq=lado+(area-meioW)/2-lado1*uW;
+  el.style.height=h+'px'; el.style.left=esq.toFixed(1)+'px';
+  /* 18/11/2026 (dono): no COMPUTADOR o mesmo pisca realista do celular — a arte com as lâmpadas APAGADAS (icv/natal-pisca-pc-off.webp) por baixo e cada lâmpada acende sozinha por cima, recortada da arte acesa com borda suave (antes o trecho inteiro do fio ficava meio transparente = borrão) */
+  try{
+    el.innerHTML='';
+    const LMP=[[41,105],[107,121],[172,140],[239,147],[311,153],[378,147],[444,135],[510,122],[574,119],[638,136],[698,150],[763,156],[831,152],[894,133],[956,119],[1217,119],[1283,137],[1343,150],[1409,151],[1475,148],[1536,133],[1595,120],[1660,125],[1728,136],[1795,148],[1862,155],[1932,151],[1999,138],[2064,118],[2130,106]];
+    const dpr=Math.min(2,window.devicePixelRatio||1), tot=larg(seq), CW=Math.max(1,Math.ceil(tot*dpr)), CH=Math.ceil(h*dpr), RS=48 /* raio do recorte na arte original */;
+    const cv=document.createElement('canvas'); cv.width=CW; cv.height=CH; cv.style.cssText='display:block;width:'+tot.toFixed(1)+'px;height:'+h+'px'; el.appendChild(cv); natal.luzPc=cv;
+    const g2=cv.getContext('2d',{alpha:true}); const ks=k*dpr;
+    if(!natal.luzPcOn){ natal.luzPcOn=new Image(); natal.luzPcOn.src=c.src }
+    if(!natal.luzPcOff){ natal.luzPcOff=new Image(); natal.luzPcOff.src='icv/natal-pisca-pc-off.webp' }
+    const reduz=()=>{ try{ return matchMedia('(prefers-reduced-motion: reduce)').matches }catch(e){ return false } };
+    let fundo=null, acesa=null, inst=[], spr=[];
+    const montar=()=>{
+      const mk=(img)=>{ const o=document.createElement('canvas'); o.width=CW; o.height=CH; const p=o.getContext('2d'); let x=0; for(const f of seq){ const fw=(f.b-f.a)*ks; p.drawImage(img,f.a,0,f.b-f.a,c.h,x,0,fw+0.6,CH); x+=fw } return o };
+      fundo=mk(natal.luzPcOff); acesa=mk(natal.luzPcOn);
+      const S=Math.ceil(RS*2*ks);
+      spr=LMP.map(l=>{ const o=document.createElement('canvas'); o.width=o.height=S; const p=o.getContext('2d'); p.drawImage(natal.luzPcOn,l[0]-RS,l[1]-RS,RS*2,RS*2,0,0,S,S); p.globalCompositeOperation='destination-in'; const R=S/2, gr=p.createRadialGradient(R,R,1,R,R,R); gr.addColorStop(0,'rgba(0,0,0,1)'); gr.addColorStop(0.42,'rgba(0,0,0,1)'); gr.addColorStop(0.75,'rgba(0,0,0,.55)'); gr.addColorStop(1,'rgba(0,0,0,0)'); p.fillStyle=gr; p.fillRect(0,0,S,S); return o });
+      let x=0, n=0; inst=[]; for(const f of seq){ for(let j=0;j<LMP.length;j++){ const lx=LMP[j][0]; if(lx>=f.a && lx<f.b){ n++; inst.push({j, x:x+(lx-f.a)*ks-S/2, y:LMP[j][1]*ks-S/2, periodo:1.7+(n*0.137%1.45), fase:n*2.399963, proxima:0, alvo:1, atual:.7}) } } x+=(f.b-f.a)*ks }
+    };
+    let prev=0; const t0=performance.now(), fps=28;
+    const frame=(t)=>{
+      if(!cv.isConnected || !natal.box){ if(natal.luzPc===cv) natal.luzPcRaf=0; return }
+      natal.luzPcRaf=requestAnimationFrame(frame);
+      if(document.hidden || natal.box.classList.contains('pausa')) return;
+      if(t-prev<1000/fps) return;
+      const dt=Math.min(.08,(t-prev)/1000||.035); prev=t; const tempo=(t-t0)/1000;
+      g2.clearRect(0,0,CW,CH); g2.drawImage(fundo,0,0);
+      for(const s of inst){
+        if(tempo>=s.proxima){ const curta=Math.random()<.20; s.alvo=curta?(.08+Math.random()*.24):(.68+Math.random()*.32); s.proxima=tempo+(curta?.10+Math.random()*.30:.55+Math.random()*1.6) }
+        s.atual+=(s.alvo-s.atual)*(1-Math.exp(-dt*(s.alvo<.4?9:5)));
+        g2.globalAlpha=Math.max(.05,Math.min(1,s.atual*(.95+.05*Math.sin(tempo*(4.2+s.periodo)+s.fase)))); g2.drawImage(spr[s.j],s.x,s.y);
+      }
+      g2.globalAlpha=1;
+    };
+    const pronto=()=>{ try{ if(!cv.isConnected) return; montar(); if(reduz()){ g2.clearRect(0,0,CW,CH); g2.drawImage(acesa,0,0); return } if(natal.luzPcRaf) cancelAnimationFrame(natal.luzPcRaf); natal.luzPcRaf=requestAnimationFrame(frame) }catch(e){} };
+    let tent=0; const esp=()=>{ if(!cv.isConnected) return; const A=natal.luzPcOn, B=natal.luzPcOff; if(A.complete&&B.complete){ if(A.naturalWidth&&B.naturalWidth) pronto() } else if(tent++<80) setTimeout(esp,120) };
+    esp();
+  }catch(e){}
 }
 function natalCapPintar(){ /* 17/11/2026 (dono): no computador, NADA em cima do cartão (removida a arte natal-cap, neve com pinheiros e boneco); a neve fixa fica só no pé do mapa, como no celular */
   try{ const c=$('natalCap'); if(c) c.style.display='none'; if(natal.arte) natal.arte.style.visibility=''; }catch(e){}
