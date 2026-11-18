@@ -13097,14 +13097,15 @@ function natalCartaoEstreito(){ /* cartão do veículo / player do histórico qu
 const NATAL_LUZ_CORTES=[0,.0626,.1469,.2302,.2947,.3642,.4353,.4954,.5589,.6425,.7162,.7733,.8564,.9434,1];
 /* 17/11/2026 (dono): arte nova do pisca-pisca, uma para o celular e outra para o computador, sem emenda; a coroa do meio fica parada e cada lâmpada pisca sozinha */
 const NATAL_PISCA={"cel":{"src":"icv/natal-pisca-cel.webp","w":1290,"h":226,"cortes":[0.0,0.0819,0.1645,0.2537,0.3413,0.4118,0.59,0.6577,0.7436,0.8332,0.9165,1.0],"fixo":5},"pc":{"src":"icv/natal-pisca-pc.webp","w":2172,"h":262,"cortes":[0.0,0.0346,0.0648,0.095,0.1266,0.1586,0.1893,0.2196,0.2499,0.2791,0.3074,0.3367,0.3673,0.3974,0.4263,0.453,0.5488,0.5764,0.605,0.634,0.6641,0.6933,0.7208,0.7492,0.7798,0.8109,0.8421,0.8735,0.9049,0.9353,0.9654,1.0],"fixo":15}};
-function natalLuzMontar(bw){ /* 18/11/2026 (dono): no CELULAR a arte própria (lâmpadas com a coroa de laço no meio), inteira, cobrindo a largura; no COMPUTADOR a arte de pinheiros, coroa no meio e o fio repetindo trechos que se encaixam para os lados (sem emenda) */
+function natalLuzMontar(bw){ /* 18/11/2026 (dono): no CELULAR a guirlanda de pinheiros do dono, inteira no cartão (no tamanho proporcional, sem espremer), com as luzes piscando em onda; no COMPUTADOR a arte de lâmpadas com coroa, o fio repetindo trechos que se encaixam para os lados (sem emenda) */
   const el=natal.luz; if(!el) return; const pc=telaLarga();
-  if(!pc){ /* celular: arte das lâmpadas + coroa, inteira, cobrindo a largura do cartão */
-    const c=NATAL_PISCA.cel, W=c.w, h=50, area=Math.max(200,bw), esc=area/W, cx=c.cortes.map(f=>f*W);
-    let html='', n=0;
-    for(let i=0;i<cx.length-1;i++){ const a=cx[i], b=cx[i+1], fixo=(i===c.fixo); n++;
-      html+='<i style="width:'+((b-a)*esc).toFixed(2)+'px;background-image:url('+c.src+');background-size:'+area.toFixed(2)+'px '+h+'px;background-position:-'+(a*esc).toFixed(2)+'px 0;'+(fixo?'animation:none':'animation-duration:'+(1.8+((n*7)%9)*.22).toFixed(2)+'s;animation-delay:-'+(((n*5)%13)*.31).toFixed(2)+'s')+'"></i>' }
-    el.style.height=h+'px'; el.style.left='0px'; el.innerHTML=html; return;
+  if(!pc){ /* celular: guirlanda de pinheiros (icv/natal-pisca-guirlanda.webp), inteira, no tamanho proporcional */
+    const src='icv/natal-pisca-guirlanda.webp', W=2172, Hc=256, area=Math.max(200,bw);
+    const gw=Math.min(area,475), h=Math.max(1,Math.round(gw*Hc/W)), N=16, esq=(area-gw)/2;
+    let html='';
+    for(let i=0;i<N;i++){ const x0=gw*i/N, x1=gw*(i+1)/N;
+      html+='<i style="width:'+(x1-x0).toFixed(2)+'px;background-image:url('+src+');background-size:'+gw.toFixed(2)+'px '+h+'px;background-position:-'+x0.toFixed(2)+'px 0;animation-duration:'+(2.0+(i%5)*.3).toFixed(2)+'s;animation-delay:-'+((i%7)*.33).toFixed(2)+'s"></i>' }
+    el.style.height=h+'px'; el.style.left=esq.toFixed(1)+'px'; el.innerHTML=html; return;
   }
   const c=NATAL_PISCA.pc, W=c.w, h=80, k=h/c.h;
   let lado=0; try{ lado=Math.max(0,Math.round(parseFloat(getComputedStyle(natal.box).getPropertyValue('--lado'))||0)) }catch(e){}
