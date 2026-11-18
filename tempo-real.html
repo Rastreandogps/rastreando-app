@@ -13101,7 +13101,7 @@ function natalLuzMontar(bw){ /* 18/11/2026 (dono): no CELULAR a guirlanda REALIS
   const el=natal.luz; if(!el) return; const pc=telaLarga();
   if(!pc){ /* celular: guirlanda realista em canvas (icv/natal-guirlanda-on.webp + -off.webp) */
     const area=Math.max(200,bw), gw=Math.min(area,480), h=Math.round(gw*390/2172);
-    el.style.display='block'; el.style.width=gw.toFixed(1)+'px'; el.style.height=h+'px'; el.style.left=((area-gw)/2).toFixed(1)+'px';
+    el.style.display='block'; el.style.width=gw.toFixed(1)+'px'; el.style.height=h+'px'; el.style.left=((area-gw)/2).toFixed(1)+'px'; el.style.top=(-Math.round(h*0.30))+'px'; /* 18/11 (dono): levanta um pouco a guirlanda */
     if(natal.luzCanvas && natal.luzCanvas.isConnected){ natal.luzCanvas.style.width=gw.toFixed(1)+'px'; return } /* já montado; o CSS escala */
     try{
       el.innerHTML='';
@@ -13136,7 +13136,7 @@ function natalLuzMontar(bw){ /* 18/11/2026 (dono): no CELULAR a guirlanda REALIS
     }catch(e){}
     return;
   }
-  el.style.display=''; el.style.width='';
+  el.style.display=''; el.style.width=''; el.style.top='';
   const c=NATAL_PISCA.pc, W=c.w, h=80, k=h/c.h;
   let lado=0; try{ lado=Math.max(0,Math.round(parseFloat(getComputedStyle(natal.box).getPropertyValue('--lado'))||0)) }catch(e){}
   const area=Math.max(200,bw-lado), cx=c.cortes.map(f=>f*W), fat=[]; for(let i=0;i<cx.length-1;i++) fat.push({a:cx[i],b:cx[i+1],i});
