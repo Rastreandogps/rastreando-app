@@ -41,7 +41,7 @@ try{ if(localStorage.getItem('rg_token')||sessionStorage.getItem('rgv_rg_token')
 try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'){document.documentElement.setAttribute('data-tema',t)}}catch(e){}
 </script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="stylesheet" href="app.css?v=74"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
+<link rel="stylesheet" href="app.css?v=75"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
 </head>
 <body>
 
@@ -204,6 +204,15 @@ try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'
       <button class="btn navbtn" id="btnNav" type="button" title="Navegar até o veículo">
         <span class="navic nv"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5 19 20.5l-7-3.8-7 3.8z"/></svg></span>
         <span class="navtx"><b>Navegar</b><small>Traçar rota</small></span>
+      </button>
+      <!-- 18/11/2026 (dono): só administrador, no celular: ponto no mapa (sem rota) e Street View dentro do app -->
+      <button class="btn navbtn" id="btnPonto" type="button" title="Ver o ponto no Google Maps (sem rota)" style="display:none">
+        <span class="navic pt"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21.5s-6.5-5.4-6.5-11a6.5 6.5 0 0 1 13 0c0 5.6-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.3"/></svg></span>
+        <span class="navtx"><b>Ver no mapa</b><small>Só o ponto</small></span>
+      </button>
+      <button class="btn navbtn" id="btnRuaAqui" type="button" title="Ver a rua aqui mesmo, sem sair do app" style="display:none">
+        <span class="navic sa"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M2.5 12s3.5-6.5 9.5-6.5 9.5 6.5 9.5 6.5-3.5 6.5-9.5 6.5S2.5 12 2.5 12z"/></svg></span>
+        <span class="navtx"><b>Rua aqui</b><small>Sem sair do app</small></span>
       </button>
       <button class="btn navbtn" id="btnRua" type="button" title="Ver a rua (Street View)">
         <span class="navic st"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21.5s-6.5-5.4-6.5-11a6.5 6.5 0 0 1 13 0c0 5.6-6.5 11-6.5 11z"/><circle cx="12" cy="9" r="1.7"/><path d="M9.4 14.3c.6-1.4 1.5-2 2.6-2s2 .6 2.6 2"/></svg></span>
@@ -3506,6 +3515,7 @@ function atualizar(){
     mostrarBotoesSms();
     $('btnUnblock').disabled=cmdAndamento||sp;
     $('btnNav').disabled=sp; $('btnRua').disabled=sp; $('btnNavMini').disabled=sp;
+    try{ const ad=(ehAdmin && !telaLarga())?'':'none'; ['btnPonto','btnRuaAqui'].forEach(i=>{ const b=$(i); if(b){ b.style.display=ad; b.disabled=sp } }) }catch(e){} /* 18/11: 2 botões só do administrador (celular) */
     try{ ruaAtualizar(v) }catch(e){}
     aplicarSheet();
   }
@@ -5972,6 +5982,10 @@ $('vRua').addEventListener('click',e=>{
   window.open('https://www.google.com/maps/@?api=1&map_action=pano&viewpoint='+v.pos[0].toFixed(6)+','+v.pos[1].toFixed(6),'_blank','noopener');
 });
 $('btnNavMini').onclick=()=>$('btnNav').onclick();
+try{ /* 18/11/2026 (dono): administrador — ponto no mapa sem rota, e Street View dentro do app (mesma janela do Girar 360°) */
+  $('btnPonto').onclick=()=>{ const v=ativo(); if(!v||!v.pos) return; window.open('https://www.google.com/maps/search/?api=1&query='+v.pos[0].toFixed(6)+','+v.pos[1].toFixed(6),'_blank','noopener') };
+  $('btnRuaAqui').onclick=()=>{ if(!ehAdmin) return; ruaGirar() };
+}catch(e){}
 $('rgMais').onclick=()=>{ fechar(); lojaGirosAbrir() };
 $('btnRua').onclick=()=>{
   const v=ativo(); if(!v) return;
