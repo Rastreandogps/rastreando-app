@@ -3289,7 +3289,7 @@ nav button:not(.on) .nemo{filter:saturate(.85)}
   main #sheet .dragzone .row::before{width:38px;height:38px;background-size:19px}
   main #sheet .vname{font-size:17px}
   main #sheet .plate{display:inline-flex;align-items:center;margin-top:1px}
-  main #sheet .plate.vimei{margin-left:12px}
+  main #sheet .plate.vimei{display:flex;width:max-content;margin-left:0;margin-top:2px} /* 18/11 (dono): IMEI na linha de baixo da placa, não ao lado */
   main #sheet .chiprow{margin-top:1px}
   main #sheet .chiprow[style*="flex"]{display:flex!important}
   main #sheet .smsult.on{flex-wrap:nowrap;margin-top:1px;max-width:100%;overflow:hidden}
