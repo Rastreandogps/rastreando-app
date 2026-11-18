@@ -13097,16 +13097,46 @@ function natalCartaoEstreito(){ /* cartão do veículo / player do histórico qu
 const NATAL_LUZ_CORTES=[0,.0626,.1469,.2302,.2947,.3642,.4353,.4954,.5589,.6425,.7162,.7733,.8564,.9434,1];
 /* 17/11/2026 (dono): arte nova do pisca-pisca, uma para o celular e outra para o computador, sem emenda; a coroa do meio fica parada e cada lâmpada pisca sozinha */
 const NATAL_PISCA={"cel":{"src":"icv/natal-pisca-cel.webp","w":1290,"h":226,"cortes":[0.0,0.0819,0.1645,0.2537,0.3413,0.4118,0.59,0.6577,0.7436,0.8332,0.9165,1.0],"fixo":5},"pc":{"src":"icv/natal-pisca-pc.webp","w":2172,"h":262,"cortes":[0.0,0.0346,0.0648,0.095,0.1266,0.1586,0.1893,0.2196,0.2499,0.2791,0.3074,0.3367,0.3673,0.3974,0.4263,0.453,0.5488,0.5764,0.605,0.634,0.6641,0.6933,0.7208,0.7492,0.7798,0.8109,0.8421,0.8735,0.9049,0.9353,0.9654,1.0],"fixo":15}};
-function natalLuzMontar(bw){ /* 18/11/2026 (dono): no CELULAR a guirlanda de pinheiros do dono, inteira no cartão (no tamanho proporcional, sem espremer), com as luzes piscando em onda; no COMPUTADOR a arte de lâmpadas com coroa, o fio repetindo trechos que se encaixam para os lados (sem emenda) */
+function natalLuzMontar(bw){ /* 18/11/2026 (dono): no CELULAR a guirlanda REALISTA em canvas (duas imagens — acesa e apagada — e cada lâmpada acende sozinha com brilho orgânico); no COMPUTADOR a arte de lâmpadas com coroa, o fio repetindo trechos que se encaixam para os lados (sem emenda) */
   const el=natal.luz; if(!el) return; const pc=telaLarga();
-  if(!pc){ /* celular: guirlanda de pinheiros (icv/natal-pisca-guirlanda.webp), inteira, no tamanho proporcional */
-    const src='icv/natal-pisca-guirlanda.webp', W=2172, Hc=256, area=Math.max(200,bw);
-    const gw=Math.min(area,475), h=Math.max(1,Math.round(gw*Hc/W)), N=16, esq=(area-gw)/2;
-    let html='';
-    for(let i=0;i<N;i++){ const x0=gw*i/N, x1=gw*(i+1)/N;
-      html+='<i style="width:'+(x1-x0).toFixed(2)+'px;background-image:url('+src+');background-size:'+gw.toFixed(2)+'px '+h+'px;background-position:-'+x0.toFixed(2)+'px 0;animation-duration:'+(2.0+(i%5)*.3).toFixed(2)+'s;animation-delay:-'+((i%7)*.33).toFixed(2)+'s"></i>' }
-    el.style.height=h+'px'; el.style.left=esq.toFixed(1)+'px'; el.innerHTML=html; return;
+  if(!pc){ /* celular: guirlanda realista em canvas (icv/natal-guirlanda-on.webp + -off.webp) */
+    const area=Math.max(200,bw), gw=Math.min(area,480), h=Math.round(gw*390/2172);
+    el.style.display='block'; el.style.width=gw.toFixed(1)+'px'; el.style.height=h+'px'; el.style.left=((area-gw)/2).toFixed(1)+'px';
+    if(natal.luzCanvas && natal.luzCanvas.isConnected){ natal.luzCanvas.style.width=gw.toFixed(1)+'px'; return } /* já montado; o CSS escala */
+    try{
+      el.innerHTML='';
+      const cv=document.createElement('canvas'); cv.width=1086; cv.height=195; cv.style.cssText='display:block;width:'+gw.toFixed(1)+'px;height:auto'; el.appendChild(cv); natal.luzCanvas=cv;
+      const g2=cv.getContext('2d',{alpha:true}); g2.scale(0.5,0.5); /* desenha em coordenadas 2172x390 com metade dos pixels, pra poupar o celular */
+      const LMP=[{x:66,y:236},{x:198,y:265},{x:328,y:263},{x:455,y:280},{x:581,y:269},{x:706,y:234},{x:825,y:243},{x:943,y:277},{x:1081,y:284},{x:1226,y:255},{x:1350,y:234},{x:1475,y:261},{x:1595,y:278},{x:1724,y:282},{x:1855,y:270},{x:1978,y:247},{x:2107,y:232}], SP=166, R=SP/2;
+      if(!natal.luzOn){ natal.luzOn=new Image(); natal.luzOn.src='icv/natal-guirlanda-on.webp' }
+      if(!natal.luzOff){ natal.luzOff=new Image(); natal.luzOff.src='icv/natal-guirlanda-off.webp' }
+      const reduz=()=>{ try{ return matchMedia('(prefers-reduced-motion: reduce)').matches }catch(e){ return false } };
+      const montar=()=>{ natal.luzSprites=LMP.map((l,i)=>{ const c=document.createElement('canvas'); c.width=c.height=SP; const p=c.getContext('2d'); p.drawImage(natal.luzOn,l.x-R,l.y-R,SP,SP,0,0,SP,SP); p.globalCompositeOperation='destination-in'; const g=p.createRadialGradient(R,R,10,R,R,R); g.addColorStop(0,'rgba(0,0,0,1)'); g.addColorStop(0.30,'rgba(0,0,0,1)'); g.addColorStop(0.67,'rgba(0,0,0,.72)'); g.addColorStop(1,'rgba(0,0,0,0)'); p.fillStyle=g; p.fillRect(0,0,SP,SP); return {img:c,periodo:1.7+(i*0.137%1.45),fase:i*2.399963,proxima:0,alvo:1,atual:0.7} }) };
+      let prev=0; const ini=performance.now(), fps=28;
+      const frame=(t)=>{
+        if(!natal.luzCanvas || !cv.isConnected || !natal.box){ natal.luzRaf=0; return }
+        natal.luzRaf=requestAnimationFrame(frame);
+        if(document.hidden || natal.box.classList.contains('pausa') || !natal.luzSprites) return;
+        if(t-prev<1000/fps) return;
+        const dt=Math.min(.08,(t-prev)/1000||.035); prev=t; const tempo=(t-ini)/1000;
+        g2.clearRect(0,0,2172,390); g2.drawImage(natal.luzOff,0,0);
+        const sp=natal.luzSprites;
+        for(let i=0;i<sp.length;i++){ const s=sp[i];
+          if(tempo>=s.proxima){ const curta=Math.random()<.20; s.alvo=curta?(.08+Math.random()*.24):(.68+Math.random()*.32); s.proxima=tempo+(curta?.10+Math.random()*.30:.55+Math.random()*1.6) }
+          s.atual+=(s.alvo-s.atual)*(1-Math.exp(-dt*(s.alvo<.4?9:5)));
+          const br=Math.max(.05,Math.min(1,s.atual*(.95+.05*Math.sin(tempo*(4.2+s.periodo)+s.fase))));
+          g2.globalAlpha=br; g2.drawImage(s.img,LMP[i].x-R,LMP[i].y-R);
+        }
+        g2.globalAlpha=1;
+      };
+      const comecar=()=>{ if(reduz()){ try{ g2.clearRect(0,0,2172,390); g2.drawImage(natal.luzOn,0,0) }catch(e){} return } if(!natal.luzRaf) natal.luzRaf=requestAnimationFrame(frame) };
+      const pronto=()=>{ try{ montar(); comecar() }catch(e){} };
+      let n=0; const esp=()=>{ if(natal.luzOn.complete&&natal.luzOff.complete){ if(natal.luzOn.naturalWidth&&natal.luzOff.naturalWidth) pronto() } else if(n++<60) setTimeout(esp,120) };
+      esp();
+    }catch(e){}
+    return;
   }
+  el.style.display=''; el.style.width='';
   const c=NATAL_PISCA.pc, W=c.w, h=80, k=h/c.h;
   let lado=0; try{ lado=Math.max(0,Math.round(parseFloat(getComputedStyle(natal.box).getPropertyValue('--lado'))||0)) }catch(e){}
   const area=Math.max(200,bw-lado), cx=c.cortes.map(f=>f*W), fat=[]; for(let i=0;i<cx.length-1;i++) fat.push({a:cx[i],b:cx[i+1],i});
@@ -13179,14 +13209,14 @@ function natalTick(){
     /* trenó: liga/desliga refaz o desenho dos marcadores */
     const t=natalTreno(); if(t!==natal.trenoOn){ natal.trenoOn=t; try{ veiculos.forEach(v=>{ try{ icTrocar(v) }catch(_){} }) }catch(_){} }
     const nc=natalC(), quer=natalPode() && !!nc.neve, chave=quer?[nc.forte?1:0,nc.acumulo?1:0,nc.luzes?1:0].join(''):'';
-    if(!quer){ if(natal.box){ try{ window.RGNatal&&window.RGNatal.desligar() }catch(e){} natal.box.remove(); natal.box=null; natal.arte=null; natal.luz=null; natal.chave=''; try{ const c=$('natalCap'); if(c) c.remove(); natal.capK='' }catch(e){} try{ document.body.classList.remove('natal-luz') }catch(e){} } return }
+    if(!quer){ if(natal.box){ try{ window.RGNatal&&window.RGNatal.desligar() }catch(e){} natal.box.remove(); natal.box=null; natal.arte=null; natal.luz=null; try{ if(natal.luzRaf){cancelAnimationFrame(natal.luzRaf);natal.luzRaf=0} }catch(e){} natal.luzCanvas=null; natal.luzSprites=null; natal.chave=''; try{ const c=$('natalCap'); if(c) c.remove(); natal.capK='' }catch(e){} try{ document.body.classList.remove('natal-luz') }catch(e){} } return }
     if(!window.RGNatal){ if(!natal.carregando && Date.now()>(natal.tentarEm||0)){ natal.carregando=true; const sc=document.createElement('script'); sc.src='natal.js?v=11'; sc.onload=()=>{ natal.carregando=false; natalTick() }; sc.onerror=()=>{ natal.carregando=false; natal.tentarEm=Date.now()+30000; try{ sc.remove() }catch(e){} /* 16/11 (auditoria): sem internet, tenta de novo só depois de 30 s */ }; document.head.appendChild(sc) } return }
     if(!natal.box){ const b=document.createElement('div'); b.id='natalBox'; b.setAttribute('aria-hidden','true'); const m=$('map'); m.parentNode.insertBefore(b,m.nextSibling); natal.box=b; natal.chave='' }
     natalChaoLoop();
     try{ if(!document.hidden && !document.body.classList.contains('foramapa') && window.RGNatal.acordar) window.RGNatal.acordar() }catch(e){} /* 17/11: vigia também pelo relógio de 0,7 s, que continua vivo quando o laço do desenho morre */
     try{ document.body.classList.toggle('natal-luz',!!nc.luzes) }catch(e){}
     if(chave!==natal.chave){ natal.chave=chave; window.RGNatal.ligar(natal.box,{intensidade:nc.forte?'caprichada':'discreta',acumular:false,luzes:false}); natal.fora=null;
-      if(natal.luz){ natal.luz.remove(); natal.luz=null }
+      if(natal.luz){ natal.luz.remove(); natal.luz=null; try{ if(natal.luzRaf){cancelAnimationFrame(natal.luzRaf);natal.luzRaf=0} }catch(e){} natal.luzCanvas=null; natal.luzSprites=null }
       if(nc.luzes){ const l=document.createElement('div'); l.id='natalLuzes'; natal.box.appendChild(l); natal.luz=l; natal.luzW=0 }
       if(natal.arte){ natal.arte.remove(); natal.arte=null } try{ const c=$('natalCap'); if(c) c.remove(); natal.capK='' }catch(e){}
       if(nc.acumulo){ const a=document.createElement('div'); a.id='natalArte'; natal.box.insertBefore(a,natal.box.firstChild); natal.arte=a; natal.arteK='' } }
