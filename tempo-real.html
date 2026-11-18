@@ -13192,11 +13192,11 @@ function natalDica(){ /* aviso uma vez por login: como desligar */
   const fim=()=>{ natal.dicaVista=k; /* 16/11 (auditoria): não reabre se o celular não gravar */ try{ lsSet(k,'1') }catch(e){} d.remove(); b.classList.remove('pulsa') };
   $('ndOk').onclick=fim; d.addEventListener('click',e=>{ if(e.target===d) fim() });
 }
-$('natalBtn').onclick=()=>{
+try{ $('natalBtn').onclick=()=>{ /* 18/11 (revisão): protegido — se o botão sumir do HTML, o app não fica em branco */
   const off=!natalOff(); try{ (natal.offMem=natal.offMem||{})[natalChaveOff()]=off; lsSet(natalChaveOff(),off?'1':'0') }catch(e){}
   try{ const dd=$('natalDica'); if(dd){ dd.remove(); natal.dicaVista='rg_natal_dica_'+String(lsGet('rg_email')||'').trim().toLowerCase(); $('natalBtn').classList.remove('pulsa'); lsSet('rg_natal_dica_'+String(lsGet('rg_email')||'').trim().toLowerCase(),'1') } }catch(e){}
   toast(off?'Modo Natal desligado. Toque na árvore para ligar de novo.':'🎄 Modo Natal ligado!',3500); natalTick();
-};
+} }catch(e){}
 function natalAvisar(){ /* 17/11/2026 (dono): 'quero ver quem desativou o tema'. O app do CLIENTE avisa o servidor se a árvore está ligada ou desligada: ao abrir e a cada troca. O dono entrando como cliente não conta. */
   try{ if(ehAdmin || VER.on || !natalPerm()) return; const k=(lsGet('rg_email')||'')+'|'+(natalOff()?'1':'0');
     if(natal.avK===k || natal.avIndo || Date.now()<(natal.avEm||0)) return; natal.avIndo=true;
