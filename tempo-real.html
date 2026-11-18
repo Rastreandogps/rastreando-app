@@ -13101,7 +13101,7 @@ function natalLuzMontar(bw){ /* 18/11/2026 (dono): no CELULAR a guirlanda REALIS
   const el=natal.luz; if(!el) return; const pc=telaLarga();
   if(!pc){ /* celular: guirlanda realista em canvas (icv/natal-guirlanda-on.webp + -off.webp) */
     const area=Math.max(200,bw), gw=Math.min(area,480), h=Math.round(gw*390/2172);
-    el.style.display='block'; el.style.width=gw.toFixed(1)+'px'; el.style.height=h+'px'; el.style.left=((area-gw)/2).toFixed(1)+'px'; el.style.top=(-Math.round(h*0.30))+'px'; /* 18/11 (dono): levanta um pouco a guirlanda */
+    el.style.display='block'; el.style.width=gw.toFixed(1)+'px'; el.style.height=h+'px'; el.style.left=((area-gw)/2).toFixed(1)+'px'; el.style.top=(-Math.round(h*0.38))+'px'; /* 18/11 (dono): levanta a guirlanda; 18/11 06h22 (dono): mais um pouco, até o ramo encostar no topo (as pontinhas das folhas passam da borda) */
     if(natal.luzCanvas && natal.luzCanvas.isConnected){ natal.luzCanvas.style.width=gw.toFixed(1)+'px'; return } /* já montado; o CSS escala */
     try{
       el.innerHTML='';
