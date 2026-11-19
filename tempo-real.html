@@ -10785,6 +10785,26 @@ function atalhoVV(){
 }
 if(window.visualViewport){ visualViewport.addEventListener('resize',atalhoVV); visualViewport.addEventListener('scroll',atalhoVV) }
 try{ const ab=$('atalhoBusca'); ab.addEventListener('focus',()=>setTimeout(atalhoVV,350)); ab.addEventListener('blur',()=>setTimeout(atalhoVV,100)) }catch(e){}
+/* 19/11/2026 (dono): "Vincular aparelho" e "Novo cliente" no celular: com o teclado aberto, a busca sobe para o topo da janela
+   e a lista filtrada fica entre a busca e o teclado (antes ela encolhia e ficava escondida atrás do teclado). */
+let apVVm=null;
+function apVV(){
+  const vv=window.visualViewport, el=document.activeElement;
+  const ativo=vv && el && el.dataset && el.dataset.lista && el.closest('.modal.show') && !window.matchMedia('(min-width:900px)').matches;
+  if(!ativo){
+    if(apVVm){ const box=apVVm.querySelector('.box2'); apVVm.style.top=apVVm.style.height=apVVm.style.bottom=''; if(box) box.style.maxHeight=''; apVVm.querySelectorAll('.apsel').forEach(x=>x.style.maxHeight=''); apVVm=null }
+    return;
+  }
+  const m=el.closest('.modal'), box=m.querySelector('.box2'), l=$(el.dataset.lista); if(!box||!l) return;
+  apVVm=m;
+  m.style.top=vv.offsetTop+'px'; m.style.bottom='auto'; m.style.height=vv.height+'px';
+  box.style.maxHeight=vv.height+'px';
+  const bus=el.closest('.apbusca')||el, acoes=box.querySelector('.actions2'), hAc=acoes?acoes.offsetHeight+14:60;
+  l.style.maxHeight=Math.max(110,vv.height-bus.offsetHeight-hAc-40)+'px';
+  const alvo=box.scrollTop+bus.getBoundingClientRect().top-box.getBoundingClientRect().top-8; if(Math.abs(box.scrollTop-alvo)>4) box.scrollTop=alvo; /* busca no topo da janela */
+}
+if(window.visualViewport){ visualViewport.addEventListener('resize',apVV); visualViewport.addEventListener('scroll',apVV) }
+['vincBusca','cApBusca'].forEach(id=>{ try{ const x=$(id); x.addEventListener('focus',()=>setTimeout(apVV,350)); x.addEventListener('input',()=>setTimeout(apVV,30)) }catch(e){} });
 $('alIgn').addEventListener('change',async e=>{
   const i=e.target.closest('input[data-ign]'); if(!i) return;
   i.disabled=true;
