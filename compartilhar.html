@@ -255,8 +255,7 @@ function iconeVeic(p, nome) {
   const tipo = dados && dados.icone, cor = corDe(p);
   if (!tipo || !IC_REAL[tipo]) return null;
   const t = IC_REAL_TAM[tipo] || 56, n = icCorReal(tipo, dados.iconeCor);
-  const html = '<div class="seta" style="width:58px;height:58px"><svg viewBox="-30 -30 60 60" width="58" height="58" style="width:58px;height:58px;filter:drop-shadow(0 2px 4px rgba(0,0,0,.35))">' +
-    '<circle r="26" fill="rgba(255,255,255,.92)" stroke="' + cor + '" stroke-width="3"/>' +
+  const html = '<div class="seta" style="width:58px;height:58px"><svg viewBox="-30 -30 60 60" width="58" height="58" style="width:58px;height:58px;filter:drop-shadow(0 2px 3px rgba(0,0,0,.45))">' +
     '<g transform="rotate(' + (p.curso || 0) + ')"><image href="icv/' + tipo + '-' + n + '.webp" x="' + (-t / 2) + '" y="' + (-t / 2) + '" width="' + t + '" height="' + t + '"/></g>' +
     '</svg><div class="rotulo">' + esc(nome) + '</div></div>';
   return L.divIcon({ html, className: '', iconSize: [58, 58], iconAnchor: [29, 29] });
