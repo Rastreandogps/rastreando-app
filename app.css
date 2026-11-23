@@ -3811,4 +3811,5 @@ body.mapa-google #map .leaflet-top.leaflet-left > [data-gm="logo"]{transform-ori
 
 /* 18/11/2026 (dono): 2 botões do administrador no celular (Ver no mapa · Rua aqui) */
 #sheet .navbtn .navic.pt{background:linear-gradient(135deg,#34d399,#059669);box-shadow:0 4px 10px rgba(5,150,105,.30);color:#fff;opacity:1}
+#sheet .navbtn .navic.wp{background:linear-gradient(135deg,#4ade80,#16a34a);box-shadow:0 4px 10px rgba(22,163,74,.30);color:#fff;opacity:1}
 #sheet .navbtn .navic.sa{background:linear-gradient(135deg,#a78bfa,#7c3aed);box-shadow:0 4px 10px rgba(124,58,237,.30);color:#fff;opacity:1}
