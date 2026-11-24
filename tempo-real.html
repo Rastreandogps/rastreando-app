@@ -41,7 +41,7 @@ try{ if(localStorage.getItem('rg_token')||sessionStorage.getItem('rgv_rg_token')
 try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'){document.documentElement.setAttribute('data-tema',t)}}catch(e){}
 </script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="stylesheet" href="app.css?v=77"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
+<link rel="stylesheet" href="app.css?v=78"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
 </head>
 <body>
 
@@ -7467,10 +7467,10 @@ let faturasDados=null, faturasCarregando=false, bloqueioNivel='ok', bloqueioDado
 function ledHtml(n,b,fechavel){
   let txt;
   if(n==='aviso'){ const d=Number(b.diasRestantes);
-    txt='⚠ Sua fatura venceu · '+(d===1?'<b>hoje é o último dia</b> do seu acesso ao aplicativo':'seu acesso ao aplicativo fica disponível por mais <b>'+d+' dias</b>')+' · em caso de roubo, é pelo app que você localiza e protege o seu veículo · toque e pague pelo PIX ⚠' }
-  else txt='✔ Obrigado por avisar que pagou · seu acesso segue normal até <b>'+fmtHora(b.ateMs)+'</b> enquanto o pagamento é confirmado · se ainda não pagou, toque e pague pelo PIX'; /* 26/10/2026 (dono): texto mais cordial */
-  const t='<span>'+txt+'</span>';
-  return '<div class="letreiro"><div class="lt-trilho">'+t+t+t+t+'</div></div>'+(fechavel?'<button type="button" class="apx" aria-label="Fechar o aviso até amanhã" title="Fechar até amanhã">×</button>':'');
+    txt='⚠ Sua fatura venceu · '+(d===1?'<b>hoje é o último dia</b> do seu acesso ao aplicativo':'seu acesso ao aplicativo fica disponível por mais <b>'+d+' dias</b>')+'<span class="lt-pc"> · em caso de roubo, é pelo app que você localiza e protege o seu veículo</span> · <u>toque e pague pelo PIX</u>' }
+  else txt='✔ Obrigado por avisar que pagou · seu acesso segue normal até <b>'+fmtHora(b.ateMs)+'</b><span class="lt-pc"> enquanto o pagamento é confirmado</span> · se ainda não pagou, <u>toque e pague pelo PIX</u>'; /* 26/10/2026 (dono): texto mais cordial */
+  /* 24/11/2026 (dono): a tarja fica FIXA (passando, as pessoas não liam); no celular quebra em linhas e o trecho mais longo aparece só no computador */
+  return '<div class="letreiro fixo"><div class="lt-fixo">'+txt+'</div></div>'+(fechavel?'<button type="button" class="apx" aria-label="Fechar o aviso até amanhã" title="Fechar até amanhã">×</button>':'');
 }
 function aplicarBloqueio(b){
   bloqueioDados=b||null; bloqueioNivel=(b&&b.nivel)||'ok';
