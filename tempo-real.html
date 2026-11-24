@@ -3583,16 +3583,17 @@ function buscaMapaAplicar(){
   if(ladoFiltro==='ret') return; /* em "Para retirar" vale a regra própria (retMapaBusca) */
   clearTimeout(buscaMapaT); buscaMapaT=setTimeout(()=>{ try{
     const q=String($('ladoBusca').value||'').trim().toLowerCase(), qd=q.replace(/\D/g,'');
-    const antes=buscaMapaIds?[...buscaMapaIds].sort().join(','):'';
-    buscaMapaIds = q ? new Set(veiculos.filter(v=>ladoCasa(v,q,qd)).map(v=>v.id)) : null;
-    const agora=buscaMapaIds?[...buscaMapaIds].sort().join(','):'';
-    if(antes!==agora){ mudouSelecao(); ladoCabecalho() }
+    /* 24/11 07h (caso Débora: 2 veículos, só 1 aparecia): não guarda mais a lista de quem bate; confere o texto na hora, porque o nome do cliente de cada veículo chega depois */
+    const antes=buscaMapaIds?buscaMapaIds.q:'';
+    buscaMapaIds = q ? { q, qd } : null;
+    if(antes!==q){ mudouSelecao(); ladoCabecalho() }
   }catch(e){ buscaMapaIds=null } },350);
 }
 function ladoBase(){
   ladoLimparAutofill();
   const q=String($('ladoBusca').value||'').trim().toLowerCase(), qd=q.replace(/\D/g,'');
-  if(!q && buscaMapaIds){ buscaMapaIds=null; try{ aplicarVisibilidade() }catch(e){} } /* a busca foi esvaziada sem digitar (autopreenchimento limpo): devolve o mapa */
+  if(!q && buscaMapaIds){ buscaMapaIds=null; try{ aplicarVisibilidade() }catch(e){} }
+  else if(q && buscaMapaIds){ try{ aplicarVisibilidade() }catch(e){} } /* a cada redesenho da lista, o mapa acompanha (vínculos de cliente carregam depois) */ /* a busca foi esvaziada sem digitar (autopreenchimento limpo): devolve o mapa */
   if(q && ehAdmin && qd.length>=11 && !ladoCpfsPedido && !Object.keys(cpfsMapa||{}).length){ ladoCpfsPedido=true; carregarCpfs().then(()=>{ try{ ladoDesenhar() }catch(e){} }) }
   return veiculos.filter(v=>{
     if(!ladoPassa(v)) return false;
@@ -5045,7 +5046,7 @@ const AB={abas:[],em:0,ativa:'',rodando:false,pronto:false};
 const abaChave=()=>'rg_aba_ativa_'+String(lsGet('rg_email')||'').trim().toLowerCase();
 try{ AB.ativa=lsGet(abaChave())||'' }catch(e){}
 function abaAtiva(){ return AB.abas.find(a=>a.id===AB.ativa)||null }
-function abaMostra(v){ if(buscaMapaIds && !buscaMapaIds.has(v.id)) return false; /* 24/11/2026: a busca da lista também filtra o mapa */ const a=abaAtiva(); return !a || a.ids.includes(v.id) }
+function abaMostra(v){ if(buscaMapaIds && !ladoCasa(v,buscaMapaIds.q,buscaMapaIds.qd)) return false; /* 24/11/2026: a busca da lista também filtra o mapa */ const a=abaAtiva(); return !a || a.ids.includes(v.id) }
 function abaDe(id){ return AB.abas.find(a=>a.ids.includes(id))||null }
 function abasPode(){ try{ return ehPrime() }catch(e){ return false } }
 async function abasFn(corpo){
