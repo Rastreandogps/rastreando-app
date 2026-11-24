@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="robots" content="noindex,nofollow">
+<title>Painel · Rastreando GPS</title>
+<!-- TELINHAS DO TELEGRAM (24/11/2026, dono): painel do dia, inadimplentes, agenda dos técnicos e ficha do cliente.
+     Só abre pelo botão do robô (a função confere a assinatura do Telegram). SÓ LEITURA: "Cobrar" apenas abre o WhatsApp com a mensagem pronta. -->
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;min-height:100%;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg,#0f172a);color:var(--tx,#f1f5f9)}
+#abas{position:sticky;top:0;z-index:20;display:flex;gap:6px;padding:8px 10px;background:var(--bg,#0f172a);border-bottom:1px solid rgba(148,163,184,.25)}
+#abas button{flex:1;min-height:40px;border:0;border-radius:10px;font-size:13.5px;font-weight:700;background:rgba(148,163,184,.18);color:var(--tx,#f1f5f9)}
+#abas button.on{background:var(--bt,#2563eb);color:var(--btx,#fff)}
+#corpo{padding:12px 12px 40px}
+h2{margin:4px 0 10px;font-size:17px}
+h3{margin:18px 0 8px;font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--dica,#94a3b8)}
+.grade{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.cx{background:rgba(148,163,184,.14);border-radius:12px;padding:10px 12px}
+.cx small{display:block;font-size:12px;color:var(--dica,#94a3b8)}
+.cx b{display:block;font-size:21px;margin-top:2px}
+.cx.alerta b{color:#f87171}.cx.bom b{color:#4ade80}
+.item{background:rgba(148,163,184,.12);border-radius:12px;padding:10px 12px;margin-bottom:8px}
+.item .t{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.item .t b{font-size:14.5px;overflow:hidden;text-overflow:ellipsis}
+.item .t span{flex:none;font-size:14px;font-weight:800}
+.item p{margin:4px 0 0;font-size:13px;color:var(--dica,#94a3b8);line-height:1.4}
+.item p a{color:var(--link,#60a5fa)}
+.acoes{display:flex;gap:8px;margin-top:9px}
+.acoes button,.bt{flex:1;min-height:38px;border:0;border-radius:10px;font-size:13px;font-weight:700;background:rgba(148,163,184,.22);color:var(--tx,#f1f5f9)}
+.acoes button.wpp{background:#16a34a;color:#fff}
+.selo{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11.5px;font-weight:700;background:#64748b;color:#fff}
+.selo.v{background:#b91c1c}.selo.a{background:#b45309}.selo.g{background:#15803d}
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;margin-bottom:4px}
+.chips button{flex:none;min-height:34px;padding:0 12px;border:0;border-radius:999px;font-size:12.5px;font-weight:700;background:rgba(148,163,184,.18);color:var(--tx,#f1f5f9)}
+.chips button.on{background:var(--bt,#2563eb);color:var(--btx,#fff)}
+#busca{width:100%;height:40px;border-radius:10px;border:1px solid rgba(148,163,184,.35);background:transparent;color:var(--tx,#f1f5f9);padding:0 12px;font-size:15px;margin-bottom:8px}
+.vazio{padding:26px 10px;text-align:center;color:var(--dica,#94a3b8);font-size:14px;line-height:1.5}
+.lista{margin:0;padding:0 0 0 18px;font-size:13.5px;line-height:1.6}
+#msg{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:50;max-width:90%;padding:10px 14px;border-radius:12px;background:rgba(15,23,42,.95);color:#fff;font-size:14px;font-weight:600;text-align:center;display:none;border:1px solid rgba(148,163,184,.3)}
+#voltar{display:none;margin-bottom:10px;min-height:38px;border:0;border-radius:10px;padding:0 14px;font-size:13.5px;font-weight:700;background:rgba(148,163,184,.22);color:var(--tx,#f1f5f9)}
+.atual{font-size:12px;color:var(--dica,#94a3b8);margin:14px 0 0;text-align:center}
+</style>
+</head>
+<body>
+<div id="abas">
+  <button data-t="dia" type="button">📊 Hoje</button>
+  <button data-t="inad" type="button">💰 Atrasados</button>
+  <button data-t="agenda" type="button">🗓️ Agenda</button>
+</div>
+<div id="corpo"><div class="vazio">Carregando…</div></div>
+<div id="msg"></div>
+<script>
+(function(){
+'use strict';
+const API='https://southamerica-east1-rastreando-assinaturas.cloudfunctions.net/rastreamentoTelegram';
+const tg=(window.Telegram&&window.Telegram.WebApp)||null;
+const corpo=document.getElementById('corpo');
+try{ if(tg){tg.ready();tg.expand();const tp=tg.themeParams||{},r=document.documentElement.style;
+  if(tp.bg_color)r.setProperty('--bg',tp.bg_color); if(tp.text_color)r.setProperty('--tx',tp.text_color); if(tp.hint_color)r.setProperty('--dica',tp.hint_color);
+  if(tp.button_color)r.setProperty('--bt',tp.button_color); if(tp.button_text_color)r.setProperty('--btx',tp.button_text_color); if(tp.link_color)r.setProperty('--link',tp.link_color)} }catch(e){}
+
+/* monta elementos sem innerHTML (nome de cliente nunca vira código) */
+function el(tag,attrs,filhos){const e=document.createElement(tag);
+  if(attrs)Object.keys(attrs).forEach(function(k){if(k==='cls')e.className=attrs[k];else if(k==='clique')e.onclick=attrs[k];else if(k==='txt')e.textContent=attrs[k];else e.setAttribute(k,attrs[k])});
+  (filhos||[]).forEach(function(f){if(f==null||f===false)return;e.appendChild(typeof f==='string'?document.createTextNode(f):f)});return e}
+function limpar(){while(corpo.firstChild)corpo.removeChild(corpo.firstChild)}
+function vazio(t){limpar();corpo.appendChild(el('div',{cls:'vazio',txt:t}))}
+function msg(t,ms){const m=document.getElementById('msg');m.textContent=t;m.style.display='block';clearTimeout(msg.t);msg.t=setTimeout(function(){m.style.display='none'},ms||3500)}
+function brl(n){return 'R$ '+Number(n||0).toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.')}
+function abrir(u){try{if(tg&&tg.openLink){tg.openLink(u);return}}catch(e){} window.open(u,'_blank')}
+function foneWa(f){const d=String(f||'').replace(/\D/g,'');return d?(d.length<=11?'55':'')+d:''}
+function agoraTxt(){const d=new Date();return 'Atualizado às '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')}
+
+const initData=(tg&&tg.initData)||'';
+if(!initData){document.getElementById('abas').style.display='none';vazio('Esta tela abre só pelo botão do robô, dentro do Telegram.');return}
+
+function pedir(dados){
+  return fetch(API,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({telinha:Object.assign({initData:initData},dados)})})
+    .then(function(r){return r.json().then(function(j){
+      if(r.status===403)throw new Error('Esta tela venceu ou não está liberada. Feche e abra de novo pelo robô.');
+      if(r.status!==200)throw new Error((j&&j.erro)||'Não consegui ler agora.');
+      return j})});
+}
+let telaAtual='';
+function marcar(t){telaAtual=t;document.querySelectorAll('#abas button').forEach(function(b){b.classList.toggle('on',b.getAttribute('data-t')===t)})}
+function carregar(t,extra,desenhar){marcar(t);vazio('Carregando…');const meu=t+JSON.stringify(extra||{});carregar.ult=meu;
+  pedir(Object.assign({tela:t},extra||{})).then(function(j){if(carregar.ult!==meu)return;limpar();desenhar(j);corpo.appendChild(el('p',{cls:'atual',txt:agoraTxt()}))})
+    .catch(function(e){if(carregar.ult===meu)vazio(e.message||'Não consegui ler agora.')})}
+
+/* ===== HOJE ===== */
+function cx(rot,val,cls){return el('div',{cls:'cx'+(cls?' '+cls:'')},[el('small',{txt:rot}),el('b',{txt:String(val)})])}
+function listinha(tit,arr){if(!arr||!arr.length)return null;return el('div',null,[el('h3',{txt:tit+' ('+arr.length+')'}),el('ul',{cls:'lista'},arr.map(function(x){return el('li',{txt:String(x)})}))])}
+function telaDia(){carregar('dia',null,function(j){
+  const d=j.dia||{},t=d.totais||{},c=j.cobranca||{},a=j.agenda||{};
+  corpo.appendChild(el('h2',{txt:'Hoje'+(d.dia?' · '+d.dia:'')}));
+  if(d.erro){corpo.appendChild(el('div',{cls:'vazio',txt:d.erro}))}
+  else{
+    const sem=(t.aparelhos||0)-(t.online||0);
+    corpo.appendChild(el('div',{cls:'grade'},[
+      cx('Aparelhos online',(t.online||0)+' de '+(t.aparelhos||0),'bom'), cx('Sem sinal agora',sem,sem?'alerta':''),
+      cx('Clientes',t.clientes||0), cx('Suspensos por atraso',d.clientesSuspensosPorAtraso,''),
+      cx('Bloqueios pelo app hoje',d.bloqueiosPeloAppHoje||0), cx('Liberações pelo app hoje',d.desbloqueiosPeloAppHoje||0),
+      cx('SMS enviados hoje',d.smsEnviadosHoje), cx('Sem energia agora',(d.aparelhosSemEnergiaAgora||[]).length,(d.aparelhosSemEnergiaAgora||[]).length?'alerta':'')
+    ]));
+  }
+  corpo.appendChild(el('h3',{txt:'Cobrança'}));
+  if(c.erro)corpo.appendChild(el('div',{cls:'item'},[el('p',{txt:c.erro})]));
+  else{corpo.appendChild(el('div',{cls:'grade'},[cx('Clientes em atraso',c.clientesEmAtraso||0,(c.clientesEmAtraso?'alerta':'')),cx('Total vencido',c.totalVencido||'R$ 0,00')]));
+    Object.keys(c.faixas||{}).forEach(function(k){corpo.appendChild(el('div',{cls:'item'},[el('div',{cls:'t'},[el('b',{txt:k}),el('span',{txt:c.faixas[k].clientes+' · '+c.faixas[k].valor})])]))});
+    corpo.appendChild(el('button',{cls:'bt',type:'button',style:'width:100%;margin-top:4px',txt:'Ver a lista de atrasados',clique:telaInad}))}
+  corpo.appendChild(el('h3',{txt:'Técnicos hoje'}));
+  if(a.erro)corpo.appendChild(el('div',{cls:'item'},[el('p',{txt:a.erro})]));
+  else if(!a.total)corpo.appendChild(el('div',{cls:'item'},[el('p',{txt:a.vazio||'Nenhuma OS hoje.'})]));
+  else{Object.keys(a.porTecnico||{}).forEach(function(k){const x=a.porTecnico[k];corpo.appendChild(el('div',{cls:'item'},[el('div',{cls:'t'},[el('b',{txt:k}),el('span',{txt:(x.concluidas||0)+' feitas · '+(x.abertas||0)+' abertas'})])]))});
+    corpo.appendChild(el('button',{cls:'bt',type:'button',style:'width:100%;margin-top:4px',txt:'Ver a agenda',clique:function(){telaAgenda('hoje')}}))}
+  [listinha('Perderam o sinal hoje',d.aparelhosQuePerderamSinalHoje),listinha('Sem energia agora',d.aparelhosSemEnergiaAgora),listinha('Clientes cadastrados hoje',d.clientesCadastradosHoje),listinha('Aparelhos cadastrados hoje',d.aparelhosCadastradosHoje)].forEach(function(x){if(x)corpo.appendChild(x)});
+})}
+
+/* ===== ATRASADOS ===== */
+function cobrar(c,bt){
+  bt.disabled=true;const antes=bt.textContent;bt.textContent='Montando…';
+  pedir({tela:'cobrar',clienteId:c.id}).then(function(j){
+    if(j.erro){msg(j.erro,5000);return}
+    const f=foneWa(j.fone||c.fone); if(!f)msg('Cliente sem WhatsApp no cadastro: escolha o contato no WhatsApp.',5000);
+    abrir('https://wa.me/'+f+'?text='+encodeURIComponent(j.mensagem));
+  }).catch(function(e){msg(e.message||'Não consegui montar a mensagem.')}).then(function(){bt.disabled=false;bt.textContent=antes});
+}
+const FAIXAS=[['todos','Todos',0,9999],['1','1 a 4 dias',1,4],['5','5 a 19',5,19],['20','20 a 29',20,29],['30','30 ou mais',30,9999]];
+function telaInad(){carregar('inad',null,function(j){
+  let faixa='todos',texto='';
+  corpo.appendChild(el('h2',{txt:'Atrasados · '+j.total+' clientes · '+brl(j.soma)}));
+  const busca=el('input',{id:'busca',type:'search',placeholder:'Buscar pelo nome'});corpo.appendChild(busca);
+  const chips=el('div',{cls:'chips'},FAIXAS.map(function(f){const n=j.clientes.filter(function(c){return c.dias>=f[2]&&c.dias<=f[3]}).length;
+    return el('button',{type:'button','data-f':f[0],cls:f[0]==='todos'?'on':'',txt:f[1]+' ('+n+')',clique:function(){faixa=f[0];chips.querySelectorAll('button').forEach(function(b){b.classList.toggle('on',b.getAttribute('data-f')===faixa)});pintar()}})}));
+  corpo.appendChild(chips);
+  const lista=el('div');corpo.appendChild(lista);
+  const semAc=function(s){return String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase()};
+  function pintar(){while(lista.firstChild)lista.removeChild(lista.firstChild);
+    const f=FAIXAS.filter(function(x){return x[0]===faixa})[0],q=semAc(texto);
+    const vis=j.clientes.filter(function(c){return c.dias>=f[2]&&c.dias<=f[3]&&(!q||semAc(c.nome).indexOf(q)>=0)});
+    if(!vis.length){lista.appendChild(el('div',{cls:'vazio',txt:'Ninguém nesta faixa.'}));return}
+    vis.slice(0,150).forEach(function(c){
+      const btC=el('button',{type:'button',cls:'wpp',txt:'💬 Cobrar'});btC.onclick=function(){cobrar(c,btC)};
+      lista.appendChild(el('div',{cls:'item'},[
+        el('div',{cls:'t'},[el('b',{txt:c.nome}),el('span',{txt:c.valor?brl(c.valor):'—'})]),
+        el('p',null,[el('span',{cls:'selo '+(c.dias>=30?'v':c.dias>=5?'a':''),txt:c.dias+(c.dias===1?' dia':' dias')}),' ',c.faturas?c.faturas+(c.faturas===1?' fatura':' faturas')+' · ':'',c.situacao||'',c.especial?' · cliente especial':'']),
+        el('div',{cls:'acoes'},[btC,el('button',{type:'button',txt:'👤 Ficha',clique:function(){telaCliente(c.id,'inad')}})])
+      ]))});
+    if(vis.length>150)lista.appendChild(el('div',{cls:'vazio',txt:'Mostrando 150 de '+vis.length+'. Use a busca.'}))}
+  busca.oninput=function(){texto=busca.value;pintar()};
+  pintar();
+})}
+
+/* ===== AGENDA ===== */
+function telaAgenda(dia){dia=dia||'hoje';carregar('agenda',{dia:dia},function(j){
+  const dias=[['ontem','Ontem'],['hoje','Hoje'],['amanhã','Amanhã']];
+  corpo.appendChild(el('div',{cls:'chips'},dias.map(function(d){return el('button',{type:'button',cls:d[0]===dia?'on':'',txt:d[1],clique:function(){telaAgenda(d[0])}})})
+    .concat([el('input',{type:'date',style:'flex:none;height:34px;border-radius:999px;border:1px solid rgba(148,163,184,.35);background:transparent;color:inherit;padding:0 10px',id:'dtAg'})])));
+  const dt=document.getElementById('dtAg'); if(/^\d{4}-\d{2}-\d{2}$/.test(dia))dt.value=dia; dt.onchange=function(){if(dt.value)telaAgenda(dt.value)};
+  if(j.erro||j.resultado){corpo.appendChild(el('div',{cls:'vazio',txt:j.erro||j.resultado}));return}
+  corpo.appendChild(el('h2',{txt:'Agenda · '+(j.periodo||'')+' · '+j.total+' OS'}));
+  const grupos={};(j.ordens||[]).forEach(function(o){(grupos[o.tecnico]=grupos[o.tecnico]||[]).push(o)});
+  Object.keys(grupos).forEach(function(tec){const pt=(j.porTecnico||{})[tec]||{};
+    corpo.appendChild(el('h3',{txt:tec+' · '+(pt.concluidas||0)+' feitas, '+(pt.abertas||0)+' abertas'}));
+    grupos[tec].forEach(function(o){const feita=/conclu/.test(o.situacao||''),f=foneWa(o.telefone);
+      corpo.appendChild(el('div',{cls:'item'},[
+        el('div',{cls:'t'},[el('b',{txt:(o.hora||o.periodo||'')+(o.hora||o.periodo?' · ':'')+(o.cliente||'')}),el('span',{cls:'selo '+(feita?'g':'a'),txt:feita?'Feita':'Aberta'})]),
+        el('p',{txt:[o.tipo,(o.veiculos||[]).join(', '),o.valorTecnico?'Técnico: '+o.valorTecnico:''].filter(Boolean).join(' · ')}),
+        o.endereco?el('p',null,['📍 ',el('a',{href:'#',txt:o.endereco,clique:function(e){e.preventDefault();abrir('https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(o.endereco))}})]):null,
+        o.troca?el('p',{txt:'Troca: '+o.troca}):null,
+        f?el('div',{cls:'acoes'},[el('button',{type:'button',cls:'wpp',txt:'💬 WhatsApp do cliente',clique:function(){abrir('https://wa.me/'+f)}})]):null
+      ]))})});
+  if(j.aviso)corpo.appendChild(el('div',{cls:'vazio',txt:j.aviso}));
+})}
+
+/* ===== FICHA DO CLIENTE ===== */
+function telaCliente(id,voltarPara){marcar('');vazio('Carregando…');const meu='cliente'+id;carregar.ult=meu;
+  pedir({tela:'cliente',clienteId:id}).then(function(j){if(carregar.ult!==meu)return;limpar();
+    const c=j.cliente||{},v=j.veiculos||{},f=j.faturas||{},fone=foneWa(c.whatsapp);
+    if(voltarPara)corpo.appendChild(el('button',{type:'button',id:'voltar',style:'display:inline-block',txt:'‹ Voltar',clique:function(){voltarPara==='inad'?telaInad():telaDia()}}));
+    corpo.appendChild(el('h2',{txt:c.nome||'Cliente'}));
+    corpo.appendChild(el('div',{cls:'item'},[
+      el('p',{txt:'Financeiro: '+(c.financeiro||'—')}),
+      el('p',{txt:'Último acesso ao app: '+(c.ultimoAcessoApp||'—')}),
+      c.clienteDesde?el('p',{txt:'Cliente desde: '+c.clienteDesde}):null,
+      c.acessoDesativado?el('p',null,[el('span',{cls:'selo v',txt:'Acesso desativado'})]):null,
+      el('div',{cls:'acoes'},[
+        fone?el('button',{type:'button',cls:'wpp',txt:'💬 WhatsApp',clique:function(){abrir('https://wa.me/'+fone)}}):null,
+        (function(){const b=el('button',{type:'button',txt:'💰 Cobrar'});b.onclick=function(){cobrar({id:id,fone:c.whatsapp},b)};return b})()
+      ])
+    ]));
+    const aps=(v.aparelhos||[]);
+    corpo.appendChild(el('h3',{txt:'Veículos ('+aps.length+')'}));
+    if(v.erro)corpo.appendChild(el('div',{cls:'item'},[el('p',{txt:v.erro})]));
+    aps.forEach(function(a){const on=a.situacao==='online',p=a.posicao||{};
+      corpo.appendChild(el('div',{cls:'item'},[
+        el('div',{cls:'t'},[el('b',{txt:a.nome+(a.placa&&String(a.nome).indexOf(a.placa)<0?' ('+a.placa+')':'')}),el('span',{cls:'selo '+(on?'g':'v'),txt:on?'Online':'Sem sinal'})]),
+        el('p',{txt:[a.situacao!=='online'?a.situacao:'',a.bloqueado||'',p.endereco||''].filter(Boolean).join(' · ')}),
+        el('div',{cls:'acoes'},[el('button',{type:'button',txt:'🗺️ Ver no mapa',clique:function(){location.href='mapinha.html?v='+a.id}})])
+      ]))});
+    if(aps.length>1)corpo.appendChild(el('button',{cls:'bt',type:'button',style:'width:100%',txt:'🗺️ Ver todos no mapa',clique:function(){location.href='mapinha.html?v='+aps.slice(0,40).map(function(a){return a.id}).join(',')}}));
+    corpo.appendChild(el('h3',{txt:'Faturas em aberto'}));
+    if(f.erro)corpo.appendChild(el('div',{cls:'item'},[el('p',{txt:f.erro})]));
+    else if(!(f.emAberto||[]).length)corpo.appendChild(el('div',{cls:'item'},[el('p',{txt:'Nenhuma fatura em aberto.'})]));
+    else f.emAberto.forEach(function(x){corpo.appendChild(el('div',{cls:'item'},[
+      el('div',{cls:'t'},[el('b',{txt:'Vencimento '+x.vencimento}),el('span',{txt:x.valorHoje||x.valor})]),
+      el('p',null,[x.vencida?el('span',{cls:'selo v',txt:x.diasAtraso+' dias de atraso'}):el('span',{cls:'selo',txt:'A vencer'})]),
+      x.link?el('div',{cls:'acoes'},[el('button',{type:'button',txt:'Abrir a fatura',clique:function(){abrir(x.link)}})]):null
+    ]))});
+    if((f.ultimasPagas||[]).length){corpo.appendChild(el('h3',{txt:'Últimas pagas'}));f.ultimasPagas.forEach(function(x){corpo.appendChild(el('div',{cls:'item'},[el('div',{cls:'t'},[el('b',{txt:'Venc. '+x.vencimento+' · pago em '+x.pagoEm}),el('span',{txt:x.valor})])]))})}
+    corpo.appendChild(el('p',{cls:'atual',txt:agoraTxt()}));
+  }).catch(function(e){if(carregar.ult===meu)vazio(e.message||'Não consegui ler agora.')})}
+
+document.querySelectorAll('#abas button').forEach(function(b){b.onclick=function(){const t=b.getAttribute('data-t');t==='dia'?telaDia():t==='inad'?telaInad():telaAgenda('hoje')}});
+const q=new URLSearchParams(location.search),t0=q.get('t')||'dia';
+if(t0==='inad')telaInad(); else if(t0==='agenda')telaAgenda(q.get('d')||'hoje'); else if(t0==='cliente'&&Number(q.get('c'))>0)telaCliente(Number(q.get('c')),''); else telaDia();
+})();
+</script>
+</body>
+</html>
