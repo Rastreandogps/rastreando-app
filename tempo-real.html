@@ -13143,6 +13143,7 @@ const NATAL_LUZ_CORTES=[0,.0626,.1469,.2302,.2947,.3642,.4353,.4954,.5589,.6425,
 const NATAL_PISCA={"cel":{"src":"icv/natal-pisca-cel.webp","w":1290,"h":226,"cortes":[0.0,0.0819,0.1645,0.2537,0.3413,0.4118,0.59,0.6577,0.7436,0.8332,0.9165,1.0],"fixo":5},"pc":{"src":"icv/natal-pisca-pc.webp","w":2172,"h":262,"cortes":[0.0,0.0346,0.0648,0.095,0.1266,0.1586,0.1893,0.2196,0.2499,0.2791,0.3074,0.3367,0.3673,0.3974,0.4263,0.453,0.5488,0.5764,0.605,0.634,0.6641,0.6933,0.7208,0.7492,0.7798,0.8109,0.8421,0.8735,0.9049,0.9353,0.9654,1.0],"fixo":15}};
 function natalLuzMontar(bw){ /* 18/11/2026 (dono): no CELULAR a guirlanda REALISTA em canvas (duas imagens — acesa e apagada — e cada lâmpada acende sozinha com brilho orgânico); no COMPUTADOR a arte de lâmpadas com coroa, o fio repetindo trechos que se encaixam para os lados (sem emenda) */
   const el=natal.luz; if(!el) return; const pc=telaLarga();
+  if(pc){ el.style.display='none'; return } /* 24/11/2026 (dono): no COMPUTADOR sem pisca-pisca; o celular continua com a guirlanda */
   if(!pc){ /* celular: guirlanda realista em canvas (icv/natal-guirlanda-on.webp + -off.webp) */
     const area=Math.max(200,bw), gw=Math.min(area,480), h=Math.round(gw*390/2172);
     el.style.display='block'; el.style.width=gw.toFixed(1)+'px'; el.style.height=h+'px'; el.style.left=((area-gw)/2).toFixed(1)+'px'; el.style.top=(-Math.round(h*0.38))+'px'; /* 18/11 (dono): levanta a guirlanda; 18/11 06h22 (dono): mais um pouco, até o ramo encostar no topo (as pontinhas das folhas passam da borda) */
