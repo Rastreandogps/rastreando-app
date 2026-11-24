@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="robots" content="noindex,nofollow">
+<title>Mapa ao vivo · Rastreando GPS</title>
+<!-- MAPINHA DO TELEGRAM (24/11/2026, dono): telinha que abre por cima da conversa do robô.
+     Só funciona aberta pelo botão do robô: quem responde é a função rastreamentoTelegram, que confere a assinatura do Telegram. Só leitura. -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg,#0f172a);color:var(--tx,#f1f5f9);overflow:hidden}
+#app{display:flex;flex-direction:column;height:100%}
+#mapa{flex:1;min-height:0;background:#cbd5e1}
+#pe{flex:none;padding:10px 12px calc(10px + env(safe-area-inset-bottom));background:var(--bg,#0f172a);border-top:1px solid rgba(148,163,184,.25)}
+#nome{font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#linha{display:flex;gap:8px;align-items:center;margin-top:3px;font-size:13px;color:var(--dica,#94a3b8)}
+#linha b{color:var(--tx,#f1f5f9);font-size:15px}
+.selo{padding:2px 8px;border-radius:999px;font-size:11.5px;font-weight:700}
+.selo.mov{background:#16a34a;color:#fff}.selo.par{background:#64748b;color:#fff}.selo.off{background:#b91c1c;color:#fff}
+#bts{display:flex;gap:8px;margin-top:9px}
+#bts button{flex:1;min-height:42px;border:0;border-radius:11px;font-size:13.5px;font-weight:700;background:var(--bt,#2563eb);color:var(--btx,#fff)}
+#bts button.sec{background:rgba(148,163,184,.22);color:var(--tx,#f1f5f9)}
+#bts button.on{outline:2px solid #22c55e}
+#aviso{position:absolute;inset:0;z-index:2000;display:flex;align-items:center;justify-content:center;text-align:center;padding:28px;background:var(--bg,#0f172a);font-size:15px;line-height:1.5}
+#aviso.some{display:none}
+#rotaInfo{position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:900;max-width:92%;padding:6px 12px;border-radius:999px;background:rgba(15,23,42,.86);color:#fff;font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:none}
+.veic{width:34px;height:34px}
+.veic .seta{width:34px;height:34px;transition:transform .6s}
+.veic svg{width:34px;height:34px;display:block;filter:drop-shadow(0 2px 3px rgba(0,0,0,.45))}
+.rot{background:rgba(15,23,42,.86);color:#fff;border:0;border-radius:8px;padding:2px 7px;font-size:11.5px;font-weight:700;box-shadow:none}
+.rot::before{display:none}
+.leaflet-control-attribution{font-size:9px}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="mapa"></div>
+  <div id="rotaInfo"></div>
+  <div id="pe">
+    <div id="nome">Carregando…</div>
+    <div id="linha"><span id="selo" class="selo par">—</span><span><b id="vel">0</b> km/h</span><span id="quando"></span></div>
+    <div id="bts">
+      <button id="btSeguir" class="sec on" type="button">🎯 Seguindo</button>
+      <button id="btMaps" class="sec" type="button">Google Maps</button>
+      <button id="btWpp" type="button">📍 WhatsApp</button>
+    </div>
+  </div>
+</div>
+<div id="aviso">Carregando o mapa…</div>
+<script>
+(function(){
+'use strict';
+const API='https://southamerica-east1-rastreando-assinaturas.cloudfunctions.net/rastreamentoTelegram';
+const INTERVALO=10000;
+const tg=(window.Telegram&&window.Telegram.WebApp)||null;
+const $=function(id){return document.getElementById(id)};
+function aviso(t){const a=$('aviso');if(t){a.textContent=t;a.classList.remove('some')}else a.classList.add('some')}
+
+/* cores da conversa do Telegram */
+try{
+  if(tg){tg.ready();tg.expand();
+    const tp=tg.themeParams||{},r=document.documentElement.style;
+    if(tp.bg_color)r.setProperty('--bg',tp.bg_color);
+    if(tp.text_color)r.setProperty('--tx',tp.text_color);
+    if(tp.hint_color)r.setProperty('--dica',tp.hint_color);
+    if(tp.button_color)r.setProperty('--bt',tp.button_color);
+    if(tp.button_text_color)r.setProperty('--btx',tp.button_text_color);
+  }
+}catch(e){}
+
+const q=new URLSearchParams(location.search);
+const ids=String(q.get('v')||'').split(',').map(Number).filter(function(x){return Number.isInteger(x)&&x>0}).slice(0,10);
+const de=Number(q.get('de'))||0, ate=Number(q.get('ate'))||0;
+const initData=(tg&&tg.initData)||'';
+if(!initData){aviso('Esta tela abre só pelo botão do robô, dentro do Telegram.');return}
+if(!ids.length){aviso('Veículo não informado. Peça de novo ao robô.');return}
+if(!window.L){aviso('Não consegui carregar o mapa. Confira a internet e abra de novo.');return}
+
+const mapa=L.map('mapa',{zoomControl:false,attributionControl:true}).setView([-22.78,-43.30],12);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(mapa);
+L.control.zoom({position:'topright'}).addTo(mapa);
+
+let seguir=true, primeiro=true, foco=ids[0], ultimo=null, falhas=0, rotaPedida=false;
+const marc={}, rastro={}, anim={};
+mapa.on('dragstart',function(){seguir=false;pintarSeguir()});
+function pintarSeguir(){const b=$('btSeguir');b.classList.toggle('on',seguir);b.textContent=seguir?'🎯 Seguindo':'🎯 Seguir'}
+$('btSeguir').onclick=function(){seguir=!seguir;pintarSeguir();if(seguir&&ultimo&&ultimo.lat!=null)mapa.panTo([ultimo.lat,ultimo.lon])};
+
+function icone(v){
+  const cor=!v.online?'#b91c1c':(v.vel>3?'#16a34a':'#475569');
+  return L.divIcon({className:'veic',iconSize:[34,34],iconAnchor:[17,17],
+    html:'<div class="seta" style="transform:rotate('+(v.curso||0)+'deg)"><svg viewBox="0 0 34 34"><circle cx="17" cy="17" r="15" fill="'+cor+'" stroke="#fff" stroke-width="2.5"/><path d="M17 7l7 17-7-4-7 4z" fill="#fff"/></svg></div>'});
+}
+/* desliza o marcador até a posição nova (o rastreador manda em pulos; aqui o pulo vira um deslize curto) */
+function deslizar(id,para){
+  const m=marc[id],a=m.getLatLng(),ini=performance.now(),dur=1800;
+  if(anim[id])cancelAnimationFrame(anim[id]);
+  const dist=mapa.distance(a,para); if(dist<1||dist>3000){m.setLatLng(para);return}
+  (function passo(t){const k=Math.min(1,(t-ini)/dur);
+    m.setLatLng([a.lat+(para[0]-a.lat)*k,a.lng+(para[1]-a.lng)*k]);
+    if(k<1)anim[id]=requestAnimationFrame(passo)})(ini);
+}
+function ha(ms){const s=Math.max(0,Math.round((Date.now()-ms)/1000));
+  if(s<60)return 'há '+s+' s'; if(s<3600)return 'há '+Math.round(s/60)+' min'; if(s<86400)return 'há '+Math.round(s/3600)+' h'; return 'há '+Math.round(s/86400)+' dias'}
+function hora(ms){const d=new Date(ms);return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')}
+
+function pe(){
+  const v=ultimo; if(!v)return;
+  $('nome').textContent=v.nome||'Veículo';
+  $('vel').textContent=v.lat==null?'—':String(v.vel||0);
+  const s=$('selo');
+  if(v.lat==null){s.className='selo off';s.textContent='Sem posição'}
+  else if(!v.online){s.className='selo off';s.textContent='Sem sinal'}
+  else if(v.vel>3){s.className='selo mov';s.textContent='Em movimento'}
+  else{s.className='selo par';s.textContent=v.ign===true?'Parado · ligado':'Parado'}
+  $('quando').textContent=v.em?'· posição '+ha(v.em):'';
+}
+setInterval(pe,1000);
+
+function desenhar(j){
+  const pts=[];
+  (j.veiculos||[]).forEach(function(v){
+    if(v.id===foco)ultimo=v;
+    if(v.lat==null)return;
+    const ll=[v.lat,v.lon]; pts.push(ll);
+    if(!marc[v.id]){
+      marc[v.id]=L.marker(ll,{icon:icone(v),zIndexOffset:500}).addTo(mapa);
+      if(ids.length>1)marc[v.id].bindTooltip(v.nome,{permanent:true,direction:'top',offset:[0,-16],className:'rot'});
+      marc[v.id].on('click',function(){foco=v.id;seguir=true;pintarSeguir();buscar()});
+      rastro[v.id]=L.polyline([ll],{color:'#2563eb',weight:4,opacity:.85}).addTo(mapa);
+    }else{
+      marc[v.id].setIcon(icone(v)); deslizar(v.id,ll);
+      const u=rastro[v.id].getLatLngs(), f=u[u.length-1];
+      if(!f||mapa.distance(f,ll)>4)rastro[v.id].addLatLng(ll);
+    }
+  });
+  if(j.rota&&j.rota.length>1){
+    const linha=j.rota.map(function(p){return [p[0],p[1]]});
+    L.polyline(linha,{color:'#f59e0b',weight:5,opacity:.9}).addTo(mapa);
+    L.circleMarker(linha[0],{radius:7,color:'#fff',weight:2,fillColor:'#64748b',fillOpacity:1}).addTo(mapa).bindTooltip('Início '+hora(j.rota[0][2]),{className:'rot',direction:'top'});
+    L.circleMarker(linha[linha.length-1],{radius:7,color:'#fff',weight:2,fillColor:'#f59e0b',fillOpacity:1}).addTo(mapa).bindTooltip('Fim '+hora(j.rota[j.rota.length-1][2]),{className:'rot',direction:'top'});
+    const ri=$('rotaInfo'); ri.textContent='Trajeto: '+hora(j.de)+' até '+hora(j.ate); ri.style.display='block';
+    mapa.fitBounds(L.latLngBounds(linha.concat(pts)),{padding:[30,30]}); primeiro=false; seguir=false; pintarSeguir();
+  }else if(j.rota&&de){const ri=$('rotaInfo'); ri.textContent=j.rotaErro||'Sem trajeto nesse período.'; ri.style.display='block'}
+  if(primeiro&&pts.length){primeiro=false; if(pts.length>1)mapa.fitBounds(L.latLngBounds(pts),{padding:[40,40]}); else mapa.setView(pts[0],16)}
+  else if(seguir&&ultimo&&ultimo.lat!=null&&ids.length===1)mapa.panTo([ultimo.lat,ultimo.lon],{animate:true,duration:1.2});
+  pe();
+}
+
+let ocupado=false;
+function buscar(){
+  if(ocupado||document.hidden)return; ocupado=true;
+  const corpo={mapinha:{initData:initData,ids:ids}};
+  if(de&&!rotaPedida){corpo.mapinha.rota=true;corpo.mapinha.de=de;if(ate)corpo.mapinha.ate=ate}
+  fetch(API,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(corpo)})
+    .then(function(r){return r.json().then(function(j){return {s:r.status,j:j}})})
+    .then(function(x){
+      if(x.s===403){aviso('Esta tela venceu ou não está liberada. Feche e toque de novo no botão do robô.');clearInterval(tm);return}
+      if(x.s!==200)throw new Error(x.j&&x.j.erro||'erro');
+      falhas=0; if(corpo.mapinha.rota)rotaPedida=true; aviso(''); desenhar(x.j);
+    })
+    .catch(function(){falhas++; if(primeiro&&falhas>=2)aviso('Não consegui ler a posição agora. Confira a internet; vou tentando de novo.')})
+    .then(function(){ocupado=false});
+}
+const tm=setInterval(buscar,INTERVALO);
+document.addEventListener('visibilitychange',function(){if(!document.hidden)buscar()});
+buscar();
+
+function abrir(u){try{if(tg&&tg.openLink){tg.openLink(u);return}}catch(e){} window.open(u,'_blank')}
+function ponto(){return ultimo&&ultimo.lat!=null?ultimo.lat.toFixed(6)+','+ultimo.lon.toFixed(6):''}
+$('btMaps').onclick=function(){const p=ponto(); if(p)abrir('https://www.google.com/maps/search/?api=1&query='+p)};
+$('btWpp').onclick=function(){const p=ponto(); if(!p)return;
+  const d=new Date(ultimo.em||Date.now()), hm=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+  abrir('https://wa.me/?text='+encodeURIComponent('📍 Localização do veículo '+(ultimo.nome||'')+'\n🕒 Posição: '+hm+'\nhttps://www.google.com/maps/search/?api=1&query='+p))};
+})();
+</script>
+</body>
+</html>
