@@ -2023,6 +2023,7 @@ const ssSet = (k,v) => { try{sessionStorage.setItem(k,v)}catch(e){} };
 const sleep = ms => new Promise(r=>setTimeout(r,ms));
 /* 23/10/2026: subaba ativa do frotista -> o mapa e as listas mostram só os veículos dela (abaMostra) */
 const ativo = () => veiculos.find(v=>v.id===selId && v.visivel && v.pos && abaMostra(v)) || null;
+let buscaMapaIds=null; /* 24/11/2026 (dono): com texto na busca da lista (computador), o mapa mostra só os veículos que batem com a busca */
 const visiveis = () => veiculos.filter(v=>v.visivel && abaMostra(v));
 const comPos = () => veiculos.filter(v=>v.visivel && v.pos && abaMostra(v));
 /* aparelho que ainda não enviou sinal (sem posição): dá para escolher e mandar SMS; só não aparece no mapa */
@@ -3572,15 +3573,31 @@ function ladoLimparAutofill(){
 /* 21/10/2026: CPF/CNPJ dos clientes do veículo, para a busca (o mapa de CPFs vem do servidor só quando precisa) */
 let ladoCpfsPedido=false;
 function ladoCpfs(v){ try{ return clientesDoEquip(v).map(u=>soNum((cpfsMapa[u.id]&&cpfsMapa[u.id].cpf)||(u.attributes&&u.attributes.cpf)||'')).join(' ') }catch(e){ return '' } }
+function ladoCasa(v,q,qd){
+    const b=(v.nome+' '+(v.placa||'')+' '+(v.contato||'')+' '+(ehAdmin?rotuloCliente(v)+' '+(v.retDono||'')+' '+(v.wppVeic||'')+' '+(v.fone||'')+' '+(v.imei||'')+' '+ladoCpfs(v):'')).toLowerCase(); /* 21/10/2026: também o número do chip, o IMEI e o CPF/CNPJ do cliente (administrador) */ /* o cliente só é procurado quando há texto na busca; 19/10/2026: também o dono "Para retirar" e o WhatsApp do veículo */
+    return b.includes(q) || (qd.length>=3 && b.replace(/\D/g,'').includes(qd));
+}
+/* 24/11/2026 (dono): a busca da lista tira do mapa quem não bate com o texto (não mexe nas caixinhas; apagou o texto, volta tudo) */
+let buscaMapaT=null;
+function buscaMapaAplicar(){
+  if(ladoFiltro==='ret') return; /* em "Para retirar" vale a regra própria (retMapaBusca) */
+  clearTimeout(buscaMapaT); buscaMapaT=setTimeout(()=>{ try{
+    const q=String($('ladoBusca').value||'').trim().toLowerCase(), qd=q.replace(/\D/g,'');
+    const antes=buscaMapaIds?[...buscaMapaIds].sort().join(','):'';
+    buscaMapaIds = q ? new Set(veiculos.filter(v=>ladoCasa(v,q,qd)).map(v=>v.id)) : null;
+    const agora=buscaMapaIds?[...buscaMapaIds].sort().join(','):'';
+    if(antes!==agora){ mudouSelecao(); ladoCabecalho() }
+  }catch(e){ buscaMapaIds=null } },350);
+}
 function ladoBase(){
   ladoLimparAutofill();
   const q=String($('ladoBusca').value||'').trim().toLowerCase(), qd=q.replace(/\D/g,'');
+  if(!q && buscaMapaIds){ buscaMapaIds=null; try{ aplicarVisibilidade() }catch(e){} } /* a busca foi esvaziada sem digitar (autopreenchimento limpo): devolve o mapa */
   if(q && ehAdmin && qd.length>=11 && !ladoCpfsPedido && !Object.keys(cpfsMapa||{}).length){ ladoCpfsPedido=true; carregarCpfs().then(()=>{ try{ ladoDesenhar() }catch(e){} }) }
   return veiculos.filter(v=>{
     if(!ladoPassa(v)) return false;
     if(!q) return true;
-    const b=(v.nome+' '+(v.placa||'')+' '+(v.contato||'')+' '+(ehAdmin?rotuloCliente(v)+' '+(v.retDono||'')+' '+(v.wppVeic||'')+' '+(v.fone||'')+' '+(v.imei||'')+' '+ladoCpfs(v):'')).toLowerCase(); /* 21/10/2026: também o número do chip, o IMEI e o CPF/CNPJ do cliente (administrador) */ /* o cliente só é procurado quando há texto na busca; 19/10/2026: também o dono "Para retirar" e o WhatsApp do veículo */
-    return b.includes(q) || (qd.length>=3 && b.replace(/\D/g,'').includes(qd));
+    return ladoCasa(v,q,qd);
   }).sort((a,b)=> ladoFiltro==='ret' ? ((a.retirado?1:0)-(b.retirado?1:0)) || /* 19/10/2026: os fixados (📌) ficam no topo */ ((a.retDono||'~').localeCompare(b.retDono||'~','pt-BR') || a.nome.localeCompare(b.nome,'pt-BR')) : a.nome.localeCompare(b.nome,'pt-BR')); /* 19/10/2026: em Para retirar, agrupado pelo dono */
 }
 /* 12/11/2026 (dono): login do cliente embaixo da placa, discreto (só administrador) */
@@ -3664,7 +3681,7 @@ function ladoAlternar(aberta){
 try{ if(lsGet('rg_lado')==='0') $('main').classList.add('semlado') }catch(e){}
 $('ladoAba').onclick=()=>ladoAlternar();
 $('ladoFechar').onclick=()=>ladoAlternar(false);
-$('ladoBusca').addEventListener('input',()=>{ ladoDesenhar(); retMapaBusca() });
+$('ladoBusca').addEventListener('input',()=>{ ladoDesenhar(); retMapaBusca(); buscaMapaAplicar() });
 /* 19/10/2026 (pedido do dono): na aba Para retirar, buscar o dono (ex.: "Fabiano") mostra no mapa só os veículos dele */
 let retBuscaT=null;
 function retMapaBusca(){
@@ -5028,7 +5045,7 @@ const AB={abas:[],em:0,ativa:'',rodando:false,pronto:false};
 const abaChave=()=>'rg_aba_ativa_'+String(lsGet('rg_email')||'').trim().toLowerCase();
 try{ AB.ativa=lsGet(abaChave())||'' }catch(e){}
 function abaAtiva(){ return AB.abas.find(a=>a.id===AB.ativa)||null }
-function abaMostra(v){ const a=abaAtiva(); return !a || a.ids.includes(v.id) }
+function abaMostra(v){ if(buscaMapaIds && !buscaMapaIds.has(v.id)) return false; /* 24/11/2026: a busca da lista também filtra o mapa */ const a=abaAtiva(); return !a || a.ids.includes(v.id) }
 function abaDe(id){ return AB.abas.find(a=>a.ids.includes(id))||null }
 function abasPode(){ try{ return ehPrime() }catch(e){ return false } }
 async function abasFn(corpo){
