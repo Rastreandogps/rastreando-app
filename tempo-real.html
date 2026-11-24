@@ -41,7 +41,7 @@ try{ if(localStorage.getItem('rg_token')||sessionStorage.getItem('rgv_rg_token')
 try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'){document.documentElement.setAttribute('data-tema',t)}}catch(e){}
 </script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="stylesheet" href="app.css?v=79"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
+<link rel="stylesheet" href="app.css?v=80"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
 </head>
 <body>
 
@@ -1029,6 +1029,13 @@ try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'
     </div>
     <!-- 16/10/2026 (pedido do dono): IMEI do aparelho, só para o administrador e só nesta janela do lápis -->
     <div id="rnImeiBox" style="display:none;margin-top:8px;align-items:center;gap:8px;font-size:14px;color:var(--mut)">IMEI <b id="rnImei" style="color:var(--txt);font-size:15px;letter-spacing:.3px;user-select:all"></b><button type="button" id="rnImeiCopia" aria-label="Copiar o IMEI" title="Copiar o IMEI" style="width:30px;height:30px;border-radius:8px;border:1px solid var(--line);background:var(--card2);color:var(--mut);display:inline-flex;align-items:center;justify-content:center;cursor:pointer"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg></button></div>
+    <!-- 24/11/2026 (dono): no administrador, no lugar de Motorista e Dono, os CLIENTES do veículo com Desvincular e Vincular -->
+    <div id="rnCliBox" style="display:none;margin-top:10px">
+      <h3 style="font-size:15px;margin-bottom:6px">Clientes deste veículo</h3>
+      <div id="rnCliLista" class="rncli"></div>
+      <input class="fld" id="rnCliBusca" maxlength="40" autocomplete="off" placeholder="🔗 Vincular a um cliente: digite o nome" style="margin:8px 0 0">
+      <div id="rnCliRes" class="rncli"></div>
+    </div>
     <div id="rnMotBox" style="display:none;margin-top:6px">
       <h3 class="comdica" style="font-size:15px;margin-bottom:6px">Motorista deste veículo <span class="dica" tabindex="0" role="button" aria-label="O que é isto?" title="">i</span><span class="dicatx"><b>Quem dirige este veículo</b> (para frota: a empresa é dona e um motorista dirige). Aparece no cartão e vai junto quando você compartilha a localização. Fica salvo no veículo: vale para todos que veem este veículo. Deixe em branco para apagar.</span></h3>
       <label class="flbl" for="rnMotNome">Nome</label>
@@ -4781,6 +4788,59 @@ $('btnWppCli').onclick=e=>{
   if(n.length<=11) n='55'+n;
   window.open('https://wa.me/'+n,'_blank','noopener');
 };
+/* 24/11/2026 (dono): CLIENTES DO VEÍCULO na janela do lápis (só administrador): lista com Desvincular (confirma na linha) e busca para Vincular */
+let rnCliV=null, rnCliIds=[], rnCliPend=0;
+let rnAssinDepois=0;
+try{ new MutationObserver(()=>{ if(rnAssinDepois && !$('mRenome').classList.contains('show')){ const id=rnAssinDepois; rnAssinDepois=0; setTimeout(()=>{ try{ assinAbrir(id,{n:1}) }catch(e){} },200) } }).observe($('mRenome'),{attributes:true,attributeFilter:['class']}) }catch(e){}
+function rnCliNomeU(u){ return (u&&(u.name||loginDe(u)))||'' }
+function rnCliPintar(){
+  const box=$('rnCliLista'); if(!rnCliV){ box.innerHTML=''; return }
+  const us=rnCliIds.map(id=>usuarios.find(u=>u.id===id)).filter(Boolean);
+  box.innerHTML = us.length ? us.map(u=>'<div class="rncl" data-u="'+u.id+'"><span class="rncn">👤 '+esc(rnCliNomeU(u))+'<small>'+esc(loginDe(u).replace(EMAIL_FALSO,''))+'</small></span>'+
+      (rnCliPend===u.id ? '<button type="button" class="rnsim" data-a="desvok">Tirar</button><button type="button" class="rnnao" data-a="desvno">Não</button>'
+                        : '<button type="button" class="rnx" data-a="desv" aria-label="Desvincular '+esc(rnCliNomeU(u))+'">Desvincular</button>')+'</div>').join('')
+    : '<div class="rnvz">Sem cliente vinculado.</div>';
+}
+function rnCliBuscar(){
+  const q=semAcentoAt($("rnCliBusca").value), box=$('rnCliRes');
+  if(!rnCliV || q.length<2){ box.innerHTML=''; return }
+  const qd=soDigitos(q);
+  const l=usuarios.filter(u=>!u.administrator && !rnCliIds.includes(u.id) && (semAcentoAt(u.name).includes(q) || loginDe(u).toLowerCase().includes(q) || (qd.length>=4 && soDigitos(u.phone||'').includes(qd)))).slice(0,6);
+  box.innerHTML = l.length ? l.map(u=>'<div class="rncl"><span class="rncn">'+esc(rnCliNomeU(u))+'<small>'+esc(loginDe(u).replace(EMAIL_FALSO,''))+'</small></span><button type="button" class="rnadd" data-a="vinc" data-u="'+u.id+'">Vincular</button></div>').join('')
+    : '<div class="rnvz">Nenhum cliente com esse nome.</div>';
+}
+async function rnCliAbrir(v){
+  rnCliV=v; rnCliIds=[]; rnCliPend=0; rnAssinDepois=0; $("rnCliBusca").value=""; $('rnCliRes').innerHTML='';
+  $('rnCliBox').style.display=v?'':'none'; if(!v) return;
+  $('rnCliLista').innerHTML='<div class="rnvz">Carregando…</div>';
+  try{
+    if(!usuarios.length) await carregarUsuarios();
+    const r=await api('/api/users?deviceId='+v.id);
+    if(r.ok) rnCliIds=(await r.json()).filter(u=>!u.administrator).map(u=>u.id);
+    else rnCliIds=clientesDoEquip(v).map(u=>u.id);
+  }catch(e){ rnCliIds=clientesDoEquip(v).map(u=>u.id) }
+  if(rnCliV===v) rnCliPintar();
+}
+$('rnCliBusca').addEventListener('input',rnCliBuscar);
+$('rnCliBox').addEventListener('click',async e=>{
+  const b=e.target.closest('button[data-a]'); if(!b||!rnCliV) return;
+  const v=rnCliV, a=b.dataset.a;
+  if(a==='desv'){ rnCliPend=+b.closest('.rncl').dataset.u; rnCliPintar(); return }
+  if(a==='desvno'){ rnCliPend=0; rnCliPintar(); return }
+  if(a!=='desvok' && a!=='vinc') return;
+  const u=usuarios.find(x=>x.id===(a==='vinc'?+b.dataset.u:rnCliPend)); if(!u) return;
+  b.disabled=true; b.textContent='…'; $('rnErro').textContent='';
+  try{
+    if(a==='desvok'){ await desvincularDoCliente(u,v); rnCliIds=rnCliIds.filter(id=>id!==u.id); rnCliPend=0; toast('Tirado da conta de '+rnCliNomeU(u)) }
+    else{
+      const jaTinha=aparelhosDe(u).length;
+      const falhas=await ligarAparelhos(u,[v.id]); if(falhas.length) throw new Error('Não consegui vincular.');
+      rnCliIds.push(u.id); $('rnCliBusca').value=''; $('rnCliRes').innerHTML=''; toast('Vinculado a '+rnCliNomeU(u));
+      if(jaTinha>0) rnAssinDepois=u.id; /* igual ao Vincular do Admin: ao fechar esta janela, pergunta se soma na mensalidade (não perde o que foi editado aqui) */
+    }
+    rnCliPintar(); try{ atualizarAposVinculo() }catch(e2){}
+  }catch(er){ $('rnErro').textContent=(er&&er.message)||'Não consegui agora. Tente de novo.'; rnCliPintar(); rnCliBuscar() }
+});
 /* Renomear veículo */
 $('btnRenome').addEventListener('pointerdown',e=>e.stopPropagation());
 $('btnRenome').onclick=e=>{
@@ -4791,10 +4851,10 @@ $('btnRenome').onclick=e=>{
   $('rnNome').style.display=podeNome?'':'none'; $('rnTitulo').textContent=podeNome?'Nome do veículo':v.nome;
   $('rnPlacaBox').style.display=podeNome?'':'none'; $('rnPlaca').value=v.placa||''; $('rnPlaca').dataset.ini=$('rnPlaca').value; /* 23/10/2026 */
   $('rnPlacaMapa').checked=!!v.placaMapa; $('rnPlacaMapa').dataset.ini=v.placaMapa?'1':'';
-  $('rnMotBox').style.display=podeMot?'':'none';
+  $('rnMotBox').style.display=(podeMot&&!ehAdmin)?'':'none'; /* 24/11/2026 (dono): administrador não usa Motorista nem Dono */
   const m=motLer(v.id)||{}; $('rnMotNome').value=m.nome||''; $('rnMotFone').value=fmtWpp(m.fone||'');
   $('rnImeiBox').style.display=(ehAdmin&&v.imei)?'flex':'none'; $('rnImei').textContent=ehAdmin?(v.imei||''):''; /* 16/10/2026 */
-  $('rnWppBox').style.display=ehAdmin?'':'none'; $('rnWpp').value=ehAdmin?fmtWpp(v.wppVeic||''):''; $('rnWpp').dataset.ini=$('rnWpp').value; /* 18/10/2026 */
+  $('rnWppBox').style.display='none'; rnCliAbrir(ehAdmin?v:null); $('rnWpp').value=ehAdmin?fmtWpp(v.wppVeic||''):''; $('rnWpp').dataset.ini=$('rnWpp').value; /* 18/10/2026 */
   $('rnDono').value=ehAdmin?(v.retDono||''):''; $('rnDono').dataset.ini=$('rnDono').value; /* 19/10/2026 */
   $('rnBloqBox').style.display=(ehAdmin&&!v.tag)?'':'none'; $('rnSemBloq').checked=!!v.semBloq; $('rnSemBloq').dataset.ini=v.semBloq?'1':''; /* 26/10/2026 */
   $('rnOdoBox').style.display=ehAdmin?'':'none'; $('rnOdo').value=v.odo!=null?(v.odo/1000).toFixed(1):''; $('rnOdo').dataset.ini=$('rnOdo').value;
