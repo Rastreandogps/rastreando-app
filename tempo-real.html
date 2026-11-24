@@ -3051,6 +3051,7 @@ function mesclar(ds,ps){
     v.imei = d.uniqueId || ''; v.fone = d.phone || ''; v.contato = d.contact || ''; v.raw = d;
     v.tag = ehTag(d) || (String((d.attributes&&d.attributes.tipoAparelho)||'')!=='rastreador' && !!v.tagSinal && !soDigitos(d.phone)); /* 16/10/2026 */
     v.wppVeic = String((d.attributes&&d.attributes.whatsapp)||'').replace(/\D/g,'');
+    v.pagador = Number(d.attributes && d.attributes.pagador) || 0; /* 24/11/2026 (dono): cliente DONO do veículo compartilhado (caixinha no Admin); atrasou = o veículo sai da conta dos outros */
     v.semBloq = !!(d.attributes && (d.attributes.semBloqueio===true || d.attributes.semBloqueio==='true')); /* 26/10/2026: veículo sem bloqueio (marcado pelo administrador no lápis) */
     v.retDono = String((d.attributes&&d.attributes.retiradaDono)||''); /* 19/10/2026: dono do veículo para a retirada */ /* 18/10/2026: WhatsApp do cliente gravado no veículo (lápis do administrador) */
     v.retirado = String((d.attributes&&(d.attributes.paraRetirarEm||d.attributes.retiradoEm))||''); /* 18/10/2026: marcado "Para retirar" (menu ⋮ do administrador) */
@@ -8033,6 +8034,16 @@ function equipStatusAtualizar(){
   desenharFiltrosEq(listaEquipBusca());
   document.querySelectorAll('#aview .estat[data-est]').forEach(el=>{ const v=veiculos.find(x=>x.id===+el.dataset.est); if(!v) return; const e=estEquip(v); if(el.textContent!==e[0]) el.textContent=e[0]; el.className='estat '+e[1] });
 }
+/* 24/11/2026 (dono): caixinha discreta "o veículo é deste cliente" — só dentro do card do cliente e só em veículo dividido com outro cliente (ou já marcado).
+   Marcada: se ESTE cliente ficar com o app suspenso por atraso, o servidor tira o veículo da conta dos outros e devolve quando ele pagar. */
+function pagadorHtml(v,userId,cs){
+  if(!ehAdmin || !userId) return '';
+  const on=v.pagador===userId, outro=v.pagador&&!on ? usuarios.find(x=>x.id===v.pagador) : null;
+  if(!(cs.length>1 || v.pagador)) return '';
+  return '<button type="button" data-a="pagador" data-u="'+userId+'" title="Marque quando o veículo é deste cliente e está dividido com outro. Se este cliente atrasar e o app for suspenso, o veículo some da conta do outro e volta quando ele pagar." style="display:flex;align-items:center;gap:6px;margin-top:4px;padding:3px 2px;border:0;background:transparent;font:500 12px inherit;color:'+(on?'#0f766e':'var(--mut)')+';cursor:pointer;text-align:left">'+
+    '<span style="width:15px;height:15px;border-radius:4px;border:1.6px solid '+(on?'#0f766e':'#9aa5b1')+';background:'+(on?'#0f766e':'transparent')+';color:#fff;display:inline-grid;place-items:center;font-size:11px;line-height:1">'+(on?'✓':'')+'</span>'+
+    (on?'Veículo é deste cliente':(outro?'Dono marcado: '+esc(outro.name||'outro cliente'):'Veículo é deste cliente'))+'</button>';
+}
 function cartaoEquip(v,userId){
   const cs=clientesDoEquip(v);
   /* selo de cada cliente; o "×" tira só o vínculo (o cliente continua existindo) */
@@ -8043,7 +8054,7 @@ function cartaoEquip(v,userId){
     '<div class="etopo"><span class="eav">'+ICO_EQ+'</span>'+
     '<div class="einfo"><div class="t">'+esc(v.nome)+' '+estEquipHtml(v)+'</div>'+
     '<div class="s">'+(v.placa?'Placa: <b>'+esc(v.placa)+'</b> · ':'')+'Chip: '+(v.fone?'<b>'+esc(soDigitos(v.fone))+'</b><button class="chipcp" type="button" data-a="copiar" aria-label="Copiar número do chip" title="Copiar número">'+ICO_COP+'</button><button class="chipcp chip55'+(c55Tem(v.fone)?' on':'')+'" type="button" data-a="chip55" aria-label="Juntar este chip na lista para cancelar" title="Juntar na lista de chips para cancelar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>':'não cadastrado')+'</div>'+ /* 29/10/2026 (dono): número tudo junto + copiar pequeno */
-    '</div></div><div class="eclis2">'+pills+'</div>'+
+    '</div></div><div class="eclis2">'+pills+pagadorHtml(v,userId,cs)+'</div>'+
     '<span class="eacoes">'+
       '<button class="ico mapa" data-a="mapa" aria-label="Ver no mapa" title="Ver no mapa"><span aria-hidden="true">🗺️</span></button>'+ /* 09/11/2026 (dono): ir direto ao mapa com o veículo */
       (v.fone?'<button class="ico cop" data-a="copiar" aria-label="Copiar número do chip" title="Copiar número">'+ICO_COP+'</button>':'')+
@@ -8431,6 +8442,22 @@ $('aList').addEventListener('click',e=>{
       if(!r.ok && r.status!==204) throw new Error(await msgErro(r,'Não foi possível excluir o equipamento'));
       delete abertosEq[id]; vinculos={}; buscando=false; await buscarSeguro(); desenharAdmin(); carregarVinculos(); toast('Equipamento excluído.');
     },{perigo:true});
+    return;
+  }
+  if(b.dataset.a==='pagador'){ /* 24/11/2026: marca/desmarca o dono do veículo compartilhado */
+    const uid=+b.dataset.u, u=usuarios.find(x=>x.id===uid); if(!u) return;
+    const marcar=v.pagador!==uid;
+    pedirConfirmacao(marcar?'Veículo é deste cliente':'Tirar a marcação de dono',
+      marcar?('"'+v.nome+'" fica marcado como sendo de '+u.name+'. Se '+u.name+' atrasar o pagamento e o app for suspenso, este veículo some da conta dos outros clientes e volta sozinho quando ele pagar. Você é avisado no Telegram.')
+            :('"'+v.nome+'" deixa de ter dono marcado. Se ele estiver fora da conta de alguém por causa de atraso, volta em até 5 minutos.'),
+      marcar?'Marcar':'Tirar',
+      async ()=>{
+        const at=Object.assign({},(v.raw&&v.raw.attributes)||{}); if(marcar) at.pagador=uid; else delete at.pagador;
+        const r=await api('/api/devices/'+v.id,{method:'PUT',headers:JSONH,body:JSON.stringify(Object.assign({},v.raw,{attributes:at}))});
+        if(!r.ok) throw new Error(await msgErro(r,'Não consegui salvar a marcação'));
+        try{ v.raw=await r.json() }catch(e){ v.raw=Object.assign({},v.raw,{attributes:at}) }
+        v.pagador=marcar?uid:0; desenharAdmin(); toast(marcar?'Marcado: o veículo é de '+u.name+'.':'Marcação tirada.');
+      });
     return;
   }
   if(b.dataset.a==='desv'){
