@@ -28,6 +28,23 @@ html,body{margin:0;height:100%;font-family:system-ui,-apple-system,"Segoe UI",Ro
 #aviso{position:absolute;inset:0;z-index:2000;display:flex;align-items:center;justify-content:center;text-align:center;padding:28px;background:var(--bg,#0f172a);font-size:15px;line-height:1.5}
 #aviso.some{display:none}
 #rotaInfo{position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:900;max-width:92%;padding:6px 12px;border-radius:999px;background:rgba(15,23,42,.86);color:#fff;font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:none}
+.bts2{display:flex;gap:8px;margin-top:8px}
+.bts2 button{flex:1;min-height:38px;border:0;border-radius:11px;font-size:13px;font-weight:700;background:rgba(148,163,184,.22);color:var(--tx,#f1f5f9)}
+.bts2 button.perigo{background:#b91c1c;color:#fff}.bts2 button.ok{background:#15803d;color:#fff}
+.bts2 button[hidden]{display:none}
+#ender{margin-top:3px;font-size:12.5px;color:var(--dica,#94a3b8);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#ender:empty{display:none}
+#faixa{display:none;flex:none;padding:7px 12px;background:#b91c1c;color:#fff;font-size:13px;font-weight:800;text-align:center;letter-spacing:.03em}
+body.roubo #faixa{display:block}
+body.roubo #rotaInfo{display:none!important}
+body.roubo #ender{font-size:14.5px;color:var(--tx,#f1f5f9);font-weight:700;white-space:normal}
+#replay{display:none;align-items:center;gap:8px;margin-top:8px}
+#replay.on{display:flex}
+#replay button{flex:none;min-width:44px;min-height:38px;border:0;border-radius:11px;font-size:14px;font-weight:800;background:#f59e0b;color:#1c1917}
+#replay input{flex:1;min-width:0;accent-color:#f59e0b}
+#replay span{flex:none;font-size:12.5px;font-weight:700;min-width:92px;text-align:right}
+#msg{position:absolute;left:50%;bottom:190px;transform:translateX(-50%);z-index:1500;max-width:88%;padding:10px 14px;border-radius:12px;background:rgba(15,23,42,.94);color:#fff;font-size:14px;font-weight:600;text-align:center;display:none}
+.pdr{width:22px;height:22px;border-radius:50%;background:#7c3aed;color:#fff;border:2px solid #fff;font:800 11px/18px system-ui,sans-serif;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.4)}
 .veic{width:34px;height:34px}
 .veic .seta{width:34px;height:34px;transition:transform .6s}
 .veic svg{width:34px;height:34px;display:block;filter:drop-shadow(0 2px 3px rgba(0,0,0,.45))}
@@ -38,24 +55,33 @@ html,body{margin:0;height:100%;font-family:system-ui,-apple-system,"Segoe UI",Ro
 </head>
 <body>
 <div id="app">
+  <div id="faixa">🚨 MODO ROUBO · atualizando a cada 5 segundos</div>
   <div id="mapa"></div>
   <div id="rotaInfo"></div>
   <div id="pe">
     <div id="nome">Carregando…</div>
     <div id="linha"><span id="selo" class="selo par">—</span><span><b id="vel">0</b> km/h</span><span id="quando"></span></div>
+    <div id="ender"></div>
+    <div id="replay"><button id="rpPlay" type="button">▶</button><button id="rpVel" type="button">1x</button><input id="rpBarra" type="range" min="0" max="1000" value="0" step="1"><span id="rpTxt"></span></div>
     <div id="bts">
       <button id="btSeguir" class="sec on" type="button">🎯 Seguindo</button>
       <button id="btMaps" class="sec" type="button">Google Maps</button>
       <button id="btWpp" type="button">📍 WhatsApp</button>
     </div>
+    <div class="bts2">
+      <button id="btReplay" type="button" hidden>▶ Replay</button>
+      <button id="btRoubo" type="button">🚨 Modo roubo</button>
+      <button id="btBloq" type="button" hidden>🔒 Bloquear</button>
+    </div>
   </div>
 </div>
+<div id="msg"></div>
 <div id="aviso">Carregando o mapa…</div>
 <script>
 (function(){
 'use strict';
 const API='https://southamerica-east1-rastreando-assinaturas.cloudfunctions.net/rastreamentoTelegram';
-const INTERVALO=10000;
+const INTERVALO=10000, INTERVALO_ROUBO=5000;
 const tg=(window.Telegram&&window.Telegram.WebApp)||null;
 const $=function(id){return document.getElementById(id)};
 function aviso(t){const a=$('aviso');if(t){a.textContent=t;a.classList.remove('some')}else a.classList.add('some')}
@@ -84,7 +110,9 @@ const mapa=L.map('mapa',{zoomControl:false,attributionControl:true}).setView([-2
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(mapa);
 L.control.zoom({position:'topright'}).addTo(mapa);
 
-let seguir=true, primeiro=true, foco=ids[0], ultimo=null, falhas=0, rotaPedida=false;
+let seguir=ids.length===1, primeiro=true, foco=ids[0], ultimo=null, falhas=0, rotaPedida=false, cercasPedidas=false, roubo=false, rota=null, endEm=null, enderecos={};
+function msg(t,ms){const m=$('msg');m.textContent=t;m.style.display='block';clearTimeout(msg.t);msg.t=setTimeout(function(){m.style.display='none'},ms||3500)}
+pintarSeguir();
 const marc={}, rastro={}, anim={};
 mapa.on('dragstart',function(){seguir=false;pintarSeguir()});
 function pintarSeguir(){const b=$('btSeguir');b.classList.toggle('on',seguir);b.textContent=seguir?'🎯 Seguindo':'🎯 Seguir'}
@@ -118,6 +146,10 @@ function pe(){
   else if(v.vel>3){s.className='selo mov';s.textContent='Em movimento'}
   else{s.className='selo par';s.textContent=v.ign===true?'Parado · ligado':'Parado'}
   $('quando').textContent=v.em?'· posição '+ha(v.em):'';
+  $('ender').textContent=enderecos[v.id]||'';
+  const bb=$('btBloq');
+  if(v.bloq===true){bb.hidden=false;bb.textContent='🔓 Liberar';bb.className='ok'}
+  else if(v.bloq===false||v.bloq===null){bb.hidden=false;bb.textContent='🔒 Bloquear';bb.className='perigo'}
 }
 setInterval(pe,1000);
 
@@ -125,6 +157,7 @@ function desenhar(j){
   const pts=[];
   (j.veiculos||[]).forEach(function(v){
     if(v.id===foco)ultimo=v;
+    if(v.endereco){enderecos[v.id]=v.endereco;endEm=[v.lat,v.lon]}
     if(v.lat==null)return;
     const ll=[v.lat,v.lon]; pts.push(ll);
     if(!marc[v.id]){
@@ -138,7 +171,11 @@ function desenhar(j){
       if(!f||mapa.distance(f,ll)>4)rastro[v.id].addLatLng(ll);
     }
   });
+  (j.cercas||[]).forEach(function(c){
+    L.circle([c.lat,c.lon],{radius:c.raio,color:c.bloqueia?'#dc2626':'#7c3aed',weight:2,fillOpacity:.10,dashArray:'6 5'}).addTo(mapa).bindTooltip((c.bloqueia?'🔒 ':'')+c.nome,{className:'rot',direction:'center'});
+  });
   if(j.rota&&j.rota.length>1){
+    rota=j.rota; paradas(rota); $('btReplay').hidden=false;
     const linha=j.rota.map(function(p){return [p[0],p[1]]});
     L.polyline(linha,{color:'#f59e0b',weight:5,opacity:.9}).addTo(mapa);
     L.circleMarker(linha[0],{radius:7,color:'#fff',weight:2,fillColor:'#64748b',fillOpacity:1}).addTo(mapa).bindTooltip('Início '+hora(j.rota[0][2]),{className:'rot',direction:'top'});
@@ -147,7 +184,7 @@ function desenhar(j){
     mapa.fitBounds(L.latLngBounds(linha.concat(pts)),{padding:[30,30]}); primeiro=false; seguir=false; pintarSeguir();
   }else if(j.rota&&de){const ri=$('rotaInfo'); ri.textContent=j.rotaErro||'Sem trajeto nesse período.'; ri.style.display='block'}
   if(primeiro&&pts.length){primeiro=false; if(pts.length>1)mapa.fitBounds(L.latLngBounds(pts),{padding:[40,40]}); else mapa.setView(pts[0],16)}
-  else if(seguir&&ultimo&&ultimo.lat!=null&&ids.length===1)mapa.panTo([ultimo.lat,ultimo.lon],{animate:true,duration:1.2});
+  else if(seguir&&ultimo&&ultimo.lat!=null&&!rp.tocando)mapa.panTo([ultimo.lat,ultimo.lon],{animate:true,duration:1.2});
   pe();
 }
 
@@ -155,18 +192,22 @@ let ocupado=false;
 function buscar(){
   if(ocupado||document.hidden)return; ocupado=true;
   const corpo={mapinha:{initData:initData,ids:ids}};
+  if(ids.length===1){
+    if(!cercasPedidas)corpo.mapinha.cercas=true;
+    if(roubo||!endEm||(ultimo&&ultimo.lat!=null&&mapa.distance(endEm,[ultimo.lat,ultimo.lon])>120))corpo.mapinha.endereco=true;
+  }
   if(de&&!rotaPedida){corpo.mapinha.rota=true;corpo.mapinha.de=de;if(ate)corpo.mapinha.ate=ate}
   fetch(API,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(corpo)})
     .then(function(r){return r.json().then(function(j){return {s:r.status,j:j}})})
     .then(function(x){
       if(x.s===403){aviso('Esta tela venceu ou não está liberada. Feche e toque de novo no botão do robô.');clearInterval(tm);return}
       if(x.s!==200)throw new Error(x.j&&x.j.erro||'erro');
-      falhas=0; if(corpo.mapinha.rota)rotaPedida=true; aviso(''); desenhar(x.j);
+      falhas=0; if(corpo.mapinha.rota)rotaPedida=true; if(corpo.mapinha.cercas)cercasPedidas=true; aviso(''); desenhar(x.j);
     })
     .catch(function(){falhas++; if(primeiro&&falhas>=2)aviso('Não consegui ler a posição agora. Confira a internet; vou tentando de novo.')})
     .then(function(){ocupado=false});
 }
-const tm=setInterval(buscar,INTERVALO);
+let tm=setInterval(buscar,INTERVALO);
 document.addEventListener('visibilitychange',function(){if(!document.hidden)buscar()});
 buscar();
 
@@ -175,7 +216,75 @@ function ponto(){return ultimo&&ultimo.lat!=null?ultimo.lat.toFixed(6)+','+ultim
 $('btMaps').onclick=function(){const p=ponto(); if(p)abrir('https://www.google.com/maps/search/?api=1&query='+p)};
 $('btWpp').onclick=function(){const p=ponto(); if(!p)return;
   const d=new Date(ultimo.em||Date.now()), hm=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+  if(roubo){abrir('https://wa.me/?text='+encodeURIComponent('🚨 VEÍCULO ROUBADO\nVeículo: '+(ultimo.nome||'')+(ultimo.placa&&String(ultimo.nome||'').indexOf(ultimo.placa)<0?'\nPlaca: '+ultimo.placa:'')+'\n🕒 Posição às '+hm+(enderecos[ultimo.id]?'\n📍 '+enderecos[ultimo.id]:'')+'\n'+(ultimo.vel>3?'Em movimento, '+ultimo.vel+' km/h':'Parado')+'\nhttps://www.google.com/maps/search/?api=1&query='+p));return}
   abrir('https://wa.me/?text='+encodeURIComponent('📍 Localização do veículo '+(ultimo.nome||'')+'\n🕒 Posição: '+hm+'\nhttps://www.google.com/maps/search/?api=1&query='+p))};
+
+/* ===== PARADAS do trajeto (5 min ou mais no mesmo lugar) ===== */
+function hm(ms){const d=new Date(ms);return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')}
+function durTxt(ms){const m=Math.round(ms/60000);return m<60?m+' min':Math.floor(m/60)+' h '+String(m%60).padStart(2,'0')}
+function paradas(r){
+  let i=0,n=0;
+  while(i<r.length-1){
+    let k=i; while(k+1<r.length&&mapa.distance([r[i][0],r[i][1]],[r[k+1][0],r[k+1][1]])<60)k++;
+    const dur=r[k][2]-r[i][2];
+    if(k>i&&dur>=300000&&n<40){n++;
+      L.marker([r[i][0],r[i][1]],{icon:L.divIcon({className:'pdr',iconSize:[22,22],iconAnchor:[11,11],html:String(n)})}).addTo(mapa)
+        .bindPopup('<b>Parada '+n+'</b><br>'+hm(r[i][2])+' até '+hm(r[k][2])+' · '+durTxt(dur));
+    }
+    i=k>i?k:i+1;
+  }
+}
+/* ===== REPLAY: a seta laranja percorre o trajeto ===== */
+const rp={tocando:false,pos:0,vel:1,m:null,ult:0};
+function rpIcone(curso){return L.divIcon({className:'veic',iconSize:[34,34],iconAnchor:[17,17],html:'<div class="seta" style="transition:none;transform:rotate('+curso+'deg)"><svg viewBox="0 0 34 34"><circle cx="17" cy="17" r="15" fill="#f59e0b" stroke="#fff" stroke-width="2.5"/><path d="M17 7l7 17-7-4-7 4z" fill="#fff"/></svg></div>'})}
+function rumo(a,b){const y=Math.sin((b[1]-a[1])*Math.PI/180)*Math.cos(b[0]*Math.PI/180),x=Math.cos(a[0]*Math.PI/180)*Math.sin(b[0]*Math.PI/180)-Math.sin(a[0]*Math.PI/180)*Math.cos(b[0]*Math.PI/180)*Math.cos((b[1]-a[1])*Math.PI/180);return (Math.atan2(y,x)*180/Math.PI+360)%360}
+function rpMostrar(){
+  if(!rota)return; const t0=rota[0][2],t1=rota[rota.length-1][2],t=t0+(t1-t0)*rp.pos;
+  let i=0; while(i<rota.length-2&&rota[i+1][2]<t)i++;
+  const a=rota[i],b=rota[i+1],k=b[2]>a[2]?Math.min(1,Math.max(0,(t-a[2])/(b[2]-a[2]))):0,ll=[a[0]+(b[0]-a[0])*k,a[1]+(b[1]-a[1])*k];
+  const andou=mapa.distance([a[0],a[1]],[b[0],b[1]])>3;
+  if(!rp.m)rp.m=L.marker(ll,{icon:rpIcone(0),zIndexOffset:900}).addTo(mapa); else rp.m.setLatLng(ll);
+  if(andou){const c=Math.round(rumo(a,b)); if(c!==rp.curso){rp.curso=c;rp.m.setIcon(rpIcone(c))}}
+  $('rpTxt').textContent=hm(t)+' · '+(andou?b[3]:0)+' km/h';
+  $('rpBarra').value=String(Math.round(rp.pos*1000));
+  if(rp.tocando&&!mapa.getBounds().pad(-0.15).contains(ll))mapa.panTo(ll,{animate:true,duration:.5});
+}
+function rpPasso(agora){
+  if(!rp.tocando)return;
+  const dt=agora-rp.ult; rp.ult=agora;
+  rp.pos+=dt/(40000/rp.vel); // o trajeto inteiro em 40 s no 1x
+  if(rp.pos>=1){rp.pos=1;rp.tocando=false;$('rpPlay').textContent='▶'}
+  rpMostrar(); if(rp.tocando)requestAnimationFrame(rpPasso);
+}
+$('btReplay').onclick=function(){const r=$('replay');r.classList.toggle('on');if(r.classList.contains('on')){seguir=false;pintarSeguir();rpMostrar()}else{rp.tocando=false;$('rpPlay').textContent='▶';if(rp.m){mapa.removeLayer(rp.m);rp.m=null}}};
+$('rpPlay').onclick=function(){if(!rota)return; if(rp.tocando){rp.tocando=false;this.textContent='▶';return}
+  if(rp.pos>=1)rp.pos=0; rp.tocando=true;this.textContent='⏸';rp.ult=performance.now();requestAnimationFrame(rpPasso)};
+$('rpVel').onclick=function(){rp.vel=rp.vel===1?2:rp.vel===2?4:1;this.textContent=rp.vel+'x'};
+$('rpBarra').oninput=function(){rp.pos=Number(this.value)/1000;rpMostrar()};
+
+/* ===== MODO ROUBO: atualiza a cada 5 s, mostra o endereço e monta a mensagem de roubo no WhatsApp ===== */
+$('btRoubo').onclick=function(){
+  roubo=!roubo; document.body.classList.toggle('roubo',roubo);
+  this.textContent=roubo?'✖ Sair do roubo':'🚨 Modo roubo'; this.className=roubo?'perigo':'';
+  $('btWpp').textContent=roubo?'🚨 Enviar roubo':'📍 WhatsApp';
+  clearInterval(tm); tm=setInterval(buscar,roubo?INTERVALO_ROUBO:INTERVALO);
+  setTimeout(function(){mapa.invalidateSize()},60);
+  if(roubo){seguir=true;pintarSeguir();try{if(tg&&tg.requestFullscreen&&tg.isVersionAtLeast&&tg.isVersionAtLeast('8.0'))tg.requestFullscreen()}catch(e){}
+    if(ultimo&&ultimo.lat!=null)mapa.setView([ultimo.lat,ultimo.lon],Math.max(mapa.getZoom(),17));buscar()}
+  else{try{if(tg&&tg.exitFullscreen&&tg.isFullscreen)tg.exitFullscreen()}catch(e){}}
+};
+
+/* ===== BLOQUEAR / LIBERAR: não executa aqui — o robô manda o cartão ✅ Confirmar na conversa ===== */
+$('btBloq').onclick=function(){
+  if(!ultimo)return; const liberar=ultimo.bloq===true, b=this; b.disabled=true;
+  fetch(API,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({mapinha:{initData:initData,ids:[ultimo.id],acao:liberar?'desbloquear':'bloquear'}})})
+    .then(function(r){return r.json().then(function(j){return {s:r.status,j:j}})})
+    .then(function(x){ if(x.s!==200)throw new Error((x.j&&x.j.erro)||'');
+      msg('Mandei o pedido na conversa. Toque em ✅ Confirmar lá para '+(liberar?'liberar':'bloquear')+'.',6000);
+      setTimeout(function(){try{if(tg&&tg.close)tg.close()}catch(e){}},2600) })
+    .catch(function(e){msg(e&&e.message?e.message:'Não consegui pedir agora. Tente de novo.')})
+    .then(function(){b.disabled=false});
+};
 })();
 </script>
 </body>
