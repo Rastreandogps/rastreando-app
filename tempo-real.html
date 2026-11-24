@@ -3575,7 +3575,9 @@ let ladoCpfsPedido=false;
 function ladoCpfs(v){ try{ return clientesDoEquip(v).map(u=>soNum((cpfsMapa[u.id]&&cpfsMapa[u.id].cpf)||(u.attributes&&u.attributes.cpf)||'')).join(' ') }catch(e){ return '' } }
 function ladoCasa(v,q,qd){
     const b=(v.nome+' '+(v.placa||'')+' '+(v.contato||'')+' '+(ehAdmin?rotuloCliente(v)+' '+(v.retDono||'')+' '+(v.wppVeic||'')+' '+(v.fone||'')+' '+(v.imei||'')+' '+ladoCpfs(v):'')).toLowerCase(); /* 21/10/2026: também o número do chip, o IMEI e o CPF/CNPJ do cliente (administrador) */ /* o cliente só é procurado quando há texto na busca; 19/10/2026: também o dono "Para retirar" e o WhatsApp do veículo */
-    return b.includes(q) || (qd.length>=3 && b.replace(/\D/g,'').includes(qd));
+    /* 24/11/2026 (dono): sem diferença de acento ("debora" acha "Débora"); procura em TODOS os clientes ligados ao veículo */
+    const sa=t=>{ try{ return t.normalize('NFD').replace(/[\u0300-\u036f]/g,'') }catch(e){ return t } };
+    return sa(b).includes(sa(q)) || (qd.length>=3 && b.replace(/\D/g,'').includes(qd));
 }
 /* 24/11/2026 (dono): a busca da lista tira do mapa quem não bate com o texto (não mexe nas caixinhas; apagou o texto, volta tudo) */
 let buscaMapaT=null;
