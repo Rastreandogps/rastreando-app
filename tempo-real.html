@@ -41,7 +41,7 @@ try{ if(localStorage.getItem('rg_token')||sessionStorage.getItem('rgv_rg_token')
 try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'){document.documentElement.setAttribute('data-tema',t)}}catch(e){}
 </script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="stylesheet" href="app.css?v=84"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
+<link rel="stylesheet" href="app.css?v=85"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
 </head>
 <body>
 
@@ -8268,11 +8268,10 @@ function blocoUso(u){
 /* filtros e ordem da lista de clientes (10/10/2026). A escolha fica lembrada neste aparelho. */
 const finDe=u=>finMapa&&finMapa[u.id];
 /* 25/11/2026 (dono): no lugar das iniciais (quadrado FD/GD), a MEDALHA do cliente, solta, sem quadrado (classificação da Gestão) */
-/* 25/11/2026 (dono, opção A): medalha desenhada com a letra (O/P/L), cores bem diferentes e igual no PC e no celular */
-const medSvg=(f,b,t,l)=>'<svg viewBox="0 0 44 54" width="30" height="37" aria-hidden="true"><path d="M10 0h9l5 14-7 4zM25 0h9l-7 18-7-4z" fill="#2563eb"/><circle cx="22" cy="34" r="17" fill="'+f+'" stroke="'+b+'" stroke-width="3"/><text x="22" y="40" text-anchor="middle" font-size="17" font-weight="800" fill="'+t+'" font-family="system-ui,sans-serif">'+l+'</text></svg>';
-const MEDALHA={ouro:[medSvg('#f5b301','#b07d00','#6b4a00','O'),'Ouro: paga em dia'],prata:[medSvg('#d5dbe3','#8a96a5','#4b5563','P'),'Prata: paga quase sempre em dia'],latao:[medSvg('#b8693a','#7a3f1c','#fff','L'),'Latão: atrasa com frequência']};
+/* 25/11/2026 (dono): medalhas com a arte do dono (icv/medalha-*.webp), no lugar das iniciais */
+const MEDALHA={ouro:['ouro','Cliente Ouro: bom pagador'],prata:['prata','Cliente Prata: pagador regular'],latao:['latao','Cliente Bronze: iniciante / em análise']};
 function medalhaHtml(fm){ const m=fm&&MEDALHA[fm.medalha]; if(!m) return '';
-  return '<span class="cmed" title="'+esc(m[1]+(fm.medalhaPoucos?' · cliente novo, poucos boletos':''))+'" aria-label="Medalha '+esc(m[1])+'">'+m[0]+'</span>' }
+  return '<span class="cmed" title="'+esc(m[1]+(fm.medalhaPoucos?' · cliente novo, poucos boletos':''))+'"><img src="icv/medalha-'+m[0]+'.webp" alt="'+esc(m[1])+'" width="44" height="44" loading="lazy" decoding="async"></span>' }
 const FILTROS_CLI=[
   {id:'hoje',   t:'Criados hoje', ok:u=>desdeDe(u)===hojeISO(), tit:'Clientes cadastrados hoje (para achar rápido quem o técnico está instalando)'},
   {id:'todos',  t:'Todos',        ok:()=>true},
