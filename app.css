@@ -3839,3 +3839,5 @@ body.mapa-google #map .leaflet-top.leaflet-left > [data-gm="logo"]{transform-ori
 #aview .cmed img{display:block;width:44px;height:44px;filter:drop-shadow(0 1px 1.5px rgba(0,0,0,.25))}
 /* 25/11/2026: fora do mapa (Admin, Histórico...) a neve do Natal some de vez (antes ficava congelada por cima das telas, parecendo manchas brancas) */
 body.foramapa #natalBox{display:none}
+/* 25/11/2026 (dono): no celular, cliente SEM medalha — guarda a 1ª linha para os botões (antes o quadrado das iniciais fazia isso; a estrela ficava em cima do olho) */
+@media (max-width:480px){#aview details.cli .ctopo:not(:has(.cmed))::before{content:"";flex:0 0 42px;height:42px}}
