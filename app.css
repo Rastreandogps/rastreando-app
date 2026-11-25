@@ -3834,3 +3834,6 @@ body.mapa-google #map .leaflet-top.leaflet-left > [data-gm="logo"]{transform-ori
 .rncl .rnnao{background:rgba(148,163,184,.25);color:var(--txt)}
 .rncl .rnadd{background:#0f766e;color:#fff}
 .rnvz{font-size:13px;color:var(--mut);padding:4px 2px}
+/* 25/11/2026: medalha do cliente no lugar das iniciais (sem quadrado) */
+#aview .cmed{flex:none;width:44px;height:44px;display:flex;align-items:center;justify-content:center;font-size:38px;line-height:1;filter:drop-shadow(0 1px 2px rgba(0,0,0,.25))}
+#aview .cmed.vazio{width:0;margin:0}
