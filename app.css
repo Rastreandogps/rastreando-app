@@ -3835,6 +3835,7 @@ body.mapa-google #map .leaflet-top.leaflet-left > [data-gm="logo"]{transform-ori
 .rncl .rnadd{background:#0f766e;color:#fff}
 .rnvz{font-size:13px;color:var(--mut);padding:4px 2px}
 /* 25/11/2026: medalha do cliente no lugar das iniciais (sem quadrado) */
-#aview .cmed{flex:none;align-self:flex-start;width:34px;height:34px;margin-top:2px;display:flex;align-items:center;justify-content:center;font-size:30px;line-height:1}
+#aview .cmed{flex:none;align-self:flex-start;width:30px;height:37px;margin-top:0;display:flex;align-items:center;justify-content:center;line-height:0}
+#aview .cmed svg{display:block;filter:drop-shadow(0 1px 1.5px rgba(0,0,0,.25))}
 /* 25/11/2026: fora do mapa (Admin, Histórico...) a neve do Natal some de vez (antes ficava congelada por cima das telas, parecendo manchas brancas) */
 body.foramapa #natalBox{display:none}
