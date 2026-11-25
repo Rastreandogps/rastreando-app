@@ -3835,9 +3835,15 @@ body.mapa-google #map .leaflet-top.leaflet-left > [data-gm="logo"]{transform-ori
 .rncl .rnadd{background:#0f766e;color:#fff}
 .rnvz{font-size:13px;color:var(--mut);padding:4px 2px}
 /* 25/11/2026: medalha do cliente no lugar das iniciais (sem quadrado) */
-#aview .cmed{flex:none;align-self:flex-start;width:44px;height:44px;display:flex;align-items:center;justify-content:center;line-height:0}
-#aview .cmed img{display:block;width:44px;height:44px;filter:drop-shadow(0 1px 1.5px rgba(0,0,0,.25))}
+#aview .cmed{flex:none;align-self:center;width:36px;height:36px;display:flex;align-items:center;justify-content:center;line-height:0}
+#aview .cmed img{display:block;width:36px;height:36px;filter:drop-shadow(0 1px 1.5px rgba(0,0,0,.25))}
 /* 25/11/2026: fora do mapa (Admin, Histórico...) a neve do Natal some de vez (antes ficava congelada por cima das telas, parecendo manchas brancas) */
 body.foramapa #natalBox{display:none}
 /* 25/11/2026 (dono): no celular, cliente SEM medalha — guarda a 1ª linha para os botões (antes o quadrado das iniciais fazia isso; a estrela ficava em cima do olho) */
-@media (max-width:480px){#aview details.cli .ctopo:not(:has(.cmed))::before{content:"";flex:0 0 42px;height:42px}}
+/* 25/11/2026 (dono): 1ª linha = medalha + NOME numa linha só; o nome passa POR BAIXO dos botões (corta com "…"); tocar no nome mostra o nome inteiro */
+#aview details.cli .ctopo,#aview details.cli summary:has(.cacoes > :nth-child(4)) .ctopo{display:flex;align-items:center;gap:8px;flex-wrap:nowrap;padding-right:22px;min-height:40px;row-gap:0}
+#aview details.cli .cacoes{z-index:2;background:var(--card,#fff);box-shadow:-14px 0 10px -2px var(--card,#fff);border-radius:12px}
+#aview .cnmbtn{flex:1;min-width:0;margin:0;padding:0;border:0;background:none;color:inherit;text-align:left;font-size:16px;font-weight:650;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;position:relative;z-index:1}
+#aview details.cli .ctopo2{margin-top:4px}
+#aview details.cli .ctopo2 .t:empty{display:none}
+#aview details.cli .ctopo2 .cfinmini{margin-left:0;margin-right:6px}

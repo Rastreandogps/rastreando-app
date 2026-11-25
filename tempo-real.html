@@ -41,7 +41,7 @@ try{ if(localStorage.getItem('rg_token')||sessionStorage.getItem('rgv_rg_token')
 try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'){document.documentElement.setAttribute('data-tema',t)}}catch(e){}
 </script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="stylesheet" href="app.css?v=86"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
+<link rel="stylesheet" href="app.css?v=87"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
 </head>
 <body>
 
@@ -8268,6 +8268,19 @@ function blocoUso(u){
 /* filtros e ordem da lista de clientes (10/10/2026). A escolha fica lembrada neste aparelho. */
 const finDe=u=>finMapa&&finMapa[u.id];
 /* 25/11/2026 (dono): no lugar das iniciais (quadrado FD/GD), a MEDALHA do cliente, solta, sem quadrado (classificação da Gestão) */
+/* 25/11/2026 (dono): o nome no cartão fica numa linha só (corta com "…"); tocar abre esta janelinha com o nome completo e Copiar */
+function nomeCliAbrir(u){
+  let m=$('mNomeCli');
+  if(!m){ m=document.createElement('div'); m.className='modal'; m.id='mNomeCli';
+    m.innerHTML='<div class="box2"><h3>Nome do cliente</h3><p id="nomeCliTxt" style="font-size:17px;font-weight:700;line-height:1.35;overflow-wrap:anywhere;margin:6px 0 4px"></p><p id="nomeCliLog" style="font-size:13px;color:var(--mut);margin:0 0 12px"></p><div class="actions2"><button class="btn btn-out" type="button" id="nomeCliCopiar">Copiar</button><button class="btn" type="button" id="nomeCliFechar">Fechar</button></div></div>';
+    document.body.appendChild(m);
+    m.addEventListener('click',e=>{ if(e.target===m) m.classList.remove('show') });
+    $('nomeCliFechar').onclick=()=>m.classList.remove('show');
+    $('nomeCliCopiar').onclick=()=>copiar($('nomeCliTxt').textContent).then(()=>toast('Nome copiado.')).catch(()=>toast('Não foi possível copiar'));
+  }
+  $('nomeCliTxt').textContent=u.name||loginDe(u); $('nomeCliLog').textContent='Login: '+loginDe(u).replace(EMAIL_FALSO,'');
+  m.classList.add('show');
+}
 /* 25/11/2026 (dono): medalhas com a arte do dono (icv/medalha-*.webp), no lugar das iniciais */
 const MEDALHA={ouro:['ouro','Cliente Ouro: bom pagador'],prata:['prata','Cliente Prata: pagador regular'],latao:['latao','Cliente Bronze: iniciante / em análise']};
 function medalhaHtml(fm){ const m=fm&&MEDALHA[fm.medalha]; if(!m) return '';
@@ -8340,7 +8353,7 @@ function desenharClientes(fundo){
     const temWpp=u.phone&&normWpp(u.phone);
     return '<details class="cli" data-u="'+u.id+'"'+(abertos[u.id]?' open':'')+'><summary>'+
       '<div class="cinfo">'+
-        '<div class="ctopo">'+medalhaHtml(fm)+'<div class="cnome"><div class="t">'+esc(u.name)+icoEstrela(u,fm)+(acessosMapa&&usoDados(u).desde?'<span class="cbloqagora">bloqueado</span>':'')+'<span class="cfinmini pill '+(fin.c||'neutro')+'" title="Financeiro">'+esc(fin.t)+'</span>'+(u.disabled?'<span class="cfinmini cdesat" title="Acesso ao app desativado">acesso desativado</span>':'')+'</div><div class="clog">'+esc(loginDe(u).replace(EMAIL_FALSO,''))+' <span class="cdesde">· '+(fmtDesde(u)?'cliente desde '+fmtDesde(u):'sem data de cadastro')+'</span></div><div class="cult">Último acesso: '+valorAcesso(u)+'</div></div></div>'+
+        '<div class="ctopo">'+medalhaHtml(fm)+'<button type="button" class="cnmbtn" data-a="nomecli" data-u="'+u.id+'" title="Ver o nome completo">'+esc(u.name||loginDe(u))+'</button></div><div class="ctopo2"><div class="cnome"><div class="t">'+(acessosMapa&&usoDados(u).desde?'<span class="cbloqagora">bloqueado</span>':'')+'<span class="cfinmini pill '+(fin.c||'neutro')+'" title="Financeiro">'+esc(fin.t)+'</span>'+(u.disabled?'<span class="cfinmini cdesat" title="Acesso ao app desativado">acesso desativado</span>':'')+'</div><div class="clog">'+esc(loginDe(u).replace(EMAIL_FALSO,''))+' <span class="cdesde">· '+(fmtDesde(u)?'cliente desde '+fmtDesde(u):'sem data de cadastro')+'</span></div><div class="cult">Último acesso: '+valorAcesso(u)+'</div></div></div>'+
         '<div class="ficha">'+
           '<div class="fi"><span class="fl">CPF</span><span class="fv">'+(cpf?esc(fmtCpf(cpf))+'<button type="button" class="cpfcp" data-cpfcp="'+esc(soNum(cpf))+'" title="Copiar o CPF/CNPJ" aria-label="Copiar o CPF/CNPJ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg></button>':'<span class="fmut">não cadastrado</span>')+'</span></div>'+
           '<div class="fi"><span class="fl">WhatsApp</span><span class="fv">'+(temWpp?'<a class="wpplink" href="https://wa.me/'+soNum(normWpp(u.phone))+'" target="_blank" rel="noopener" onclick="event.stopPropagation()" title="Abrir a conversa no WhatsApp">'+esc(fmtWpp(u.phone))+'</a>':'<span class="bd-mal">não cadastrado</span>')+'</span></div>'+ /* 16/10/2026: o número abre o WhatsApp do cliente, sem texto */
@@ -8474,6 +8487,7 @@ $('aList').addEventListener('click',e=>{
       });
     return;
   }
+  if(b.dataset.a==='nomecli'){ e.stopPropagation(); const u=usuarios.find(x=>x.id===+b.dataset.u); if(u) nomeCliAbrir(u); return } /* 25/11/2026 (dono): nome completo + copiar */
   if(b.dataset.a==='perm'){ abrirPermissoes(+b.dataset.u); return }
   if(b.dataset.a==='assin'){ assinAbrir(+b.dataset.u,null); return } /* 15/10/2026 */
   if(b.dataset.a==='vercomo'){ verComoAbrir(+b.dataset.u); return } /* 16/10/2026 */
