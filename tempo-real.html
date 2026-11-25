@@ -41,7 +41,7 @@ try{ if(localStorage.getItem('rg_token')||sessionStorage.getItem('rgv_rg_token')
 try{var t=localStorage.getItem('tema');if(t==='claro'||t==='escuro'||t==='misto'){document.documentElement.setAttribute('data-tema',t)}}catch(e){}
 </script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="stylesheet" href="app.css?v=82"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
+<link rel="stylesheet" href="app.css?v=83"><!-- 31/10/2026: o CSS do app agora fica em app.css -->
 </head>
 <body>
 
@@ -8269,7 +8269,7 @@ function blocoUso(u){
 const finDe=u=>finMapa&&finMapa[u.id];
 /* 25/11/2026 (dono): no lugar das iniciais (quadrado FD/GD), a MEDALHA do cliente, solta, sem quadrado (classificação da Gestão) */
 const MEDALHA={ouro:['🥇','Ouro: paga em dia'],prata:['🥈','Prata: paga quase sempre em dia'],latao:['🥉','Latão: atrasa com frequência']};
-function medalhaHtml(fm){ const m=fm&&MEDALHA[fm.medalha]; if(!m) return '<span class="cmed vazio" title="Sem medalha (sem CPF ou fora da classificação da Gestão)"></span>';
+function medalhaHtml(fm){ const m=fm&&MEDALHA[fm.medalha]; if(!m) return '';
   return '<span class="cmed" title="'+esc(m[1]+(fm.medalhaPoucos?' · cliente novo, poucos boletos':''))+'" aria-label="Medalha '+esc(m[1])+'">'+m[0]+'</span>' }
 const FILTROS_CLI=[
   {id:'hoje',   t:'Criados hoje', ok:u=>desdeDe(u)===hojeISO(), tit:'Clientes cadastrados hoje (para achar rápido quem o técnico está instalando)'},
