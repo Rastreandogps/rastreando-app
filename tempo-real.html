@@ -11943,6 +11943,23 @@ async function asPerguntar(q){
   }catch(e){ esp.classList.remove('asesp'); esp.classList.add('aserr'); esp.textContent=e.message||'Não consegui falar com o assistente.' }
   finally{ asOcupado=false; $('asEnviar').disabled=false; $('asChat').scrollTop=$('asChat').scrollHeight; try{ $('asTxt').focus() }catch(_){} }
 }
+async function asPdfRota(b){
+  try{
+    const sp=ms=>new Date(ms-3*3600000).toISOString(); /* horário de Brasília */
+    $('mAssist').classList.remove('show'); irPara('Histórico');
+    if($('hBusca')) $('hBusca').value=''; try{ histVeiculos() }catch(e){}
+    const sel=$('hVeic'); if(![...sel.options].some(o=>+o.value===+b.id)){ toast('Esse veículo não está na lista do Histórico.',5000); return }
+    sel.value=String(b.id);
+    $('hData').value=sp(b.de).slice(0,10); $('hDe').value=sp(b.de).slice(11,16);
+    $('hData2').value=sp(b.ate).slice(0,10); $('hAte').value=sp(b.ate).slice(11,16);
+    try{ histMarcarDia() }catch(e){}
+    toast('Buscando a rota para montar o PDF...',3000);
+    await $('hBuscar').onclick();
+    for(let i=0;i<40 && !hist.pts.length;i++) await new Promise(r=>setTimeout(r,250));
+    if(!hist.pts.length){ toast('Sem trajeto nesse período para montar o PDF.',5000); return }
+    await $('hPdf').onclick();
+  }catch(e){ toast((e&&e.message)||'Não consegui montar o PDF.',5000) }
+}
 /* etapa 2: cartão de confirmação de uma ação (bloquear, desbloquear, SMS). Vale 10 min; o servidor só executa com o toque. */
 function asConfirmarCard(p){
   const c=$('asChat'); const d=document.createElement('div'); d.className='asb asa asconf'; d.dataset.id=p.id;
@@ -11955,6 +11972,12 @@ function asConfirmarCard(p){
    Conta do administrador: fecha o assistente e abre a compra aqui. Cliente: gera o acesso de 1 hora (o mesmo "Entrar como cliente")
    e abre o app como ele, em outra aba, já na compra (o PIX sai no CPF do cliente). */
 function asBotaoCard(b){
+  if(b && b.tipo==='pdfRota'){ /* 25/11/2026 (dono): PDF da rota pedido ao assistente — abre o Histórico nesse veículo e período e baixa o mesmo PDF do Histórico */
+    const c=$('asChat'), d=document.createElement('div'); d.className='asb asa asconf asserv';
+    const per=hhData(b.de)+' '+hhmm(b.de)+' até '+hhData(b.ate)+' '+hhmm(b.ate);
+    d.innerHTML='<div class="asct">📄 Relatório da rota</div><div class="asdesc">'+esc(b.nome||'Veículo')+' · '+esc(per)+'</div><div class="asbts"><button type="button" class="asok" data-aspdf="1">Baixar PDF</button></div>';
+    d.querySelector('[data-aspdf]').onclick=()=>asPdfRota(b);
+    c.appendChild(d); c.scrollTop=c.scrollHeight; return }
   if(b && b.tipo==='servico'){ /* 04/11/2026: prestador perto do veículo (mesma lista do botão Serviços) — WhatsApp sem mensagem pronta (pedido do dono) */
     const c=$('asChat'), d=document.createElement('div'); d.className='asb asa asconf asserv';
     const info=[b.distKm!=null?'cerca de '+b.distKm+' km':'', b.h24?'24 horas':(b.horario||'')].filter(Boolean).join(' · ');
