@@ -8284,7 +8284,7 @@ function nomeCliAbrir(u){
 /* 25/11/2026 (dono): medalhas com a arte do dono (icv/medalha-*.webp), no lugar das iniciais */
 const MEDALHA={ouro:['ouro','Cliente Ouro: bom pagador'],prata:['prata','Cliente Prata: pagador regular'],latao:['latao','Cliente Bronze: iniciante / em análise']};
 function medalhaHtml(fm){ const m=fm&&MEDALHA[fm.medalha]; if(!m) return '';
-  return '<span class="cmed" title="'+esc(m[1]+(fm.medalhaPoucos?' · cliente novo, poucos boletos':''))+'"><img src="icv/medalha-'+m[0]+'.webp" alt="'+esc(m[1])+'" width="44" height="44" loading="lazy" decoding="async"></span>' }
+  return '<span class="cmed" title="'+esc(m[1]+(fm.medalhaPoucos?' · cliente novo, poucos boletos':''))+'"><img src="icv/medalha2-'+m[0]+'.webp" alt="'+esc(m[1])+'" width="44" height="44" loading="lazy" decoding="async"></span>' }
 const FILTROS_CLI=[
   {id:'hoje',   t:'Criados hoje', ok:u=>desdeDe(u)===hojeISO(), tit:'Clientes cadastrados hoje (para achar rápido quem o técnico está instalando)'},
   {id:'todos',  t:'Todos',        ok:()=>true},
