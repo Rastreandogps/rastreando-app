@@ -7872,7 +7872,7 @@ function rotuloFin(){
   return 'Atualizar situação financeira (última: '+h+')';
 }
 async function carregarFin(forcar){
-  try{ const r=await fn('situacao',{forcar:!!forcar}); finMapa=r.clientes||{}; finEm=Date.now(); rotularFin(); if(abaAdmin==='cli' && $('aview').classList.contains('show')) desenharClientes(true); return true }
+  try{ const r=await fn('situacao',{forcar:!!forcar}); finMapa=r.clientes||{}; finEm=Date.now(); medGuardar(finMapa); rotularFin(); if(abaAdmin==='cli' && $('aview').classList.contains('show')) desenharClientes(true); return true }
   catch(e){ if(forcar) toast('Não consegui atualizar o financeiro: '+e.message); return false }
 }
 /* ao abrir o painel ou a aba Clientes, atualiza se a informação tiver mais de 30 segundos */
@@ -8283,6 +8283,10 @@ function nomeCliAbrir(u){
 }
 /* 25/11/2026 (dono): medalhas com a arte do dono (icv/medalha-*.webp), no lugar das iniciais */
 const MEDALHA={ouro:['ouro','Cliente Ouro: bom pagador'],prata:['prata','Cliente Prata: pagador regular'],latao:['latao','Cliente Bronze: iniciante / em análise']};
+/* 26/11/2026 (dono): a medalha fica fixa enquanto o financeiro carrega — usa a última conhecida, guardada no aparelho */
+let _medG=null;
+function medGuardada(id){ if(!_medG){ try{ _medG=JSON.parse(lsGet('rg_medalhas')||'{}')||{} }catch(e){ _medG={} } } const g=_medG[id]; return g?{medalha:g[0],medalhaPoucos:!!g[1]}:null }
+function medGuardar(mapa){ try{ const o={}; Object.keys(mapa||{}).forEach(k=>{ const f=mapa[k]; if(f&&f.medalha) o[k]=[f.medalha,f.medalhaPoucos?1:0] }); _medG=o; lsSet('rg_medalhas',JSON.stringify(o)) }catch(e){} }
 function medalhaHtml(fm){ const m=fm&&MEDALHA[fm.medalha]; if(!m) return '';
   return '<span class="cmed" title="'+esc(m[1]+(fm.medalhaPoucos?' · cliente novo, poucos boletos':''))+'"><img src="icv/medalha2-'+m[0]+'.webp?v=3" alt="'+esc(m[1])+'" width="44" height="44" loading="lazy" decoding="async"></span>' }
 const FILTROS_CLI=[
@@ -8353,7 +8357,7 @@ function desenharClientes(fundo){
     const temWpp=u.phone&&normWpp(u.phone);
     return '<details class="cli" data-u="'+u.id+'"'+(abertos[u.id]?' open':'')+'><summary>'+
       '<div class="cinfo">'+
-        '<div class="ctopo">'+medalhaHtml(fm)+'<button type="button" class="cnmbtn" data-a="nomecli" data-u="'+u.id+'" title="Ver o nome completo">'+esc(u.name||loginDe(u))+'</button></div><div class="ctopo2"><div class="cnome"><div class="t">'+(acessosMapa&&usoDados(u).desde?'<span class="cbloqagora">bloqueado</span>':'')+'<span class="cfinmini pill '+(fin.c||'neutro')+'" title="Financeiro">'+esc(fin.t)+'</span>'+(u.disabled?'<span class="cfinmini cdesat" title="Acesso ao app desativado">acesso desativado</span>':'')+'</div><div class="clog">'+esc(loginDe(u).replace(EMAIL_FALSO,''))+' <span class="cdesde">· '+(fmtDesde(u)?'cliente desde '+fmtDesde(u):'sem data de cadastro')+'</span></div><div class="cult">Último acesso: '+valorAcesso(u)+'</div></div></div>'+
+        '<div class="ctopo">'+medalhaHtml(fm||medGuardada(u.id))+'<button type="button" class="cnmbtn" data-a="nomecli" data-u="'+u.id+'" title="Ver o nome completo">'+esc(u.name||loginDe(u))+'</button></div><div class="ctopo2"><div class="cnome"><div class="t">'+(acessosMapa&&usoDados(u).desde?'<span class="cbloqagora">bloqueado</span>':'')+'<span class="cfinmini pill '+(fin.c||'neutro')+'" title="Financeiro">'+esc(fin.t)+'</span>'+(u.disabled?'<span class="cfinmini cdesat" title="Acesso ao app desativado">acesso desativado</span>':'')+'</div><div class="clog">'+esc(loginDe(u).replace(EMAIL_FALSO,''))+' <span class="cdesde">· '+(fmtDesde(u)?'cliente desde '+fmtDesde(u):'sem data de cadastro')+'</span></div><div class="cult">Último acesso: '+valorAcesso(u)+'</div></div></div>'+
         '<div class="ficha">'+
           '<div class="fi"><span class="fl">CPF</span><span class="fv">'+(cpf?esc(fmtCpf(cpf))+'<button type="button" class="cpfcp" data-cpfcp="'+esc(soNum(cpf))+'" title="Copiar o CPF/CNPJ" aria-label="Copiar o CPF/CNPJ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg></button>':'<span class="fmut">não cadastrado</span>')+'</span></div>'+
           '<div class="fi"><span class="fl">WhatsApp</span><span class="fv">'+(temWpp?'<a class="wpplink" href="https://wa.me/'+soNum(normWpp(u.phone))+'" target="_blank" rel="noopener" onclick="event.stopPropagation()" title="Abrir a conversa no WhatsApp">'+esc(fmtWpp(u.phone))+'</a>':'<span class="bd-mal">não cadastrado</span>')+'</span></div>'+ /* 16/10/2026: o número abre o WhatsApp do cliente, sem texto */
