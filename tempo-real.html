@@ -8367,7 +8367,7 @@ let _medG=null;
 function medGuardada(id){ if(!_medG){ try{ _medG=JSON.parse(lsGet('rg_medalhas')||'{}')||{} }catch(e){ _medG={} } } const g=_medG[id]; return g?{medalha:g[0],medalhaPoucos:!!g[1]}:null }
 function medGuardar(mapa){ try{ const o={}; Object.keys(mapa||{}).forEach(k=>{ const f=mapa[k]; if(f&&f.medalha) o[k]=[f.medalha,f.medalhaPoucos?1:0] }); _medG=o; lsSet('rg_medalhas',JSON.stringify(o)) }catch(e){} }
 function medalhaHtml(fm){ const m=fm&&MEDALHA[fm.medalha]; if(!m) return '';
-  return '<span class="cmed" title="'+esc(m[1]+(fm.medalhaPoucos?' · cliente novo, poucos boletos':''))+'"><img src="icv/medalha2-'+m[0]+'.webp?v=3" alt="'+esc(m[1])+'" width="44" height="44" loading="lazy" decoding="async"></span>' }
+  return '<span class="cmed" title="'+esc(m[1]+(fm.medalhaPoucos?' · cliente novo, poucos boletos':''))+'"><img src="icv/medalha2-'+m[0]+'.webp?v=4" alt="'+esc(m[1])+'" width="44" height="44" loading="lazy" decoding="async"></span>' }
 const FILTROS_CLI=[
   {id:'hoje',   t:'Criados hoje', ok:u=>desdeDe(u)===hojeISO(), tit:'Clientes cadastrados hoje (para achar rápido quem o técnico está instalando)'},
   {id:'todos',  t:'Todos',        ok:()=>true},
